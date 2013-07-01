@@ -1,6 +1,18 @@
 Analytics plugin
 ================
 
+Reporting schema
+----------------
+
+This plugin maintains a reporting schema that is kept current in realtime for Analytics purposes. These tables are meant to be used as building blocks for reports and dashboards.
+
+By design, most data has been denormalized across tables to avoid joins.
+
+The latest version of the schema can be found [here](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/com/ning/billing/osgi/bundles/analytics/ddl.sql).
+
+Dashboards
+----------
+
 The Analytics plugin provides simple, yet powerful, dashboarding capabilities.
 
 To create a dashboard, go to (http://127.0.0.1:8080/plugins/killbill-analytics/static/analytics.html).
