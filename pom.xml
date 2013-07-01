@@ -26,6 +26,17 @@
     <name>Kill Bill OSGI Analytics bundle</name>
     <version>0.3.2-SNAPSHOT</version>
     <packaging>bundle</packaging>
+    <description>Kill Bill Analytics plugin</description>
+    <url>http://github.com/killbill/killbill-analytics-plugin</url>
+    <scm>
+        <connection>scm:git:git://github.com/killbill/killbill-analytics-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:killbill/killbill-analytics-plugin.git</developerConnection>
+        <url>http://github.com/killbill/killbill-analytics-plugin/tree/master</url>
+    </scm>
+    <issueManagement>
+        <system>Github</system>
+        <url>https://github.com/killbill/killbill-analytics-plugin/issues</url>
+    </issueManagement>
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
