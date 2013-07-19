@@ -27,7 +27,7 @@ import org.joda.time.LocalDate;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
-import com.ning.billing.entitlement.api.user.SubscriptionBundle;
+import com.ning.billing.subscription.api.user.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceItem;
 import com.ning.billing.util.audit.AuditLog;

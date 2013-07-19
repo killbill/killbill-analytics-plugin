@@ -25,7 +25,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.Currency;
-import com.ning.billing.entitlement.api.user.SubscriptionState;
+import com.ning.billing.subscription.api.user.SubscriptionState;
 import com.ning.billing.invoice.api.InvoicePaymentType;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;

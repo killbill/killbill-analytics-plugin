@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.catalog.api.ProductCategory;
-import com.ning.billing.entitlement.api.user.SubscriptionTransition;
+import com.ning.billing.subscription.api.user.SubscriptionTransition;
 
 /**
  * Describe an event associated with a transition between two BusinessSubscription

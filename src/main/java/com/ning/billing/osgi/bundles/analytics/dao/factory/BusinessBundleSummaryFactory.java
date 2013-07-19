@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorCompletionService;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.ProductCategory;
-import com.ning.billing.entitlement.api.user.SubscriptionBundle;
+import com.ning.billing.subscription.api.user.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;

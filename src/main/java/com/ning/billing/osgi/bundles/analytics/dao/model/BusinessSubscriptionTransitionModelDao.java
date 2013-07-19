@@ -24,8 +24,8 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.entitlement.api.user.SubscriptionBundle;
-import com.ning.billing.entitlement.api.user.SubscriptionTransition;
+import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.subscription.api.user.SubscriptionTransition;
 import com.ning.billing.util.audit.AuditLog;
 
 /**

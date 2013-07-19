@@ -22,6 +22,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import com.ning.billing.entitlement.api.BlockingState;
+import com.ning.billing.entitlement.api.EntitlementApi;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.ObjectType;
@@ -33,18 +35,16 @@ import com.ning.billing.catalog.api.CatalogApiException;
 import com.ning.billing.catalog.api.CatalogUserApi;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
-import com.ning.billing.entitlement.api.user.EntitlementUserApi;
-import com.ning.billing.entitlement.api.user.EntitlementUserApiException;
-import com.ning.billing.entitlement.api.user.Subscription;
-import com.ning.billing.entitlement.api.user.SubscriptionBundle;
+import com.ning.billing.subscription.api.user.SubscriptionUserApi;
+import com.ning.billing.subscription.api.user.SubscriptionUserApiException;
+import com.ning.billing.subscription.api.user.Subscription;
+import com.ning.billing.subscription.api.user.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceApiException;
 import com.ning.billing.invoice.api.InvoiceItem;
 import com.ning.billing.invoice.api.InvoicePayment;
 import com.ning.billing.invoice.api.InvoicePaymentApi;
 import com.ning.billing.invoice.api.InvoiceUserApi;
-import com.ning.billing.junction.api.BlockingState;
-import com.ning.billing.junction.api.JunctionApi;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.payment.api.Payment;
@@ -163,24 +163,24 @@ public abstract class BusinessFactoryBase {
     //
 
     protected SubscriptionBundle getSubscriptionBundle(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
-        final EntitlementUserApi entitlementUserApi = getEntitlementUserApi();
+        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
 
         try {
-            return entitlementUserApi.getBundleFromId(bundleId, context);
-        } catch (EntitlementUserApiException e) {
+            return SubscriptionUserApi.getBundleFromId(bundleId, context);
+        } catch (SubscriptionUserApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving bundle for id " + bundleId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
 
     protected Collection<Subscription> getSubscriptionsForBundle(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
-        final EntitlementUserApi entitlementUserApi = getEntitlementUserApi();
-        return entitlementUserApi.getSubscriptionsForBundle(bundleId, context);
+        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
+        return SubscriptionUserApi.getSubscriptionsForBundle(bundleId, context);
     }
 
     protected List<SubscriptionBundle> getSubscriptionBundlesForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final EntitlementUserApi entitlementUserApi = getEntitlementUserApi();
-        return entitlementUserApi.getBundlesForAccount(accountId, context);
+        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
+        return SubscriptionUserApi.getBundlesForAccount(accountId, context);
     }
 
     protected Long getBundleRecordId(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
@@ -201,11 +201,11 @@ public abstract class BusinessFactoryBase {
     }
 
     protected Subscription getSubscription(final UUID subscriptionId, final TenantContext context) throws AnalyticsRefreshException {
-        final EntitlementUserApi entitlementUserApi = getEntitlementUserApi();
+        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
 
         try {
-            return entitlementUserApi.getSubscriptionFromId(subscriptionId, context);
-        } catch (EntitlementUserApiException e) {
+            return SubscriptionUserApi.getSubscriptionFromId(subscriptionId, context);
+        } catch (SubscriptionUserApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving subscription for id " + subscriptionId, e);
             throw new AnalyticsRefreshException(e);
         }
@@ -233,7 +233,7 @@ public abstract class BusinessFactoryBase {
     //
 
     protected List<BlockingState> getBlockingHistory(final UUID overdueableId, final TenantContext context) throws AnalyticsRefreshException {
-        final JunctionApi junctionUserApi = getJunctionUserApi();
+        final EntitlementApi junctionUserApi = getEntitlementUserApi();
         return junctionUserApi.getBlockingHistory(overdueableId, context);
     }
 
@@ -529,16 +529,16 @@ public abstract class BusinessFactoryBase {
         return auditUserApi;
     }
 
-    private EntitlementUserApi getEntitlementUserApi() throws AnalyticsRefreshException {
-        final EntitlementUserApi entitlementUserApi = osgiKillbillAPI.getEntitlementUserApi();
-        if (entitlementUserApi == null) {
-            throw new AnalyticsRefreshException("Error retrieving entitlementUserApi");
+    private SubscriptionUserApi getSubscriptionUserApi() throws AnalyticsRefreshException {
+        final SubscriptionUserApi SubscriptionUserApi = osgiKillbillAPI.getSubscriptionUserApi();
+        if (SubscriptionUserApi == null) {
+            throw new AnalyticsRefreshException("Error retrieving SubscriptionUserApi");
         }
-        return entitlementUserApi;
+        return SubscriptionUserApi;
     }
 
-    private JunctionApi getJunctionUserApi() throws AnalyticsRefreshException {
-        final JunctionApi junctionApi = osgiKillbillAPI.getJunctionApi();
+    private EntitlementApi getEntitlementUserApi() throws AnalyticsRefreshException {
+        final EntitlementApi junctionApi = osgiKillbillAPI.getEntitlementApi();
         if (junctionApi == null) {
             throw new AnalyticsRefreshException("Error retrieving junctionApi");
         }

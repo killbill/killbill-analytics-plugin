@@ -26,11 +26,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 
+import com.ning.billing.entitlement.api.BlockingState;
 import org.joda.time.DateTime;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.entitlement.api.user.SubscriptionBundle;
-import com.ning.billing.junction.api.BlockingState;
+import com.ning.billing.subscription.api.user.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;

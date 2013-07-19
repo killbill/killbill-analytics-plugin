@@ -20,11 +20,11 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.ning.billing.entitlement.api.BlockingState;
 import org.joda.time.DateTime;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.entitlement.api.user.SubscriptionBundle;
-import com.ning.billing.junction.api.BlockingState;
+import com.ning.billing.subscription.api.user.SubscriptionBundle;
 import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {

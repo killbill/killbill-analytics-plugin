@@ -33,7 +33,7 @@ import com.ning.billing.catalog.api.PriceList;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.osgi.bundles.analytics.utils.Rounder;
 
-import com.ning.billing.entitlement.api.user.SubscriptionState;
+import com.ning.billing.subscription.api.user.SubscriptionState;
 
 /**
  * Describe a subscription for Analytics purposes
