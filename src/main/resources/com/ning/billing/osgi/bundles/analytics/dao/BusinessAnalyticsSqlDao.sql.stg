@@ -949,8 +949,6 @@ insert into bipc (
 createBos() ::= <<
 insert into bos (
   blocking_state_record_id
-, bundle_id
-, bundle_external_key
 , status
 , start_date
 , end_date
@@ -966,8 +964,6 @@ insert into bos (
 , report_group
 ) values (
   :blockingStateRecordId
-, :bundleId
-, :bundleExternalKey
 , :status
 , :startDate
 , :endDate

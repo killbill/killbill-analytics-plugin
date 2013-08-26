@@ -25,8 +25,8 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -37,8 +37,7 @@ import org.testng.annotations.Test;
 import com.ning.billing.catalog.api.Currency;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.Product;
-import com.ning.billing.subscription.api.user.SubscriptionState;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 import com.ning.billing.osgi.bundles.analytics.BusinessExecutor;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscription;
@@ -78,22 +77,22 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testFilterBsts() throws Exception {
         final UUID bundleId1 = UUID.randomUUID();
-        final DateTime bundle1StartDate = new DateTime(2012, 1, 1, 1, 1);
-        final DateTime bundle1PhaseDate = new DateTime(2012, 2, 2, 1, 1);
+        final LocalDate bundle1StartDate = new LocalDate(2012, 1, 1);
+        final LocalDate bundle1PhaseDate = new LocalDate(2012, 2, 2);
         final UUID bundleId2 = UUID.randomUUID();
-        final DateTime bundle2StartDate = new DateTime(2012, 2, 1, 1, 1);
-        final DateTime bundle2PhaseDate = new DateTime(2012, 3, 2, 1, 1);
+        final LocalDate bundle2StartDate = new LocalDate(2012, 2, 1);
+        final LocalDate bundle2PhaseDate = new LocalDate(2012, 3, 2);
         final UUID bundleId3 = UUID.randomUUID();
-        final DateTime bundle3StartDate = new DateTime(2012, 3, 1, 1, 1);
+        final LocalDate bundle3StartDate = new LocalDate(2012, 3, 1);
 
-        // Real order is: bundleId1 ADD_BASE, bundleId2 ADD_BASE, bundleId1 SYSTEM_CHANGE_BASE, bundleId3 ADD_BASE bundleId2 SYSTEM_CHANGE_BASE
+        // Real order is: bundleId1 START_ENTITLEMENT_BASE, bundleId2 START_ENTITLEMENT_BASE, bundleId1 SYSTEM_CHANGE_BASE, bundleId3 START_ENTITLEMENT_BASE bundleId2 SYSTEM_CHANGE_BASE
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = ImmutableList.<BusinessSubscriptionTransitionModelDao>of(
-                createBst(bundleId1, "ADD_BASE", bundle1StartDate),
+                createBst(bundleId1, "START_ENTITLEMENT_BASE", bundle1StartDate),
                 createBst(bundleId1, "SYSTEM_CHANGE_BASE", bundle1PhaseDate),
-                createBst(bundleId2, "ADD_BASE", bundle2StartDate),
+                createBst(bundleId2, "START_ENTITLEMENT_BASE", bundle2StartDate),
                 createBst(bundleId2, "SYSTEM_CHANGE_BASE", bundle2PhaseDate),
-                createBst(bundleId3, "ADD_BASE", bundle3StartDate),
-                createBst(UUID.randomUUID(), "ADD_ADD_ON", new DateTime(DateTimeZone.UTC))
+                createBst(bundleId3, "START_ENTITLEMENT_BASE", bundle3StartDate),
+                createBst(UUID.randomUUID(), "START_ENTITLEMENT_ADD_ON", new LocalDate(DateTimeZone.UTC))
                                                                                                                                 );
 
         final Map<UUID, Integer> rankForBundle = new LinkedHashMap<UUID, Integer>();
@@ -111,11 +110,10 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(filteredBsts.get(2).getNextStartDate(), bundle3StartDate);
     }
 
-    private BusinessSubscriptionTransitionModelDao createBst(final UUID bundleId, final String eventString, final DateTime startDate) {
+    private BusinessSubscriptionTransitionModelDao createBst(final UUID bundleId, final String eventString, final LocalDate startDate) {
         final SubscriptionBundle bundle = Mockito.mock(SubscriptionBundle.class);
         Mockito.when(bundle.getId()).thenReturn(bundleId);
 
-        final DateTime requestedTimestamp = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf(eventString);
         final BusinessSubscription previousSubscription = null; // We don't look at it
 
@@ -128,14 +126,13 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
                                                                                null,
                                                                                Currency.GBP,
                                                                                startDate,
-                                                                               SubscriptionState.ACTIVE);
+                                                                               "ACTIVE");
 
         return new BusinessSubscriptionTransitionModelDao(account,
                                                           accountRecordId,
                                                           bundle,
                                                           subscriptionTransition,
                                                           subscriptionEventRecordId,
-                                                          requestedTimestamp,
                                                           event,
                                                           previousSubscription,
                                                           nextSubscription,

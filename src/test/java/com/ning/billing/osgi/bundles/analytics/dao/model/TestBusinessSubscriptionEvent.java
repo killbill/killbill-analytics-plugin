@@ -21,6 +21,7 @@ import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.ProductCategory;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionEvent.EventType;
 
 public class TestBusinessSubscriptionEvent extends AnalyticsTestSuiteNoDB {
 
@@ -28,20 +29,20 @@ public class TestBusinessSubscriptionEvent extends AnalyticsTestSuiteNoDB {
     public void testValueOf() throws Exception {
         BusinessSubscriptionEvent event;
 
-        event = BusinessSubscriptionEvent.valueOf("ADD_ADD_ON");
-        Assert.assertEquals(event.getEventType(), BusinessSubscriptionEvent.EventType.ADD);
+        event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_ADD_ON");
+        Assert.assertEquals(event.getEventType(), EventType.START_ENTITLEMENT);
         Assert.assertEquals(event.getCategory(), ProductCategory.ADD_ON);
 
-        event = BusinessSubscriptionEvent.valueOf("CANCEL_BASE");
-        Assert.assertEquals(event.getEventType(), BusinessSubscriptionEvent.EventType.CANCEL);
+        event = BusinessSubscriptionEvent.valueOf("STOP_ENTITLEMENT_BASE");
+        Assert.assertEquals(event.getEventType(), EventType.STOP_ENTITLEMENT);
         Assert.assertEquals(event.getCategory(), ProductCategory.BASE);
     }
 
     @Test(groups = "fast")
     public void testFromSubscription() throws Exception {
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.fromTransition(subscriptionTransition);
-        Assert.assertEquals(event.getEventType(), BusinessSubscriptionEvent.EventType.ADD);
+        Assert.assertEquals(event.getEventType(), EventType.START_ENTITLEMENT);
         Assert.assertEquals(event.getCategory(), subscriptionTransition.getNextPlan().getProduct().getCategory());
-        Assert.assertEquals(event.toString(), "ADD_" + plan.getProduct().getCategory().toString());
+        Assert.assertEquals(event.toString(), "START_ENTITLEMENT_" + plan.getProduct().getCategory().toString());
     }
 }

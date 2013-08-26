@@ -20,17 +20,13 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorCompletionService;
 
-import com.ning.billing.entitlement.api.BlockingState;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.entitlement.api.BlockingState;
+import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
@@ -44,53 +40,18 @@ import com.google.common.collect.Lists;
 
 public class BusinessOverdueStatusFactory extends BusinessFactoryBase {
 
-    private final Executor executor;
-
     public BusinessOverdueStatusFactory(final OSGIKillbillLogService logService,
-                                        final OSGIKillbillAPI osgiKillbillAPI,
-                                        final Executor executor) {
+                                        final OSGIKillbillAPI osgiKillbillAPI) {
         super(logService, osgiKillbillAPI);
-        this.executor = executor;
     }
 
     public Collection<BusinessOverdueStatusModelDao> createBusinessOverdueStatuses(final UUID accountId,
                                                                                    final CallContext context) throws AnalyticsRefreshException {
-        // We fetch the bundles in parallel as these can be very large on a per account basis (@see BusinessSubscriptionTransitionFactory)
-        // We don't care about the overall ordering but we do care about ordering for
-        // a given bundle (we'd like the generated record ids to be sequential).
-        final CompletionService<Collection<BusinessOverdueStatusModelDao>> completionService = new ExecutorCompletionService<Collection<BusinessOverdueStatusModelDao>>(executor);
-        final Collection<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(accountId, context);
-        final Collection<BusinessOverdueStatusModelDao> businessOverdueStatuses = new LinkedList<BusinessOverdueStatusModelDao>();
-        for (final SubscriptionBundle bundle : bundles) {
-            completionService.submit(new Callable<Collection<BusinessOverdueStatusModelDao>>() {
-                @Override
-                public Collection<BusinessOverdueStatusModelDao> call() throws Exception {
-                    // Recompute all blocking states for that bundle
-                    return createBusinessOverdueStatusesForBundle(accountId, bundle, context);
-                }
-            });
-        }
-        for (final SubscriptionBundle ignored : bundles) {
-            try {
-                businessOverdueStatuses.addAll(completionService.take().get());
-            } catch (InterruptedException e) {
-                throw new AnalyticsRefreshException(e);
-            } catch (ExecutionException e) {
-                throw new AnalyticsRefreshException(e);
-            }
-        }
-
-        return businessOverdueStatuses;
-    }
-
-    private Collection<BusinessOverdueStatusModelDao> createBusinessOverdueStatusesForBundle(final UUID accountId,
-                                                                                             final SubscriptionBundle subscriptionBundle,
-                                                                                             final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
         final Collection<BusinessOverdueStatusModelDao> businessOverdueStatuses = new LinkedList<BusinessOverdueStatusModelDao>();
 
-        final List<BlockingState> blockingStatesOrdered = getBlockingHistory(subscriptionBundle.getId(), context);
+        final List<SubscriptionEvent> blockingStatesOrdered = getBlockingHistory(accountId, context);
         if (blockingStatesOrdered.size() == 0) {
             return businessOverdueStatuses;
         }
@@ -99,22 +60,22 @@ public class BusinessOverdueStatusFactory extends BusinessFactoryBase {
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
 
-        final List<BlockingState> blockingStates = Lists.reverse(ImmutableList.<BlockingState>copyOf(blockingStatesOrdered));
-        DateTime previousStartDate = null;
-        for (final BlockingState state : blockingStates) {
+        final List<SubscriptionEvent> blockingStates = Lists.reverse(ImmutableList.<SubscriptionEvent>copyOf(blockingStatesOrdered));
+        LocalDate previousStartDate = null;
+        for (final SubscriptionEvent state : blockingStates) {
             final Long blockingStateRecordId = getBlockingStateRecordId(state.getId(), context);
             final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), context);
             final BusinessOverdueStatusModelDao overdueStatus = new BusinessOverdueStatusModelDao(account,
                                                                                                   accountRecordId,
-                                                                                                  subscriptionBundle,
-                                                                                                  state,
+                                                                                                  state.getServiceStateName(),
+                                                                                                  state.getEffectiveDate(),
                                                                                                   blockingStateRecordId,
                                                                                                   previousStartDate,
                                                                                                   creationAuditLog,
                                                                                                   tenantRecordId,
                                                                                                   reportGroup);
             businessOverdueStatuses.add(overdueStatus);
-            previousStartDate = state.getTimestamp();
+            previousStartDate = state.getEffectiveDate();
         }
 
         return businessOverdueStatuses;

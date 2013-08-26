@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 
@@ -28,7 +29,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final UUID bundleId;
     private final String bundleExternalKey;
     private final UUID subscriptionId;
-    private final DateTime requestedTimestamp;
+    private final LocalDate requestedTimestamp;
     private final String event;
 
     private final String prevProductName;
@@ -42,7 +43,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final BigDecimal prevMrr;
     private final String prevCurrency;
     private final Boolean prevBusinessActive;
-    private final DateTime prevStartDate;
+    private final LocalDate prevStartDate;
     private final String prevState;
 
     private final String nextProductName;
@@ -56,8 +57,8 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final BigDecimal nextMrr;
     private final String nextCurrency;
     private final Boolean nextBusinessActive;
-    private final DateTime nextStartDate;
-    private final DateTime nextEndDate;
+    private final LocalDate nextStartDate;
+    private final LocalDate nextEndDate;
     private final String nextState;
 
     public BusinessSubscriptionTransition(final BusinessSubscriptionTransitionModelDao bstModelDao) {
@@ -119,7 +120,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return subscriptionId;
     }
 
-    public DateTime getRequestedTimestamp() {
+    public LocalDate getRequestedTimestamp() {
         return requestedTimestamp;
     }
 
@@ -171,7 +172,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return prevBusinessActive;
     }
 
-    public DateTime getPrevStartDate() {
+    public LocalDate getPrevStartDate() {
         return prevStartDate;
     }
 
@@ -223,11 +224,11 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return nextBusinessActive;
     }
 
-    public DateTime getNextStartDate() {
+    public LocalDate getNextStartDate() {
         return nextStartDate;
     }
 
-    public DateTime getNextEndDate() {
+    public LocalDate getNextEndDate() {
         return nextEndDate;
     }
 

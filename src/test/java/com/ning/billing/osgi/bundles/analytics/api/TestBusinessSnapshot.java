@@ -18,13 +18,11 @@ package com.ning.billing.osgi.bundles.analytics.api;
 
 import java.math.BigDecimal;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.Currency;
-import com.ning.billing.subscription.api.user.SubscriptionState;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
@@ -107,11 +105,12 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
         final BusinessInvoicePayment businessInvoicePayment = new BusinessInvoicePayment(invoicePaymentBaseModelDao);
 
         // Overdue
-        final DateTime endDate = new DateTime(2005, 6, 5, 4, 5, 6, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2005, 2, 5);
+        final LocalDate endDate = new LocalDate(2005, 6, 5);
         final BusinessOverdueStatusModelDao businessOverdueStatusModelDao = new BusinessOverdueStatusModelDao(account,
                                                                                                               accountRecordId,
-                                                                                                              bundle,
-                                                                                                              blockingState,
+                                                                                                              blockingStateName,
+                                                                                                              startDate,
                                                                                                               blockingStateRecordId,
                                                                                                               endDate,
                                                                                                               auditLog,
@@ -119,19 +118,14 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                                               reportGroup);
         final BusinessOverdueStatus businessOverdueStatus = new BusinessOverdueStatus(businessOverdueStatusModelDao);
 
-        // Subscriptions
-        final DateTime startDate = new DateTime(2012, 6, 5, 4, 3, 12, DateTimeZone.UTC);
-        final DateTime requestedTimestamp = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
-
-        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("ADD_BASE");
+        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, SubscriptionState.ACTIVE);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
                                                                                                                                  subscriptionTransition,
                                                                                                                                  subscriptionEventRecordId,
-                                                                                                                                 requestedTimestamp,
                                                                                                                                  event,
                                                                                                                                  previousSubscription,
                                                                                                                                  nextSubscription,

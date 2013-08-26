@@ -22,9 +22,10 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
@@ -47,8 +48,8 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
     private BigDecimal currentMrr;
     private String currentCurrency;
     private Boolean currentBusinessActive;
-    private DateTime currentStartDate;
-    private DateTime currentEndDate;
+    private LocalDate currentStartDate;
+    private LocalDate currentEndDate;
     private String currentState;
 
     public BusinessBundleSummaryModelDao() { /* When reading from the database */ }
@@ -199,11 +200,11 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         return currentBusinessActive;
     }
 
-    public DateTime getCurrentStartDate() {
+    public LocalDate getCurrentStartDate() {
         return currentStartDate;
     }
 
-    public DateTime getCurrentEndDate() {
+    public LocalDate getCurrentEndDate() {
         return currentEndDate;
     }
 

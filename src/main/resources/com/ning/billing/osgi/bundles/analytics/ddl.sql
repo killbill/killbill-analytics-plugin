@@ -574,8 +574,6 @@ drop table if exists bos;
 create table bos (
   record_id int(11) unsigned not null auto_increment
 , blocking_state_record_id int(11) unsigned default null
-, bundle_id char(36) default null
-, bundle_external_key varchar(50) default null
 , status varchar(50) default null
 , start_date datetime default null
 , end_date datetime default null

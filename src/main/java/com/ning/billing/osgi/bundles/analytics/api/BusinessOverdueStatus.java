@@ -16,7 +16,7 @@
 
 package com.ning.billing.osgi.bundles.analytics.api;
 
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
@@ -25,8 +25,8 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
 
     private final String objectType;
     private final String status;
-    private final DateTime startDate;
-    private final DateTime endDate;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
 
     public BusinessOverdueStatus(final BusinessOverdueStatusModelDao businessOverdueStatusModelDao) {
         super(businessOverdueStatusModelDao.getCreatedDate(),
@@ -54,11 +54,11 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
         return status;
     }
 
-    public DateTime getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public DateTime getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 

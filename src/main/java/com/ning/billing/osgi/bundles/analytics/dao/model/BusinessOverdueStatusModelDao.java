@@ -20,31 +20,27 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import com.ning.billing.entitlement.api.BlockingState;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.entitlement.api.BlockingState;
 import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
 
     private static final String OVERDUE_STATUS_TABLE_NAME = "bos";
     private Long blockingStateRecordId;
-    private UUID bundleId;
-    private String bundleExternalKey;
     private String status;
-    private DateTime startDate;
-    private DateTime endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     public BusinessOverdueStatusModelDao() { /* When reading from the database */ }
 
     public BusinessOverdueStatusModelDao(final Long blockingStateRecordId,
-                                         final UUID bundleId,
-                                         final String bundleExternalKey,
                                          final String status,
-                                         final DateTime startDate,
-                                         final DateTime endDate,
+                                         final LocalDate startDate,
+                                         final LocalDate endDate,
                                          final DateTime createdDate,
                                          final String createdBy,
                                          final String createdReasonCode,
@@ -66,8 +62,6 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
               tenantRecordId,
               reportGroup);
         this.blockingStateRecordId = blockingStateRecordId;
-        this.bundleId = bundleId;
-        this.bundleExternalKey = bundleExternalKey;
         this.status = status;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -75,20 +69,18 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
 
     public BusinessOverdueStatusModelDao(final Account account,
                                          final Long accountRecordId,
-                                         final SubscriptionBundle subscriptionBundle,
-                                         final BlockingState blockingState,
+                                         final String stateName,
+                                         final LocalDate startDate,
                                          final Long blockingStateRecordId,
-                                         final DateTime endDate,
+                                         final LocalDate endDate,
                                          @Nullable final AuditLog creationAuditLog,
                                          final Long tenantRecordId,
                                          @Nullable final ReportGroup reportGroup) {
         this(blockingStateRecordId,
-             subscriptionBundle.getId(),
-             subscriptionBundle.getExternalKey(),
-             blockingState.getStateName(),
-             blockingState.getTimestamp(),
+             stateName,
+             startDate,
              endDate,
-             blockingState.getCreatedDate(),
+             creationAuditLog != null ? creationAuditLog.getCreatedDate() : null,
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
              creationAuditLog != null ? creationAuditLog.getComment() : null,
@@ -109,23 +101,15 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
         return blockingStateRecordId;
     }
 
-    public UUID getBundleId() {
-        return bundleId;
-    }
-
-    public String getBundleExternalKey() {
-        return bundleExternalKey;
-    }
-
     public String getStatus() {
         return status;
     }
 
-    public DateTime getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public DateTime getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 
@@ -134,8 +118,6 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
         final StringBuilder sb = new StringBuilder();
         sb.append("BusinessOverdueStatusModelDao");
         sb.append("{blockingStateRecordId=").append(blockingStateRecordId);
-        sb.append(", bundleId=").append(bundleId);
-        sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append(", status='").append(status).append('\'');
         sb.append(", startDate=").append(startDate);
         sb.append(", endDate=").append(endDate);
@@ -160,12 +142,6 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
         if (blockingStateRecordId != null ? !blockingStateRecordId.equals(that.blockingStateRecordId) : that.blockingStateRecordId != null) {
             return false;
         }
-        if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
-            return false;
-        }
-        if (bundleId != null ? !bundleId.equals(that.bundleId) : that.bundleId != null) {
-            return false;
-        }
         if (endDate != null ? (endDate.compareTo(that.endDate) != 0) : that.endDate != null) {
             return false;
         }
@@ -183,8 +159,6 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (blockingStateRecordId != null ? blockingStateRecordId.hashCode() : 0);
-        result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);
-        result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (endDate != null ? endDate.hashCode() : 0);

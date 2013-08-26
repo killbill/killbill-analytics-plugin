@@ -18,14 +18,12 @@ package com.ning.billing.osgi.bundles.analytics.dao.model;
 
 import java.math.BigDecimal;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.BillingPeriod;
 import com.ning.billing.catalog.api.Currency;
-import com.ning.billing.subscription.api.user.SubscriptionState;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 
 public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
@@ -111,13 +109,13 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithNulls() throws Exception {
-        final DateTime startDate = new DateTime(2019, 7, 4, 23, 3, 11, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2019, 7, 4);
         final BusinessSubscription businessSubscription = new BusinessSubscription(null,
                                                                                    null,
                                                                                    null,
                                                                                    Currency.GBP,
                                                                                    startDate,
-                                                                                   SubscriptionState.ACTIVE);
+                                                                                   "ACTIVE");
         Assert.assertNull(businessSubscription.getProductName());
         Assert.assertNull(businessSubscription.getProductType());
         Assert.assertNull(businessSubscription.getProductCategory());
@@ -127,7 +125,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(businessSubscription.getPrice());
         Assert.assertNull(businessSubscription.getPriceList(), priceList.getName());
         Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
-        Assert.assertEquals(businessSubscription.getState(), SubscriptionState.ACTIVE.toString());
+        Assert.assertEquals(businessSubscription.getState(), "ACTIVE");
         //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
         Assert.assertEquals(businessSubscription.getStartDate(), startDate);
         Assert.assertNull(businessSubscription.getEndDate());
@@ -136,13 +134,13 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithoutNulls() throws Exception {
-        final DateTime startDate = new DateTime(2019, 7, 4, 9, 3, 11, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2019, 7, 4);
         final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
                                                                                    phase,
                                                                                    priceList,
                                                                                    Currency.GBP,
                                                                                    startDate,
-                                                                                   SubscriptionState.ACTIVE);
+                                                                                   "ACTIVE");
         Assert.assertEquals(businessSubscription.getProductName(), plan.getProduct().getName());
         Assert.assertEquals(businessSubscription.getProductType(), plan.getProduct().getCatalogName());
         Assert.assertEquals(businessSubscription.getProductCategory(), plan.getProduct().getCategory().toString());
@@ -152,7 +150,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSubscription.getPrice(), phase.getRecurringPrice());
         Assert.assertEquals(businessSubscription.getPriceList(), priceList.getName());
         Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
-        Assert.assertEquals(businessSubscription.getState(), SubscriptionState.ACTIVE.toString());
+        Assert.assertEquals(businessSubscription.getState(), "ACTIVE");
         //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
         Assert.assertEquals(businessSubscription.getStartDate(), startDate);
         Assert.assertNull(businessSubscription.getEndDate());

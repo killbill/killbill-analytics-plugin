@@ -52,9 +52,9 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
         super(logService, osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
         this.businessBundleSummaryDao = new BusinessBundleSummaryDao(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, executor);
+        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI);
         bbsFactory = new BusinessBundleSummaryFactory(logService, osgiKillbillAPI, executor);
-        bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI, executor);
+        bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

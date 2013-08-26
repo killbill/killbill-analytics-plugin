@@ -16,8 +16,7 @@
 
 package com.ning.billing.osgi.bundles.analytics.dao.model;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -27,23 +26,22 @@ public class TestBusinessOverdueStatusModelDao extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testEquals() throws Exception {
-        final DateTime endDate = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2012, 6, 21);
+        final LocalDate endDate = new LocalDate(2012, 7, 21);
         final BusinessOverdueStatusModelDao overdueStatusModelDao = new BusinessOverdueStatusModelDao(account,
                                                                                                       accountRecordId,
-                                                                                                      bundle,
-                                                                                                      blockingState,
+                                                                                                      blockingStateName,
+                                                                                                      startDate,
                                                                                                       blockingStateRecordId,
                                                                                                       endDate,
                                                                                                       auditLog,
                                                                                                       tenantRecordId,
                                                                                                       reportGroup);
         verifyBusinessModelDaoBase(overdueStatusModelDao, accountRecordId, tenantRecordId);
-        Assert.assertEquals(overdueStatusModelDao.getCreatedDate(), blockingState.getCreatedDate());
+        Assert.assertEquals(overdueStatusModelDao.getCreatedDate(), auditLog.getCreatedDate());
         Assert.assertEquals(overdueStatusModelDao.getBlockingStateRecordId(), blockingStateRecordId);
-        Assert.assertEquals(overdueStatusModelDao.getBundleId(), bundle.getId());
-        Assert.assertEquals(overdueStatusModelDao.getBundleExternalKey(), bundle.getExternalKey());
-        Assert.assertEquals(overdueStatusModelDao.getStatus(), blockingState.getStateName());
-        Assert.assertEquals(overdueStatusModelDao.getStartDate(), blockingState.getTimestamp());
+        Assert.assertEquals(overdueStatusModelDao.getStatus(), blockingStateName);
+        Assert.assertEquals(overdueStatusModelDao.getStartDate(), startDate);
         Assert.assertEquals(overdueStatusModelDao.getEndDate(), endDate);
     }
 }

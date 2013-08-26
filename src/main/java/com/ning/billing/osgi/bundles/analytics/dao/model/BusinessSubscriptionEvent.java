@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.catalog.api.ProductCategory;
-import com.ning.billing.subscription.api.user.SubscriptionTransition;
+import com.ning.billing.entitlement.api.SubscriptionEvent;
 
 /**
  * Describe an event associated with a transition between two BusinessSubscription
@@ -31,14 +31,17 @@ public class BusinessSubscriptionEvent {
     private static final String MISC = "MISC";
 
     public enum EventType {
-        MIGRATE,
-        ADD,
-        CANCEL,
-        UN_CANCEL,
-        RE_ADD,
-        TRANSFER,
+        START_BILLING,
+        PAUSE_ENTITLEMENT,
+        PAUSE_BILLING,
+        RESUME_ENTITLEMENT,
+        RESUME_BILLING,
+        STOP_ENTITLEMENT,
+        STOP_BILLING,
+        STATE_CHANGE,
         CHANGE,
-        SYSTEM_CHANGE
+        SYSTEM_CHANGE,
+        START_ENTITLEMENT
     }
 
     private final EventType eventType;
@@ -75,60 +78,74 @@ public class BusinessSubscriptionEvent {
         return eventType;
     }
 
-    public static BusinessSubscriptionEvent fromTransition(final SubscriptionTransition transition) {
-        switch (transition.getTransitionType()) {
+    public static BusinessSubscriptionEvent fromTransition(final SubscriptionEvent transition) {
+        switch (transition.getSubscriptionEventType()) {
             // A subscription enters either through migration or as newly created subscription
-            case MIGRATE_ENTITLEMENT:
-                return subscriptionMigrated(transition.getNextPlan());
-            case CREATE:
-                return subscriptionCreated(transition.getNextPlan());
-            case RE_CREATE:
-                return subscriptionRecreated(transition.getNextPlan());
-            case TRANSFER:
-                return subscriptionTransfered(transition.getNextPlan());
-            case CANCEL:
-                // Need to take the previous plan (the next one is null)
-                return subscriptionCancelled(transition.getPreviousPlan());
-            case UNCANCEL:
-                return subscriptionUnCancelled(transition.getNextPlan());
+            case START_ENTITLEMENT:
+                return startEntitlement(transition.getNextPlan());
+            case START_BILLING:
+                return startBilling(transition.getNextPlan());
+            case PAUSE_ENTITLEMENT:
+                return pauseEntitlement(transition.getNextPlan());
+            case PAUSE_BILLING:
+                return pauseBilling(transition.getNextPlan());
+            case RESUME_ENTITLEMENT:
+                return resumeEntitlement(transition.getNextPlan());
+            case RESUME_BILLING:
+                return resumeBilling(transition.getNextPlan());
             case CHANGE:
                 return subscriptionChanged(transition.getNextPlan());
             case PHASE:
                 return subscriptionPhaseChanged(transition.getNextPlan());
-            case MIGRATE_BILLING: // Has no impact on the subscription
-            case START_BILLING_DISABLED: // See BOS
-            case END_BILLING_DISABLED: // See BOS
+            case STOP_ENTITLEMENT:
+                return stopEntitlement(transition.getPrevPlan());
+            case STOP_BILLING:
+                return stopBilling(transition.getPrevPlan());
+            case SERVICE_STATE_CHANGE:
+                return subscriptionStateChanged(transition.getNextPlan());
             default:
                 return null;
         }
     }
 
-    private static BusinessSubscriptionEvent subscriptionMigrated(final Plan plan) {
-        return eventFromType(EventType.MIGRATE, plan);
+    private static BusinessSubscriptionEvent startEntitlement(final Plan plan) {
+        return eventFromType(EventType.START_ENTITLEMENT, plan);
     }
 
-    private static BusinessSubscriptionEvent subscriptionCreated(final Plan plan) {
-        return eventFromType(EventType.ADD, plan);
+    private static BusinessSubscriptionEvent startBilling(final Plan plan) {
+        return eventFromType(EventType.START_BILLING, plan);
     }
 
-    private static BusinessSubscriptionEvent subscriptionCancelled(final Plan plan) {
-        return eventFromType(EventType.CANCEL, plan);
+    private static BusinessSubscriptionEvent pauseEntitlement(final Plan plan) {
+        return eventFromType(EventType.PAUSE_ENTITLEMENT, plan);
     }
 
-    private static BusinessSubscriptionEvent subscriptionUnCancelled(final Plan plan) {
-        return eventFromType(EventType.UN_CANCEL, plan);
+    private static BusinessSubscriptionEvent pauseBilling(final Plan plan) {
+        return eventFromType(EventType.PAUSE_BILLING, plan);
+    }
+
+    private static BusinessSubscriptionEvent resumeEntitlement(final Plan plan) {
+        return eventFromType(EventType.RESUME_ENTITLEMENT, plan);
+    }
+
+    private static BusinessSubscriptionEvent resumeBilling(final Plan plan) {
+        return eventFromType(EventType.RESUME_BILLING, plan);
+    }
+
+    private static BusinessSubscriptionEvent stopEntitlement(final Plan plan) {
+        return eventFromType(EventType.STOP_ENTITLEMENT, plan);
+    }
+
+    private static BusinessSubscriptionEvent stopBilling(final Plan plan) {
+        return eventFromType(EventType.STOP_BILLING, plan);
+    }
+
+    private static BusinessSubscriptionEvent subscriptionStateChanged(final Plan plan) {
+        return eventFromType(EventType.STATE_CHANGE, plan);
     }
 
     private static BusinessSubscriptionEvent subscriptionChanged(final Plan plan) {
         return eventFromType(EventType.CHANGE, plan);
-    }
-
-    private static BusinessSubscriptionEvent subscriptionRecreated(final Plan plan) {
-        return eventFromType(EventType.RE_ADD, plan);
-    }
-
-    private static BusinessSubscriptionEvent subscriptionTransfered(final Plan plan) {
-        return eventFromType(EventType.TRANSFER, plan);
     }
 
     private static BusinessSubscriptionEvent subscriptionPhaseChanged(final Plan plan) {

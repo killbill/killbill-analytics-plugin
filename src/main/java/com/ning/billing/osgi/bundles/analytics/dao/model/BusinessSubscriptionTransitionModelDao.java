@@ -22,10 +22,11 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
-import com.ning.billing.subscription.api.user.SubscriptionTransition;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
+import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.util.audit.AuditLog;
 
 /**
@@ -39,7 +40,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private UUID bundleId;
     private String bundleExternalKey;
     private UUID subscriptionId;
-    private DateTime requestedTimestamp;
+    private LocalDate requestedTimestamp;
     private String event;
 
     private String prevProductName;
@@ -53,7 +54,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private BigDecimal prevMrr;
     private String prevCurrency;
     private Boolean prevBusinessActive;
-    private DateTime prevStartDate;
+    private LocalDate prevStartDate;
     private String prevState;
 
     private String nextProductName;
@@ -67,8 +68,8 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private BigDecimal nextMrr;
     private String nextCurrency;
     private Boolean nextBusinessActive;
-    private DateTime nextStartDate;
-    private DateTime nextEndDate;
+    private LocalDate nextStartDate;
+    private LocalDate nextEndDate;
     private String nextState;
 
     public BusinessSubscriptionTransitionModelDao() { /* When reading from the database */ }
@@ -77,7 +78,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
                                                   final UUID bundleId,
                                                   final String bundleExternalKey,
                                                   final UUID subscriptionId,
-                                                  final DateTime requestedTimestamp,
+                                                  final LocalDate requestedTimestamp,
                                                   final BusinessSubscriptionEvent event,
                                                   @Nullable final BusinessSubscription previousSubscription,
                                                   final BusinessSubscription nextSubscription,
@@ -158,9 +159,8 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     public BusinessSubscriptionTransitionModelDao(final Account account,
                                                   final Long accountRecordId,
                                                   final SubscriptionBundle bundle,
-                                                  final SubscriptionTransition transition,
+                                                  final SubscriptionEvent transition,
                                                   final Long subscriptionEventRecordId,
-                                                  final DateTime requestedTimestamp,
                                                   final BusinessSubscriptionEvent event,
                                                   @Nullable final BusinessSubscription previousSubscription,
                                                   final BusinessSubscription nextSubscription,
@@ -170,12 +170,12 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         this(subscriptionEventRecordId,
              bundle.getId(),
              bundle.getExternalKey(),
-             transition.getSubscriptionId(),
-             requestedTimestamp,
+             transition.getEntitlementId(),
+             transition.getRequestedDate(),
              event,
              previousSubscription,
              nextSubscription,
-             transition.getNextEventCreatedDate(),
+             creationAuditLog != null ? creationAuditLog.getCreatedDate() : null,
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
              creationAuditLog != null ? creationAuditLog.getComment() : null,
@@ -192,7 +192,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return SUBSCRIPTION_TABLE_NAME;
     }
 
-    public void setNextEndDate(final DateTime nextEndDate) {
+    public void setNextEndDate(final LocalDate nextEndDate) {
         this.nextEndDate = nextEndDate;
     }
 
@@ -212,7 +212,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return subscriptionId;
     }
 
-    public DateTime getRequestedTimestamp() {
+    public LocalDate getRequestedTimestamp() {
         return requestedTimestamp;
     }
 
@@ -264,7 +264,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return prevBusinessActive;
     }
 
-    public DateTime getPrevStartDate() {
+    public LocalDate getPrevStartDate() {
         return prevStartDate;
     }
 
@@ -316,11 +316,11 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return nextBusinessActive;
     }
 
-    public DateTime getNextStartDate() {
+    public LocalDate getNextStartDate() {
         return nextStartDate;
     }
 
-    public DateTime getNextEndDate() {
+    public LocalDate getNextEndDate() {
         return nextEndDate;
     }
 

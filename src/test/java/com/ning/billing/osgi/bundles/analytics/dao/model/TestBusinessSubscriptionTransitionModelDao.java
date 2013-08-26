@@ -18,29 +18,27 @@ package com.ning.billing.osgi.bundles.analytics.dao.model;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.Currency;
-import com.ning.billing.subscription.api.user.SubscriptionState;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 
 public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
-        final DateTime startDate = new DateTime(2012, 6, 5, 4, 3, 12, DateTimeZone.UTC);
-        final DateTime requestedTimestamp = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2012, 6, 5);
 
-        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("ADD_BASE");
+        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, SubscriptionState.ACTIVE);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
                                                                                                                                  subscriptionTransition,
                                                                                                                                  subscriptionEventRecordId,
-                                                                                                                                 requestedTimestamp,
                                                                                                                                  event,
                                                                                                                                  previousSubscription,
                                                                                                                                  nextSubscription,
@@ -48,12 +46,12 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
                                                                                                                                  tenantRecordId,
                                                                                                                                  reportGroup);
         verifyBusinessModelDaoBase(subscriptionTransitionModelDao, accountRecordId, tenantRecordId);
-        Assert.assertEquals(subscriptionTransitionModelDao.getCreatedDate(), subscriptionTransition.getNextEventCreatedDate());
+        Assert.assertEquals(subscriptionTransitionModelDao.getCreatedDate(), auditLog.getCreatedDate());
         Assert.assertEquals(subscriptionTransitionModelDao.getSubscriptionEventRecordId(), subscriptionEventRecordId);
         Assert.assertEquals(subscriptionTransitionModelDao.getBundleId(), bundle.getId());
         Assert.assertEquals(subscriptionTransitionModelDao.getBundleExternalKey(), bundle.getExternalKey());
-        Assert.assertEquals(subscriptionTransitionModelDao.getSubscriptionId(), subscriptionTransition.getSubscriptionId());
-        Assert.assertEquals(subscriptionTransitionModelDao.getRequestedTimestamp(), requestedTimestamp);
+        Assert.assertEquals(subscriptionTransitionModelDao.getSubscriptionId(), subscriptionTransition.getEntitlementId());
+        Assert.assertEquals(subscriptionTransitionModelDao.getRequestedTimestamp(), subscriptionTransition.getRequestedDate());
         Assert.assertEquals(subscriptionTransitionModelDao.getEvent(), event.toString());
 
         Assert.assertNull(subscriptionTransitionModelDao.getPrevProductName());

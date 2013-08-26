@@ -37,10 +37,9 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
 
     public BusinessAccountDao(final OSGIKillbillLogService logService,
                               final OSGIKillbillAPI osgiKillbillAPI,
-                              final OSGIKillbillDataSource osgiKillbillDataSource,
-                              final Executor executor) {
+                              final OSGIKillbillDataSource osgiKillbillDataSource) {
         super(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, executor);
+        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

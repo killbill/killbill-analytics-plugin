@@ -16,31 +16,27 @@
 
 package com.ning.billing.osgi.bundles.analytics.dao.model;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.Currency;
-import com.ning.billing.subscription.api.user.SubscriptionState;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 
 public class TestBusinessBundleSummaryModelDao extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
-        final DateTime startDate = new DateTime(2012, 6, 5, 4, 3, 12, DateTimeZone.UTC);
-        final DateTime requestedTimestamp = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2012, 6, 5);
 
-        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("ADD_BASE");
+        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, SubscriptionState.ACTIVE);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
                                                                                                                                  subscriptionTransition,
                                                                                                                                  subscriptionEventRecordId,
-                                                                                                                                 requestedTimestamp,
                                                                                                                                  event,
                                                                                                                                  previousSubscription,
                                                                                                                                  nextSubscription,
@@ -61,7 +57,7 @@ public class TestBusinessBundleSummaryModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(bundleSummaryModelDao.getBundleRecordId(), bundleRecordId);
         Assert.assertEquals(bundleSummaryModelDao.getBundleId(), bundle.getId());
         Assert.assertEquals(bundleSummaryModelDao.getBundleExternalKey(), bundle.getExternalKey());
-        Assert.assertEquals(bundleSummaryModelDao.getSubscriptionId(), subscriptionTransition.getSubscriptionId());
+        Assert.assertEquals(bundleSummaryModelDao.getSubscriptionId(), subscriptionTransition.getEntitlementId());
         Assert.assertEquals(bundleSummaryModelDao.getBundleAccountRank(), (Integer) 3);
         Assert.assertEquals(bundleSummaryModelDao.getCurrentProductName(), subscriptionTransitionModelDao.getNextProductName());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentProductType(), subscriptionTransitionModelDao.getNextProductType());

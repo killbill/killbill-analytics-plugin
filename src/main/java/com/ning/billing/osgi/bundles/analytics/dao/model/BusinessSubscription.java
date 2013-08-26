@@ -21,7 +21,7 @@ import java.math.RoundingMode;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
 
 import com.ning.billing.catalog.api.BillingPeriod;
 import com.ning.billing.catalog.api.CatalogApiException;
@@ -32,8 +32,6 @@ import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.catalog.api.PriceList;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.osgi.bundles.analytics.utils.Rounder;
-
-import com.ning.billing.subscription.api.user.SubscriptionState;
 
 /**
  * Describe a subscription for Analytics purposes
@@ -54,15 +52,15 @@ public class BusinessSubscription {
     private final String currency;
     private final String state;
     private final Boolean businessActive;
-    private final DateTime startDate;
-    private final DateTime endDate;
+    private final LocalDate startDate;
+    private final LocalDate endDate;
 
     public BusinessSubscription(@Nullable final Plan currentPlan,
                                 @Nullable final PlanPhase currentPhase,
                                 @Nullable final PriceList priceList,
                                 final Currency currency,
-                                final DateTime startDate,
-                                final SubscriptionState state) {
+                                final LocalDate startDate,
+                                final String state) {
         // TODO
         businessActive = true;
 
@@ -135,7 +133,7 @@ public class BusinessSubscription {
         } else {
             this.endDate = null;
         }
-        this.state = state == null ? null : state.toString();
+        this.state = state;
     }
 
     public String getBillingPeriod() {
@@ -190,11 +188,11 @@ public class BusinessSubscription {
         return businessActive;
     }
 
-    public DateTime getStartDate() {
+    public LocalDate getStartDate() {
         return startDate;
     }
 
-    public DateTime getEndDate() {
+    public LocalDate getEndDate() {
         return endDate;
     }
 

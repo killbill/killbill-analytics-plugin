@@ -44,7 +44,7 @@ public class BusinessOverdueStatusDao extends BusinessAnalyticsDaoBase {
                                     final Executor executor) {
         super(logService, osgiKillbillDataSource);
         this.logService = logService;
-        bosFactory = new BusinessOverdueStatusFactory(logService, osgiKillbillAPI, executor);
+        bosFactory = new BusinessOverdueStatusFactory(logService, osgiKillbillAPI);
     }
 
     public void update(final UUID accountId, final ObjectType objectType, final CallContext context) throws AnalyticsRefreshException {

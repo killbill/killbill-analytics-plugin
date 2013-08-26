@@ -16,8 +16,7 @@
 
 package com.ning.billing.osgi.bundles.analytics.api;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -29,11 +28,12 @@ public class TestBusinessOverdueStatus extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
-        final DateTime endDate = new DateTime(2005, 6, 5, 4, 5, 6, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2005, 2, 5);
+        final LocalDate endDate = new LocalDate(2005, 6, 5);
         final BusinessOverdueStatusModelDao businessOverdueStatusModelDao = new BusinessOverdueStatusModelDao(account,
                                                                                                               accountRecordId,
-                                                                                                              bundle,
-                                                                                                              blockingState,
+                                                                                                              blockingStateName,
+                                                                                                              startDate,
                                                                                                               blockingStateRecordId,
                                                                                                               endDate,
                                                                                                               auditLog,

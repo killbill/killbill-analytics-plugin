@@ -20,12 +20,12 @@ import java.math.BigDecimal;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.catalog.api.Currency;
-import com.ning.billing.subscription.api.user.SubscriptionState;
 import com.ning.billing.invoice.api.InvoicePaymentType;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
@@ -279,11 +279,12 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
     @Test(groups = "slow")
     public void testSqlDaoForOverdueStatus() throws Exception {
-        final DateTime endDate = new DateTime(2005, 6, 5, 4, 5, 6, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2005, 6, 5);
+        final LocalDate endDate = new LocalDate(2005, 6, 5);
         final BusinessOverdueStatusModelDao businessOverdueStatusModelDao = new BusinessOverdueStatusModelDao(account,
                                                                                                               accountRecordId,
-                                                                                                              bundle,
-                                                                                                              blockingState,
+                                                                                                              blockingStateName,
+                                                                                                              startDate,
                                                                                                               blockingStateRecordId,
                                                                                                               endDate,
                                                                                                               auditLog,
@@ -304,18 +305,16 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
     @Test(groups = "slow")
     public void testSqlDaoForSubscriptionTransition() throws Exception {
-        final DateTime startDate = new DateTime(2012, 6, 5, 4, 3, 12, DateTimeZone.UTC);
-        final DateTime requestedTimestamp = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2012, 6, 5);
 
-        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("ADD_BASE");
+        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, SubscriptionState.ACTIVE);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
         final BusinessSubscriptionTransitionModelDao businessSubscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                          accountRecordId,
                                                                                                                                          bundle,
                                                                                                                                          subscriptionTransition,
                                                                                                                                          subscriptionEventRecordId,
-                                                                                                                                         requestedTimestamp,
                                                                                                                                          event,
                                                                                                                                          previousSubscription,
                                                                                                                                          nextSubscription,
@@ -337,18 +336,16 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
     @Test(groups = "slow")
     public void testSqlDaoForBundleSummary() throws Exception {
-        final DateTime startDate = new DateTime(2012, 6, 5, 4, 3, 12, DateTimeZone.UTC);
-        final DateTime requestedTimestamp = new DateTime(2012, 7, 21, 10, 10, 10, DateTimeZone.UTC);
+        final LocalDate startDate = new LocalDate(2012, 6, 5);
 
-        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("ADD_BASE");
+        final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, SubscriptionState.ACTIVE);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
         final BusinessSubscriptionTransitionModelDao businessSubscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                          accountRecordId,
                                                                                                                                          bundle,
                                                                                                                                          subscriptionTransition,
                                                                                                                                          subscriptionEventRecordId,
-                                                                                                                                         requestedTimestamp,
                                                                                                                                          event,
                                                                                                                                          previousSubscription,
                                                                                                                                          nextSubscription,

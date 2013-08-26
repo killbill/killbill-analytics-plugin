@@ -22,8 +22,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import com.ning.billing.entitlement.api.BlockingState;
-import com.ning.billing.entitlement.api.EntitlementApi;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.ObjectType;
@@ -35,10 +33,13 @@ import com.ning.billing.catalog.api.CatalogApiException;
 import com.ning.billing.catalog.api.CatalogUserApi;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
-import com.ning.billing.subscription.api.user.SubscriptionUserApi;
-import com.ning.billing.subscription.api.user.SubscriptionUserApiException;
-import com.ning.billing.subscription.api.user.Subscription;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.entitlement.api.EntitlementApi;
+import com.ning.billing.entitlement.api.Subscription;
+import com.ning.billing.entitlement.api.SubscriptionApi;
+import com.ning.billing.entitlement.api.SubscriptionApiException;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
+import com.ning.billing.entitlement.api.SubscriptionEvent;
+import com.ning.billing.entitlement.api.SubscriptionEventType;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceApiException;
 import com.ning.billing.invoice.api.InvoiceItem;
@@ -69,6 +70,12 @@ import com.ning.billing.util.tag.Tag;
 import com.ning.billing.util.tag.TagDefinition;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 /**
  * Wrapper around Kill Bill APIs
@@ -163,24 +170,25 @@ public abstract class BusinessFactoryBase {
     //
 
     protected SubscriptionBundle getSubscriptionBundle(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
-        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
 
         try {
-            return SubscriptionUserApi.getBundleFromId(bundleId, context);
-        } catch (SubscriptionUserApiException e) {
+            return subscriptionApi.getSubscriptionBundle(bundleId, context);
+        } catch (SubscriptionApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving bundle for id " + bundleId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
 
-    protected Collection<Subscription> getSubscriptionsForBundle(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
-        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
-        return SubscriptionUserApi.getSubscriptionsForBundle(bundleId, context);
-    }
-
     protected List<SubscriptionBundle> getSubscriptionBundlesForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
-        return SubscriptionUserApi.getBundlesForAccount(accountId, context);
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
+
+        try {
+            return subscriptionApi.getSubscriptionBundlesForAccountId(accountId, context);
+        } catch (SubscriptionApiException e) {
+            logService.log(LogService.LOG_WARNING, "Error retrieving bundles for account id " + accountId, e);
+            throw new AnalyticsRefreshException(e);
+        }
     }
 
     protected Long getBundleRecordId(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
@@ -201,18 +209,18 @@ public abstract class BusinessFactoryBase {
     }
 
     protected Subscription getSubscription(final UUID subscriptionId, final TenantContext context) throws AnalyticsRefreshException {
-        final SubscriptionUserApi SubscriptionUserApi = getSubscriptionUserApi();
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
 
         try {
-            return SubscriptionUserApi.getSubscriptionFromId(subscriptionId, context);
-        } catch (SubscriptionUserApiException e) {
+            return subscriptionApi.getSubscriptionForEntitlementId(subscriptionId, context);
+        } catch (SubscriptionApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving subscription for id " + subscriptionId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
 
-    protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForSubscriptionEvent = getAuditUserApi().getAuditLogs(subscriptionEventId, ObjectType.SUBSCRIPTION_EVENT, AuditLevel.MINIMAL, context);
+    protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final TenantContext context) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForSubscriptionEvent = getAuditUserApi().getAuditLogs(subscriptionEventId, objectType, AuditLevel.MINIMAL, context);
         for (final AuditLog auditLog : auditLogsForSubscriptionEvent) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -223,18 +231,37 @@ public abstract class BusinessFactoryBase {
         return null;
     }
 
-    protected Long getSubscriptionEventRecordId(final UUID subscriptionEventId, final TenantContext context) throws AnalyticsRefreshException {
+    protected Long getSubscriptionEventRecordId(final UUID subscriptionEventId, final ObjectType objectType, final TenantContext context) throws AnalyticsRefreshException {
         final RecordIdApi recordIdUserApi = getRecordIdUserApi();
-        return recordIdUserApi.getRecordId(subscriptionEventId, ObjectType.SUBSCRIPTION_EVENT, context);
+        return recordIdUserApi.getRecordId(subscriptionEventId, objectType, context);
     }
 
     //
     // OVERDUE
     //
 
-    protected List<BlockingState> getBlockingHistory(final UUID overdueableId, final TenantContext context) throws AnalyticsRefreshException {
-        final EntitlementApi junctionUserApi = getEntitlementUserApi();
-        return junctionUserApi.getBlockingHistory(overdueableId, context);
+    protected List<SubscriptionEvent> getBlockingHistory(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+        final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(accountId, context);
+
+        // Find all subscription events for that account
+        final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(bundles,
+                                                                                                                                                                    new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
+                                                                                                                                                                        @Override
+                                                                                                                                                                        public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
+                                                                                                                                                                            return bundle.getTimeline().getSubscriptionEvents();
+                                                                                                                                                                        }
+                                                                                                                                                                    }));
+
+        // Filter all service state changes
+        final Iterable<SubscriptionEvent> stateChanges = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
+                                                                                             new Predicate<SubscriptionEvent>() {
+                                                                                                 @Override
+                                                                                                 public boolean apply(final SubscriptionEvent event) {
+                                                                                                     return SubscriptionEventType.SERVICE_STATE_CHANGE.equals(event.getSubscriptionEventType());
+                                                                                                 }
+                                                                                             });
+        // TODO Should we re-order?
+        return ImmutableList.<SubscriptionEvent>copyOf(Sets.newLinkedHashSet(stateChanges));
     }
 
     //
@@ -331,7 +358,8 @@ public abstract class BusinessFactoryBase {
 
         try {
             final Catalog catalog = getCatalog(context);
-            return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscription.getStartDate());
+            // TODO - Inaccurate timing
+            return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscription.getEffectiveStartDate().toDateTimeAtStartOfDay());
         } catch (CatalogApiException e) {
             logService.log(LogService.LOG_INFO, "Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
             return null;
@@ -529,12 +557,12 @@ public abstract class BusinessFactoryBase {
         return auditUserApi;
     }
 
-    private SubscriptionUserApi getSubscriptionUserApi() throws AnalyticsRefreshException {
-        final SubscriptionUserApi SubscriptionUserApi = osgiKillbillAPI.getSubscriptionUserApi();
-        if (SubscriptionUserApi == null) {
-            throw new AnalyticsRefreshException("Error retrieving SubscriptionUserApi");
+    private SubscriptionApi getSubscriptionApi() throws AnalyticsRefreshException {
+        final SubscriptionApi subscriptionApi = osgiKillbillAPI.getSubscriptionApi();
+        if (subscriptionApi == null) {
+            throw new AnalyticsRefreshException("Error retrieving subscriptionApi");
         }
-        return SubscriptionUserApi;
+        return subscriptionApi;
     }
 
     private EntitlementApi getEntitlementUserApi() throws AnalyticsRefreshException {

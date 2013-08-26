@@ -68,7 +68,7 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
         this.businessAccountDao = businessAccountDao;
         this.businessInvoiceDao = new BusinessInvoiceDao(logService, osgiKillbillDataSource);
         this.businessInvoicePaymentDao = new BusinessInvoicePaymentDao(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, executor);
+        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI);
         binFactory = new BusinessInvoiceFactory(logService, osgiKillbillAPI, executor);
         bipFactory = new BusinessInvoicePaymentFactory(logService, osgiKillbillAPI);
     }

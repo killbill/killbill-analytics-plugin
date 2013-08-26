@@ -20,17 +20,12 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.ProductCategory;
-import com.ning.billing.subscription.api.user.Subscription;
-import com.ning.billing.subscription.api.user.SubscriptionBundle;
+import com.ning.billing.entitlement.api.Entitlement.EntitlementState;
+import com.ning.billing.entitlement.api.Subscription;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
@@ -41,15 +36,14 @@ import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+
 public class BusinessAccountFactory extends BusinessFactoryBase {
 
-    private final Executor executor;
-
     public BusinessAccountFactory(final OSGIKillbillLogService logService,
-                                  final OSGIKillbillAPI osgiKillbillAPI,
-                                  final Executor executor) {
+                                  final OSGIKillbillAPI osgiKillbillAPI) {
         super(logService, osgiKillbillAPI);
-        this.executor = executor;
     }
 
     public BusinessAccountModelDao createBusinessAccount(final UUID accountId,
@@ -82,36 +76,22 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
             }
         }
 
-        // We fetch the subscriptions in parallel as these can be very large on a per account basis (@see BusinessSubscriptionTransitionFactory)
-        final CompletionService<Void> completionService = new ExecutorCompletionService<Void>(executor);
         final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
-        final AtomicInteger nbActiveBundles = new AtomicInteger(0);
-        for (final SubscriptionBundle bundle : bundles) {
-            completionService.submit(new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    final Collection<Subscription> subscriptionsForBundle = getSubscriptionsForBundle(bundle.getId(), context);
-                    for (final Subscription subscription : subscriptionsForBundle) {
-                        if (ProductCategory.BASE.equals(subscription.getCategory()) &&
-                            !(subscription.getEndDate() != null && !subscription.getEndDate().isAfterNow())) {
-                            nbActiveBundles.incrementAndGet();
-                            break;
-                        }
-                    }
-
-                    return null;
-                }
-            });
-        }
-        for (final SubscriptionBundle ignored : bundles) {
-            try {
-                completionService.take().get();
-            } catch (InterruptedException e) {
-                throw new AnalyticsRefreshException(e);
-            } catch (ExecutionException e) {
-                throw new AnalyticsRefreshException(e);
-            }
-        }
+        final int nbActiveBundles = Iterables.<SubscriptionBundle>size(Iterables.<SubscriptionBundle>filter(bundles,
+                                                                                                            new Predicate<SubscriptionBundle>() {
+                                                                                                                @Override
+                                                                                                                public boolean apply(final SubscriptionBundle bundle) {
+                                                                                                                    return Iterables.<Subscription>size(Iterables.<Subscription>filter(bundle.getSubscriptions(),
+                                                                                                                                                                                       new Predicate<Subscription>() {
+                                                                                                                                                                                           @Override
+                                                                                                                                                                                           public boolean apply(final Subscription subscription) {
+                                                                                                                                                                                               // Bundle is active iff its base entitlement is not cancelled
+                                                                                                                                                                                               return ProductCategory.BASE.equals(subscription.getProductCategory()) &&
+                                                                                                                                                                                                      !subscription.getState().equals(EntitlementState.CANCELLED);
+                                                                                                                                                                                           }
+                                                                                                                                                                                       })) > 0; /* 0 or 1 */
+                                                                                                                }
+                                                                                                            }));
 
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
         final Long tenantRecordId = getTenantRecordId(context);
@@ -122,7 +102,7 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
                                            accountBalance,
                                            lastInvoice,
                                            lastPayment,
-                                           nbActiveBundles.get(),
+                                           nbActiveBundles,
                                            creationAuditLog,
                                            tenantRecordId,
                                            reportGroup);
