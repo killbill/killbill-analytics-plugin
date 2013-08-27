@@ -16,26 +16,37 @@
 
 package com.ning.billing.osgi.bundles.analytics;
 
+import java.io.IOException;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.osgi.service.log.LogService;
+import javax.annotation.Nullable;
 
-import com.ning.billing.commons.locker.GlobalLock;
-import com.ning.billing.commons.locker.GlobalLocker;
-import com.ning.billing.commons.locker.mysql.MySqlGlobalLocker;
+import org.joda.time.DateTime;
+import org.osgi.service.log.LogService;
+import org.skife.config.ConfigurationObjectFactory;
+import org.skife.jdbi.v2.DBI;
+
+import com.ning.billing.ObjectType;
+import com.ning.billing.clock.Clock;
+import com.ning.billing.clock.DefaultClock;
 import com.ning.billing.notification.plugin.api.ExtBusEvent;
+import com.ning.billing.notificationq.DefaultNotificationQueueService;
+import com.ning.billing.notificationq.api.NotificationEvent;
+import com.ning.billing.notificationq.api.NotificationEventWithMetadata;
+import com.ning.billing.notificationq.api.NotificationQueue;
+import com.ning.billing.notificationq.api.NotificationQueueConfig;
+import com.ning.billing.notificationq.api.NotificationQueueService.NotificationQueueAlreadyExists;
+import com.ning.billing.notificationq.api.NotificationQueueService.NotificationQueueHandler;
 import com.ning.billing.osgi.bundles.analytics.dao.AllBusinessObjectsDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessAccountDao;
+import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessFieldDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessInvoiceAndInvoicePaymentDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessOverdueStatusDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessSubscriptionTransitionDao;
-import com.ning.billing.osgi.bundles.analytics.dao.BusinessTagDao;
+import com.ning.billing.util.api.RecordIdApi;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.CallOrigin;
 import com.ning.billing.util.callcontext.UserType;
@@ -45,14 +56,12 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKill
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 
 public class AnalyticsListener implements OSGIKillbillEventHandler {
-
-    private static final String ANALYTICS_NB_LOCK_TRY_PROPERTY = "killbill.osgi.analytics.lock.count";
-    private static final int NB_LOCK_TRY = Integer.parseInt(System.getProperty(ANALYTICS_NB_LOCK_TRY_PROPERTY, "5"));
 
     // List of account ids to ignore
     static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "killbill.osgi.analytics.blacklist";
@@ -62,19 +71,20 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     private final Iterable<String> accountsBlacklist;
 
     private final LogService logService;
-    private final BusinessAccountDao bacDao;
+    private final OSGIKillbillAPI osgiKillbillAPI;
     private final BusinessSubscriptionTransitionDao bstDao;
     private final BusinessInvoiceAndInvoicePaymentDao binAndBipDao;
     private final BusinessOverdueStatusDao bosDao;
     private final BusinessFieldDao bFieldDao;
-    private final BusinessTagDao bTagDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
-    private final GlobalLocker locker;
+    private final NotificationQueue jobQueue;
+
+    private final Clock clock = new DefaultClock();
 
     public AnalyticsListener(final OSGIKillbillLogService logService,
                              final OSGIKillbillAPI osgiKillbillAPI,
                              final OSGIKillbillDataSource osgiKillbillDataSource,
-                             final Executor executor) {
+                             final Executor executor) throws NotificationQueueAlreadyExists {
         this(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, System.getProperties());
     }
 
@@ -82,21 +92,49 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                       final OSGIKillbillAPI osgiKillbillAPI,
                       final OSGIKillbillDataSource osgiKillbillDataSource,
                       final Executor executor,
-                      final Properties properties) {
+                      final Properties properties) throws NotificationQueueAlreadyExists {
         this.logService = logService;
+        this.osgiKillbillAPI = osgiKillbillAPI;
 
-        this.bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
         this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor);
         this.binAndBipDao = new BusinessInvoiceAndInvoicePaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor);
         this.bosDao = new BusinessOverdueStatusDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor);
         this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
-        this.bTagDao = new BusinessTagDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor);
 
-        // TODO Do we still need it?
-        this.locker = new MySqlGlobalLocker(osgiKillbillDataSource.getDataSource());
+        final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).build(NotificationQueueConfig.class);
+        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config);
+        final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 
+            @Override
+            public void handleReadyNotification(final NotificationEvent eventJson, final DateTime eventDateTime, final UUID userToken, final Long searchKey1, final Long searchKey2) {
+                if (!(eventJson instanceof AnalyticsJob)) {
+                    logService.log(LogService.LOG_ERROR, "Analytics service received an unexpected event type " + eventJson.getClass().getName());
+                    return;
+                }
+
+                final AnalyticsJob job = (AnalyticsJob) eventJson;
+                try {
+                    handleAnalyticsJob(job);
+                } catch (AnalyticsRefreshException e) {
+                    logService.log(LogService.LOG_ERROR, "Unable to process event", e);
+                }
+            }
+        };
+        jobQueue = notificationQueueService.createNotificationQueue("AnalyticsService",
+                                                                    "refresh-queue",
+                                                                    notificationQueueHandler);
         accountsBlacklist = BLACKLIST_SPLITTER.split(properties.getProperty(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, ""));
+    }
+
+    public void start() {
+        jobQueue.startQueue();
+    }
+
+    public void shutdownNow() {
+        jobQueue.stopQueue();
     }
 
     @Override
@@ -106,42 +144,78 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
             return;
         }
 
-        final CallContext callContext = new AnalyticsCallContext(killbillEvent);
+        final AnalyticsJob job = new AnalyticsJob(killbillEvent);
 
-        switch (killbillEvent.getEventType()) {
+        Long accountRecordId = null;
+        Long tenantRecordId = null;
+        final RecordIdApi recordIdApi = osgiKillbillAPI.getRecordIdApi();
+        if (recordIdApi == null) {
+            logService.log(LogService.LOG_WARNING, "Unable to retrieve the recordIdApi");
+        } else {
+            final CallContext callContext = new AnalyticsCallContext(job, clock);
+            accountRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(killbillEvent.getAccountId(), ObjectType.ACCOUNT, callContext);
+            tenantRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(killbillEvent.getTenantId(), ObjectType.TENANT, callContext);
+        }
+
+        if (accountRecordId != null) {
+            // Verify if we don't have a notification for that type and account already.
+            // If we do, no need to insert another one since we will do a full refresh anyways
+            if (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(jobQueue.getFutureNotificationForSearchKey1(AnalyticsJob.class, accountRecordId),
+                                                                               new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
+                                                                                   @Override
+                                                                                   public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
+                                                                                       return notificationEvent.getEvent().equals(job);
+                                                                                   }
+                                                                               }).isPresent()) {
+                logService.log(LogService.LOG_DEBUG, "Skipping already present notification for event " + killbillEvent.toString());
+                return;
+            }
+        }
+
+        try {
+            jobQueue.recordFutureNotification(clock.getUTCNow(), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
+        } catch (IOException e) {
+            logService.log(LogService.LOG_WARNING, "Unable to record notification for event " + killbillEvent.toString());
+        }
+    }
+
+    private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
+        final CallContext callContext = new AnalyticsCallContext(job, clock);
+
+        switch (job.getEventType()) {
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:
                 // Note: account information is denormalized across all tables, we pretty much
                 // have to refresh all objects
-                handleFullRefreshEvent(killbillEvent, callContext);
+                allBusinessObjectsDao.update(job.getAccountId(), callContext);
                 break;
             case SUBSCRIPTION_CREATION:
             case SUBSCRIPTION_CHANGE:
             case SUBSCRIPTION_CANCEL:
             case SUBSCRIPTION_PHASE:
             case SUBSCRIPTION_UNCANCEL:
-                handleSubscriptionEvent(killbillEvent, callContext);
+                bstDao.update(job.getAccountId(), callContext);
                 break;
             case OVERDUE_CHANGE:
-                handleOverdueEvent(killbillEvent, callContext);
+                bosDao.update(job.getAccountId(), callContext);
                 break;
             case INVOICE_CREATION:
             case INVOICE_ADJUSTMENT:
-                handleInvoiceEvent(killbillEvent, callContext);
+                binAndBipDao.update(job.getAccountId(), callContext);
                 break;
             case PAYMENT_SUCCESS:
             case PAYMENT_FAILED:
-                handlePaymentEvent(killbillEvent, callContext);
+                binAndBipDao.update(job.getAccountId(), callContext);
                 break;
             case TAG_CREATION:
             case TAG_DELETION:
                 // Note: tags determine the report group. Since it is denormalized across all tables, we pretty much
                 // have to refresh all objects
-                handleFullRefreshEvent(killbillEvent, callContext);
+                allBusinessObjectsDao.update(job.getAccountId(), callContext);
                 break;
             case CUSTOM_FIELD_CREATION:
             case CUSTOM_FIELD_DELETION:
-                handleFieldEvent(killbillEvent, callContext);
+                bFieldDao.update(job.getAccountId(), callContext);
                 break;
             default:
                 break;
@@ -149,100 +223,20 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     }
 
     @VisibleForTesting
-    protected boolean isAccountBlacklisted(final UUID accountId) {
-        return Iterables.find(accountsBlacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
-    }
-
-    private void handleAccountEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                bacDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handleSubscriptionEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                bstDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handleInvoiceEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                binAndBipDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handlePaymentEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                binAndBipDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handleOverdueEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                bosDao.update(killbillEvent.getAccountId(), killbillEvent.getObjectType(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handleTagEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                bTagDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handleFieldEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                bFieldDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
-    }
-
-    private void handleFullRefreshEvent(final ExtBusEvent killbillEvent, final CallContext callContext) {
-        updateWithAccountLock(killbillEvent, new Callable<Void>() {
-            @Override
-            public Void call() throws Exception {
-                allBusinessObjectsDao.update(killbillEvent.getAccountId(), callContext);
-                return null;
-            }
-        });
+    protected boolean isAccountBlacklisted(@Nullable final UUID accountId) {
+        return accountId != null && Iterables.find(accountsBlacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
     }
 
     private static final class AnalyticsCallContext implements CallContext {
 
         private static final String USER_NAME = AnalyticsListener.class.getName();
 
-        private final ExtBusEvent killbillEvent;
+        private final AnalyticsJob job;
         private final DateTime now;
 
-        private AnalyticsCallContext(final ExtBusEvent killbillEvent) {
-            this.killbillEvent = killbillEvent;
-            this.now = new DateTime(DateTimeZone.UTC);
+        private AnalyticsCallContext(final AnalyticsJob job, final Clock clock) {
+            this.job = job;
+            this.now = clock.getUTCNow();
         }
 
         @Override
@@ -267,14 +261,14 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
 
         @Override
         public String getReasonCode() {
-            return killbillEvent.getEventType().toString();
+            return job.getEventType().toString();
         }
 
         @Override
         public String getComments() {
-            return "eventType=" + killbillEvent.getEventType() + ", objectType="
-                   + killbillEvent.getObjectType() + ", objectId=" + killbillEvent.getObjectId() + ", accountId="
-                   + killbillEvent.getAccountId() + ", tenantId=" + killbillEvent.getTenantId();
+            return "eventType=" + job.getEventType() + ", objectType="
+                   + job.getObjectType() + ", objectId=" + job.getObjectId() + ", accountId="
+                   + job.getAccountId() + ", tenantId=" + job.getTenantId();
         }
 
         @Override
@@ -289,24 +283,12 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
 
         @Override
         public UUID getTenantId() {
-            return killbillEvent.getTenantId();
+            return job.getTenantId();
         }
     }
 
-    private <T> T updateWithAccountLock(final ExtBusEvent killbillEvent, final Callable<T> task) {
-        GlobalLock lock = null;
-        try {
-            final String lockKey = killbillEvent.getAccountId() == null ? "0" : killbillEvent.getAccountId().toString();
-            lock = locker.lockWithNumberOfTries("ACCOUNT_FOR_ANALYTICS", lockKey, NB_LOCK_TRY);
-            return task.call();
-        } catch (Exception e) {
-            logService.log(LogService.LOG_WARNING, "Exception while refreshing analytics tables for account " + killbillEvent.getAccountId().toString(), e);
-        } finally {
-            if (lock != null) {
-                lock.release();
-            }
-        }
-
-        return null;
+    @VisibleForTesting
+    NotificationQueue getJobQueue() {
+        return jobQueue;
     }
 }

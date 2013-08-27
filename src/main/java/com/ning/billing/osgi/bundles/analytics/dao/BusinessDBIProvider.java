@@ -24,7 +24,13 @@ import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.Argument;
 
 import com.ning.billing.commons.jdbi.ReusableStringTemplate3StatementLocator;
+import com.ning.billing.commons.jdbi.argument.DateTimeArgumentFactory;
+import com.ning.billing.commons.jdbi.argument.DateTimeZoneArgumentFactory;
+import com.ning.billing.commons.jdbi.argument.EnumArgumentFactory;
+import com.ning.billing.commons.jdbi.argument.LocalDateArgumentFactory;
+import com.ning.billing.commons.jdbi.argument.UUIDArgumentFactory;
 import com.ning.billing.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
+import com.ning.billing.commons.jdbi.mapper.UUIDMapper;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
@@ -75,6 +81,14 @@ public class BusinessDBIProvider {
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleSummaryModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleFieldModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleTagModelDao.class));
+
+        dbi.registerMapper(new UUIDMapper());
+
+        dbi.registerArgumentFactory(new UUIDArgumentFactory());
+        dbi.registerArgumentFactory(new DateTimeZoneArgumentFactory());
+        dbi.registerArgumentFactory(new DateTimeArgumentFactory());
+        dbi.registerArgumentFactory(new LocalDateArgumentFactory());
+        dbi.registerArgumentFactory(new EnumArgumentFactory());
 
         dbi.setStatementLocator(new AnalyticsStatementLocator());
 

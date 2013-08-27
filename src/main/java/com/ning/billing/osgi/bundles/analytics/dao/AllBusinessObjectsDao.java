@@ -21,7 +21,6 @@ import java.util.concurrent.Executor;
 
 import org.osgi.service.log.LogService;
 
-import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -68,7 +67,7 @@ public class AllBusinessObjectsDao {
         bFieldDao.update(accountId, context);
 
         // Refresh BOS (bundles only for now)
-        bosDao.update(accountId, ObjectType.BUNDLE, context);
+        bosDao.update(accountId, context);
 
         logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics for account " + accountId);
     }

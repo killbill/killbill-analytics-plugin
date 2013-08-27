@@ -770,3 +770,45 @@ create table bip_fields (
 create index bip_fields_account_id on bip_fields(account_id);
 create index bip_fields_account_record_id on bip_fields(account_record_id);
 create index bip_fields_tenant_account_record_id on bip_fields(tenant_record_id, account_record_id);
+
+drop table if exists analytics_notifications;
+create table analytics_notifications (
+  record_id int(11) unsigned not null auto_increment
+, class_name varchar(256) not null
+, event_json varchar(2048) not null
+, user_token char(36)
+, created_date datetime not null
+, creating_owner char(50) not null
+, processing_owner char(50) default null
+, processing_available_date datetime default null
+, processing_state varchar(14) default 'AVAILABLE'
+, search_key1 int(11) unsigned default null
+, search_key2 int(11) unsigned default null
+, queue_name char(64) not null
+, effective_date datetime not null
+, future_user_token char(36)
+, primary key(record_id)
+);
+create index idx_comp_where on analytics_notifications(effective_date, processing_state, processing_owner, processing_available_date);
+create index idx_update on analytics_notifications(processing_state,processing_owner,processing_available_date);
+create index idx_get_ready on analytics_notifications(effective_date,created_date);
+create index notifications_search_keys on analytics_notifications(search_key2, search_key1);
+
+drop table if exists analytics_notifications_history;
+create table analytics_notifications_history (
+  record_id int(11) unsigned not null auto_increment
+, class_name varchar(256) not null
+, event_json varchar(2048) not null
+, user_token char(36)
+, created_date datetime not null
+, creating_owner char(50) not null
+, processing_owner char(50) default null
+, processing_available_date datetime default null
+, processing_state varchar(14) default 'AVAILABLE'
+, search_key1 int(11) unsigned default null
+, search_key2 int(11) unsigned default null
+, queue_name char(64) not null
+, effective_date datetime not null
+, future_user_token char(36)
+, primary key(record_id)
+);

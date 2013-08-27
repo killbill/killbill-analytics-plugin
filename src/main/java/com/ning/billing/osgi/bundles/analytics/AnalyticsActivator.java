@@ -37,7 +37,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "killbill-analytics";
 
-    private OSGIKillbillEventHandler analyticsListener;
+    private AnalyticsListener analyticsListener;
     private JobsScheduler jobsScheduler;
     private ReportsUserApi reportsUserApi;
 
@@ -48,6 +48,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final Executor executor = BusinessExecutor.newCachedThreadPool();
 
         analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor);
+        analyticsListener.start();
         dispatcher.registerEventHandler(analyticsListener);
 
         jobsScheduler = new JobsScheduler(logService, dataSource);
@@ -62,6 +63,9 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
     @Override
     public void stop(final BundleContext context) throws Exception {
+        if (analyticsListener != null) {
+            analyticsListener.shutdownNow();
+        }
         if (jobsScheduler != null) {
             jobsScheduler.shutdownNow();
         }

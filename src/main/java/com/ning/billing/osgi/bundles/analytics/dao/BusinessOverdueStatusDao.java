@@ -47,15 +47,7 @@ public class BusinessOverdueStatusDao extends BusinessAnalyticsDaoBase {
         bosFactory = new BusinessOverdueStatusFactory(logService, osgiKillbillAPI);
     }
 
-    public void update(final UUID accountId, final ObjectType objectType, final CallContext context) throws AnalyticsRefreshException {
-        if (ObjectType.BUNDLE.equals(objectType)) {
-            updateForBundle(accountId, context);
-        } else {
-            logService.log(LogService.LOG_WARNING, String.format("Ignoring overdue status change for account id %s (type %s)", accountId, objectType.toString()));
-        }
-    }
-
-    private void updateForBundle(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics overdue states for account " + accountId);
 
         final Collection<BusinessOverdueStatusModelDao> businessOverdueStatuses = bosFactory.createBusinessOverdueStatuses(accountId, context);

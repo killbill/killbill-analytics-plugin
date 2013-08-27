@@ -59,7 +59,9 @@ public class BusinessFieldFactory extends BusinessFactoryBase {
                                                                                      creationAuditLog,
                                                                                      tenantRecordId,
                                                                                      reportGroup);
-            fieldModelDaos.add(fieldModelDao);
+            if (fieldModelDao != null) {
+                fieldModelDaos.add(fieldModelDao);
+            }
         }
 
         return fieldModelDaos;
