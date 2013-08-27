@@ -36,6 +36,7 @@ public class TestAnalyticsDao extends AnalyticsTestSuiteWithEmbeddedDB {
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
+                                                                                    invoice,
                                                                                     payment,
                                                                                     3,
                                                                                     auditLog,

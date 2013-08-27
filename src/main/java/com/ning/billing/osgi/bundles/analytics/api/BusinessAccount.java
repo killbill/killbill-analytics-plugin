@@ -45,7 +45,14 @@ public class BusinessAccount extends BusinessEntityBase {
     private final Boolean isNotifiedForInvoices;
     private final DateTime updatedDate;
     private final BigDecimal balance;
+    private final LocalDate oldestUnpaidInvoiceDate;
+    private final BigDecimal oldestUnpaidInvoiceBalance;
+    private final String oldestUnpaidInvoiceCurrency;
+    private final UUID oldestUnpaidInvoiceId;
     private final LocalDate lastInvoiceDate;
+    private final BigDecimal lastInvoiceBalance;
+    private final String lastInvoiceCurrency;
+    private final UUID lastInvoiceId;
     private final DateTime lastPaymentDate;
     private final String lastPaymentStatus;
     private final Integer nbActiveBundles;
@@ -78,7 +85,14 @@ public class BusinessAccount extends BusinessEntityBase {
         this.isNotifiedForInvoices = businessAccountModelDao.getNotifiedForInvoices();
         this.updatedDate = businessAccountModelDao.getUpdatedDate();
         this.balance = businessAccountModelDao.getBalance();
+        this.oldestUnpaidInvoiceDate = businessAccountModelDao.getOldestUnpaidInvoiceDate();
+        this.oldestUnpaidInvoiceBalance = businessAccountModelDao.getOldestUnpaidInvoiceBalance();
+        this.oldestUnpaidInvoiceCurrency = businessAccountModelDao.getOldestUnpaidInvoiceCurrency();
+        this.oldestUnpaidInvoiceId = businessAccountModelDao.getOldestUnpaidInvoiceId();
         this.lastInvoiceDate = businessAccountModelDao.getLastInvoiceDate();
+        this.lastInvoiceBalance = businessAccountModelDao.getLastInvoiceBalance();
+        this.lastInvoiceCurrency = businessAccountModelDao.getLastInvoiceCurrency();
+        this.lastInvoiceId = businessAccountModelDao.getLastInvoiceId();
         this.lastPaymentDate = businessAccountModelDao.getLastPaymentDate();
         this.lastPaymentStatus = businessAccountModelDao.getLastPaymentStatus();
         this.nbActiveBundles = businessAccountModelDao.getNbActiveBundles();
@@ -160,8 +174,36 @@ public class BusinessAccount extends BusinessEntityBase {
         return balance;
     }
 
+    public LocalDate getOldestUnpaidInvoiceDate() {
+        return oldestUnpaidInvoiceDate;
+    }
+
+    public BigDecimal getOldestUnpaidInvoiceBalance() {
+        return oldestUnpaidInvoiceBalance;
+    }
+
+    public String getOldestUnpaidInvoiceCurrency() {
+        return oldestUnpaidInvoiceCurrency;
+    }
+
+    public UUID getOldestUnpaidInvoiceId() {
+        return oldestUnpaidInvoiceId;
+    }
+
     public LocalDate getLastInvoiceDate() {
         return lastInvoiceDate;
+    }
+
+    public BigDecimal getLastInvoiceBalance() {
+        return lastInvoiceBalance;
+    }
+
+    public String getLastInvoiceCurrency() {
+        return lastInvoiceCurrency;
+    }
+
+    public UUID getLastInvoiceId() {
+        return lastInvoiceId;
     }
 
     public DateTime getLastPaymentDate() {
@@ -178,9 +220,8 @@ public class BusinessAccount extends BusinessEntityBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessAccount");
-        sb.append("{email='").append(email).append('\'');
+        final StringBuilder sb = new StringBuilder("BusinessAccount{");
+        sb.append("email='").append(email).append('\'');
         sb.append(", firstNameLength=").append(firstNameLength);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", billingCycleDayLocal=").append(billingCycleDayLocal);
@@ -199,10 +240,17 @@ public class BusinessAccount extends BusinessEntityBase {
         sb.append(", isNotifiedForInvoices=").append(isNotifiedForInvoices);
         sb.append(", updatedDate=").append(updatedDate);
         sb.append(", balance=").append(balance);
+        sb.append(", oldestUnpaidInvoiceDate=").append(oldestUnpaidInvoiceDate);
+        sb.append(", oldestUnpaidInvoiceBalance=").append(oldestUnpaidInvoiceBalance);
+        sb.append(", oldestUnpaidInvoiceCurrency='").append(oldestUnpaidInvoiceCurrency).append('\'');
+        sb.append(", oldestUnpaidInvoiceId=").append(oldestUnpaidInvoiceId);
         sb.append(", lastInvoiceDate=").append(lastInvoiceDate);
+        sb.append(", lastInvoiceBalance=").append(lastInvoiceBalance);
+        sb.append(", lastInvoiceCurrency='").append(lastInvoiceCurrency).append('\'');
+        sb.append(", lastInvoiceId=").append(lastInvoiceId);
         sb.append(", lastPaymentDate=").append(lastPaymentDate);
         sb.append(", lastPaymentStatus='").append(lastPaymentStatus).append('\'');
-        sb.append(", nbActiveBundles='").append(nbActiveBundles).append('\'');
+        sb.append(", nbActiveBundles=").append(nbActiveBundles);
         sb.append('}');
         return sb.toString();
     }
@@ -257,7 +305,16 @@ public class BusinessAccount extends BusinessEntityBase {
         if (isNotifiedForInvoices != null ? !isNotifiedForInvoices.equals(that.isNotifiedForInvoices) : that.isNotifiedForInvoices != null) {
             return false;
         }
-        if (lastInvoiceDate != null ? !lastInvoiceDate.equals(that.lastInvoiceDate) : that.lastInvoiceDate != null) {
+        if (lastInvoiceBalance != null ? lastInvoiceBalance.compareTo(that.lastInvoiceBalance) != 0 : that.lastInvoiceBalance != null) {
+            return false;
+        }
+        if (lastInvoiceCurrency != null ? !lastInvoiceCurrency.equals(that.lastInvoiceCurrency) : that.lastInvoiceCurrency != null) {
+            return false;
+        }
+        if (lastInvoiceDate != null ? lastInvoiceDate.compareTo(that.lastInvoiceDate) != 0 : that.lastInvoiceDate != null) {
+            return false;
+        }
+        if (lastInvoiceId != null ? !lastInvoiceId.equals(that.lastInvoiceId) : that.lastInvoiceId != null) {
             return false;
         }
         if (lastPaymentDate != null ? !lastPaymentDate.equals(that.lastPaymentDate) : that.lastPaymentDate != null) {
@@ -270,6 +327,18 @@ public class BusinessAccount extends BusinessEntityBase {
             return false;
         }
         if (nbActiveBundles != null ? !nbActiveBundles.equals(that.nbActiveBundles) : that.nbActiveBundles != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.compareTo(that.oldestUnpaidInvoiceBalance) != 0 : that.oldestUnpaidInvoiceBalance != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceCurrency != null ? !oldestUnpaidInvoiceCurrency.equals(that.oldestUnpaidInvoiceCurrency) : that.oldestUnpaidInvoiceCurrency != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceDate != null ? oldestUnpaidInvoiceDate.compareTo(that.oldestUnpaidInvoiceDate) != 0 : that.oldestUnpaidInvoiceDate != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceId != null ? !oldestUnpaidInvoiceId.equals(that.oldestUnpaidInvoiceId) : that.oldestUnpaidInvoiceId != null) {
             return false;
         }
         if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {
@@ -316,7 +385,14 @@ public class BusinessAccount extends BusinessEntityBase {
         result = 31 * result + (isNotifiedForInvoices != null ? isNotifiedForInvoices.hashCode() : 0);
         result = 31 * result + (updatedDate != null ? updatedDate.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceDate != null ? oldestUnpaidInvoiceDate.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceCurrency != null ? oldestUnpaidInvoiceCurrency.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceId != null ? oldestUnpaidInvoiceId.hashCode() : 0);
         result = 31 * result + (lastInvoiceDate != null ? lastInvoiceDate.hashCode() : 0);
+        result = 31 * result + (lastInvoiceBalance != null ? lastInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (lastInvoiceCurrency != null ? lastInvoiceCurrency.hashCode() : 0);
+        result = 31 * result + (lastInvoiceId != null ? lastInvoiceId.hashCode() : 0);
         result = 31 * result + (lastPaymentDate != null ? lastPaymentDate.hashCode() : 0);
         result = 31 * result + (lastPaymentStatus != null ? lastPaymentStatus.hashCode() : 0);
         result = 31 * result + (nbActiveBundles != null ? nbActiveBundles.hashCode() : 0);

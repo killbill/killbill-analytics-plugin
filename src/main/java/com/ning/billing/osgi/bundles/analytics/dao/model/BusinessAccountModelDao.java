@@ -52,7 +52,14 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
     private Boolean notifiedForInvoices;
     private DateTime updatedDate;
     private BigDecimal balance;
+    private LocalDate oldestUnpaidInvoiceDate;
+    private BigDecimal oldestUnpaidInvoiceBalance;
+    private String oldestUnpaidInvoiceCurrency;
+    private UUID oldestUnpaidInvoiceId;
     private LocalDate lastInvoiceDate;
+    private BigDecimal lastInvoiceBalance;
+    private String lastInvoiceCurrency;
+    private UUID lastInvoiceId;
     private DateTime lastPaymentDate;
     private String lastPaymentStatus;
     private Integer nbActiveBundles;
@@ -78,7 +85,14 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
                                    final Boolean notifiedForInvoices,
                                    final DateTime updatedDate,
                                    final BigDecimal balance,
+                                   final LocalDate oldestUnpaidInvoiceDate,
+                                   final BigDecimal oldestUnpaidInvoiceBalance,
+                                   final String oldestUnpaidInvoiceCurrency,
+                                   final UUID oldestUnpaidInvoiceId,
                                    final LocalDate lastInvoiceDate,
+                                   final BigDecimal lastInvoiceBalance,
+                                   final String lastInvoiceCurrency,
+                                   final UUID lastInvoiceId,
                                    final DateTime lastPaymentDate,
                                    final String lastPaymentStatus,
                                    final Integer nbActiveBundles,
@@ -121,7 +135,14 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         this.notifiedForInvoices = notifiedForInvoices;
         this.updatedDate = updatedDate;
         this.balance = balance;
+        this.oldestUnpaidInvoiceDate = oldestUnpaidInvoiceDate;
+        this.oldestUnpaidInvoiceBalance = oldestUnpaidInvoiceBalance;
+        this.oldestUnpaidInvoiceCurrency = oldestUnpaidInvoiceCurrency;
+        this.oldestUnpaidInvoiceId = oldestUnpaidInvoiceId;
         this.lastInvoiceDate = lastInvoiceDate;
+        this.lastInvoiceBalance = lastInvoiceBalance;
+        this.lastInvoiceCurrency = lastInvoiceCurrency;
+        this.lastInvoiceId = lastInvoiceId;
         this.lastPaymentDate = lastPaymentDate;
         this.lastPaymentStatus = lastPaymentStatus;
         this.nbActiveBundles = nbActiveBundles;
@@ -130,6 +151,7 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
     public BusinessAccountModelDao(final Account account,
                                    final Long accountRecordId,
                                    final BigDecimal balance,
+                                   @Nullable final Invoice oldestUnpaidInvoice,
                                    @Nullable final Invoice lastInvoice,
                                    @Nullable final Payment lastPayment,
                                    final Integer nbActiveBundles,
@@ -155,7 +177,14 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
              account.isNotifiedForInvoices(),
              account.getUpdatedDate(),
              balance,
+             oldestUnpaidInvoice == null ? null : oldestUnpaidInvoice.getInvoiceDate(),
+             oldestUnpaidInvoice == null ? null : oldestUnpaidInvoice.getBalance(),
+             oldestUnpaidInvoice == null ? null : oldestUnpaidInvoice.getCurrency().toString(),
+             oldestUnpaidInvoice == null ? null : oldestUnpaidInvoice.getId(),
              lastInvoice == null ? null : lastInvoice.getInvoiceDate(),
+             lastInvoice == null ? null : lastInvoice.getBalance(),
+             lastInvoice == null ? null : lastInvoice.getCurrency().toString(),
+             lastInvoice == null ? null : lastInvoice.getId(),
              lastPayment == null ? null : lastPayment.getEffectiveDate(),
              lastPayment == null ? null : lastPayment.getPaymentStatus().toString(),
              nbActiveBundles,
@@ -252,8 +281,36 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         return balance;
     }
 
+    public LocalDate getOldestUnpaidInvoiceDate() {
+        return oldestUnpaidInvoiceDate;
+    }
+
+    public BigDecimal getOldestUnpaidInvoiceBalance() {
+        return oldestUnpaidInvoiceBalance;
+    }
+
+    public String getOldestUnpaidInvoiceCurrency() {
+        return oldestUnpaidInvoiceCurrency;
+    }
+
+    public UUID getOldestUnpaidInvoiceId() {
+        return oldestUnpaidInvoiceId;
+    }
+
     public LocalDate getLastInvoiceDate() {
         return lastInvoiceDate;
+    }
+
+    public BigDecimal getLastInvoiceBalance() {
+        return lastInvoiceBalance;
+    }
+
+    public String getLastInvoiceCurrency() {
+        return lastInvoiceCurrency;
+    }
+
+    public UUID getLastInvoiceId() {
+        return lastInvoiceId;
     }
 
     public DateTime getLastPaymentDate() {
@@ -270,9 +327,8 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessAccountModelDao");
-        sb.append("{email='").append(email).append('\'');
+        final StringBuilder sb = new StringBuilder("BusinessAccountModelDao{");
+        sb.append("email='").append(email).append('\'');
         sb.append(", firstNameLength=").append(firstNameLength);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", billingCycleDayLocal=").append(billingCycleDayLocal);
@@ -291,10 +347,17 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         sb.append(", notifiedForInvoices=").append(notifiedForInvoices);
         sb.append(", updatedDate=").append(updatedDate);
         sb.append(", balance=").append(balance);
+        sb.append(", oldestUnpaidInvoiceDate=").append(oldestUnpaidInvoiceDate);
+        sb.append(", oldestUnpaidInvoiceBalance=").append(oldestUnpaidInvoiceBalance);
+        sb.append(", oldestUnpaidInvoiceCurrency='").append(oldestUnpaidInvoiceCurrency).append('\'');
+        sb.append(", oldestUnpaidInvoiceId=").append(oldestUnpaidInvoiceId);
         sb.append(", lastInvoiceDate=").append(lastInvoiceDate);
+        sb.append(", lastInvoiceBalance=").append(lastInvoiceBalance);
+        sb.append(", lastInvoiceCurrency='").append(lastInvoiceCurrency).append('\'');
+        sb.append(", lastInvoiceId=").append(lastInvoiceId);
         sb.append(", lastPaymentDate=").append(lastPaymentDate);
         sb.append(", lastPaymentStatus='").append(lastPaymentStatus).append('\'');
-        sb.append(", nbActiveBundles='").append(nbActiveBundles).append('\'');
+        sb.append(", nbActiveBundles=").append(nbActiveBundles);
         sb.append('}');
         return sb.toString();
     }
@@ -343,7 +406,16 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (firstNameLength != null ? !firstNameLength.equals(that.firstNameLength) : that.firstNameLength != null) {
             return false;
         }
-        if (lastInvoiceDate != null ? !lastInvoiceDate.equals(that.lastInvoiceDate) : that.lastInvoiceDate != null) {
+        if (lastInvoiceBalance != null ? lastInvoiceBalance.compareTo(that.lastInvoiceBalance) != 0 : that.lastInvoiceBalance != null) {
+            return false;
+        }
+        if (lastInvoiceCurrency != null ? !lastInvoiceCurrency.equals(that.oldestUnpaidInvoiceCurrency) : that.lastInvoiceCurrency != null) {
+            return false;
+        }
+        if (lastInvoiceDate != null ? lastInvoiceDate.compareTo(that.lastInvoiceDate) != 0 : that.lastInvoiceDate != null) {
+            return false;
+        }
+        if (lastInvoiceId != null ? !lastInvoiceId.equals(that.lastInvoiceId) : that.lastInvoiceId != null) {
             return false;
         }
         if (lastPaymentDate != null ? !lastPaymentDate.equals(that.lastPaymentDate) : that.lastPaymentDate != null) {
@@ -364,6 +436,18 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (notifiedForInvoices != null ? !notifiedForInvoices.equals(that.notifiedForInvoices) : that.notifiedForInvoices != null) {
             return false;
         }
+        if (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.compareTo(that.oldestUnpaidInvoiceBalance) != 0 : that.oldestUnpaidInvoiceBalance != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceCurrency != null ? !oldestUnpaidInvoiceCurrency.equals(that.oldestUnpaidInvoiceCurrency) : that.oldestUnpaidInvoiceCurrency != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceDate != null ? oldestUnpaidInvoiceDate.compareTo(that.oldestUnpaidInvoiceDate) != 0 : that.oldestUnpaidInvoiceDate != null) {
+            return false;
+        }
+        if (oldestUnpaidInvoiceId != null ? !oldestUnpaidInvoiceId.equals(that.oldestUnpaidInvoiceId) : that.oldestUnpaidInvoiceId != null) {
+            return false;
+        }
         if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {
             return false;
         }
@@ -379,7 +463,7 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (timeZone != null ? !timeZone.equals(that.timeZone) : that.timeZone != null) {
             return false;
         }
-        if (updatedDate != null ? (updatedDate.compareTo(that.updatedDate) != 0) : that.updatedDate != null) {
+        if (updatedDate != null ? updatedDate.compareTo(that.updatedDate) != 0 : that.updatedDate != null) {
             return false;
         }
 
@@ -408,7 +492,14 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         result = 31 * result + (notifiedForInvoices != null ? notifiedForInvoices.hashCode() : 0);
         result = 31 * result + (updatedDate != null ? updatedDate.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceDate != null ? oldestUnpaidInvoiceDate.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceCurrency != null ? oldestUnpaidInvoiceCurrency.hashCode() : 0);
+        result = 31 * result + (oldestUnpaidInvoiceId != null ? oldestUnpaidInvoiceId.hashCode() : 0);
         result = 31 * result + (lastInvoiceDate != null ? lastInvoiceDate.hashCode() : 0);
+        result = 31 * result + (lastInvoiceBalance != null ? lastInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (lastInvoiceCurrency != null ? lastInvoiceCurrency.hashCode() : 0);
+        result = 31 * result + (lastInvoiceId != null ? lastInvoiceId.hashCode() : 0);
         result = 31 * result + (lastPaymentDate != null ? lastPaymentDate.hashCode() : 0);
         result = 31 * result + (lastPaymentStatus != null ? lastPaymentStatus.hashCode() : 0);
         result = 31 * result + (nbActiveBundles != null ? nbActiveBundles.hashCode() : 0);

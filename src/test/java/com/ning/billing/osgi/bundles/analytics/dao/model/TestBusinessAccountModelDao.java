@@ -32,13 +32,21 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     BigDecimal.ONE,
                                                                                     null,
                                                                                     null,
+                                                                                    null,
                                                                                     3,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);
         verifyAccountFields(accountModelDao);
         Assert.assertEquals(accountModelDao.getBalance(), BigDecimal.ONE);
+        Assert.assertNull(accountModelDao.getOldestUnpaidInvoiceDate());
+        Assert.assertNull(accountModelDao.getOldestUnpaidInvoiceBalance());
+        Assert.assertNull(accountModelDao.getOldestUnpaidInvoiceCurrency());
+        Assert.assertNull(accountModelDao.getOldestUnpaidInvoiceId());
         Assert.assertNull(accountModelDao.getLastInvoiceDate());
+        Assert.assertNull(accountModelDao.getLastInvoiceBalance());
+        Assert.assertNull(accountModelDao.getLastInvoiceCurrency());
+        Assert.assertNull(accountModelDao.getLastInvoiceId());
         Assert.assertNull(accountModelDao.getLastPaymentDate());
         Assert.assertNull(accountModelDao.getLastPaymentStatus());
     }
@@ -49,6 +57,7 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
+                                                                                    invoice,
                                                                                     payment,
                                                                                     3,
                                                                                     auditLog,
@@ -56,7 +65,14 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     reportGroup);
         verifyAccountFields(accountModelDao);
         Assert.assertEquals(accountModelDao.getBalance(), BigDecimal.ONE);
-        Assert.assertEquals(accountModelDao.getLastInvoiceDate(), invoice.getInvoiceDate());
+        Assert.assertEquals(accountModelDao.getOldestUnpaidInvoiceDate().compareTo(invoice.getInvoiceDate()), 0);
+        Assert.assertEquals(accountModelDao.getOldestUnpaidInvoiceBalance().compareTo(invoice.getBalance()), 0);
+        Assert.assertEquals(accountModelDao.getOldestUnpaidInvoiceCurrency(), invoice.getCurrency().toString());
+        Assert.assertEquals(accountModelDao.getOldestUnpaidInvoiceId(), invoice.getId());
+        Assert.assertEquals(accountModelDao.getLastInvoiceBalance().compareTo(invoice.getBalance()), 0);
+        Assert.assertEquals(accountModelDao.getLastInvoiceCurrency(), invoice.getCurrency().toString());
+        Assert.assertEquals(accountModelDao.getLastInvoiceDate().compareTo(invoice.getInvoiceDate()), 0);
+        Assert.assertEquals(accountModelDao.getLastInvoiceId(), invoice.getId());
         Assert.assertEquals(accountModelDao.getLastPaymentDate(), payment.getEffectiveDate());
         Assert.assertEquals(accountModelDao.getLastPaymentStatus(), payment.getPaymentStatus().toString());
     }

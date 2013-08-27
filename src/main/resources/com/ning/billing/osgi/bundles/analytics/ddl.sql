@@ -117,7 +117,14 @@ create table bac (
 , migrated bool default false
 , notified_for_invoices boolean default null
 , balance numeric(10, 4) default 0
+, oldest_unpaid_invoice_date date default null
+, oldest_unpaid_invoice_balance numeric(10, 4) default null
+, oldest_unpaid_invoice_currency char(3) default null
+, oldest_unpaid_invoice_id char(36) default null
 , last_invoice_date date default null
+, last_invoice_balance numeric(10, 4) default null
+, last_invoice_currency char(3) default null
+, last_invoice_id char(36) default null
 , last_payment_date datetime default null
 , last_payment_status varchar(255) default null
 , nb_active_bundles int(11) default 0

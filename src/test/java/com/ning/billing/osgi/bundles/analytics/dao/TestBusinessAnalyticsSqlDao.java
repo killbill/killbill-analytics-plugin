@@ -57,6 +57,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
                                                                                     accountRecordId,
                                                                                     new BigDecimal("1.2345"),
                                                                                     invoice,
+                                                                                    invoice,
                                                                                     payment,
                                                                                     3,
                                                                                     auditLog,

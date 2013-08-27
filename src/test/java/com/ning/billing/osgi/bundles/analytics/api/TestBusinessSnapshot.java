@@ -48,6 +48,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
+                                                                                    invoice,
                                                                                     payment,
                                                                                     3,
                                                                                     auditLog,

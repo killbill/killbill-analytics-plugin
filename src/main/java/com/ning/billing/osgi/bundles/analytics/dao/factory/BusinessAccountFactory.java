@@ -59,9 +59,14 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
         final BigDecimal accountBalance = getAccountBalance(account.getId(), context);
 
         // Retrieve invoices information
+        Invoice oldestUnpaidInvoice = null;
         Invoice lastInvoice = null;
         final Collection<Invoice> invoices = getInvoicesByAccountId(account.getId(), context);
         for (final Invoice invoice : invoices) {
+            if (BigDecimal.ZERO.compareTo(invoice.getBalance()) < 0 &&
+                (oldestUnpaidInvoice == null || invoice.getInvoiceDate().isBefore(oldestUnpaidInvoice.getInvoiceDate()))) {
+                oldestUnpaidInvoice = invoice;
+            }
             if (lastInvoice == null || invoice.getInvoiceDate().isAfter(lastInvoice.getInvoiceDate())) {
                 lastInvoice = invoice;
             }
@@ -100,6 +105,7 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
         return new BusinessAccountModelDao(account,
                                            accountRecordId,
                                            accountBalance,
+                                           oldestUnpaidInvoice,
                                            lastInvoice,
                                            lastPayment,
                                            nbActiveBundles,
