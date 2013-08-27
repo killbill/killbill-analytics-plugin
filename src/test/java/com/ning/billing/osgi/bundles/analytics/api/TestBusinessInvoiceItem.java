@@ -57,6 +57,7 @@ public class TestBusinessInvoiceItem extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoiceItem.getInvoiceAmountCredited(), invoiceItemBaseModelDao.getInvoiceAmountCredited());
         Assert.assertEquals(businessInvoiceItem.getItemType(), invoiceItemBaseModelDao.getItemType());
         Assert.assertEquals(businessInvoiceItem.getItemSource(), invoiceItemBaseModelDao.getItemSource());
+        Assert.assertEquals(businessInvoiceItem.getBundleId(), invoiceItemBaseModelDao.getBundleId());
         Assert.assertEquals(businessInvoiceItem.getBundleExternalKey(), invoiceItemBaseModelDao.getBundleExternalKey());
         Assert.assertEquals(businessInvoiceItem.getProductName(), invoiceItemBaseModelDao.getProductName());
         Assert.assertEquals(businessInvoiceItem.getProductType(), invoiceItemBaseModelDao.getProductType());

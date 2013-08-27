@@ -40,6 +40,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
     private final BigDecimal invoiceAmountCredited;
     private final String itemType;
     private final String itemSource;
+    private final UUID bundleId;
     private final String bundleExternalKey;
     private final String productName;
     private final String productType;
@@ -76,6 +77,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         this.invoiceAmountCredited = businessInvoiceItemBaseModelDao.getInvoiceAmountCredited();
         this.itemType = businessInvoiceItemBaseModelDao.getItemType();
         this.itemSource = businessInvoiceItemBaseModelDao.getItemSource();
+        this.bundleId = businessInvoiceItemBaseModelDao.getBundleId();
         this.bundleExternalKey = businessInvoiceItemBaseModelDao.getBundleExternalKey();
         this.productName = businessInvoiceItemBaseModelDao.getProductName();
         this.productType = businessInvoiceItemBaseModelDao.getProductType();
@@ -146,6 +148,10 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         return itemSource;
     }
 
+    public UUID getBundleId() {
+        return bundleId;
+    }
+
     public String getBundleExternalKey() {
         return bundleExternalKey;
     }
@@ -212,6 +218,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         sb.append(", invoiceAmountCredited=").append(invoiceAmountCredited);
         sb.append(", itemType='").append(itemType).append('\'');
         sb.append(", itemSource=").append(itemSource);
+        sb.append(", bundleId='").append(bundleId).append('\'');
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append(", productName='").append(productName).append('\'');
         sb.append(", productType='").append(productType).append('\'');
@@ -246,6 +253,9 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
             return false;
         }
         if (billingPeriod != null ? !billingPeriod.equals(that.billingPeriod) : that.billingPeriod != null) {
+            return false;
+        }
+        if (bundleId != null ? !bundleId.equals(that.bundleId) : that.bundleId != null) {
             return false;
         }
         if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
@@ -341,6 +351,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         result = 31 * result + (invoiceAmountCredited != null ? invoiceAmountCredited.hashCode() : 0);
         result = 31 * result + (itemType != null ? itemType.hashCode() : 0);
         result = 31 * result + (itemSource != null ? itemSource.hashCode() : 0);
+        result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);
         result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         result = 31 * result + (productName != null ? productName.hashCode() : 0);
         result = 31 * result + (productType != null ? productType.hashCode() : 0);
