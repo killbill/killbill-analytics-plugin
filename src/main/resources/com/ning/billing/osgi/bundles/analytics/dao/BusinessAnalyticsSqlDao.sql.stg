@@ -297,6 +297,7 @@ insert into bia (
 , invoice_amount_refunded
 , item_type
 , item_source
+, bundle_id
 , bundle_external_key
 , product_name
 , product_type
@@ -337,6 +338,7 @@ insert into bia (
 , :invoiceAmountRefunded
 , :itemType
 , :itemSource
+, :bundleId
 , :bundleExternalKey
 , :productName
 , :productType
@@ -381,6 +383,7 @@ insert into bii (
 , invoice_amount_refunded
 , item_type
 , item_source
+, bundle_id
 , bundle_external_key
 , product_name
 , product_type
@@ -421,6 +424,7 @@ insert into bii (
 , :invoiceAmountRefunded
 , :itemType
 , :itemSource
+, :bundleId
 , :bundleExternalKey
 , :productName
 , :productType
@@ -465,6 +469,7 @@ insert into biia (
 , invoice_amount_refunded
 , item_type
 , item_source
+, bundle_id
 , bundle_external_key
 , product_name
 , product_type
@@ -505,6 +510,7 @@ insert into biia (
 , :invoiceAmountRefunded
 , :itemType
 , :itemSource
+, :bundleId
 , :bundleExternalKey
 , :productName
 , :productType
@@ -549,6 +555,7 @@ insert into biic (
 , invoice_amount_refunded
 , item_type
 , item_source
+, bundle_id
 , bundle_external_key
 , product_name
 , product_type
@@ -589,6 +596,7 @@ insert into biic (
 , :invoiceAmountRefunded
 , :itemType
 , :itemSource
+, :bundleId
 , :bundleExternalKey
 , :productName
 , :productType

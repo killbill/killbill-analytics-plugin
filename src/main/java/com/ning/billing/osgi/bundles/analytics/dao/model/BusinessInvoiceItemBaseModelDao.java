@@ -60,6 +60,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
     private BigDecimal invoiceAmountRefunded;
     private String itemType;
     private String itemSource;
+    private UUID bundleId;
     private String bundleExternalKey;
     private String productName;
     private String productType;
@@ -186,6 +187,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final BigDecimal invoiceAmountRefunded,
                                            final String itemType,
                                            @Nullable final ItemSource itemSource,
+                                           final UUID bundleId,
                                            final String bundleExternalKey,
                                            final String productName,
                                            final String productType,
@@ -235,6 +237,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         this.invoiceAmountRefunded = invoiceAmountRefunded;
         this.itemType = itemType;
         this.itemSource = itemSource == null ? DEFAULT_ITEM_SOURCE : itemSource.toString();
+        this.bundleId = bundleId;
         this.bundleExternalKey = bundleExternalKey;
         this.productName = productName;
         this.productType = productType;
@@ -279,6 +282,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              invoice.getRefundedAmount(),
              invoiceItem.getInvoiceItemType().toString(),
              itemSource,
+             bundle == null ? null : bundle.getId(),
              bundle == null ? null : bundle.getExternalKey(),
              (plan != null && plan.getProduct() != null) ? plan.getProduct().getName() : null,
              (plan != null && plan.getProduct() != null) ? plan.getProduct().getCatalogName() : null,
@@ -372,6 +376,10 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         return itemSource;
     }
 
+    public UUID getBundleId() {
+        return bundleId;
+    }
+
     public String getBundleExternalKey() {
         return bundleExternalKey;
     }
@@ -441,6 +449,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         sb.append(", invoiceAmountRefunded=").append(invoiceAmountRefunded);
         sb.append(", itemType='").append(itemType).append('\'');
         sb.append(", itemSource=").append(itemSource);
+        sb.append(", bundleId='").append(bundleId).append('\'');
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append(", productName='").append(productName).append('\'');
         sb.append(", productType='").append(productType).append('\'');
@@ -475,6 +484,9 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
             return false;
         }
         if (billingPeriod != null ? !billingPeriod.equals(that.billingPeriod) : that.billingPeriod != null) {
+            return false;
+        }
+        if (bundleId != null ? !bundleId.equals(that.bundleId) : that.bundleId != null) {
             return false;
         }
         if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
@@ -582,6 +594,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         result = 31 * result + (invoiceAmountRefunded != null ? invoiceAmountRefunded.hashCode() : 0);
         result = 31 * result + (itemType != null ? itemType.hashCode() : 0);
         result = 31 * result + (itemSource != null ? itemSource.hashCode() : 0);
+        result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);
         result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         result = 31 * result + (productName != null ? productName.hashCode() : 0);
         result = 31 * result + (productType != null ? productType.hashCode() : 0);

@@ -110,8 +110,8 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
 
             @Override
             public void handleReadyNotification(final NotificationEvent eventJson, final DateTime eventDateTime, final UUID userToken, final Long searchKey1, final Long searchKey2) {
-                if (!(eventJson instanceof AnalyticsJob)) {
-                    logService.log(LogService.LOG_ERROR, "Analytics service received an unexpected event type " + eventJson.getClass().getName());
+                if (eventJson == null || !(eventJson instanceof AnalyticsJob)) {
+                    logService.log(LogService.LOG_ERROR, "Analytics service received an unexpected event: " + eventJson);
                     return;
                 }
 
@@ -180,8 +180,11 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
-        final CallContext callContext = new AnalyticsCallContext(job, clock);
+        if (job.getEventType() == null) {
+            return;
+        }
 
+        final CallContext callContext = new AnalyticsCallContext(job, clock);
         switch (job.getEventType()) {
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:

@@ -53,6 +53,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         final String ddl = toString(Resources.getResource("com/ning/billing/osgi/bundles/analytics/ddl.sql").openStream());
         embeddedDB.executeScript(ddl);
+        embeddedDB.refreshTableNames();
     }
 
     @BeforeMethod(groups = "slow")

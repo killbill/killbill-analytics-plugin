@@ -18,6 +18,7 @@ import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.account.api.AccountUserApi;
 import com.ning.billing.notification.plugin.api.ExtBusEvent;
+import com.ning.billing.notification.plugin.api.ExtBusEventType;
 import com.ning.billing.util.api.AuditLevel;
 import com.ning.billing.util.api.AuditUserApi;
 import com.ning.billing.util.api.CustomFieldUserApi;
@@ -93,7 +94,9 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         // Verify the original state
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
 
-        analyticsListener.handleKillbillEvent(Mockito.mock(ExtBusEvent.class));
+        final ExtBusEvent event = createExtBusEvent();
+        analyticsListener.handleKillbillEvent(event);
+
         // Shouldn't be anything right after it
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
 
@@ -118,7 +121,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
 
         // Send the first event
-        final ExtBusEvent firstEvent = Mockito.mock(ExtBusEvent.class);
+        final ExtBusEvent firstEvent = createExtBusEvent();
         Mockito.when(firstEvent.getObjectType()).thenReturn(ObjectType.ACCOUNT);
         analyticsListener.handleKillbillEvent(firstEvent);
 
@@ -132,7 +135,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 1);
 
         // Now, send a different event type
-        final ExtBusEvent secondEvent = Mockito.mock(ExtBusEvent.class);
+        final ExtBusEvent secondEvent = createExtBusEvent();
         Mockito.when(secondEvent.getObjectType()).thenReturn(ObjectType.TENANT);
         analyticsListener.handleKillbillEvent(secondEvent);
 
@@ -141,5 +144,13 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Verify the final state
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
+    }
+
+    private ExtBusEvent createExtBusEvent() {
+        final ExtBusEvent event = Mockito.mock(ExtBusEvent.class);
+        Mockito.when(event.getAccountId()).thenReturn(UUID.randomUUID());
+        Mockito.when(event.getTenantId()).thenReturn(UUID.randomUUID());
+        Mockito.when(event.getEventType()).thenReturn(ExtBusEventType.CUSTOM_FIELD_CREATION);
+        return event;
     }
 }

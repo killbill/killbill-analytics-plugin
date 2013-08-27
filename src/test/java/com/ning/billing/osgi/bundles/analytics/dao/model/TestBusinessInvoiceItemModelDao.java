@@ -39,6 +39,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 tenantRecordId,
                                                                                                 reportGroup);
         verifyInvoiceItemFields(invoiceItemModelDao);
+        Assert.assertNull(invoiceItemModelDao.getBundleId());
         Assert.assertNull(invoiceItemModelDao.getBundleExternalKey());
         Assert.assertNull(invoiceItemModelDao.getProductName());
         Assert.assertNull(invoiceItemModelDao.getProductType());
@@ -64,6 +65,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 tenantRecordId,
                                                                                                 reportGroup);
         verifyInvoiceItemFields(invoiceItemModelDao);
+        Assert.assertEquals(invoiceItemModelDao.getBundleId(), bundle.getId());
         Assert.assertEquals(invoiceItemModelDao.getBundleExternalKey(), bundle.getExternalKey());
         Assert.assertEquals(invoiceItemModelDao.getProductName(), plan.getProduct().getName());
         Assert.assertEquals(invoiceItemModelDao.getProductType(), plan.getProduct().getCatalogName());
