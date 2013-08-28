@@ -17,8 +17,10 @@ create table bst (
 , prev_phase varchar(50) default null
 , prev_billing_period varchar(50) default null
 , prev_price numeric(10, 4) default 0
+, converted_prev_price numeric(10, 4) default null
 , prev_price_list varchar(50) default null
 , prev_mrr numeric(10, 4) default 0
+, converted_prev_mrr numeric(10, 4) default null
 , prev_currency varchar(50) default null
 , prev_state varchar(50) default null
 , prev_business_active bool default true
@@ -30,13 +32,16 @@ create table bst (
 , next_phase varchar(50) default null
 , next_billing_period varchar(50) default null
 , next_price numeric(10, 4) default 0
+, converted_next_price numeric(10, 4) default null
 , next_price_list varchar(50) default null
 , next_mrr numeric(10, 4) default 0
+, converted_next_mrr numeric(10, 4) default null
 , next_currency varchar(50) default null
 , next_state varchar(50) default null
 , next_business_active bool default true
 , next_start_date datetime default null
 , next_end_date datetime default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -71,13 +76,16 @@ create table bbs (
 , current_phase varchar(50) default null
 , current_billing_period varchar(50) default null
 , current_price numeric(10, 4) default 0
+, converted_current_price numeric(10, 4) default null
 , current_price_list varchar(50) default null
 , current_mrr numeric(10, 4) default 0
+, converted_current_mrr numeric(10, 4) default null
 , current_currency varchar(50) default null
 , current_state varchar(50) default null
 , current_business_active bool default true
 , current_start_date datetime default null
 , current_end_date datetime default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -117,17 +125,21 @@ create table bac (
 , migrated bool default false
 , notified_for_invoices boolean default null
 , balance numeric(10, 4) default 0
+, converted_balance numeric(10, 4) default null
 , oldest_unpaid_invoice_date date default null
 , oldest_unpaid_invoice_balance numeric(10, 4) default null
 , oldest_unpaid_invoice_currency char(3) default null
+, converted_oldest_unpaid_invoice_balance numeric(10, 4) default null
 , oldest_unpaid_invoice_id char(36) default null
 , last_invoice_date date default null
 , last_invoice_balance numeric(10, 4) default null
 , last_invoice_currency char(3) default null
+, converted_last_invoice_balance numeric(10, 4) default null
 , last_invoice_id char(36) default null
 , last_payment_date datetime default null
 , last_payment_status varchar(255) default null
 , nb_active_bundles int(11) default 0
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -157,11 +169,18 @@ create table bin (
 , target_date date default null
 , currency char(50) default null
 , balance numeric(10, 4) default 0
+, converted_balance numeric(10, 4) default null
 , amount_paid numeric(10, 4) default 0
+, converted_amount_paid numeric(10, 4) default null
 , amount_charged numeric(10, 4) default 0
+, converted_amount_charged numeric(10, 4) default null
 , original_amount_charged numeric(10, 4) default 0
+, converted_original_amount_charged numeric(10, 4) default null
 , amount_credited numeric(10, 4) default 0
+, converted_amount_credited numeric(10, 4) default null
 , amount_refunded numeric(10, 4) default 0
+, converted_amount_refunded numeric(10, 4) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -194,11 +213,17 @@ create table bia (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , item_type char(50) default null
 , item_source enum('system', 'user') not null
 , bundle_id char(36) default null
@@ -212,8 +237,10 @@ create table bia (
 , start_date date default null
 , end_date date default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , linked_item_id char(36) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -246,11 +273,17 @@ create table bii (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , item_type char(50) default null
 , item_source enum('system', 'user') not null
 , bundle_id char(36) default null
@@ -264,8 +297,10 @@ create table bii (
 , start_date date default null
 , end_date date default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , linked_item_id char(36) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -298,11 +333,17 @@ create table biia (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , item_type char(50) default null
 , item_source enum('system', 'user') not null
 , bundle_id char(36) default null
@@ -316,8 +357,10 @@ create table biia (
 , start_date date default null
 , end_date date default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , linked_item_id char(36) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -350,11 +393,17 @@ create table biic (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , item_type char(50) default null
 , item_source enum('system', 'user') not null
 , bundle_id char(36) default null
@@ -368,8 +417,10 @@ create table biic (
 , start_date date default null
 , end_date date default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , linked_item_id char(36) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -401,16 +452,23 @@ create table bip (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
@@ -434,6 +492,7 @@ create table bip (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -465,17 +524,24 @@ create table bipr (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , refund_id char(36) default null
 , payment_number bigint default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
@@ -499,6 +565,7 @@ create table bipr (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -530,16 +597,23 @@ create table bipc (
 , invoice_target_date date default null
 , invoice_currency char(50) default null
 , invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
 , invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
 , invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
 , invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
 , currency char(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
@@ -563,6 +637,7 @@ create table bipc (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -823,3 +898,15 @@ create table analytics_notifications_history (
 , future_user_token char(36)
 , primary key(record_id)
 );
+
+drop table if exists analytics_currency_conversion;
+create table analytics_currency_conversion (
+  record_id int(11) unsigned not null auto_increment
+, currency char(3) not null
+, start_date date not null
+, end_date date not null
+, reference_rate decimal(10, 4) not null
+, reference_currency char(3) default 'USD'
+, primary key(record_id)
+);
+create index idx_comp_where on analytics_currency_conversion(start_date, end_date, currency, reference_currency);

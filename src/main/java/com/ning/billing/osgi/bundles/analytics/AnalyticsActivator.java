@@ -24,6 +24,8 @@ import javax.servlet.http.HttpServlet;
 
 import org.osgi.framework.BundleContext;
 
+import com.ning.billing.clock.Clock;
+import com.ning.billing.clock.DefaultClock;
 import com.ning.billing.osgi.api.OSGIPluginProperties;
 import com.ning.billing.osgi.bundles.analytics.api.user.AnalyticsUserApi;
 import com.ning.billing.osgi.bundles.analytics.http.AnalyticsServlet;
@@ -41,13 +43,15 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     private JobsScheduler jobsScheduler;
     private ReportsUserApi reportsUserApi;
 
+    private final Clock clock = new DefaultClock();
+
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
 
         final Executor executor = BusinessExecutor.newCachedThreadPool();
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor, clock);
         analyticsListener.start();
         dispatcher.registerEventHandler(analyticsListener);
 
@@ -55,7 +59,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(logService, jobsScheduler);
         reportsConfiguration.initialize();
 
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, executor);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, executor, clock);
         reportsUserApi = new ReportsUserApi(dataSource, reportsConfiguration);
         final AnalyticsServlet analyticsServlet = new AnalyticsServlet(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, analyticsServlet);

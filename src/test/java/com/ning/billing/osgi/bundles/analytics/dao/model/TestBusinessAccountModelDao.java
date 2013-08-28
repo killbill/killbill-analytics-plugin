@@ -34,6 +34,7 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     null,
                                                                                     null,
                                                                                     3,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);
@@ -60,6 +61,7 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     invoice,
                                                                                     payment,
                                                                                     3,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);

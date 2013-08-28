@@ -33,6 +33,7 @@ public class TestBusinessInvoicePaymentModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                          payment,
                                                                                                          refund,
                                                                                                          null,
+                                                                                                         currencyConverter,
                                                                                                          auditLog,
                                                                                                          tenantRecordId,
                                                                                                          reportGroup);
@@ -71,6 +72,7 @@ public class TestBusinessInvoicePaymentModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                          payment,
                                                                                                          null,
                                                                                                          paymentMethod,
+                                                                                                         currencyConverter,
                                                                                                          auditLog,
                                                                                                          tenantRecordId,
                                                                                                          reportGroup);
@@ -87,6 +89,7 @@ public class TestBusinessInvoicePaymentModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                          payment,
                                                                                                          refund,
                                                                                                          paymentMethod,
+                                                                                                         currencyConverter,
                                                                                                          auditLog,
                                                                                                          tenantRecordId,
                                                                                                          reportGroup);

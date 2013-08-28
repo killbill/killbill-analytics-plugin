@@ -39,6 +39,7 @@ public class TestAnalyticsDao extends AnalyticsTestSuiteWithEmbeddedDB {
                                                                                     invoice,
                                                                                     payment,
                                                                                     3,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);

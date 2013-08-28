@@ -88,7 +88,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
     @Test(groups = "slow")
     public void testSendOneEvent() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), properties);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock, properties);
         analyticsListener.start();
 
         // Verify the original state
@@ -113,7 +113,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
     @Test(groups = "slow")
     public void testVerifyNoDups() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), properties);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock, properties);
         // Don't start the dequeuer
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 0);
 

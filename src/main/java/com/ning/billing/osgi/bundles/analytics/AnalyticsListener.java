@@ -78,30 +78,32 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     private final BusinessFieldDao bFieldDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
     private final NotificationQueue jobQueue;
-
-    private final Clock clock = new DefaultClock();
+    private final Clock clock;
 
     public AnalyticsListener(final OSGIKillbillLogService logService,
                              final OSGIKillbillAPI osgiKillbillAPI,
                              final OSGIKillbillDataSource osgiKillbillDataSource,
-                             final Executor executor) throws NotificationQueueAlreadyExists {
-        this(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, System.getProperties());
+                             final Executor executor,
+                             final Clock clock) throws NotificationQueueAlreadyExists {
+        this(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock, System.getProperties());
     }
 
     AnalyticsListener(final OSGIKillbillLogService logService,
                       final OSGIKillbillAPI osgiKillbillAPI,
                       final OSGIKillbillDataSource osgiKillbillDataSource,
                       final Executor executor,
+                      final Clock clock,
                       final Properties properties) throws NotificationQueueAlreadyExists {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
+        this.clock = clock;
 
-        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
-        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor);
-        this.binAndBipDao = new BusinessInvoiceAndInvoicePaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor);
-        this.bosDao = new BusinessOverdueStatusDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor);
-        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
-        this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
+        this.binAndBipDao = new BusinessInvoiceAndInvoicePaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
+        this.bosDao = new BusinessOverdueStatusDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
 
         final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).build(NotificationQueueConfig.class);
         final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());

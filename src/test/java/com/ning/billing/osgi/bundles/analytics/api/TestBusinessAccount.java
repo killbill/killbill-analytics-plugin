@@ -35,6 +35,7 @@ public class TestBusinessAccount extends AnalyticsTestSuiteNoDB {
                                                                                     invoice,
                                                                                     payment,
                                                                                     3,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);

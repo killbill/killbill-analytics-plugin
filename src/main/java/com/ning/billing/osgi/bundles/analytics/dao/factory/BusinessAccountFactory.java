@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.ProductCategory;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.Entitlement.EntitlementState;
 import com.ning.billing.entitlement.api.Subscription;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
@@ -30,10 +31,12 @@ import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Predicate;
@@ -42,8 +45,10 @@ import com.google.common.collect.Iterables;
 public class BusinessAccountFactory extends BusinessFactoryBase {
 
     public BusinessAccountFactory(final OSGIKillbillLogService logService,
-                                  final OSGIKillbillAPI osgiKillbillAPI) {
-        super(logService, osgiKillbillAPI);
+                                  final OSGIKillbillAPI osgiKillbillAPI,
+                                  final OSGIKillbillDataSource osgiKillbillDataSource,
+                                  final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public BusinessAccountModelDao createBusinessAccount(final UUID accountId,
@@ -101,6 +106,7 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
+        final CurrencyConverter converter = getCurrencyConverter();
 
         return new BusinessAccountModelDao(account,
                                            accountRecordId,
@@ -109,6 +115,7 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
                                            lastInvoice,
                                            lastPayment,
                                            nbActiveBundles,
+                                           converter,
                                            creationAuditLog,
                                            tenantRecordId,
                                            reportGroup);

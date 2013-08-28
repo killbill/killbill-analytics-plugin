@@ -18,6 +18,7 @@ package com.ning.billing.osgi.bundles.analytics;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -29,12 +30,17 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
+import com.ning.billing.clock.Clock;
+import com.ning.billing.clock.DefaultClock;
 import com.ning.billing.commons.embeddeddb.mysql.MySQLEmbeddedDB;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessAnalyticsSqlDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
+import com.ning.billing.osgi.bundles.analytics.dao.model.CurrencyConversionModelDao;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
 import com.google.common.io.InputSupplier;
 import com.google.common.io.Resources;
@@ -44,6 +50,9 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     protected MySQLEmbeddedDB embeddedDB;
     protected DBI dbi;
     protected BusinessAnalyticsSqlDao analyticsSqlDao;
+
+    protected final Clock clock = new DefaultClock();
+    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
 
     @BeforeClass(groups = "slow")
     public void setUpClass() throws Exception {

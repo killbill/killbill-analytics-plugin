@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceItem;
@@ -42,10 +43,12 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBase
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -68,8 +71,10 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
 
     public BusinessInvoiceFactory(final OSGIKillbillLogService logService,
                                   final OSGIKillbillAPI osgiKillbillAPI,
-                                  final Executor executor) {
-        super(logService, osgiKillbillAPI);
+                                  final OSGIKillbillDataSource osgiKillbillDataSource,
+                                  final Executor executor,
+                                  final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.executor = executor;
     }
 
@@ -88,6 +93,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
+        final CurrencyConverter currencyConverter = getCurrencyConverter();
 
         // Lookup the invoices for that account
         final Collection<Invoice> invoices = getInvoicesByAccountId(account.getId(), context);
@@ -113,6 +119,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                      allInvoiceItems,
                                                      invoiceIdToInvoiceMappings,
                                                      account,
+                                                     currencyConverter,
                                                      accountRecordId,
                                                      tenantRecordId,
                                                      reportGroup,
@@ -143,6 +150,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
 
             final BusinessInvoiceModelDao businessInvoice = createBusinessInvoice(account,
                                                                                   invoice,
+                                                                                  currencyConverter,
                                                                                   accountRecordId,
                                                                                   tenantRecordId,
                                                                                   reportGroup,
@@ -157,6 +165,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Multimap<UUID, InvoiceItem> allInvoiceItems,
                                                                       final Map<UUID, Invoice> invoiceIdToInvoiceMappings,
                                                                       final Account account,
+                                                                      final CurrencyConverter currencyConverter,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
                                                                       final ReportGroup reportGroup,
@@ -173,6 +182,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          invoice,
                                          invoiceItem,
                                          otherInvoiceItems,
+                                         currencyConverter,
                                          accountRecordId,
                                          tenantRecordId,
                                          reportGroup,
@@ -181,6 +191,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
 
     private BusinessInvoiceModelDao createBusinessInvoice(final Account account,
                                                           final Invoice invoice,
+                                                          final CurrencyConverter currencyConverter,
                                                           final Long accountRecordId,
                                                           final Long tenantRecordId,
                                                           @Nullable final ReportGroup reportGroup,
@@ -192,6 +203,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                            accountRecordId,
                                            invoice,
                                            invoiceRecordId,
+                                           currencyConverter,
                                            creationAuditLog,
                                            tenantRecordId,
                                            reportGroup);
@@ -201,6 +213,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Invoice invoice,
                                                                       final InvoiceItem invoiceItem,
                                                                       final Collection<InvoiceItem> otherInvoiceItems,
+                                                                      final CurrencyConverter currencyConverter,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
                                                                       @Nullable final ReportGroup reportGroup,
@@ -249,6 +262,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          plan,
                                          planPhase,
                                          invoiceItemRecordId,
+                                         currencyConverter,
                                          creationAuditLog,
                                          accountRecordId,
                                          tenantRecordId,
@@ -264,6 +278,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                               @Nullable final Plan plan,
                                                               @Nullable final PlanPhase planPhase,
                                                               final Long invoiceItemRecordId,
+                                                              final CurrencyConverter currencyConverter,
                                                               final AuditLog creationAuditLog,
                                                               final Long accountRecordId,
                                                               final Long tenantRecordId,
@@ -298,6 +313,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                       bundle,
                                                       plan,
                                                       planPhase,
+                                                      currencyConverter,
                                                       creationAuditLog,
                                                       tenantRecordId,
                                                       reportGroup);

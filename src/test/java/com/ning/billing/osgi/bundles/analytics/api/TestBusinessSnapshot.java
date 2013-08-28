@@ -51,6 +51,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                     invoice,
                                                                                     payment,
                                                                                     3,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);
@@ -71,6 +72,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                     accountRecordId,
                                                                                     invoice,
                                                                                     invoiceRecordId,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);
@@ -85,6 +87,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                                                bundle,
                                                                                                                plan,
                                                                                                                phase,
+                                                                                                               currencyConverter,
                                                                                                                auditLog,
                                                                                                                tenantRecordId,
                                                                                                                reportGroup);
@@ -100,6 +103,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                                                     payment,
                                                                                                                     refund,
                                                                                                                     paymentMethod,
+                                                                                                                    currencyConverter,
                                                                                                                     auditLog,
                                                                                                                     tenantRecordId,
                                                                                                                     reportGroup);
@@ -121,7 +125,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
@@ -130,6 +134,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                                                                  event,
                                                                                                                                  previousSubscription,
                                                                                                                                  nextSubscription,
+                                                                                                                                 currencyConverter,
                                                                                                                                  auditLog,
                                                                                                                                  tenantRecordId,
                                                                                                                                  reportGroup);

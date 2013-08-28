@@ -1,0 +1,47 @@
+group CurrencyConversionSqlDao;
+
+getCurrencyConversions() ::= <<
+select
+  currency
+, start_date
+, end_date
+, reference_rate
+, reference_currency
+from analytics_currency_conversion
+where reference_currency = :referenceCurrency
+order by currency, start_date asc
+;
+>>
+
+getCurrencyConversionForCurrencyAndDate() ::= <<
+select
+  currency
+, start_date
+, end_date
+, reference_rate
+, reference_currency
+from analytics_currency_conversion
+where currency = :currency
+and reference_currency = :referenceCurrency
+and start_date \<= :effectiveDate
+and end_date \>= :effectiveDate
+order by record_id desc
+limit 1
+;
+>>
+
+addCurrencyConversion() ::= <<
+insert into analytics_currency_conversion (
+  currency
+, start_date
+, end_date
+, reference_rate
+, reference_currency
+) values (
+  :currency
+, :startDate
+, :endDate
+, :referenceRate
+, :referenceCurrency
+);
+>>

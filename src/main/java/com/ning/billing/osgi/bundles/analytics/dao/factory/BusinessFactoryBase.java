@@ -33,6 +33,7 @@ import com.ning.billing.catalog.api.CatalogApiException;
 import com.ning.billing.catalog.api.CatalogUserApi;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.EntitlementApi;
 import com.ning.billing.entitlement.api.Subscription;
 import com.ning.billing.entitlement.api.SubscriptionApi;
@@ -47,7 +48,9 @@ import com.ning.billing.invoice.api.InvoicePayment;
 import com.ning.billing.invoice.api.InvoicePaymentApi;
 import com.ning.billing.invoice.api.InvoiceUserApi;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
+import com.ning.billing.osgi.bundles.analytics.dao.CurrencyConversionDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentApi;
 import com.ning.billing.payment.api.PaymentApiException;
@@ -69,6 +72,7 @@ import com.ning.billing.util.tag.ControlTagType;
 import com.ning.billing.util.tag.Tag;
 import com.ning.billing.util.tag.TagDefinition;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Function;
@@ -85,12 +89,30 @@ import com.google.common.collect.Sets;
  */
 public abstract class BusinessFactoryBase {
 
+    private static final String REFERENCE_CURRENCY = System.getProperty("com.ning.billing.osgi.bundles.analytics.referenceCurrency", "USD");
+
     protected final OSGIKillbillLogService logService;
     protected final OSGIKillbillAPI osgiKillbillAPI;
+    protected final Clock clock;
 
-    public BusinessFactoryBase(final OSGIKillbillLogService logService, final OSGIKillbillAPI osgiKillbillAPI) {
+    private final CurrencyConversionDao currencyConversionDao;
+
+    public BusinessFactoryBase(final OSGIKillbillLogService logService,
+                               final OSGIKillbillAPI osgiKillbillAPI,
+                               final OSGIKillbillDataSource osgiKillbillDataSource,
+                               final Clock clock) {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
+        this.clock = clock;
+        this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
+    }
+
+    //
+    // UTILS
+    //
+
+    protected CurrencyConverter getCurrencyConverter() {
+        return new CurrencyConverter(clock, currencyConversionDao.getCurrencyConversions(REFERENCE_CURRENCY));
     }
 
     //

@@ -64,7 +64,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
             }
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
-        invoiceFactory = new BusinessInvoiceFactory(osgiKillbillLogService, null, BusinessExecutor.newCachedThreadPool());
+        invoiceFactory = new BusinessInvoiceFactory(osgiKillbillLogService, null, osgiKillbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
     }
 
     @Test(groups = "fast")
@@ -80,6 +80,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                null,
                                                                                                                null,
                                                                                                                invoiceItemRecordId,
+                                                                                                               currencyConverter,
                                                                                                                auditLog,
                                                                                                                accountRecordId,
                                                                                                                tenantRecordId,
@@ -96,6 +97,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                             null,
                                                                                                             null,
                                                                                                             invoiceItemRecordId,
+                                                                                                            currencyConverter,
                                                                                                             auditLog,
                                                                                                             accountRecordId,
                                                                                                             tenantRecordId,
@@ -114,6 +116,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                        null,
                                                                                                                        null,
                                                                                                                        invoiceItemRecordId,
+                                                                                                                       currencyConverter,
                                                                                                                        auditLog,
                                                                                                                        accountRecordId,
                                                                                                                        tenantRecordId,
@@ -131,6 +134,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                              null,
                                                                                                                              null,
                                                                                                                              invoiceItemRecordId,
+                                                                                                                             currencyConverter,
                                                                                                                              auditLog,
                                                                                                                              accountRecordId,
                                                                                                                              tenantRecordId,
@@ -148,6 +152,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                            null,
                                                                                                                            null,
                                                                                                                            invoiceItemRecordId,
+                                                                                                                           currencyConverter,
                                                                                                                            auditLog,
                                                                                                                            accountRecordId,
                                                                                                                            tenantRecordId,
@@ -167,6 +172,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                          null,
                                                                                                          null,
                                                                                                          invoiceItemRecordId,
+                                                                                                         currencyConverter,
                                                                                                          auditLog,
                                                                                                          accountRecordId,
                                                                                                          tenantRecordId,

@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 import com.ning.billing.account.api.Account;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
@@ -28,13 +29,16 @@ import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.customfield.CustomField;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class BusinessFieldFactory extends BusinessFactoryBase {
 
     public BusinessFieldFactory(final OSGIKillbillLogService logService,
-                                final OSGIKillbillAPI osgiKillbillAPI) {
-        super(logService, osgiKillbillAPI);
+                                final OSGIKillbillAPI osgiKillbillAPI,
+                                final OSGIKillbillDataSource osgiKillbillDataSource,
+                                final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public Collection<BusinessFieldModelDao> createBusinessFields(final UUID accountId,

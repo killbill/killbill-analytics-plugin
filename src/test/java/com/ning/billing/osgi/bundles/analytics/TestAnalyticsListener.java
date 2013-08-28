@@ -30,14 +30,14 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testBlacklist() throws Exception {
         final Properties properties = new Properties();
-        AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, null);
+        AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, null, clock);
 
         // No account is blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
 
         final UUID blackListedAccountId = UUID.randomUUID();
         properties.put(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, String.format("%s,%s", UUID.randomUUID(), blackListedAccountId));
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, null, properties);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, null, clock, properties);
 
         // Other accounts are blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));

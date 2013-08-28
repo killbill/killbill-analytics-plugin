@@ -38,12 +38,13 @@ public class TestDefaultAnalyticsUserApi extends AnalyticsTestSuiteWithEmbeddedD
                                                                                     invoice,
                                                                                     payment,
                                                                                     3,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);
         analyticsSqlDao.create(accountModelDao.getTableName(), accountModelDao, callContext);
 
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool());
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
         final BusinessSnapshot businessSnapshot = analyticsUserApi.getBusinessSnapshot(account.getId(), callContext);
         Assert.assertEquals(businessSnapshot.getBusinessAccount(), new BusinessAccount(accountModelDao));
     }

@@ -21,11 +21,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.entitlement.api.BlockingState;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
@@ -33,6 +32,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusMo
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.collect.ImmutableList;
@@ -41,8 +41,10 @@ import com.google.common.collect.Lists;
 public class BusinessOverdueStatusFactory extends BusinessFactoryBase {
 
     public BusinessOverdueStatusFactory(final OSGIKillbillLogService logService,
-                                        final OSGIKillbillAPI osgiKillbillAPI) {
-        super(logService, osgiKillbillAPI);
+                                        final OSGIKillbillAPI osgiKillbillAPI,
+                                        final OSGIKillbillDataSource osgiKillbillDataSource,
+                                        final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public Collection<BusinessOverdueStatusModelDao> createBusinessOverdueStatuses(final UUID accountId,

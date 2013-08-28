@@ -26,6 +26,7 @@ import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
@@ -44,13 +45,16 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
     private String currentPhase;
     private String currentBillingPeriod;
     private BigDecimal currentPrice;
+    private BigDecimal convertedCurrentPrice;
     private String currentPriceList;
     private BigDecimal currentMrr;
+    private BigDecimal convertedCurrentMrr;
     private String currentCurrency;
     private Boolean currentBusinessActive;
     private LocalDate currentStartDate;
     private LocalDate currentEndDate;
     private String currentState;
+    private String convertedCurrency;
 
     public BusinessBundleSummaryModelDao() { /* When reading from the database */ }
 
@@ -60,6 +64,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
                                          final UUID subscriptionId,
                                          final Integer bundleAccountRank,
                                          final BusinessSubscriptionTransitionModelDao bst,
+                                         final String convertedCurrency,
                                          final DateTime createdDate,
                                          final String createdBy,
                                          final String createdReasonCode,
@@ -94,15 +99,17 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         this.currentPhase = bst.getNextPhase();
         this.currentBillingPeriod = bst.getNextBillingPeriod();
         this.currentPrice = bst.getNextPrice();
+        this.convertedCurrentPrice = bst.getConvertedNextPrice();
         this.currentPriceList = bst.getNextPriceList();
         this.currentMrr = bst.getNextMrr();
+        this.convertedCurrentMrr = bst.getConvertedNextMrr();
         this.currentCurrency = bst.getNextCurrency();
         this.currentBusinessActive = bst.getNextBusinessActive();
         this.currentStartDate = bst.getNextStartDate();
         this.currentEndDate = bst.getNextEndDate();
         this.currentState = bst.getNextState();
+        this.convertedCurrency = convertedCurrency;
     }
-
 
     public BusinessBundleSummaryModelDao(final Account account,
                                          final Long accountRecordId,
@@ -110,6 +117,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
                                          final Long bundleRecordId,
                                          final Integer bundleAccountRank,
                                          final BusinessSubscriptionTransitionModelDao bst,
+                                         final CurrencyConverter currencyConverter,
                                          @Nullable final AuditLog creationAuditLog,
                                          final Long tenantRecordId,
                                          @Nullable final ReportGroup reportGroup) {
@@ -119,6 +127,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
              bst.getSubscriptionId(),
              bundleAccountRank,
              bst,
+             currencyConverter.getConvertedCurrency(),
              bundle.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
@@ -184,12 +193,20 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         return currentPrice;
     }
 
+    public BigDecimal getConvertedCurrentPrice() {
+        return convertedCurrentPrice;
+    }
+
     public String getCurrentPriceList() {
         return currentPriceList;
     }
 
     public BigDecimal getCurrentMrr() {
         return currentMrr;
+    }
+
+    public BigDecimal getConvertedCurrentMrr() {
+        return convertedCurrentMrr;
     }
 
     public String getCurrentCurrency() {
@@ -212,6 +229,10 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         return currentState;
     }
 
+    public String getConvertedCurrency() {
+        return convertedCurrency;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessBundleSummaryModelDao{");
@@ -227,13 +248,16 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         sb.append(", currentPhase='").append(currentPhase).append('\'');
         sb.append(", currentBillingPeriod='").append(currentBillingPeriod).append('\'');
         sb.append(", currentPrice=").append(currentPrice);
+        sb.append(", convertedCurrentPrice=").append(convertedCurrentPrice);
         sb.append(", currentPriceList='").append(currentPriceList).append('\'');
         sb.append(", currentMrr=").append(currentMrr);
+        sb.append(", convertedCurrentMrr=").append(convertedCurrentMrr);
         sb.append(", currentCurrency='").append(currentCurrency).append('\'');
         sb.append(", currentBusinessActive=").append(currentBusinessActive);
         sb.append(", currentStartDate=").append(currentStartDate);
         sb.append(", currentEndDate=").append(currentEndDate);
         sb.append(", currentState='").append(currentState).append('\'');
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -264,6 +288,15 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         if (bundleRecordId != null ? !bundleRecordId.equals(that.bundleRecordId) : that.bundleRecordId != null) {
             return false;
         }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedCurrentMrr != null ? !(convertedCurrentMrr.compareTo(that.convertedCurrentMrr) == 0) : that.convertedCurrentMrr != null) {
+            return false;
+        }
+        if (convertedCurrentPrice != null ? !(convertedCurrentPrice.compareTo(that.convertedCurrentPrice) == 0) : that.convertedCurrentPrice != null) {
+            return false;
+        }
         if (currentBillingPeriod != null ? !currentBillingPeriod.equals(that.currentBillingPeriod) : that.currentBillingPeriod != null) {
             return false;
         }
@@ -273,7 +306,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         if (currentCurrency != null ? !currentCurrency.equals(that.currentCurrency) : that.currentCurrency != null) {
             return false;
         }
-        if (currentEndDate != null ? !currentEndDate.equals(that.currentEndDate) : that.currentEndDate != null) {
+        if (currentEndDate != null ? (currentEndDate.compareTo(that.currentEndDate) != 0) : that.currentEndDate != null) {
             return false;
         }
         if (currentMrr != null ? !(currentMrr.compareTo(that.currentMrr) == 0) : that.currentMrr != null) {
@@ -300,7 +333,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         if (currentSlug != null ? !currentSlug.equals(that.currentSlug) : that.currentSlug != null) {
             return false;
         }
-        if (currentStartDate != null ? !currentStartDate.equals(that.currentStartDate) : that.currentStartDate != null) {
+        if (currentStartDate != null ? (currentStartDate.compareTo(that.currentStartDate) != 0) : that.currentStartDate != null) {
             return false;
         }
         if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) {
@@ -328,13 +361,16 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         result = 31 * result + (currentPhase != null ? currentPhase.hashCode() : 0);
         result = 31 * result + (currentBillingPeriod != null ? currentBillingPeriod.hashCode() : 0);
         result = 31 * result + (currentPrice != null ? currentPrice.hashCode() : 0);
+        result = 31 * result + (convertedCurrentPrice != null ? convertedCurrentPrice.hashCode() : 0);
         result = 31 * result + (currentPriceList != null ? currentPriceList.hashCode() : 0);
         result = 31 * result + (currentMrr != null ? currentMrr.hashCode() : 0);
+        result = 31 * result + (convertedCurrentMrr != null ? convertedCurrentMrr.hashCode() : 0);
         result = 31 * result + (currentCurrency != null ? currentCurrency.hashCode() : 0);
         result = 31 * result + (currentBusinessActive != null ? currentBusinessActive.hashCode() : 0);
         result = 31 * result + (currentStartDate != null ? currentStartDate.hashCode() : 0);
         result = 31 * result + (currentEndDate != null ? currentEndDate.hashCode() : 0);
         result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;
     }
 }

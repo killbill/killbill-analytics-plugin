@@ -24,6 +24,7 @@ import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceItem;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessInvoiceItemCreditModelDao extends BusinessInvoiceItemBaseModelDao {
@@ -40,6 +41,7 @@ public class BusinessInvoiceItemCreditModelDao extends BusinessInvoiceItemBaseMo
                                              @Nullable final SubscriptionBundle bundle,
                                              @Nullable final Plan plan,
                                              @Nullable final PlanPhase planPhase,
+                                             final CurrencyConverter currencyConverter,
                                              @Nullable final AuditLog creationAuditLogs,
                                              final Long tenantRecordId,
                                              @Nullable final ReportGroup reportGroup) {
@@ -53,6 +55,7 @@ public class BusinessInvoiceItemCreditModelDao extends BusinessInvoiceItemBaseMo
               bundle,
               plan,
               planPhase,
+              currencyConverter,
               creationAuditLogs,
               tenantRecordId,
               reportGroup);

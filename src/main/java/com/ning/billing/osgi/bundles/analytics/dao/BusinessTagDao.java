@@ -23,6 +23,7 @@ import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
+import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessTagFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
@@ -37,9 +38,10 @@ public class BusinessTagDao extends BusinessAnalyticsDaoBase {
 
     public BusinessTagDao(final OSGIKillbillLogService logService,
                           final OSGIKillbillAPI osgiKillbillAPI,
-                          final OSGIKillbillDataSource osgiKillbillDataSource) {
+                          final OSGIKillbillDataSource osgiKillbillDataSource,
+                          final Clock clock) {
         super(logService, osgiKillbillDataSource);
-        bTagFactory = new BusinessTagFactory(logService, osgiKillbillAPI);
+        bTagFactory = new BusinessTagFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

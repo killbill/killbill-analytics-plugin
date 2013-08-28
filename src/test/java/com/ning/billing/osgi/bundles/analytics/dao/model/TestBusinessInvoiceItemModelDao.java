@@ -35,6 +35,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 null,
                                                                                                 null,
                                                                                                 null,
+                                                                                                currencyConverter,
                                                                                                 auditLog,
                                                                                                 tenantRecordId,
                                                                                                 reportGroup);
@@ -61,6 +62,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 bundle,
                                                                                                 plan,
                                                                                                 phase,
+                                                                                                currencyConverter,
                                                                                                 auditLog,
                                                                                                 tenantRecordId,
                                                                                                 reportGroup);

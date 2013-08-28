@@ -25,6 +25,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.ning.billing.account.api.Account;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
@@ -32,16 +33,20 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.Re
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscription;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
 
     public BusinessSubscriptionTransitionFactory(final OSGIKillbillLogService logService,
-                                                 final OSGIKillbillAPI osgiKillbillAPI) {
-        super(logService, osgiKillbillAPI);
+                                                 final OSGIKillbillAPI osgiKillbillAPI,
+                                                 final OSGIKillbillDataSource osgiKillbillDataSource,
+                                                 final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public Collection<BusinessSubscriptionTransitionModelDao> createBusinessSubscriptionTransitions(final UUID accountId,
@@ -50,12 +55,13 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                                                                     final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
+        final CurrencyConverter currencyConverter = getCurrencyConverter();
 
         final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
 
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = new LinkedList<BusinessSubscriptionTransitionModelDao>();
         for (final SubscriptionBundle bundle : bundles) {
-            bsts.addAll(buildTransitionsForBundle(account, bundle, accountRecordId, tenantRecordId, reportGroup, context));
+            bsts.addAll(buildTransitionsForBundle(account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup, context));
         }
 
         return bsts;
@@ -63,6 +69,7 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
 
     private Collection<BusinessSubscriptionTransitionModelDao> buildTransitionsForBundle(final Account account,
                                                                                          final SubscriptionBundle bundle,
+                                                                                         final CurrencyConverter currencyConverter,
                                                                                          final Long accountRecordId,
                                                                                          final Long tenantRecordId,
                                                                                          @Nullable final ReportGroup reportGroup,
@@ -75,13 +82,14 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
 
         // Ordered for us by entitlement
         for (final SubscriptionEvent transition : transitions) {
-            final BusinessSubscription nextSubscription = getBusinessSubscriptionFromTransition(account, transition);
+            final BusinessSubscription nextSubscription = getBusinessSubscriptionFromTransition(account, transition, currencyConverter);
             final BusinessSubscriptionTransitionModelDao bst = createBusinessSubscriptionTransition(account,
                                                                                                     accountRecordId,
                                                                                                     bundle,
                                                                                                     transition,
                                                                                                     prevNextSubscription,
                                                                                                     nextSubscription,
+                                                                                                    currencyConverter,
                                                                                                     tenantRecordId,
                                                                                                     reportGroup,
                                                                                                     context);
@@ -112,6 +120,7 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                                                         final SubscriptionEvent subscriptionTransition,
                                                                                         @Nullable final BusinessSubscription prevNextSubscription,
                                                                                         final BusinessSubscription nextSubscription,
+                                                                                        final CurrencyConverter currencyConverter,
                                                                                         final Long tenantRecordId,
                                                                                         @Nullable final ReportGroup reportGroup,
                                                                                         final CallContext context) throws AnalyticsRefreshException {
@@ -131,17 +140,21 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                           businessEvent,
                                                           prevNextSubscription,
                                                           nextSubscription,
+                                                          currencyConverter,
                                                           creationAuditLog,
                                                           tenantRecordId,
                                                           reportGroup);
     }
 
-    private BusinessSubscription getBusinessSubscriptionFromTransition(final Account account, final SubscriptionEvent subscriptionTransition) {
+    private BusinessSubscription getBusinessSubscriptionFromTransition(final Account account,
+                                                                       final SubscriptionEvent subscriptionTransition,
+                                                                       final CurrencyConverter currencyConverter) {
         return new BusinessSubscription(subscriptionTransition.getNextPlan(),
                                         subscriptionTransition.getNextPhase(),
                                         subscriptionTransition.getNextPriceList(),
                                         account.getCurrency(),
                                         subscriptionTransition.getEffectiveDate(),
-                                        subscriptionTransition.getServiceStateName());
+                                        subscriptionTransition.getServiceStateName(),
+                                        currencyConverter);
     }
 }

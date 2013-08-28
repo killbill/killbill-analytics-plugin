@@ -23,24 +23,29 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.ning.billing.account.api.Account;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoicePayment;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.Refund;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
 
     public BusinessInvoicePaymentFactory(final OSGIKillbillLogService logService,
-                                         final OSGIKillbillAPI osgiKillbillAPI) {
-        super(logService, osgiKillbillAPI);
+                                         final OSGIKillbillAPI osgiKillbillAPI,
+                                         final OSGIKillbillDataSource osgiKillbillDataSource,
+                                         final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
 
@@ -53,11 +58,13 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
+        final CurrencyConverter currencyConverter = getCurrencyConverter();
 
         final Collection<InvoicePayment> invoicePayments = getAccountInvoicePayments(account.getId(), context);
         for (final InvoicePayment invoicePayment : invoicePayments) {
             final BusinessInvoicePaymentBaseModelDao businessInvoicePayment = createBusinessInvoicePayment(account,
                                                                                                            invoicePayment,
+                                                                                                           currencyConverter,
                                                                                                            accountRecordId,
                                                                                                            tenantRecordId,
                                                                                                            reportGroup,
@@ -72,6 +79,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
 
     private BusinessInvoicePaymentBaseModelDao createBusinessInvoicePayment(final Account account,
                                                                             final InvoicePayment invoicePayment,
+                                                                            final CurrencyConverter currencyConverter,
                                                                             final Long accountRecordId,
                                                                             final Long tenantRecordId,
                                                                             @Nullable final ReportGroup reportGroup,
@@ -96,6 +104,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
                                                          payment,
                                                          refund,
                                                          paymentMethod,
+                                                         currencyConverter,
                                                          creationAuditLog,
                                                          tenantRecordId,
                                                          reportGroup);

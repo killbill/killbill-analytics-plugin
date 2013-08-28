@@ -33,7 +33,7 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE");
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
@@ -42,6 +42,7 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
                                                                                                                                  event,
                                                                                                                                  previousSubscription,
                                                                                                                                  nextSubscription,
+                                                                                                                                 currencyConverter,
                                                                                                                                  auditLog,
                                                                                                                                  tenantRecordId,
                                                                                                                                  reportGroup);

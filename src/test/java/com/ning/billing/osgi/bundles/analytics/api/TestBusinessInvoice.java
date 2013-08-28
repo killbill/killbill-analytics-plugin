@@ -33,6 +33,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
                                                                                     accountRecordId,
                                                                                     invoice,
                                                                                     invoiceRecordId,
+                                                                                    currencyConverter,
                                                                                     auditLog,
                                                                                     tenantRecordId,
                                                                                     reportGroup);
@@ -47,6 +48,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
                                                                                                                bundle,
                                                                                                                plan,
                                                                                                                phase,
+                                                                                                               currencyConverter,
                                                                                                                auditLog,
                                                                                                                tenantRecordId,
                                                                                                                reportGroup);

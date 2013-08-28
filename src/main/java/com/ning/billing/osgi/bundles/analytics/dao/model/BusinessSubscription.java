@@ -31,6 +31,7 @@ import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.catalog.api.PriceList;
 import com.ning.billing.catalog.api.Product;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.osgi.bundles.analytics.utils.Rounder;
 
 /**
@@ -47,8 +48,10 @@ public class BusinessSubscription {
     private final String phase;
     private final String billingPeriod;
     private final BigDecimal price;
+    private final BigDecimal convertedPrice;
     private final String priceList;
     private final BigDecimal mrr;
+    private final BigDecimal convertedMrr;
     private final String currency;
     private final String state;
     private final Boolean businessActive;
@@ -60,7 +63,8 @@ public class BusinessSubscription {
                                 @Nullable final PriceList priceList,
                                 final Currency currency,
                                 final LocalDate startDate,
-                                final String state) {
+                                final String state,
+                                final CurrencyConverter currencyConverter) {
         // TODO
         businessActive = true;
 
@@ -134,42 +138,9 @@ public class BusinessSubscription {
             this.endDate = null;
         }
         this.state = state;
-    }
 
-    public String getBillingPeriod() {
-        return billingPeriod;
-    }
-
-    public String getCurrency() {
-        return currency;
-    }
-
-    public BigDecimal getMrr() {
-        return mrr;
-    }
-
-    public double getRoundedMrr() {
-        return Rounder.round(mrr);
-    }
-
-    public String getPhase() {
-        return phase;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public String getPriceList() {
-        return priceList;
-    }
-
-    public double getRoundedPrice() {
-        return Rounder.round(price);
-    }
-
-    public String getProductCategory() {
-        return productCategory;
+        convertedPrice = currencyConverter.getConvertedValue(this.price, this.currency, startDate);
+        convertedMrr = currencyConverter.getConvertedValue(this.mrr, this.currency, startDate);
     }
 
     public String getProductName() {
@@ -180,8 +151,48 @@ public class BusinessSubscription {
         return productType;
     }
 
+    public String getProductCategory() {
+        return productCategory;
+    }
+
     public String getSlug() {
         return slug;
+    }
+
+    public String getPhase() {
+        return phase;
+    }
+
+    public String getBillingPeriod() {
+        return billingPeriod;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public BigDecimal getConvertedPrice() {
+        return convertedPrice;
+    }
+
+    public String getPriceList() {
+        return priceList;
+    }
+
+    public BigDecimal getMrr() {
+        return mrr;
+    }
+
+    public BigDecimal getConvertedMrr() {
+        return convertedMrr;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public String getState() {
+        return state;
     }
 
     public Boolean getBusinessActive() {
@@ -196,10 +207,6 @@ public class BusinessSubscription {
         return endDate;
     }
 
-    public String getState() {
-        return state;
-    }
-
     static BigDecimal getMrrFromBillingPeriod(final BillingPeriod period, final BigDecimal price) {
         if (period == null || period.getNumberOfMonths() == 0) {
             return BigDecimal.ZERO;
@@ -210,19 +217,20 @@ public class BusinessSubscription {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessSubscription");
-        sb.append("{productName='").append(productName).append('\'');
+        final StringBuilder sb = new StringBuilder("BusinessSubscription{");
+        sb.append("productName='").append(productName).append('\'');
         sb.append(", productType='").append(productType).append('\'');
-        sb.append(", productCategory=").append(productCategory);
+        sb.append(", productCategory='").append(productCategory).append('\'');
         sb.append(", slug='").append(slug).append('\'');
         sb.append(", phase='").append(phase).append('\'');
         sb.append(", billingPeriod='").append(billingPeriod).append('\'');
         sb.append(", price=").append(price);
+        sb.append(", convertedPrice=").append(convertedPrice);
         sb.append(", priceList='").append(priceList).append('\'');
         sb.append(", mrr=").append(mrr);
+        sb.append(", convertedMrr=").append(convertedMrr);
         sb.append(", currency='").append(currency).append('\'');
-        sb.append(", state=").append(state);
+        sb.append(", state='").append(state).append('\'');
         sb.append(", businessActive=").append(businessActive);
         sb.append(", startDate=").append(startDate);
         sb.append(", endDate=").append(endDate);
@@ -247,25 +255,31 @@ public class BusinessSubscription {
         if (businessActive != null ? !businessActive.equals(that.businessActive) : that.businessActive != null) {
             return false;
         }
+        if (convertedMrr != null ? !(convertedMrr.compareTo(that.convertedMrr) == 0) : that.convertedMrr != null) {
+            return false;
+        }
+        if (convertedPrice != null ? !(convertedPrice.compareTo(that.convertedPrice) == 0) : that.convertedPrice != null) {
+            return false;
+        }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
-        if (endDate != null ? !endDate.equals(that.endDate) : that.endDate != null) {
+        if (endDate != null ? (endDate.compareTo(that.endDate) != 0) : that.endDate != null) {
             return false;
         }
-        if (mrr != null ? !mrr.equals(that.mrr) : that.mrr != null) {
+        if (mrr != null ? !(mrr.compareTo(that.mrr) == 0) : that.mrr != null) {
             return false;
         }
         if (phase != null ? !phase.equals(that.phase) : that.phase != null) {
             return false;
         }
-        if (price != null ? !price.equals(that.price) : that.price != null) {
+        if (price != null ? !(price.compareTo(that.price) == 0) : that.price != null) {
             return false;
         }
         if (priceList != null ? !priceList.equals(that.priceList) : that.priceList != null) {
             return false;
         }
-        if (productCategory != that.productCategory) {
+        if (productCategory != null ? !productCategory.equals(that.productCategory) : that.productCategory != null) {
             return false;
         }
         if (productName != null ? !productName.equals(that.productName) : that.productName != null) {
@@ -277,10 +291,10 @@ public class BusinessSubscription {
         if (slug != null ? !slug.equals(that.slug) : that.slug != null) {
             return false;
         }
-        if (startDate != null ? !startDate.equals(that.startDate) : that.startDate != null) {
+        if (startDate != null ? (startDate.compareTo(that.startDate) != 0) : that.startDate != null) {
             return false;
         }
-        if (state != that.state) {
+        if (state != null ? !state.equals(that.state) : that.state != null) {
             return false;
         }
 
@@ -296,8 +310,10 @@ public class BusinessSubscription {
         result = 31 * result + (phase != null ? phase.hashCode() : 0);
         result = 31 * result + (billingPeriod != null ? billingPeriod.hashCode() : 0);
         result = 31 * result + (price != null ? price.hashCode() : 0);
+        result = 31 * result + (convertedPrice != null ? convertedPrice.hashCode() : 0);
         result = 31 * result + (priceList != null ? priceList.hashCode() : 0);
         result = 31 * result + (mrr != null ? mrr.hashCode() : 0);
+        result = 31 * result + (convertedMrr != null ? convertedMrr.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (businessActive != null ? businessActive.hashCode() : 0);

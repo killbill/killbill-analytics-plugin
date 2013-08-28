@@ -28,6 +28,7 @@ import com.ning.billing.account.api.Account;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoicePayment;
 import com.ning.billing.invoice.api.InvoicePaymentType;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.Refund;
@@ -55,17 +56,24 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
     private LocalDate invoiceTargetDate;
     private String invoiceCurrency;
     private BigDecimal invoiceBalance;
+    private BigDecimal convertedInvoiceBalance;
     private BigDecimal invoiceAmountPaid;
+    private BigDecimal convertedInvoiceAmountPaid;
     private BigDecimal invoiceAmountCharged;
+    private BigDecimal convertedInvoiceAmountCharged;
     private BigDecimal invoiceOriginalAmountCharged;
+    private BigDecimal convertedInvoiceOriginalAmountCharged;
     private BigDecimal invoiceAmountCredited;
+    private BigDecimal convertedInvoiceAmountCredited;
     private BigDecimal invoiceAmountRefunded;
+    private BigDecimal convertedInvoiceAmountRefunded;
     private String invoicePaymentType;
     private UUID paymentId;
     private UUID refundId;
     private Long paymentNumber;
     private UUID linkedInvoicePaymentId;
     private BigDecimal amount;
+    private BigDecimal convertedAmount;
     private String currency;
     private String pluginName;
     private DateTime pluginCreatedDate;
@@ -89,6 +97,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
     private String pluginPmState;
     private String pluginPmZip;
     private String pluginPmCountry;
+    private String convertedCurrency;
 
     public static BusinessInvoicePaymentBaseModelDao create(final Account account,
                                                             final Long accountRecordId,
@@ -98,6 +107,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                                             final Payment payment,
                                                             final Refund refund,
                                                             @Nullable final PaymentMethod paymentMethod,
+                                                            final CurrencyConverter currencyConverter,
                                                             @Nullable final AuditLog creationAuditLog,
                                                             final Long tenantRecordId,
                                                             @Nullable final ReportGroup reportGroup) {
@@ -110,6 +120,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                                             payment,
                                                             refund,
                                                             paymentMethod,
+                                                            currencyConverter,
                                                             creationAuditLog,
                                                             tenantRecordId,
                                                             reportGroup);
@@ -122,6 +133,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                                                 payment,
                                                                 refund,
                                                                 paymentMethod,
+                                                                currencyConverter,
                                                                 creationAuditLog,
                                                                 tenantRecordId,
                                                                 reportGroup);
@@ -134,6 +146,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                                       payment,
                                                       refund,
                                                       paymentMethod,
+                                                      currencyConverter,
                                                       creationAuditLog,
                                                       tenantRecordId,
                                                       reportGroup);
@@ -156,13 +169,20 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                               final Long paymentNumber,
                                               final UUID linkedInvoicePaymentId,
                                               final BigDecimal amount,
+                                              final BigDecimal convertedAmount,
                                               final String currency,
                                               final BigDecimal invoiceBalance,
+                                              final BigDecimal convertedInvoiceBalance,
                                               final BigDecimal invoiceAmountPaid,
+                                              final BigDecimal convertedInvoiceAmountPaid,
                                               final BigDecimal invoiceAmountCharged,
+                                              final BigDecimal convertedInvoiceAmountCharged,
                                               final BigDecimal invoiceOriginalAmountCharged,
+                                              final BigDecimal convertedInvoiceOriginalAmountCharged,
                                               final BigDecimal invoiceAmountCredited,
+                                              final BigDecimal convertedInvoiceAmountCredited,
                                               final BigDecimal invoiceAmountRefunded,
+                                              final BigDecimal convertedInvoiceAmountRefunded,
                                               final String pluginName,
                                               final DateTime pluginCreatedDate,
                                               final DateTime pluginEffectiveDate,
@@ -185,6 +205,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                               final String pluginPmState,
                                               final String pluginPmZip,
                                               final String pluginPmCountry,
+                                              final String convertedCurrency,
                                               final DateTime createdDate,
                                               final String createdBy,
                                               final String createdReasonCode,
@@ -214,17 +235,24 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         this.invoiceTargetDate = invoiceTargetDate;
         this.invoiceCurrency = invoiceCurrency;
         this.invoiceBalance = invoiceBalance;
+        this.convertedInvoiceBalance = convertedInvoiceBalance;
         this.invoiceAmountPaid = invoiceAmountPaid;
+        this.convertedInvoiceAmountPaid = convertedInvoiceAmountPaid;
         this.invoiceAmountCharged = invoiceAmountCharged;
+        this.convertedInvoiceAmountCharged = convertedInvoiceAmountCharged;
         this.invoiceOriginalAmountCharged = invoiceOriginalAmountCharged;
+        this.convertedInvoiceOriginalAmountCharged = convertedInvoiceOriginalAmountCharged;
         this.invoiceAmountCredited = invoiceAmountCredited;
+        this.convertedInvoiceAmountCredited = convertedInvoiceAmountCredited;
         this.invoiceAmountRefunded = invoiceAmountRefunded;
+        this.convertedInvoiceAmountRefunded = convertedInvoiceAmountRefunded;
         this.invoicePaymentType = invoicePaymentType;
         this.paymentId = paymentId;
         this.refundId = refundId;
         this.paymentNumber = paymentNumber;
         this.linkedInvoicePaymentId = linkedInvoicePaymentId;
         this.amount = amount;
+        this.convertedAmount = convertedAmount;
         this.currency = currency;
         this.pluginName = pluginName;
         this.pluginCreatedDate = pluginCreatedDate;
@@ -248,6 +276,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         this.pluginPmState = pluginPmState;
         this.pluginPmZip = pluginPmZip;
         this.pluginPmCountry = pluginPmCountry;
+        this.convertedCurrency = convertedCurrency;
     }
 
     protected BusinessInvoicePaymentBaseModelDao(final Account account,
@@ -258,6 +287,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
                                                  final Payment payment,
                                                  @Nullable final Refund refund,
                                                  @Nullable final PaymentMethod paymentMethod,
+                                                 final CurrencyConverter currencyConverter,
                                                  @Nullable final AuditLog creationAuditLog,
                                                  final Long tenantRecordId,
                                                  @Nullable final ReportGroup reportGroup) {
@@ -275,13 +305,20 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
              payment.getPaymentNumber() == null ? null : payment.getPaymentNumber().longValue(),
              invoicePayment.getLinkedInvoicePaymentId(),
              invoicePayment.getAmount(),
+             currencyConverter.getConvertedValue(invoicePayment, invoice),
              invoicePayment.getCurrency() == null ? null : invoicePayment.getCurrency().toString(),
              invoice.getBalance(),
+             currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
              invoice.getPaidAmount(),
+             currencyConverter.getConvertedValue(invoice.getPaidAmount(), invoice),
              invoice.getChargedAmount(),
+             currencyConverter.getConvertedValue(invoice.getChargedAmount(), invoice),
              invoice.getOriginalChargedAmount(),
+             currencyConverter.getConvertedValue(invoice.getOriginalChargedAmount(), invoice),
              invoice.getCreditedAmount(),
+             currencyConverter.getConvertedValue(invoice.getCreditedAmount(), invoice),
              invoice.getRefundedAmount(),
+             currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
              paymentMethod != null ? paymentMethod.getPluginName() : DEFAULT_PLUGIN_NAME,
              refund != null ? (refund.getPluginDetail() != null ? refund.getPluginDetail().getCreatedDate() : null) : (payment.getPaymentInfoPlugin() != null ? payment.getPaymentInfoPlugin().getCreatedDate() : null),
              refund != null ? (refund.getPluginDetail() != null ? refund.getPluginDetail().getEffectiveDate() : null) : (payment.getPaymentInfoPlugin() != null ? payment.getPaymentInfoPlugin().getEffectiveDate() : null),
@@ -304,6 +341,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? paymentMethod.getPluginDetail().getState() : null) : null,
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? paymentMethod.getPluginDetail().getZip() : null) : null,
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? paymentMethod.getPluginDetail().getCountry() : null) : null,
+             currencyConverter.getConvertedCurrency(),
              invoicePayment.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
@@ -352,24 +390,48 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         return invoiceBalance;
     }
 
+    public BigDecimal getConvertedInvoiceBalance() {
+        return convertedInvoiceBalance;
+    }
+
     public BigDecimal getInvoiceAmountPaid() {
         return invoiceAmountPaid;
+    }
+
+    public BigDecimal getConvertedInvoiceAmountPaid() {
+        return convertedInvoiceAmountPaid;
     }
 
     public BigDecimal getInvoiceAmountCharged() {
         return invoiceAmountCharged;
     }
 
+    public BigDecimal getConvertedInvoiceAmountCharged() {
+        return convertedInvoiceAmountCharged;
+    }
+
     public BigDecimal getInvoiceOriginalAmountCharged() {
         return invoiceOriginalAmountCharged;
+    }
+
+    public BigDecimal getConvertedInvoiceOriginalAmountCharged() {
+        return convertedInvoiceOriginalAmountCharged;
     }
 
     public BigDecimal getInvoiceAmountCredited() {
         return invoiceAmountCredited;
     }
 
+    public BigDecimal getConvertedInvoiceAmountCredited() {
+        return convertedInvoiceAmountCredited;
+    }
+
     public BigDecimal getInvoiceAmountRefunded() {
         return invoiceAmountRefunded;
+    }
+
+    public BigDecimal getConvertedInvoiceAmountRefunded() {
+        return convertedInvoiceAmountRefunded;
     }
 
     public String getInvoicePaymentType() {
@@ -394,6 +456,10 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
 
     public BigDecimal getAmount() {
         return amount;
+    }
+
+    public BigDecimal getConvertedAmount() {
+        return convertedAmount;
     }
 
     public String getCurrency() {
@@ -488,6 +554,10 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         return pluginPmCountry;
     }
 
+    public String getConvertedCurrency() {
+        return convertedCurrency;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessInvoicePaymentBaseModelDao{");
@@ -500,17 +570,24 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         sb.append(", invoiceTargetDate=").append(invoiceTargetDate);
         sb.append(", invoiceCurrency='").append(invoiceCurrency).append('\'');
         sb.append(", invoiceBalance=").append(invoiceBalance);
+        sb.append(", convertedInvoiceBalance=").append(convertedInvoiceBalance);
         sb.append(", invoiceAmountPaid=").append(invoiceAmountPaid);
+        sb.append(", convertedInvoiceAmountPaid=").append(convertedInvoiceAmountPaid);
         sb.append(", invoiceAmountCharged=").append(invoiceAmountCharged);
+        sb.append(", convertedInvoiceAmountCharged=").append(convertedInvoiceAmountCharged);
         sb.append(", invoiceOriginalAmountCharged=").append(invoiceOriginalAmountCharged);
+        sb.append(", convertedInvoiceOriginalAmountCharged=").append(convertedInvoiceOriginalAmountCharged);
         sb.append(", invoiceAmountCredited=").append(invoiceAmountCredited);
+        sb.append(", convertedInvoiceAmountCredited=").append(convertedInvoiceAmountCredited);
         sb.append(", invoiceAmountRefunded=").append(invoiceAmountRefunded);
+        sb.append(", convertedInvoiceAmountRefunded=").append(convertedInvoiceAmountRefunded);
         sb.append(", invoicePaymentType='").append(invoicePaymentType).append('\'');
         sb.append(", paymentId=").append(paymentId);
         sb.append(", refundId=").append(refundId);
         sb.append(", paymentNumber=").append(paymentNumber);
         sb.append(", linkedInvoicePaymentId=").append(linkedInvoicePaymentId);
         sb.append(", amount=").append(amount);
+        sb.append(", convertedAmount=").append(convertedAmount);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", pluginName='").append(pluginName).append('\'');
         sb.append(", pluginCreatedDate=").append(pluginCreatedDate);
@@ -534,6 +611,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         sb.append(", pluginPmState='").append(pluginPmState).append('\'');
         sb.append(", pluginPmZip='").append(pluginPmZip).append('\'');
         sb.append(", pluginPmCountry='").append(pluginPmCountry).append('\'');
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -552,34 +630,58 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
 
         final BusinessInvoicePaymentBaseModelDao that = (BusinessInvoicePaymentBaseModelDao) o;
 
-        if (amount != null ? (amount.compareTo(that.amount) != 0) : that.amount != null) {
+        if (amount != null ? !(amount.compareTo(that.amount) == 0) : that.amount != null) {
+            return false;
+        }
+        if (convertedAmount != null ? !(convertedAmount.compareTo(that.convertedAmount) == 0) : that.convertedAmount != null) {
+            return false;
+        }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountCharged != null ? !(convertedInvoiceAmountCharged.compareTo(that.convertedInvoiceAmountCharged) == 0) : that.convertedInvoiceAmountCharged != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountCredited != null ? !(convertedInvoiceAmountCredited.compareTo(that.convertedInvoiceAmountCredited) == 0) : that.convertedInvoiceAmountCredited != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountPaid != null ? !(convertedInvoiceAmountPaid.compareTo(that.convertedInvoiceAmountPaid) == 0) : that.convertedInvoiceAmountPaid != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountRefunded != null ? !(convertedInvoiceAmountRefunded.compareTo(that.convertedInvoiceAmountRefunded) == 0) : that.convertedInvoiceAmountRefunded != null) {
+            return false;
+        }
+        if (convertedInvoiceBalance != null ? !(convertedInvoiceBalance.compareTo(that.convertedInvoiceBalance) == 0) : that.convertedInvoiceBalance != null) {
+            return false;
+        }
+        if (convertedInvoiceOriginalAmountCharged != null ? !(convertedInvoiceOriginalAmountCharged.compareTo(that.convertedInvoiceOriginalAmountCharged) == 0) : that.convertedInvoiceOriginalAmountCharged != null) {
             return false;
         }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
-        if (invoiceAmountCharged != null ? (invoiceAmountCharged.compareTo(that.invoiceAmountCharged) != 0) : that.invoiceAmountCharged != null) {
+        if (invoiceAmountCharged != null ? !(invoiceAmountCharged.compareTo(that.invoiceAmountCharged) == 0) : that.invoiceAmountCharged != null) {
             return false;
         }
-        if (invoiceAmountCredited != null ? (invoiceAmountCredited.compareTo(that.invoiceAmountCredited) != 0) : that.invoiceAmountCredited != null) {
+        if (invoiceAmountCredited != null ? !(invoiceAmountCredited.compareTo(that.invoiceAmountCredited) == 0) : that.invoiceAmountCredited != null) {
             return false;
         }
-        if (invoiceAmountPaid != null ? (invoiceAmountPaid.compareTo(that.invoiceAmountPaid) != 0) : that.invoiceAmountPaid != null) {
+        if (invoiceAmountPaid != null ? !(invoiceAmountPaid.compareTo(that.invoiceAmountPaid) == 0) : that.invoiceAmountPaid != null) {
             return false;
         }
-        if (invoiceAmountRefunded != null ? (invoiceAmountRefunded.compareTo(that.invoiceAmountRefunded) != 0) : that.invoiceAmountRefunded != null) {
+        if (invoiceAmountRefunded != null ? !(invoiceAmountRefunded.compareTo(that.invoiceAmountRefunded) == 0) : that.invoiceAmountRefunded != null) {
             return false;
         }
-        if (invoiceBalance != null ? (invoiceBalance.compareTo(that.invoiceBalance) != 0) : that.invoiceBalance != null) {
+        if (invoiceBalance != null ? !(invoiceBalance.compareTo(that.invoiceBalance) == 0) : that.invoiceBalance != null) {
             return false;
         }
-        if (invoiceCreatedDate != null ? (invoiceCreatedDate.compareTo(that.invoiceCreatedDate) != 0) : that.invoiceCreatedDate != null) {
+        if (invoiceCreatedDate != null ? invoiceCreatedDate.compareTo(that.invoiceCreatedDate) != 0 : that.invoiceCreatedDate != null) {
             return false;
         }
         if (invoiceCurrency != null ? !invoiceCurrency.equals(that.invoiceCurrency) : that.invoiceCurrency != null) {
             return false;
         }
-        if (invoiceDate != null ? (invoiceDate.compareTo(that.invoiceDate) != 0) : that.invoiceDate != null) {
+        if (invoiceDate != null ? invoiceDate.compareTo(that.invoiceDate) != 0 : that.invoiceDate != null) {
             return false;
         }
         if (invoiceId != null ? !invoiceId.equals(that.invoiceId) : that.invoiceId != null) {
@@ -588,7 +690,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         if (invoiceNumber != null ? !invoiceNumber.equals(that.invoiceNumber) : that.invoiceNumber != null) {
             return false;
         }
-        if (invoiceOriginalAmountCharged != null ? (invoiceOriginalAmountCharged.compareTo(that.invoiceOriginalAmountCharged) != 0) : that.invoiceOriginalAmountCharged != null) {
+        if (invoiceOriginalAmountCharged != null ? !(invoiceOriginalAmountCharged.compareTo(that.invoiceOriginalAmountCharged) == 0) : that.invoiceOriginalAmountCharged != null) {
             return false;
         }
         if (invoicePaymentId != null ? !invoicePaymentId.equals(that.invoicePaymentId) : that.invoicePaymentId != null) {
@@ -600,7 +702,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         if (invoicePaymentType != null ? !invoicePaymentType.equals(that.invoicePaymentType) : that.invoicePaymentType != null) {
             return false;
         }
-        if (invoiceTargetDate != null ? (invoiceTargetDate.compareTo(that.invoiceTargetDate) != 0) : that.invoiceTargetDate != null) {
+        if (invoiceTargetDate != null ? invoiceTargetDate.compareTo(that.invoiceTargetDate) != 0 : that.invoiceTargetDate != null) {
             return false;
         }
         if (linkedInvoicePaymentId != null ? !linkedInvoicePaymentId.equals(that.linkedInvoicePaymentId) : that.linkedInvoicePaymentId != null) {
@@ -609,16 +711,13 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         if (paymentId != null ? !paymentId.equals(that.paymentId) : that.paymentId != null) {
             return false;
         }
-        if (refundId != null ? !refundId.equals(that.refundId) : that.refundId != null) {
-            return false;
-        }
         if (paymentNumber != null ? !paymentNumber.equals(that.paymentNumber) : that.paymentNumber != null) {
             return false;
         }
-        if (pluginCreatedDate != null ? (pluginCreatedDate.compareTo(that.pluginCreatedDate) != 0) : that.pluginCreatedDate != null) {
+        if (pluginCreatedDate != null ? pluginCreatedDate.compareTo(that.pluginCreatedDate) != 0 : that.pluginCreatedDate != null) {
             return false;
         }
-        if (pluginEffectiveDate != null ? (pluginEffectiveDate.compareTo(that.pluginEffectiveDate) != 0) : that.pluginEffectiveDate != null) {
+        if (pluginEffectiveDate != null ? pluginEffectiveDate.compareTo(that.pluginEffectiveDate) != 0 : that.pluginEffectiveDate != null) {
             return false;
         }
         if (pluginFirstReferenceId != null ? !pluginFirstReferenceId.equals(that.pluginFirstReferenceId) : that.pluginFirstReferenceId != null) {
@@ -681,6 +780,9 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         if (pluginStatus != null ? !pluginStatus.equals(that.pluginStatus) : that.pluginStatus != null) {
             return false;
         }
+        if (refundId != null ? !refundId.equals(that.refundId) : that.refundId != null) {
+            return false;
+        }
 
         return true;
     }
@@ -697,17 +799,24 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         result = 31 * result + (invoiceTargetDate != null ? invoiceTargetDate.hashCode() : 0);
         result = 31 * result + (invoiceCurrency != null ? invoiceCurrency.hashCode() : 0);
         result = 31 * result + (invoiceBalance != null ? invoiceBalance.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceBalance != null ? convertedInvoiceBalance.hashCode() : 0);
         result = 31 * result + (invoiceAmountPaid != null ? invoiceAmountPaid.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountPaid != null ? convertedInvoiceAmountPaid.hashCode() : 0);
         result = 31 * result + (invoiceAmountCharged != null ? invoiceAmountCharged.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountCharged != null ? convertedInvoiceAmountCharged.hashCode() : 0);
         result = 31 * result + (invoiceOriginalAmountCharged != null ? invoiceOriginalAmountCharged.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceOriginalAmountCharged != null ? convertedInvoiceOriginalAmountCharged.hashCode() : 0);
         result = 31 * result + (invoiceAmountCredited != null ? invoiceAmountCredited.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountCredited != null ? convertedInvoiceAmountCredited.hashCode() : 0);
         result = 31 * result + (invoiceAmountRefunded != null ? invoiceAmountRefunded.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountRefunded != null ? convertedInvoiceAmountRefunded.hashCode() : 0);
         result = 31 * result + (invoicePaymentType != null ? invoicePaymentType.hashCode() : 0);
         result = 31 * result + (paymentId != null ? paymentId.hashCode() : 0);
         result = 31 * result + (refundId != null ? refundId.hashCode() : 0);
         result = 31 * result + (paymentNumber != null ? paymentNumber.hashCode() : 0);
         result = 31 * result + (linkedInvoicePaymentId != null ? linkedInvoicePaymentId.hashCode() : 0);
         result = 31 * result + (amount != null ? amount.hashCode() : 0);
+        result = 31 * result + (convertedAmount != null ? convertedAmount.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (pluginName != null ? pluginName.hashCode() : 0);
         result = 31 * result + (pluginCreatedDate != null ? pluginCreatedDate.hashCode() : 0);
@@ -731,6 +840,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         result = 31 * result + (pluginPmState != null ? pluginPmState.hashCode() : 0);
         result = 31 * result + (pluginPmZip != null ? pluginPmZip.hashCode() : 0);
         result = 31 * result + (pluginPmCountry != null ? pluginPmCountry.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;
     }
 }

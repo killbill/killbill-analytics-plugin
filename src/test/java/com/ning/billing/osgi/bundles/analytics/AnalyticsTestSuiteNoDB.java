@@ -17,6 +17,7 @@
 package com.ning.billing.osgi.bundles.analytics;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -41,6 +42,8 @@ import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.catalog.api.PriceList;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.catalog.api.ProductCategory;
+import com.ning.billing.clock.Clock;
+import com.ning.billing.clock.DefaultClock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.entitlement.api.SubscriptionEventType;
@@ -55,6 +58,8 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBase
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.osgi.bundles.analytics.dao.model.CurrencyConversionModelDao;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentAttempt;
 import com.ning.billing.payment.api.PaymentMethod;
@@ -73,6 +78,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 public abstract class AnalyticsTestSuiteNoDB {
 
@@ -94,6 +100,8 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final ReportGroup reportGroup = ReportGroup.partner;
     protected final BusinessInvoiceItemType invoiceItemType = BusinessInvoiceItemType.INVOICE_ITEM_ADJUSTMENT;
     protected final ItemSource itemSource = ItemSource.user;
+    protected final Clock clock = new DefaultClock();
+    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
 
     protected Account account;
     protected SubscriptionBundle bundle;

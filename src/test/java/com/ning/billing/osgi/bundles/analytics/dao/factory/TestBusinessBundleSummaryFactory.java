@@ -71,7 +71,7 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
             }
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
-        bundleSummaryDao = new BusinessBundleSummaryFactory(osgiKillbillLogService, null, BusinessExecutor.newCachedThreadPool());
+        bundleSummaryDao = new BusinessBundleSummaryFactory(osgiKillbillLogService, null, osgiKillbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
     }
 
     @Test(groups = "fast")
@@ -126,7 +126,8 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
                                                                                null,
                                                                                Currency.GBP,
                                                                                startDate,
-                                                                               "ACTIVE");
+                                                                               "ACTIVE",
+                                                                               currencyConverter);
 
         return new BusinessSubscriptionTransitionModelDao(account,
                                                           accountRecordId,
@@ -136,6 +137,7 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
                                                           event,
                                                           previousSubscription,
                                                           nextSubscription,
+                                                          currencyConverter,
                                                           auditLog,
                                                           tenantRecordId,
                                                           reportGroup);

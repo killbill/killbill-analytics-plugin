@@ -30,14 +30,17 @@ import java.util.concurrent.ExecutorCompletionService;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.ProductCategory;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -51,8 +54,10 @@ public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
 
     public BusinessBundleSummaryFactory(final OSGIKillbillLogService logService,
                                         final OSGIKillbillAPI osgiKillbillAPI,
-                                        final Executor executor) {
-        super(logService, osgiKillbillAPI);
+                                        final OSGIKillbillDataSource osgiKillbillDataSource,
+                                        final Executor executor,
+                                        final Clock clock) {
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.executor = executor;
     }
 
@@ -134,6 +139,7 @@ public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
         final SubscriptionBundle bundle = getSubscriptionBundle(bst.getBundleId(), context);
         final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
         final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), context);
+        final CurrencyConverter currencyConverter = getCurrencyConverter();
 
         return new BusinessBundleSummaryModelDao(account,
                                                  accountRecordId,
@@ -141,6 +147,7 @@ public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
                                                  bundleRecordId,
                                                  bundleAccountRank,
                                                  bst,
+                                                 currencyConverter,
                                                  creationAuditLog,
                                                  tenantRecordId,
                                                  reportGroup);

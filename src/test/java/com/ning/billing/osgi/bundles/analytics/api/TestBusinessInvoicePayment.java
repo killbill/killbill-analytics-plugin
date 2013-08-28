@@ -35,6 +35,7 @@ public class TestBusinessInvoicePayment extends AnalyticsTestSuiteNoDB {
                                                                                                                     payment,
                                                                                                                     refund,
                                                                                                                     paymentMethod,
+                                                                                                                    currencyConverter,
                                                                                                                     auditLog,
                                                                                                                     tenantRecordId,
                                                                                                                     reportGroup);

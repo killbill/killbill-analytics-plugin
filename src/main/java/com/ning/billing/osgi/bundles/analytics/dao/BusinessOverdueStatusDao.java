@@ -25,6 +25,7 @@ import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
 import com.ning.billing.ObjectType;
+import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessOverdueStatusFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
@@ -41,10 +42,10 @@ public class BusinessOverdueStatusDao extends BusinessAnalyticsDaoBase {
     public BusinessOverdueStatusDao(final OSGIKillbillLogService logService,
                                     final OSGIKillbillAPI osgiKillbillAPI,
                                     final OSGIKillbillDataSource osgiKillbillDataSource,
-                                    final Executor executor) {
+                                    final Clock clock) {
         super(logService, osgiKillbillDataSource);
         this.logService = logService;
-        bosFactory = new BusinessOverdueStatusFactory(logService, osgiKillbillAPI);
+        bosFactory = new BusinessOverdueStatusFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

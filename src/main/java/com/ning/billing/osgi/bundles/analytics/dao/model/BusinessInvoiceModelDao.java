@@ -26,6 +26,7 @@ import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
 import com.ning.billing.invoice.api.Invoice;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
@@ -39,11 +40,18 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
     private LocalDate targetDate;
     private String currency;
     private BigDecimal balance;
+    private BigDecimal convertedBalance;
     private BigDecimal amountPaid;
+    private BigDecimal convertedAmountPaid;
     private BigDecimal amountCharged;
+    private BigDecimal convertedAmountCharged;
     private BigDecimal originalAmountCharged;
+    private BigDecimal convertedOriginalAmountCharged;
     private BigDecimal amountCredited;
+    private BigDecimal convertedAmountCredited;
     private BigDecimal amountRefunded;
+    private BigDecimal convertedAmountRefunded;
+    private String convertedCurrency;
 
     public BusinessInvoiceModelDao() { /* When reading from the database */ }
 
@@ -54,11 +62,18 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
                                    final LocalDate targetDate,
                                    final String currency,
                                    final BigDecimal balance,
+                                   final BigDecimal convertedBalance,
                                    final BigDecimal amountPaid,
+                                   final BigDecimal convertedAmountPaid,
                                    final BigDecimal amountCharged,
+                                   final BigDecimal convertedAmountCharged,
                                    final BigDecimal originalAmountCharged,
+                                   final BigDecimal convertedOriginalAmountCharged,
                                    final BigDecimal amountCredited,
+                                   final BigDecimal convertedAmountCredited,
                                    final BigDecimal amountRefunded,
+                                   final BigDecimal convertedAmountRefunded,
+                                   final String convertedCurrency,
                                    final DateTime createdDate,
                                    final String createdBy,
                                    final String createdReasonCode,
@@ -86,17 +101,25 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         this.targetDate = targetDate;
         this.currency = currency;
         this.balance = balance;
+        this.convertedBalance = convertedBalance;
         this.amountPaid = amountPaid;
+        this.convertedAmountPaid = convertedAmountPaid;
         this.amountCharged = amountCharged;
+        this.convertedAmountCharged = convertedAmountCharged;
         this.originalAmountCharged = originalAmountCharged;
+        this.convertedOriginalAmountCharged = convertedOriginalAmountCharged;
         this.amountCredited = amountCredited;
+        this.convertedAmountCredited = convertedAmountCredited;
         this.amountRefunded = amountRefunded;
+        this.convertedAmountRefunded = convertedAmountRefunded;
+        this.convertedCurrency = convertedCurrency;
     }
 
     public BusinessInvoiceModelDao(final Account account,
                                    final Long accountRecordId,
                                    final Invoice invoice,
                                    final Long invoiceRecordId,
+                                   final CurrencyConverter currencyConverter,
                                    @Nullable final AuditLog creationAuditLog,
                                    final Long tenantRecordId,
                                    @Nullable final ReportGroup reportGroup) {
@@ -107,11 +130,18 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
              invoice.getTargetDate(),
              invoice.getCurrency() == null ? null : invoice.getCurrency().toString(),
              invoice.getBalance(),
+             currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
              invoice.getPaidAmount(),
+             currencyConverter.getConvertedValue(invoice.getPaidAmount(), invoice),
              invoice.getChargedAmount(),
+             currencyConverter.getConvertedValue(invoice.getChargedAmount(), invoice),
              invoice.getOriginalChargedAmount(),
+             currencyConverter.getConvertedValue(invoice.getOriginalChargedAmount(), invoice),
              invoice.getCreditedAmount(),
+             currencyConverter.getConvertedValue(invoice.getCreditedAmount(), invoice),
              invoice.getRefundedAmount(),
+             currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
+             currencyConverter.getConvertedCurrency(),
              invoice.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
@@ -157,42 +187,76 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         return balance;
     }
 
+    public BigDecimal getConvertedBalance() {
+        return convertedBalance;
+    }
+
     public BigDecimal getAmountPaid() {
         return amountPaid;
+    }
+
+    public BigDecimal getConvertedAmountPaid() {
+        return convertedAmountPaid;
     }
 
     public BigDecimal getAmountCharged() {
         return amountCharged;
     }
 
+    public BigDecimal getConvertedAmountCharged() {
+        return convertedAmountCharged;
+    }
+
     public BigDecimal getOriginalAmountCharged() {
         return originalAmountCharged;
+    }
+
+    public BigDecimal getConvertedOriginalAmountCharged() {
+        return convertedOriginalAmountCharged;
     }
 
     public BigDecimal getAmountCredited() {
         return amountCredited;
     }
 
+    public BigDecimal getConvertedAmountCredited() {
+        return convertedAmountCredited;
+    }
+
     public BigDecimal getAmountRefunded() {
         return amountRefunded;
     }
 
+    public BigDecimal getConvertedAmountRefunded() {
+        return convertedAmountRefunded;
+    }
+
+    public String getConvertedCurrency() {
+        return convertedCurrency;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessInvoiceModelDao");
-        sb.append("{invoiceRecordId=").append(invoiceRecordId);
+        final StringBuilder sb = new StringBuilder("BusinessInvoiceModelDao{");
+        sb.append("invoiceRecordId=").append(invoiceRecordId);
         sb.append(", invoiceId=").append(invoiceId);
         sb.append(", invoiceNumber=").append(invoiceNumber);
         sb.append(", invoiceDate=").append(invoiceDate);
         sb.append(", targetDate=").append(targetDate);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", balance=").append(balance);
+        sb.append(", convertedBalance=").append(convertedBalance);
         sb.append(", amountPaid=").append(amountPaid);
+        sb.append(", convertedAmountPaid=").append(convertedAmountPaid);
         sb.append(", amountCharged=").append(amountCharged);
+        sb.append(", convertedAmountCharged=").append(convertedAmountCharged);
         sb.append(", originalAmountCharged=").append(originalAmountCharged);
+        sb.append(", convertedOriginalAmountCharged=").append(convertedOriginalAmountCharged);
         sb.append(", amountCredited=").append(amountCredited);
+        sb.append(", convertedAmountCredited=").append(convertedAmountCredited);
         sb.append(", amountRefunded=").append(amountRefunded);
+        sb.append(", convertedAmountRefunded=").append(convertedAmountRefunded);
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -211,25 +275,46 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
 
         final BusinessInvoiceModelDao that = (BusinessInvoiceModelDao) o;
 
-        if (amountCharged != null ? (amountCharged.compareTo(that.amountCharged) != 0) : that.amountCharged != null) {
+        if (amountCharged != null ? !(amountCharged.compareTo(that.amountCharged) == 0) : that.amountCharged != null) {
             return false;
         }
-        if (amountCredited != null ? (amountCredited.compareTo(that.amountCredited) != 0) : that.amountCredited != null) {
+        if (amountCredited != null ? !(amountCredited.compareTo(that.amountCredited) == 0) : that.amountCredited != null) {
             return false;
         }
-        if (amountPaid != null ? (amountPaid.compareTo(that.amountPaid) != 0) : that.amountPaid != null) {
+        if (amountPaid != null ? !(amountPaid.compareTo(that.amountPaid) == 0) : that.amountPaid != null) {
             return false;
         }
-        if (amountRefunded != null ? (amountRefunded.compareTo(that.amountRefunded) != 0) : that.amountRefunded != null) {
+        if (amountRefunded != null ? !(amountRefunded.compareTo(that.amountRefunded) == 0) : that.amountRefunded != null) {
             return false;
         }
-        if (balance != null ? (balance.compareTo(that.balance) != 0) : that.balance != null) {
+        if (balance != null ? !(balance.compareTo(that.balance) == 0) : that.balance != null) {
+            return false;
+        }
+        if (convertedAmountCharged != null ? !(convertedAmountCharged.compareTo(that.convertedAmountCharged) == 0) : that.convertedAmountCharged != null) {
+            return false;
+        }
+        if (convertedAmountCredited != null ? !(convertedAmountCredited.compareTo(that.convertedAmountCredited) == 0) : that.convertedAmountCredited != null) {
+            return false;
+        }
+        if (convertedAmountPaid != null ? !(convertedAmountPaid.compareTo(that.convertedAmountPaid) == 0) : that.convertedAmountPaid != null) {
+            return false;
+        }
+        if (convertedAmountRefunded != null ? !(convertedAmountRefunded.compareTo(that.convertedAmountRefunded) == 0) : that.convertedAmountRefunded != null) {
+            return false;
+        }
+        if (convertedBalance != null ? !(convertedBalance.compareTo(that.convertedBalance) == 0) : that.convertedBalance != null) {
+            return false;
+        }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedOriginalAmountCharged != null ? !(convertedOriginalAmountCharged.compareTo(that.convertedOriginalAmountCharged) == 0) : that.convertedOriginalAmountCharged != null) {
             return false;
         }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
-        if (invoiceDate != null ? (invoiceDate.compareTo(that.invoiceDate) != 0) : that.invoiceDate != null) {
+        if (invoiceDate != null ? invoiceDate.compareTo(that.invoiceDate) != 0 : that.invoiceDate != null) {
             return false;
         }
         if (invoiceId != null ? !invoiceId.equals(that.invoiceId) : that.invoiceId != null) {
@@ -241,10 +326,10 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         if (invoiceRecordId != null ? !invoiceRecordId.equals(that.invoiceRecordId) : that.invoiceRecordId != null) {
             return false;
         }
-        if (originalAmountCharged != null ? (originalAmountCharged.compareTo(that.originalAmountCharged) != 0) : that.originalAmountCharged != null) {
+        if (originalAmountCharged != null ? !(originalAmountCharged.compareTo(that.originalAmountCharged) == 0) : that.originalAmountCharged != null) {
             return false;
         }
-        if (targetDate != null ? (targetDate.compareTo(that.targetDate) != 0) : that.targetDate != null) {
+        if (targetDate != null ? targetDate.compareTo(that.targetDate) != 0 : that.targetDate != null) {
             return false;
         }
 
@@ -261,11 +346,18 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         result = 31 * result + (targetDate != null ? targetDate.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
+        result = 31 * result + (convertedBalance != null ? convertedBalance.hashCode() : 0);
         result = 31 * result + (amountPaid != null ? amountPaid.hashCode() : 0);
+        result = 31 * result + (convertedAmountPaid != null ? convertedAmountPaid.hashCode() : 0);
         result = 31 * result + (amountCharged != null ? amountCharged.hashCode() : 0);
+        result = 31 * result + (convertedAmountCharged != null ? convertedAmountCharged.hashCode() : 0);
         result = 31 * result + (originalAmountCharged != null ? originalAmountCharged.hashCode() : 0);
+        result = 31 * result + (convertedOriginalAmountCharged != null ? convertedOriginalAmountCharged.hashCode() : 0);
         result = 31 * result + (amountCredited != null ? amountCredited.hashCode() : 0);
+        result = 31 * result + (convertedAmountCredited != null ? convertedAmountCredited.hashCode() : 0);
         result = 31 * result + (amountRefunded != null ? amountRefunded.hashCode() : 0);
+        result = 31 * result + (convertedAmountRefunded != null ? convertedAmountRefunded.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;
     }
 }

@@ -26,6 +26,7 @@ import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
+import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessAccountFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessInvoiceFactory;
@@ -63,14 +64,15 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
                                                final OSGIKillbillAPI osgiKillbillAPI,
                                                final OSGIKillbillDataSource osgiKillbillDataSource,
                                                final BusinessAccountDao businessAccountDao,
-                                               final Executor executor) {
+                                               final Executor executor,
+                                               final Clock clock) {
         super(logService, osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
         this.businessInvoiceDao = new BusinessInvoiceDao(logService, osgiKillbillDataSource);
         this.businessInvoicePaymentDao = new BusinessInvoicePaymentDao(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI);
-        binFactory = new BusinessInvoiceFactory(logService, osgiKillbillAPI, executor);
-        bipFactory = new BusinessInvoicePaymentFactory(logService, osgiKillbillAPI);
+        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        binFactory = new BusinessInvoiceFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
+        bipFactory = new BusinessInvoicePaymentFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoicePayment;
+import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.Refund;
@@ -38,6 +39,7 @@ public class BusinessInvoicePaymentRefundModelDao extends BusinessInvoicePayment
                                                 final Payment payment,
                                                 final Refund refund,
                                                 @Nullable final PaymentMethod paymentMethod,
+                                                final CurrencyConverter currencyConverter,
                                                 @Nullable final AuditLog creationAuditLog,
                                                 final Long tenantRecordId,
                                                 @Nullable final ReportGroup reportGroup) {
@@ -49,6 +51,7 @@ public class BusinessInvoicePaymentRefundModelDao extends BusinessInvoicePayment
               payment,
               refund,
               paymentMethod,
+              currencyConverter,
               creationAuditLog,
               tenantRecordId,
               reportGroup);

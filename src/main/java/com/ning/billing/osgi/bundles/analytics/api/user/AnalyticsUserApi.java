@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
+import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccount;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessField;
@@ -45,9 +46,10 @@ public class AnalyticsUserApi {
     public AnalyticsUserApi(final OSGIKillbillLogService logService,
                             final OSGIKillbillAPI osgiKillbillAPI,
                             final OSGIKillbillDataSource osgiKillbillDataSource,
-                            final Executor executor) {
+                            final Executor executor,
+                            final Clock clock) {
         this.analyticsDao = new AnalyticsDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
-        this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor);
+        this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
     }
 
     public BusinessSnapshot getBusinessSnapshot(final UUID accountId, final TenantContext context) {

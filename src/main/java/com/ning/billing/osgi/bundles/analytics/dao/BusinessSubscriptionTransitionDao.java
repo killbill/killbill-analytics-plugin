@@ -24,6 +24,7 @@ import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
+import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessAccountFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessBundleSummaryFactory;
@@ -48,13 +49,14 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
                                              final OSGIKillbillAPI osgiKillbillAPI,
                                              final OSGIKillbillDataSource osgiKillbillDataSource,
                                              final BusinessAccountDao businessAccountDao,
-                                             final Executor executor) {
+                                             final Executor executor,
+                                             final Clock clock) {
         super(logService, osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
         this.businessBundleSummaryDao = new BusinessBundleSummaryDao(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI);
-        bbsFactory = new BusinessBundleSummaryFactory(logService, osgiKillbillAPI, executor);
-        bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI);
+        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bbsFactory = new BusinessBundleSummaryFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
+        bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

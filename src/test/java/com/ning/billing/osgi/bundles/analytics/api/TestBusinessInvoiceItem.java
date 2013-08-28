@@ -37,6 +37,7 @@ public class TestBusinessInvoiceItem extends AnalyticsTestSuiteNoDB {
                                                                                                                bundle,
                                                                                                                plan,
                                                                                                                phase,
+                                                                                                               currencyConverter,
                                                                                                                auditLog,
                                                                                                                tenantRecordId,
                                                                                                                reportGroup);
