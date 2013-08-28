@@ -1,3 +1,17 @@
+0.4.0
+    API
+      - Update to latest Entitlement APIs
+      - Overdue is now at the account level
+    DAO
+      - Add bundle_id to all invoice item tables
+      - Add latest unpaid invoice information in analytics_accounts table
+      - Initial implementation of currency conversion
+    Reporting
+      - Add csv export endpoint for reports data
+    Internals
+      - Remove lock and use a notification queue instead
+      - Update to killbill-oss-parent 0.4.2
+
 0.3.6
     Update to killbill-oss-parent 0.3.11
 
