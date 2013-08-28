@@ -18,6 +18,7 @@ package com.ning.billing.osgi.bundles.analytics.http;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +38,9 @@ import org.osgi.service.log.LogService;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessSnapshot;
 import com.ning.billing.osgi.bundles.analytics.api.user.AnalyticsUserApi;
+import com.ning.billing.osgi.bundles.analytics.json.CSVNamedXYTimeSeries;
 import com.ning.billing.osgi.bundles.analytics.json.NamedXYTimeSeries;
+import com.ning.billing.osgi.bundles.analytics.json.XY;
 import com.ning.billing.osgi.bundles.analytics.reports.ReportsUserApi;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.SmootherType;
@@ -46,6 +49,8 @@ import com.ning.billing.util.callcontext.CallOrigin;
 import com.ning.billing.util.callcontext.UserType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import com.google.common.io.Resources;
@@ -54,6 +59,8 @@ public class AnalyticsServlet extends HttpServlet {
 
     public static final String SERVER_IP = System.getProperty("com.ning.core.server.ip", "127.0.0.1");
     public static final String SERVER_PORT = System.getProperty("com.ning.core.server.port", "8080");
+    public static final String CSV_DATA_FORMAT = "csv";
+    public static final String JSON_DATA_FORMAT = "json";
     public static DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
 
     private static final String QUERY_TENANT_ID = "tenantId";
@@ -63,14 +70,15 @@ public class AnalyticsServlet extends HttpServlet {
 
     private final static String STATIC_RESOURCES = "static";
 
-    private final static String QUERY_START_DATE = "startDate";
-    private final static String QUERY_END_DATE = "endDate";
-
     private static final String REPORTS = "reports";
     private static final String REPORTS_QUERY_NAME = "name";
+    private final static String REPORTS_QUERY_START_DATE = "startDate";
+    private final static String REPORTS_QUERY_END_DATE = "endDate";
     private static final String REPORTS_SMOOTHER_NAME = "smooth";
+    private static final String REPORTS_DATA_FORMAT = "format";
 
-    private static final ObjectMapper mapper = ObjectMapperProvider.get();
+    private static final ObjectMapper jsonMapper = ObjectMapperProvider.getJsonMapper();
+    private static final ObjectWriter csvMapper = ObjectMapperProvider.getCsvWriter();
 
     private final AnalyticsUserApi analyticsUserApi;
     private final ReportsUserApi reportsUserApi;
@@ -100,7 +108,7 @@ public class AnalyticsServlet extends HttpServlet {
             final CallContext context = createCallContext(req, resp);
 
             final BusinessSnapshot businessSnapshot = analyticsUserApi.getBusinessSnapshot(kbAccountId, context);
-            resp.getOutputStream().write(mapper.writeValueAsBytes(businessSnapshot));
+            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(businessSnapshot));
             resp.setStatus(HttpServletResponse.SC_OK);
         }
     }
@@ -149,18 +157,35 @@ public class AnalyticsServlet extends HttpServlet {
             return;
         }
 
-        final LocalDate startDate = Strings.emptyToNull(req.getParameter(QUERY_START_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(QUERY_START_DATE)) : null;
-        final LocalDate endDate = Strings.emptyToNull(req.getParameter(QUERY_END_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(QUERY_END_DATE)) : null;
+        final LocalDate startDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_START_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_START_DATE)) : null;
+        final LocalDate endDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_END_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_END_DATE)) : null;
 
         final SmootherType smootherType = Smoother.fromString(Strings.emptyToNull(req.getParameter(REPORTS_SMOOTHER_NAME)));
 
         // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
         final List<NamedXYTimeSeries> result = reportsUserApi.getTimeSeriesDataForReport(rawReportNames, startDate, endDate, smootherType);
 
-        resp.getOutputStream().write(mapper.writeValueAsBytes(result));
-        resp.setContentType("application/json");
+        final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
+        if (CSV_DATA_FORMAT.equals(format)) {
+            final OutputStream out = resp.getOutputStream();
+            writeTimeSeriesAsCSV(result, out);
+            resp.setContentType("text/csv");
+        } else {
+            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(result));
+            resp.setContentType("application/json");
+        }
+
         setCrossSiteScriptingHeaders(resp);
         resp.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @VisibleForTesting
+    static void writeTimeSeriesAsCSV(final List<NamedXYTimeSeries> result, final OutputStream out) throws IOException {
+        for (final NamedXYTimeSeries namedXYTimeSeries : result) {
+            for (final XY value : namedXYTimeSeries.getValues()) {
+                out.write(csvMapper.writeValueAsBytes(new CSVNamedXYTimeSeries(namedXYTimeSeries.getName(), value)));
+            }
+        }
     }
 
     private void setCrossSiteScriptingHeaders(final HttpServletResponse resp) {

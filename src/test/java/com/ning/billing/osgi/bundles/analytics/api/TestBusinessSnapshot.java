@@ -175,6 +175,6 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
 
         // We check we can write it out without exception - we can't deserialize it back (no annotation)
         // but we don't care since the APIs are read-only for Analytics
-        final String asJson = ObjectMapperProvider.get().writeValueAsString(businessSnapshot);
+        final String asJson = ObjectMapperProvider.getJsonMapper().writeValueAsString(businessSnapshot);
     }
 }

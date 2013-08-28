@@ -16,22 +16,40 @@
 
 package com.ning.billing.osgi.bundles.analytics.http;
 
+import com.ning.billing.osgi.bundles.analytics.json.CSVNamedXYTimeSeries;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvParser;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 public class ObjectMapperProvider {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper jsonMapper = new ObjectMapper();
+    private static final CsvMapper _csvMapper = new CsvMapper();
+    private static final CsvSchema namedXYTimeSeriesCsvSchema = _csvMapper.schemaFor(CSVNamedXYTimeSeries.class);
+    private static ObjectWriter csvWriter;
 
     static {
-        objectMapper.registerModule(new JodaModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        jsonMapper.registerModule(new JodaModule());
+        jsonMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        _csvMapper.registerModule(new JodaModule());
+        _csvMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        _csvMapper.enable(CsvParser.Feature.WRAP_AS_ARRAY);
+        csvWriter = _csvMapper.writer(namedXYTimeSeriesCsvSchema);
     }
 
     private ObjectMapperProvider() {}
 
-    public static ObjectMapper get() {
-        return objectMapper;
+    public static ObjectMapper getJsonMapper() {
+        return jsonMapper;
+    }
+
+    public static ObjectWriter getCsvWriter() {
+        return csvWriter;
     }
 }

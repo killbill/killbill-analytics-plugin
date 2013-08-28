@@ -36,7 +36,7 @@ import com.google.common.io.Resources;
 
 public class TestAnalyticsServlet {
 
-    private final ObjectMapper mapper = ObjectMapperProvider.get();
+    private final ObjectMapper jsonMapper = ObjectMapperProvider.getJsonMapper();
 
     @Test(groups = "fast")
     public void testSimpleSerialization() throws Exception {
@@ -49,7 +49,6 @@ public class TestAnalyticsServlet {
         final NamedXYTimeSeries serie1 = new NamedXYTimeSeries("serie1", xys1);
         res.add(serie1);
 
-
         final List<XY> xys2 = new ArrayList<XY>();
         xys2.add(new XY("2013-01-01", 12));
         xys2.add(new XY("2013-01-02", 5));
@@ -57,11 +56,20 @@ public class TestAnalyticsServlet {
         final NamedXYTimeSeries serie2 = new NamedXYTimeSeries("serie2", xys2);
         res.add(serie2);
 
-        Writer writer = new StringWriter();
-        mapper.writeValue(writer, res);
-
-        Assert.assertEquals(writer.toString(),
+        final Writer jsonWriter = new StringWriter();
+        jsonMapper.writeValue(jsonWriter, res);
+        Assert.assertEquals(jsonWriter.toString(),
                             "[{\"name\":\"serie1\",\"values\":[{\"x\":\"2013-01-01\",\"y\":11.0},{\"x\":\"2013-01-02\",\"y\":7.0},{\"x\":\"2013-01-03\",\"y\":34.0}]},{\"name\":\"serie2\",\"values\":[{\"x\":\"2013-01-01\",\"y\":12.0},{\"x\":\"2013-01-02\",\"y\":5.0},{\"x\":\"2013-01-03\",\"y\":3.0}]}]");
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+        AnalyticsServlet.writeTimeSeriesAsCSV(res, out);
+        Assert.assertEquals(out.toString(),
+                            "serie1,2013-01-01,11.0\n" +
+                            "serie1,2013-01-02,7.0\n" +
+                            "serie1,2013-01-03,34.0\n" +
+                            "serie2,2013-01-01,12.0\n" +
+                            "serie2,2013-01-02,5.0\n" +
+                            "serie2,2013-01-03,3.0\n");
     }
 
     @Test(groups = "fast")
@@ -73,10 +81,10 @@ public class TestAnalyticsServlet {
                             "{\"name\":\"basic\",\"values\":[{\"x\":\"2013-01-01\",\"y\":14},{\"x\":\"2013-01-02\",\"y\":55},{\"x\":\"2013-01-03\",\"y\":14},{\"x\":\"2013-01-04\",\"y\":55},{\"x\":\"2013-01-05\",\"y\":7},{\"x\":\"2013-01-06\",\"y\":15},{\"x\":\"2013-01-07\",\"y\":15},{\"x\":\"2013-01-08\",\"y\":39},{\"x\":\"2013-01-09\",\"y\":28},{\"x\":\"2013-01-10\",\"y\":30},{\"x\":\"2013-01-11\",\"y\":32},{\"x\":\"2013-01-12\",\"y\":49},{\"x\":\"2013-01-13\",\"y\":67},{\"x\":\"2013-01-14\",\"y\":69},{\"x\":\"2013-01-15\",\"y\":29},{\"x\":\"2013-01-16\",\"y\":39},{\"x\":\"2013-01-17\",\"y\":54},{\"x\":\"2013-01-18\",\"y\":56},{\"x\":\"2013-01-19\",\"y\":52},{\"x\":\"2013-01-20\",\"y\":60},{\"x\":\"2013-01-21\",\"y\":4},{\"x\":\"2013-01-22\",\"y\":37},{\"x\":\"2013-01-23\",\"y\":67},{\"x\":\"2013-01-24\",\"y\":72},{\"x\":\"2013-01-25\",\"y\":45},{\"x\":\"2013-01-26\",\"y\":2},{\"x\":\"2013-01-27\",\"y\":70},{\"x\":\"2013-01-28\",\"y\":26},{\"x\":\"2013-01-29\",\"y\":19},{\"x\":\"2013-01-30\",\"y\":36},{\"x\":\"2013-01-31\",\"y\":73},{\"x\":\"2013-02-01\",\"y\":63},{\"x\":\"2013-02-02\",\"y\":67},{\"x\":\"2013-02-03\",\"y\":11},{\"x\":\"2013-02-04\",\"y\":38},{\"x\":\"2013-02-05\",\"y\":7},{\"x\":\"2013-02-06\",\"y\":53},{\"x\":\"2013-02-07\",\"y\":52},{\"x\":\"2013-02-08\",\"y\":31},{\"x\":\"2013-02-09\",\"y\":18},{\"x\":\"2013-02-10\",\"y\":66},{\"x\":\"2013-02-11\",\"y\":32},{\"x\":\"2013-02-12\",\"y\":49},{\"x\":\"2013-02-13\",\"y\":38},{\"x\":\"2013-02-14\",\"y\":1},{\"x\":\"2013-02-15\",\"y\":61},{\"x\":\"2013-02-16\",\"y\":54},{\"x\":\"2013-02-17\",\"y\":71},{\"x\":\"2013-02-18\",\"y\":69},{\"x\":\"2013-02-19\",\"y\":59},{\"x\":\"2013-02-20\",\"y\":58},{\"x\":\"2013-02-21\",\"y\":28},{\"x\":\"2013-02-22\",\"y\":66},{\"x\":\"2013-02-23\",\"y\":59},{\"x\":\"2013-02-24\",\"y\":62},{\"x\":\"2013-02-25\",\"y\":65},{\"x\":\"2013-02-26\",\"y\":18},{\"x\":\"2013-02-27\",\"y\":57},{\"x\":\"2013-02-28\",\"y\":0},{\"x\":\"2013-03-01\",\"y\":24},{\"x\":\"2013-03-02\",\"y\":48},{\"x\":\"2013-03-03\",\"y\":2},{\"x\":\"2013-03-04\",\"y\":28},{\"x\":\"2013-03-05\",\"y\":58},{\"x\":\"2013-03-06\",\"y\":9},{\"x\":\"2013-03-07\",\"y\":59},{\"x\":\"2013-03-08\",\"y\":30},{\"x\":\"2013-03-09\",\"y\":30},{\"x\":\"2013-03-10\",\"y\":66},{\"x\":\"2013-03-11\",\"y\":48}]}" +
                             "]";
 
-        List<NamedXYTimeSeries> obj = mapper.readValue(json.getBytes(), List.class);
+        List<NamedXYTimeSeries> obj = jsonMapper.readValue(json.getBytes(), List.class);
 
         Writer writer = new StringWriter();
-        mapper.writeValue(writer, obj);
+        jsonMapper.writeValue(writer, obj);
 
         Assert.assertEquals(writer.toString(), json);
     }
