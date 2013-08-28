@@ -29,7 +29,7 @@ import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
 
-    private static final String OVERDUE_STATUS_TABLE_NAME = "bos";
+    private static final String OVERDUE_STATUS_TABLE_NAME = "analytics_entitlement_states";
     private Long blockingStateRecordId;
     private String status;
     private LocalDate startDate;

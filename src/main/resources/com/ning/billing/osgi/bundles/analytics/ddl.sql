@@ -1,8 +1,8 @@
 /*! SET storage_engine=INNODB */;
 
 -- Subscription events
-drop table if exists bst;
-create table bst (
+drop table if exists analytics_subscriptions;
+create table analytics_subscriptions (
   record_id int(11) unsigned not null auto_increment
 , subscription_event_record_id int(11) unsigned default null
 , bundle_id char(36) default null
@@ -54,14 +54,15 @@ create table bst (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bst_bundle_external_key on bst(bundle_external_key);
-create index bst_account_id on bst(account_id);
-create index bst_account_record_id on bst(account_record_id);
-create index bst_tenant_account_record_id on bst(tenant_record_id, account_record_id);
+create index analytics_subscriptions_bundle_id on analytics_subscriptions(bundle_id);
+create index analytics_subscriptions_bundle_external_key on analytics_subscriptions(bundle_external_key);
+create index analytics_subscriptions_account_id on analytics_subscriptions(account_id);
+create index analytics_subscriptions_account_record_id on analytics_subscriptions(account_record_id);
+create index analytics_subscriptions_tenant_account_record_id on analytics_subscriptions(tenant_record_id, account_record_id);
 
 -- Bundle summary
-drop table if exists bbs;
-create table bbs (
+drop table if exists analytics_bundles;
+create table analytics_bundles (
   record_id int(11) unsigned not null auto_increment
 , bundle_record_id int(11) unsigned default null
 , bundle_id char(36) default null
@@ -98,14 +99,15 @@ create table bbs (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bbs_bundle_external_key on bbs(bundle_external_key);
-create index bbs_account_id on bbs(account_id);
-create index bbs_account_record_id on bbs(account_record_id);
-create index bbs_tenant_account_record_id on bbs(tenant_record_id, account_record_id);
+create index analytics_bundles_bundle_bundle_id on analytics_bundles(bundle_id);
+create index analytics_bundles_bundle_external_key on analytics_bundles(bundle_external_key);
+create index analytics_bundles_account_id on analytics_bundles(account_id);
+create index analytics_bundles_account_record_id on analytics_bundles(account_record_id);
+create index analytics_bundles_tenant_account_record_id on analytics_bundles(tenant_record_id, account_record_id);
 
 -- Accounts
-drop table if exists bac;
-create table bac (
+drop table if exists analytics_accounts;
+create table analytics_accounts (
   record_id int(11) unsigned not null auto_increment
 , email varchar(128) default null
 , first_name_length int(11) default null
@@ -153,14 +155,14 @@ create table bac (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bac_account_external_key on bac(account_external_key);
-create index bac_account_id on bac(account_id);
-create index bac_account_record_id on bac(account_record_id);
-create index bac_tenant_account_record_id on bac(tenant_record_id, account_record_id);
+create index analytics_accounts_account_external_key on analytics_accounts(account_external_key);
+create index analytics_accounts_account_id on analytics_accounts(account_id);
+create index analytics_accounts_account_record_id on analytics_accounts(account_record_id);
+create index analytics_accounts_tenant_account_record_id on analytics_accounts(tenant_record_id, account_record_id);
 
 -- Invoices
-drop table if exists bin;
-create table bin (
+drop table if exists analytics_invoices;
+create table analytics_invoices (
   record_id int(11) unsigned not null auto_increment
 , invoice_record_id int(11) unsigned default null
 , invoice_id char(36) default null
@@ -193,15 +195,15 @@ create table bin (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bin_invoice_record_id on bin(invoice_record_id);
-create index bin_invoice_id on bin(invoice_id);
-create index bin_account_id on bin(account_id);
-create index bin_account_record_id on bin(account_record_id);
-create index bin_tenant_account_record_id on bin(tenant_record_id, account_record_id);
+create index analytics_invoices_invoice_record_id on analytics_invoices(invoice_record_id);
+create index analytics_invoices_invoice_id on analytics_invoices(invoice_id);
+create index analytics_invoices_account_id on analytics_invoices(account_id);
+create index analytics_invoices_account_record_id on analytics_invoices(account_record_id);
+create index analytics_invoices_tenant_account_record_id on analytics_invoices(tenant_record_id, account_record_id);
 
 -- Invoice adjustments (type REFUND_ADJ)
-drop table if exists bia;
-create table bia (
+drop table if exists analytics_invoice_adjustments;
+create table analytics_invoice_adjustments (
   record_id int(11) unsigned not null auto_increment
 , invoice_item_record_id int(11) unsigned default null
 , second_invoice_item_record_id int(11) unsigned default null
@@ -253,15 +255,16 @@ create table bia (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bia_invoice_item_record_id on bia(invoice_item_record_id);
-create index bia_item_id on bia(item_id);
-create index bia_account_id on bia(account_id);
-create index bia_account_record_id on bia(account_record_id);
-create index bia_tenant_account_record_id on bia(tenant_record_id, account_record_id);
+create index analytics_invoice_adjustments_invoice_item_record_id on analytics_invoice_adjustments(invoice_item_record_id);
+create index analytics_invoice_adjustments_item_id on analytics_invoice_adjustments(item_id);
+create index analytics_invoice_adjustments_invoice_id on analytics_invoice_adjustments(invoice_id);
+create index analytics_invoice_adjustments_account_id on analytics_invoice_adjustments(account_id);
+create index analytics_invoice_adjustments_account_record_id on analytics_invoice_adjustments(account_record_id);
+create index analytics_invoice_adjustments_tenant_account_record_id on analytics_invoice_adjustments(tenant_record_id, account_record_id);
 
 -- Invoice items (without adjustments, type EXTERNAL_CHARGE, FIXED and RECURRING)
-drop table if exists bii;
-create table bii (
+drop table if exists analytics_invoice_items;
+create table analytics_invoice_items (
   record_id int(11) unsigned not null auto_increment
 , invoice_item_record_id int(11) unsigned default null
 , second_invoice_item_record_id int(11) unsigned default null
@@ -313,15 +316,16 @@ create table bii (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bii_invoice_item_record_id on bii(invoice_item_record_id);
-create index bii_item_id on bii(item_id);
-create index bii_account_id on bii(account_id);
-create index bii_account_record_id on bii(account_record_id);
-create index bii_tenant_account_record_id on bii(tenant_record_id, account_record_id);
+create index analytics_invoice_items_invoice_item_record_id on analytics_invoice_items(invoice_item_record_id);
+create index analytics_invoice_items_item_id on analytics_invoice_items(item_id);
+create index analytics_invoice_items_invoice_id on analytics_invoice_items(invoice_id);
+create index analytics_invoice_items_account_id on analytics_invoice_items(account_id);
+create index analytics_invoice_items_account_record_id on analytics_invoice_items(account_record_id);
+create index analytics_invoice_items_tenant_account_record_id on analytics_invoice_items(tenant_record_id, account_record_id);
 
 -- Invoice items adjustments (type ITEM_ADJ)
-drop table if exists biia;
-create table biia (
+drop table if exists analytics_invoice_item_adjustments;
+create table analytics_invoice_item_adjustments (
   record_id int(11) unsigned not null auto_increment
 , invoice_item_record_id int(11) unsigned default null
 , second_invoice_item_record_id int(11) unsigned default null
@@ -373,15 +377,16 @@ create table biia (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index biia_invoice_item_record_id on biia(invoice_item_record_id);
-create index biia_item_id on biia(item_id);
-create index biia_account_id on biia(account_id);
-create index biia_account_record_id on biia(account_record_id);
-create index biia_tenant_account_record_id on biia(tenant_record_id, account_record_id);
+create index analytics_invoice_item_adjustments_invoice_item_record_id on analytics_invoice_item_adjustments(invoice_item_record_id);
+create index analytics_invoice_item_adjustments_item_id on analytics_invoice_item_adjustments(item_id);
+create index analytics_invoice_item_adjustments_invoice_id on analytics_invoice_item_adjustments(invoice_id);
+create index analytics_invoice_item_adjustments_account_id on analytics_invoice_item_adjustments(account_id);
+create index analytics_invoice_item_adjustments_account_record_id on analytics_invoice_item_adjustments(account_record_id);
+create index analytics_invoice_item_adjustments_tenant_account_record_id on analytics_invoice_item_adjustments(tenant_record_id, account_record_id);
 
 -- Account credits (type CBA_ADJ and CREDIT_ADJ)
-drop table if exists biic;
-create table biic (
+drop table if exists analytics_invoice_credits;
+create table analytics_invoice_credits (
   record_id int(11) unsigned not null auto_increment
 , invoice_item_record_id int(11) unsigned default null
 , second_invoice_item_record_id int(11) unsigned default null
@@ -433,15 +438,16 @@ create table biic (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index biic_invoice_item_record_id on biic(invoice_item_record_id);
-create index biic_item_id on biic(item_id);
-create index biic_account_id on biic(account_id);
-create index biic_account_record_id on biic(account_record_id);
-create index biic_tenant_account_record_id on biic(tenant_record_id, account_record_id);
+create index analytics_invoice_credits_invoice_item_record_id on analytics_invoice_credits(invoice_item_record_id);
+create index analytics_invoice_credits_item_id on analytics_invoice_credits(item_id);
+create index analytics_invoice_credits_invoice_id on analytics_invoice_credits(invoice_id);
+create index analytics_invoice_credits_account_id on analytics_invoice_credits(account_id);
+create index analytics_invoice_credits_account_record_id on analytics_invoice_credits(account_record_id);
+create index analytics_invoice_credits_tenant_account_record_id on analytics_invoice_credits(tenant_record_id, account_record_id);
 
 -- Invoice payments
-drop table if exists bip;
-create table bip (
+drop table if exists analytics_payments;
+create table analytics_payments (
   record_id int(11) unsigned not null auto_increment
 , invoice_payment_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -505,15 +511,16 @@ create table bip (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bip_invoice_payment_record_id on bip(invoice_payment_record_id);
-create index bip_invoice_payment_id on bip(invoice_payment_id);
-create index bip_account_id on bip(account_id);
-create index bip_account_record_id on bip(account_record_id);
-create index bip_tenant_account_record_id on bip(tenant_record_id, account_record_id);
+create index analytics_payments_invoice_payment_record_id on analytics_payments(invoice_payment_record_id);
+create index analytics_payments_invoice_payment_id on analytics_payments(invoice_payment_id);
+create index analytics_payments_invoice_id on analytics_payments(invoice_id);
+create index analytics_payments_account_id on analytics_payments(account_id);
+create index analytics_payments_account_record_id on analytics_payments(account_record_id);
+create index analytics_payments_tenant_account_record_id on analytics_payments(tenant_record_id, account_record_id);
 
 -- Invoice refunds
-drop table if exists bipr;
-create table bipr (
+drop table if exists analytics_refunds;
+create table analytics_refunds (
   record_id int(11) unsigned not null auto_increment
 , invoice_payment_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -578,15 +585,16 @@ create table bipr (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bipr_invoice_payment_record_id on bipr(invoice_payment_record_id);
-create index bipr_invoice_payment_id on bipr(invoice_payment_id);
-create index bipr_account_id on bipr(account_id);
-create index bipr_account_record_id on bipr(account_record_id);
-create index bipr_tenant_account_record_id on bipr(tenant_record_id, account_record_id);
+create index analytics_refunds_invoice_payment_record_id on analytics_refunds(invoice_payment_record_id);
+create index analytics_refunds_invoice_payment_id on analytics_refunds(invoice_payment_id);
+create index analytics_refunds_invoice_id on analytics_refunds(invoice_id);
+create index analytics_refunds_account_id on analytics_refunds(account_id);
+create index analytics_refunds_account_record_id on analytics_refunds(account_record_id);
+create index analytics_refunds_tenant_account_record_id on analytics_refunds(tenant_record_id, account_record_id);
 
 -- Invoice payment chargebacks
-drop table if exists bipc;
-create table bipc (
+drop table if exists analytics_chargebacks;
+create table analytics_chargebacks (
   record_id int(11) unsigned not null auto_increment
 , invoice_payment_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -650,14 +658,15 @@ create table bipc (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bipc_invoice_payment_record_id on bipc(invoice_payment_record_id);
-create index bipc_invoice_payment_id on bipc(invoice_payment_id);
-create index bipc_account_id on bipc(account_id);
-create index bipc_account_record_id on bipc(account_record_id);
-create index bipc_tenant_account_record_id on bipc(tenant_record_id, account_record_id);
+create index analytics_chargebacks_invoice_payment_record_id on analytics_chargebacks(invoice_payment_record_id);
+create index analytics_chargebacks_invoice_payment_id on analytics_chargebacks(invoice_payment_id);
+create index analytics_chargebacks_invoice_id on analytics_chargebacks(invoice_id);
+create index analytics_chargebacks_account_id on analytics_chargebacks(account_id);
+create index analytics_chargebacks_account_record_id on analytics_chargebacks(account_record_id);
+create index analytics_chargebacks_tenant_account_record_id on analytics_chargebacks(tenant_record_id, account_record_id);
 
-drop table if exists bos;
-create table bos (
+drop table if exists analytics_entitlement_states;
+create table analytics_entitlement_states (
   record_id int(11) unsigned not null auto_increment
 , blocking_state_record_id int(11) unsigned default null
 , status varchar(50) default null
@@ -675,12 +684,12 @@ create table bos (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bos_account_id on bos(account_id);
-create index bos_account_record_id on bos(account_record_id);
-create index bos_tenant_account_record_id on bos(tenant_record_id, account_record_id);
+create index analytics_entitlement_states_account_id on analytics_entitlement_states(account_id);
+create index analytics_entitlement_states_account_record_id on analytics_entitlement_states(account_record_id);
+create index analytics_entitlement_states_tenant_account_record_id on analytics_entitlement_states(tenant_record_id, account_record_id);
 
-drop table if exists bac_tags;
-create table bac_tags (
+drop table if exists analytics_account_tags;
+create table analytics_account_tags (
   record_id int(11) unsigned not null auto_increment
 , tag_record_id int(11) unsigned default null
 , name varchar(50) default null
@@ -696,12 +705,12 @@ create table bac_tags (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bac_tags_account_id on bac_tags(account_id);
-create index bac_tags_account_record_id on bac_tags(account_record_id);
-create index bac_tags_tenant_account_record_id on bac_tags(tenant_record_id, account_record_id);
+create index analytics_account_tags_account_id on analytics_account_tags(account_id);
+create index analytics_account_tags_account_record_id on analytics_account_tags(account_record_id);
+create index analytics_account_tags_tenant_account_record_id on analytics_account_tags(tenant_record_id, account_record_id);
 
-drop table if exists bbu_tags;
-create table bbu_tags (
+drop table if exists analytics_bundle_tags;
+create table analytics_bundle_tags (
   record_id int(11) unsigned not null auto_increment
 , tag_record_id int(11) unsigned default null
 , bundle_id char(36) default null
@@ -718,12 +727,12 @@ create table bbu_tags (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bbu_tags_account_id on bbu_tags(account_id);
-create index bbu_tags_account_record_id on bbu_tags(account_record_id);
-create index bbu_tags_tenant_account_record_id on bbu_tags(tenant_record_id, account_record_id);
+create index analytics_bundle_tags_account_id on analytics_bundle_tags(account_id);
+create index analytics_bundle_tags_account_record_id on analytics_bundle_tags(account_record_id);
+create index analytics_bundle_tags_tenant_account_record_id on analytics_bundle_tags(tenant_record_id, account_record_id);
 
-drop table if exists bin_tags;
-create table bin_tags (
+drop table if exists analytics_invoice_tags;
+create table analytics_invoice_tags (
   record_id int(11) unsigned not null auto_increment
 , tag_record_id int(11) unsigned default null
 , invoice_id char(36) default null
@@ -740,12 +749,12 @@ create table bin_tags (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bin_tags_account_id on bin_tags(account_id);
-create index bin_tags_account_record_id on bin_tags(account_record_id);
-create index bin_tags_tenant_account_record_id on bin_tags(tenant_record_id, account_record_id);
+create index analytics_invoice_tags_account_id on analytics_invoice_tags(account_id);
+create index analytics_invoice_tags_account_record_id on analytics_invoice_tags(account_record_id);
+create index analytics_invoice_tags_tenant_account_record_id on analytics_invoice_tags(tenant_record_id, account_record_id);
 
-drop table if exists bip_tags;
-create table bip_tags (
+drop table if exists analytics_payment_tags;
+create table analytics_payment_tags (
   record_id int(11) unsigned not null auto_increment
 , tag_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -762,12 +771,12 @@ create table bip_tags (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bip_tags_account_id on bip_tags(account_id);
-create index bip_tags_account_record_id on bip_tags(account_record_id);
-create index bip_tags_tenant_account_record_id on bip_tags(tenant_record_id, account_record_id);
+create index analytics_payment_tags_account_id on analytics_payment_tags(account_id);
+create index analytics_payment_tags_account_record_id on analytics_payment_tags(account_record_id);
+create index analytics_payment_tags_tenant_account_record_id on analytics_payment_tags(tenant_record_id, account_record_id);
 
-drop table if exists bac_fields;
-create table bac_fields (
+drop table if exists analytics_account_fields;
+create table analytics_account_fields (
   record_id int(11) unsigned not null auto_increment
 , custom_field_record_id int(11) unsigned default null
 , name varchar(50) default null
@@ -784,12 +793,12 @@ create table bac_fields (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bac_fields_account_id on bac_fields(account_id);
-create index bac_fields_account_record_id on bac_fields(account_record_id);
-create index bac_fields_tenant_account_record_id on bac_fields(tenant_record_id, account_record_id);
+create index analytics_account_fields_account_id on analytics_account_fields(account_id);
+create index analytics_account_fields_account_record_id on analytics_account_fields(account_record_id);
+create index analytics_account_fields_tenant_account_record_id on analytics_account_fields(tenant_record_id, account_record_id);
 
-drop table if exists bbu_fields;
-create table bbu_fields (
+drop table if exists analytics_bundle_fields;
+create table analytics_bundle_fields (
   record_id int(11) unsigned not null auto_increment
 , custom_field_record_id int(11) unsigned default null
 , bundle_id char(36) default null
@@ -807,12 +816,12 @@ create table bbu_fields (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bbu_fields_account_id on bbu_fields(account_id);
-create index bbu_fields_account_record_id on bbu_fields(account_record_id);
-create index bbu_fields_tenant_account_record_id on bbu_fields(tenant_record_id, account_record_id);
+create index analytics_bundle_fields_account_id on analytics_bundle_fields(account_id);
+create index analytics_bundle_fields_account_record_id on analytics_bundle_fields(account_record_id);
+create index analytics_bundle_fields_tenant_account_record_id on analytics_bundle_fields(tenant_record_id, account_record_id);
 
-drop table if exists bin_fields;
-create table bin_fields (
+drop table if exists analytics_invoice_fields;
+create table analytics_invoice_fields (
   record_id int(11) unsigned not null auto_increment
 , custom_field_record_id int(11) unsigned default null
 , invoice_id char(36) default null
@@ -830,12 +839,12 @@ create table bin_fields (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bin_fields_account_id on bin_fields(account_id);
-create index bin_fields_account_record_id on bin_fields(account_record_id);
-create index bin_fields_tenant_account_record_id on bin_fields(tenant_record_id, account_record_id);
+create index analytics_invoice_fields_account_id on analytics_invoice_fields(account_id);
+create index analytics_invoice_fields_account_record_id on analytics_invoice_fields(account_record_id);
+create index analytics_invoice_fields_tenant_account_record_id on analytics_invoice_fields(tenant_record_id, account_record_id);
 
-drop table if exists bip_fields;
-create table bip_fields (
+drop table if exists analytics_payment_fields;
+create table analytics_payment_fields (
   record_id int(11) unsigned not null auto_increment
 , custom_field_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -853,9 +862,9 @@ create table bip_fields (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index bip_fields_account_id on bip_fields(account_id);
-create index bip_fields_account_record_id on bip_fields(account_record_id);
-create index bip_fields_tenant_account_record_id on bip_fields(tenant_record_id, account_record_id);
+create index analytics_payment_fields_account_id on analytics_payment_fields(account_id);
+create index analytics_payment_fields_account_record_id on analytics_payment_fields(account_record_id);
+create index analytics_payment_fields_tenant_account_record_id on analytics_payment_fields(tenant_record_id, account_record_id);
 
 drop table if exists analytics_notifications;
 create table analytics_notifications (

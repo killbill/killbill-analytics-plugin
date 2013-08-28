@@ -30,10 +30,10 @@ import com.ning.billing.util.tag.TagDefinition;
 
 public abstract class BusinessTagModelDao extends BusinessModelDaoBase {
 
-    protected static final String ACCOUNT_TAGS_TABLE_NAME = "bac_tags";
-    protected static final String BUNDLE_TAGS_TABLE_NAME = "bbu_tags";
-    protected static final String INVOICE_PAYMENT_TAGS_TABLE_NAME = "bip_tags";
-    protected static final String INVOICE_TAGS_TABLE_NAME = "bin_tags";
+    protected static final String ACCOUNT_TAGS_TABLE_NAME = "analytics_account_tags";
+    protected static final String BUNDLE_TAGS_TABLE_NAME = "analytics_bundle_tags";
+    protected static final String INVOICE_PAYMENT_TAGS_TABLE_NAME = "analytics_payment_tags";
+    protected static final String INVOICE_TAGS_TABLE_NAME = "analytics_invoice_tags";
 
     public static final String[] ALL_TAGS_TABLE_NAMES = new String[]{ACCOUNT_TAGS_TABLE_NAME, BUNDLE_TAGS_TABLE_NAME, INVOICE_PAYMENT_TAGS_TABLE_NAME, INVOICE_TAGS_TABLE_NAME};
 

@@ -41,9 +41,9 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
     @VisibleForTesting
     static final String DEFAULT_PLUGIN_NAME = "__UNKNOWN__";
 
-    protected static final String INVOICE_PAYMENTS_TABLE_NAME = "bip";
-    protected static final String INVOICE_PAYMENT_REFUNDS_TABLE_NAME = "bipr";
-    protected static final String INVOICE_PAYMENT_CHARGEBACKS_TABLE_NAME = "bipc";
+    protected static final String INVOICE_PAYMENTS_TABLE_NAME = "analytics_payments";
+    protected static final String INVOICE_PAYMENT_REFUNDS_TABLE_NAME = "analytics_refunds";
+    protected static final String INVOICE_PAYMENT_CHARGEBACKS_TABLE_NAME = "analytics_chargebacks";
 
     public static final String[] ALL_INVOICE_PAYMENTS_TABLE_NAMES = new String[]{INVOICE_PAYMENTS_TABLE_NAME, INVOICE_PAYMENT_REFUNDS_TABLE_NAME, INVOICE_PAYMENT_CHARGEBACKS_TABLE_NAME};
 

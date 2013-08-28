@@ -1,7 +1,7 @@
 group BusinessAnalyticsSqlDao;
 
-createBst() ::= <<
-insert into bst (
+createAnalyticsSubscriptions() ::= <<
+insert into analytics_subscriptions (
   subscription_event_record_id
 , bundle_id
 , bundle_external_key
@@ -102,8 +102,8 @@ insert into bst (
 );
 >>
 
-createBbs() ::= <<
-insert into bbs (
+createAnalyticsBundles() ::= <<
+insert into analytics_bundles (
   bundle_record_id
 , bundle_id
 , bundle_external_key
@@ -172,8 +172,8 @@ insert into bbs (
 );
 >>
 
-createBac() ::= <<
-insert into bac (
+createAnalyticsAccounts() ::= <<
+insert into analytics_accounts (
   email
 , first_name_length
 , currency
@@ -266,8 +266,8 @@ insert into bac (
 );
 >>
 
-createBin() ::= <<
-insert into bin (
+createAnalyticsInvoices() ::= <<
+insert into analytics_invoices (
   invoice_record_id
 , invoice_id
 , invoice_number
@@ -330,8 +330,8 @@ insert into bin (
 );
 >>
 
-createBia() ::= <<
-insert into bia (
+createAnalyticsInvoiceAdjustments() ::= <<
+insert into analytics_invoice_adjustments (
   invoice_item_record_id
 , second_invoice_item_record_id
 , item_id
@@ -432,8 +432,8 @@ insert into bia (
 );
 >>
 
-createBii() ::= <<
-insert into bii (
+createAnalyticsInvoiceItems() ::= <<
+insert into analytics_invoice_items (
   invoice_item_record_id
 , second_invoice_item_record_id
 , item_id
@@ -534,8 +534,8 @@ insert into bii (
 );
 >>
 
-createBiia() ::= <<
-insert into biia (
+createAnalyticsInvoiceItemAdjustments() ::= <<
+insert into analytics_invoice_item_adjustments (
   invoice_item_record_id
 , second_invoice_item_record_id
 , item_id
@@ -636,8 +636,8 @@ insert into biia (
 );
 >>
 
-createBiic() ::= <<
-insert into biic (
+createAnalyticsInvoiceCredits() ::= <<
+insert into analytics_invoice_credits (
   invoice_item_record_id
 , second_invoice_item_record_id
 , item_id
@@ -738,8 +738,8 @@ insert into biic (
 );
 >>
 
-createBip() ::= <<
-insert into bip (
+createAnalyticsPayments() ::= <<
+insert into analytics_payments (
   invoice_payment_record_id
 , invoice_payment_id
 , invoice_id
@@ -864,8 +864,8 @@ insert into bip (
 );
 >>
 
-createBipr() ::= <<
-insert into bipr (
+createAnalyticsRefunds() ::= <<
+insert into analytics_refunds (
   invoice_payment_record_id
 , invoice_payment_id
 , invoice_id
@@ -992,8 +992,8 @@ insert into bipr (
 );
 >>
 
-createBipc() ::= <<
-insert into bipc (
+createAnalyticsChargebacks() ::= <<
+insert into analytics_chargebacks (
   invoice_payment_record_id
 , invoice_payment_id
 , invoice_id
@@ -1118,8 +1118,8 @@ insert into bipc (
 );
 >>
 
-createBos() ::= <<
-insert into bos (
+createAnalyticsEntitlementStates() ::= <<
+insert into analytics_entitlement_states (
   blocking_state_record_id
 , status
 , start_date
@@ -1152,8 +1152,8 @@ insert into bos (
 );
 >>
 
-createBacTags() ::= <<
-insert into bac_tags (
+createAnalyticsAccountTags() ::= <<
+insert into analytics_account_tags (
   tag_record_id
 , name
 , created_date
@@ -1182,8 +1182,8 @@ insert into bac_tags (
 );
 >>
 
-createBbuTags() ::= <<
-insert into bbu_tags (
+createAnalyticsBundleTags() ::= <<
+insert into analytics_bundle_tags (
   tag_record_id
 , bundle_id
 , name
@@ -1214,8 +1214,8 @@ insert into bbu_tags (
 );
 >>
 
-createBinTags() ::= <<
-insert into bin_tags (
+createAnalyticsInvoiceTags() ::= <<
+insert into analytics_invoice_tags (
   tag_record_id
 , invoice_id
 , name
@@ -1246,8 +1246,8 @@ insert into bin_tags (
 );
 >>
 
-createBipTags() ::= <<
-insert into bip_tags (
+createAnalyticsPaymentTags() ::= <<
+insert into analytics_payment_tags (
   tag_record_id
 , invoice_payment_id
 , name
@@ -1278,8 +1278,8 @@ insert into bip_tags (
 );
 >>
 
-createBacFields() ::= <<
-insert into bac_fields (
+createAnalyticsAccountFields() ::= <<
+insert into analytics_account_fields (
   custom_field_record_id
 , name
 , value
@@ -1310,8 +1310,8 @@ insert into bac_fields (
 );
 >>
 
-createBbuFields() ::= <<
-insert into bbu_fields (
+createAnalyticsBundleFields() ::= <<
+insert into analytics_bundle_fields (
   custom_field_record_id
 , bundle_id
 , name
@@ -1344,8 +1344,8 @@ insert into bbu_fields (
 );
 >>
 
-createBinFields() ::= <<
-insert into bin_fields (
+createAnalyticsInvoiceFields() ::= <<
+insert into analytics_invoice_fields (
   custom_field_record_id
 , invoice_id
 , name
@@ -1378,8 +1378,8 @@ insert into bin_fields (
 );
 >>
 
-createBipFields() ::= <<
-insert into bip_fields (
+createAnalyticsPaymentFields() ::= <<
+insert into analytics_payment_fields (
   custom_field_record_id
 , invoice_payment_id
 , name
@@ -1430,101 +1430,101 @@ where <CHECK_TENANT_AND_ACCOUNT("")>
 >>
 
 getAccountByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bac")>
+<SELECT_STAR_FROM_TABLE("analytics_accounts")>
 ;
 >>
 
 getSubscriptionTransitionsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bst")>
+<SELECT_STAR_FROM_TABLE("analytics_subscriptions")>
 ;
 >>
 
 getBundleSummariesByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bbs")>
+<SELECT_STAR_FROM_TABLE("analytics_bundles")>
 ;
 >>
 
 getOverdueStatusesByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bos")>
+<SELECT_STAR_FROM_TABLE("analytics_entitlement_states")>
 ;
 >>
 
 getInvoicesByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bin")>
+<SELECT_STAR_FROM_TABLE("analytics_invoices")>
 ;
 >>
 
 getInvoiceAdjustmentsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bia")>
+<SELECT_STAR_FROM_TABLE("analytics_invoice_adjustments")>
 ;
 >>
 
 getInvoiceItemsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bii")>
+<SELECT_STAR_FROM_TABLE("analytics_invoice_items")>
 ;
 >>
 
 getInvoiceItemAdjustmentsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("biia")>
+<SELECT_STAR_FROM_TABLE("analytics_invoice_item_adjustments")>
 ;
 >>
 
 getInvoiceItemCreditsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("biic")>
+<SELECT_STAR_FROM_TABLE("analytics_invoice_credits")>
 ;
 >>
 
 getInvoicePaymentsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bip")>
+<SELECT_STAR_FROM_TABLE("analytics_payments")>
 ;
 >>
 
 getInvoicePaymentRefundsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bipr")>
+<SELECT_STAR_FROM_TABLE("analytics_refunds")>
 ;
 >>
 
 getInvoicePaymentChargebacksByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bipc")>
+<SELECT_STAR_FROM_TABLE("analytics_chargebacks")>
 ;
 >>
 
 getAccountFieldsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bac_fields")>
+<SELECT_STAR_FROM_TABLE("analytics_account_fields")>
 ;
 >>
 
 getBundleFieldsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bbu_fields")>
+<SELECT_STAR_FROM_TABLE("analytics_bundle_fields")>
 ;
 >>
 
 getInvoiceFieldsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bin_fields")>
+<SELECT_STAR_FROM_TABLE("analytics_invoice_fields")>
 ;
 >>
 
 getInvoicePaymentFieldsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bip_fields")>
+<SELECT_STAR_FROM_TABLE("analytics_payment_fields")>
 ;
 >>
 
 getAccountTagsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bac_tags")>
+<SELECT_STAR_FROM_TABLE("analytics_account_tags")>
 ;
 >>
 
 getBundleTagsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bbu_tags")>
+<SELECT_STAR_FROM_TABLE("analytics_bundle_tags")>
 ;
 >>
 
 getInvoiceTagsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bin_tags")>
+<SELECT_STAR_FROM_TABLE("analytics_invoice_tags")>
 ;
 >>
 
 getInvoicePaymentTagsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("bip_tags")>
+<SELECT_STAR_FROM_TABLE("analytics_payment_tags")>
 ;
 >>

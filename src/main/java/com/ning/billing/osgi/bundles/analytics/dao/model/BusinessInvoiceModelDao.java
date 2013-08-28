@@ -31,7 +31,7 @@ import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
 
-    public static final String INVOICES_TABLE_NAME = "bin";
+    public static final String INVOICES_TABLE_NAME = "analytics_invoices";
 
     private Long invoiceRecordId;
     private UUID invoiceId;

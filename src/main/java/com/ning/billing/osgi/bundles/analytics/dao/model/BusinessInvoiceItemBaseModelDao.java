@@ -37,10 +37,10 @@ import com.google.common.annotations.VisibleForTesting;
 
 public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBase {
 
-    protected static final String INVOICE_ADJUSTMENTS_TABLE_NAME = "bia";
-    protected static final String INVOICE_ITEMS_TABLE_NAME = "bii";
-    protected static final String INVOICE_ITEM_ADJUSTMENTS_TABLE_NAME = "biia";
-    protected static final String ACCOUNT_CREDITS_TABLE_NAME = "biic";
+    protected static final String INVOICE_ADJUSTMENTS_TABLE_NAME = "analytics_invoice_adjustments";
+    protected static final String INVOICE_ITEMS_TABLE_NAME = "analytics_invoice_items";
+    protected static final String INVOICE_ITEM_ADJUSTMENTS_TABLE_NAME = "analytics_invoice_item_adjustments";
+    protected static final String ACCOUNT_CREDITS_TABLE_NAME = "analytics_invoice_credits";
 
     public static final String[] ALL_INVOICE_ITEMS_TABLE_NAMES = new String[]{INVOICE_ADJUSTMENTS_TABLE_NAME, INVOICE_ITEMS_TABLE_NAME, INVOICE_ITEM_ADJUSTMENTS_TABLE_NAME, ACCOUNT_CREDITS_TABLE_NAME};
 

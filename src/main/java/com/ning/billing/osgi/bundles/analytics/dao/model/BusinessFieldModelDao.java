@@ -29,10 +29,10 @@ import com.ning.billing.util.customfield.CustomField;
 
 public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
 
-    protected static final String ACCOUNT_FIELDS_TABLE_NAME = "bac_fields";
-    protected static final String BUNDLE_FIELDS_TABLE_NAME = "bbu_fields";
-    protected static final String INVOICE_FIELDS_TABLE_NAME = "bin_fields";
-    protected static final String INVOICE_PAYMENT_FIELDS_TABLE_NAME = "bip_fields";
+    protected static final String ACCOUNT_FIELDS_TABLE_NAME = "analytics_account_fields";
+    protected static final String BUNDLE_FIELDS_TABLE_NAME = "analytics_bundle_fields";
+    protected static final String INVOICE_FIELDS_TABLE_NAME = "analytics_invoice_fields";
+    protected static final String INVOICE_PAYMENT_FIELDS_TABLE_NAME = "analytics_payment_fields";
 
     public static final String[] ALL_FIELDS_TABLE_NAMES = new String[]{ACCOUNT_FIELDS_TABLE_NAME, BUNDLE_FIELDS_TABLE_NAME, INVOICE_FIELDS_TABLE_NAME, INVOICE_PAYMENT_FIELDS_TABLE_NAME};
 

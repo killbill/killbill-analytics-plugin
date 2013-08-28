@@ -32,7 +32,7 @@ import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessAccountModelDao extends BusinessModelDaoBase {
 
-    private static final String ACCOUNTS_TABLE_NAME = "bac";
+    private static final String ACCOUNTS_TABLE_NAME = "analytics_accounts";
 
     private String email;
     private Integer firstNameLength;

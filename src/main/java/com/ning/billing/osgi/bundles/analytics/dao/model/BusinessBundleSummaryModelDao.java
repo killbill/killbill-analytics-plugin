@@ -31,7 +31,7 @@ import com.ning.billing.util.audit.AuditLog;
 
 public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
 
-    public static final String BUNDLE_SUMMARIES_TABLE_NAME = "bbs";
+    public static final String BUNDLE_SUMMARIES_TABLE_NAME = "analytics_bundles";
 
     private Long bundleRecordId;
     private UUID bundleId;
