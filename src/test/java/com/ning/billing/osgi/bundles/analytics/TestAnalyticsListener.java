@@ -21,6 +21,9 @@ import java.util.UUID;
 
 import org.testng.annotations.Test;
 
+import com.ning.billing.queue.DBBackedQueue;
+
+import com.codahale.metrics.MetricFilter;
 import junit.framework.Assert;
 
 import static com.ning.billing.osgi.bundles.analytics.AnalyticsListener.ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY;
@@ -34,6 +37,9 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
         // No account is blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
+
+        // TODO PIERRE Hack due to improper lifecycle handling of metrics in killbill-queue
+        DBBackedQueue.metrics.removeMatching(MetricFilter.ALL);
 
         final UUID blackListedAccountId = UUID.randomUUID();
         properties.put(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, String.format("%s,%s", UUID.randomUUID(), blackListedAccountId));

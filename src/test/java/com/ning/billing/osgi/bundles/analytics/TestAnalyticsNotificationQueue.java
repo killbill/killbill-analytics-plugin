@@ -35,6 +35,7 @@ import com.ning.billing.account.api.Account;
 import com.ning.billing.account.api.AccountUserApi;
 import com.ning.billing.notification.plugin.api.ExtBusEvent;
 import com.ning.billing.notification.plugin.api.ExtBusEventType;
+import com.ning.billing.queue.DBBackedQueue;
 import com.ning.billing.util.api.AuditLevel;
 import com.ning.billing.util.api.AuditUserApi;
 import com.ning.billing.util.api.CustomFieldUserApi;
@@ -47,6 +48,7 @@ import com.ning.billing.util.tag.Tag;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
+import com.codahale.metrics.MetricFilter;
 import com.google.common.collect.ImmutableList;
 import com.jayway.awaitility.Awaitility;
 
@@ -98,8 +100,11 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Mockito.when(killbillAPI.getCustomFieldUserApi()).thenReturn(customFieldUserApi);
         Mockito.when(killbillAPI.getAuditUserApi()).thenReturn(auditUserApi);
 
-        properties.setProperty("killbill.billing.notificationq.tableName", "analytics_notifications");
-        properties.setProperty("killbill.billing.notificationq.historyTableName", "analytics_notifications_history");
+        properties.setProperty("killbill.billing.notificationq.analytics.tableName", "analytics_notifications");
+        properties.setProperty("killbill.billing.notificationq.analytics.historyTableName", "analytics_notifications_history");
+
+        // TODO PIERRE Hack due to improper lifecycle handling of metrics in killbill-queue
+        DBBackedQueue.metrics.removeMatching(MetricFilter.ALL);
     }
 
     @Test(groups = "slow")

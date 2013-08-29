@@ -59,6 +59,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 
 public class AnalyticsListener implements OSGIKillbillEventHandler {
@@ -105,7 +106,8 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
 
-        final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).build(NotificationQueueConfig.class);
+        final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).buildWithReplacements(NotificationQueueConfig.class,
+                                                                                                                ImmutableMap.<String, String>of("instanceName", "analytics"));
         final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config);
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {

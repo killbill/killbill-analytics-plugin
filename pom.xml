@@ -21,7 +21,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>com.ning.billing</groupId>
-        <version>0.4.2-SNAPSHOT</version>
+        <version>0.4.2</version>
     </parent>
     <artifactId>killbill-osgi-bundles-analytics</artifactId>
     <name>Kill Bill OSGI Analytics bundle</name>
@@ -190,7 +190,8 @@
                         <Export-Package />
                         <Private-Package>com.ning.billing.osgi.bundles.analytics.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
-                        <Import-Package>*;com.ning.billing.osgi.api;resolution:=optional</Import-Package>
+                        <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
+                        <Import-Package>*;com.ning.billing.osgi.api;sun.misc;javax.management;resolution:=optional</Import-Package>
                     </instructions>
                 </configuration>
                 <executions>
