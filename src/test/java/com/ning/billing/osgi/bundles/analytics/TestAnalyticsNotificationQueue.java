@@ -49,6 +49,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
 import com.jayway.awaitility.Awaitility;
 
@@ -102,14 +103,11 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         properties.setProperty("killbill.billing.notificationq.analytics.tableName", "analytics_notifications");
         properties.setProperty("killbill.billing.notificationq.analytics.historyTableName", "analytics_notifications_history");
-
-        // TODO PIERRE Hack due to improper lifecycle handling of metrics in killbill-queue
-        DBBackedQueue.metrics.removeMatching(MetricFilter.ALL);
     }
 
     @Test(groups = "slow")
     public void testSendOneEvent() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock, properties);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock, new MetricRegistry(), properties);
         analyticsListener.start();
 
         // Verify the original state
@@ -134,7 +132,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
     @Test(groups = "slow")
     public void testVerifyNoDups() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock, properties);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, BusinessExecutor.newCachedThreadPool(), clock, new MetricRegistry(), properties);
         // Don't start the dequeuer
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 0);
 

@@ -35,6 +35,8 @@ import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 import com.ning.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 
+import com.codahale.metrics.MetricRegistry;
+
 public class AnalyticsActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "killbill-analytics";
@@ -44,6 +46,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     private ReportsUserApi reportsUserApi;
 
     private final Clock clock = new DefaultClock();
+    private final MetricRegistry metricRegistry = new MetricRegistry();
 
     @Override
     public void start(final BundleContext context) throws Exception {
@@ -51,7 +54,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final Executor executor = BusinessExecutor.newCachedThreadPool();
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor, clock);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor, clock, metricRegistry);
         analyticsListener.start();
         dispatcher.registerEventHandler(analyticsListener);
 

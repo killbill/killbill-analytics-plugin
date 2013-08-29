@@ -55,6 +55,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -85,8 +86,9 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                              final OSGIKillbillAPI osgiKillbillAPI,
                              final OSGIKillbillDataSource osgiKillbillDataSource,
                              final Executor executor,
-                             final Clock clock) throws NotificationQueueAlreadyExists {
-        this(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock, System.getProperties());
+                             final Clock clock,
+                             final MetricRegistry metricRegistry) throws NotificationQueueAlreadyExists {
+        this(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock, metricRegistry, System.getProperties());
     }
 
     AnalyticsListener(final OSGIKillbillLogService logService,
@@ -94,6 +96,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                       final OSGIKillbillDataSource osgiKillbillDataSource,
                       final Executor executor,
                       final Clock clock,
+                      final MetricRegistry metricRegistry,
                       final Properties properties) throws NotificationQueueAlreadyExists {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
@@ -109,7 +112,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                 ImmutableMap.<String, String>of("instanceName", "analytics"));
         final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
-        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config);
+        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry);
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 
             @Override
