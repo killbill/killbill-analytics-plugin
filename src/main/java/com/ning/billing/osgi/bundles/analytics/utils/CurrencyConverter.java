@@ -58,8 +58,13 @@ public class CurrencyConverter {
     public BigDecimal getConvertedValue(@Nullable final BigDecimal value,
                                         @Nullable final String currency,
                                         @Nullable final LocalDate effectiveDate) {
+        // No data
+        if (referenceCurrency == null) {
+            return null;
+        }
+
         // Optimization
-        if (referenceCurrency == null || referenceCurrency.equals(currency)) {
+        if (referenceCurrency.equals(currency)) {
             return value;
         }
 
