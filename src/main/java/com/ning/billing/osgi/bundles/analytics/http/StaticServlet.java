@@ -53,10 +53,10 @@ public class StaticServlet extends BaseServlet {
         final URL resourceUrl = Resources.getResource("static/" + resourceName);
 
         final String[] parts = resourceName.split("/");
-        if (parts.length > 2) {
-            if (parts[1].equals("javascript")) {
+        if (parts.length >= 2) {
+            if (parts[0].equals("javascript")) {
                 resp.setContentType("application/javascript");
-            } else if (parts[1].equals("styles")) {
+            } else if (parts[0].equals("styles")) {
                 resp.setContentType("text/css");
             }
             Resources.copy(resourceUrl, resp.getOutputStream());
