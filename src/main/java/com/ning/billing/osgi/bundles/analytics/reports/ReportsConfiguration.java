@@ -16,79 +16,62 @@
 
 package com.ning.billing.osgi.bundles.analytics.reports;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.ini4j.Ini;
-import org.ini4j.Profile.Section;
-import org.osgi.service.log.LogService;
+import org.skife.jdbi.v2.DBI;
 
+import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationSqlDao;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
-
-import com.google.common.base.Objects;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
 public class ReportsConfiguration {
 
-    private static final String REPORTS_CONFIGURATION_FILE_PATH = System.getProperty("com.ning.billing.osgi.bundles.analytics.reports.configuration");
-
-    private final Map<String, ReportConfigurationSection> configurationPerReport = new LinkedHashMap<String, ReportConfigurationSection>();
-
-    private final OSGIKillbillLogService logService;
+    private final ReportsConfigurationSqlDao sqlDao;
     private final JobsScheduler scheduler;
 
-    public ReportsConfiguration(final OSGIKillbillLogService logService, final JobsScheduler scheduler) {
-        this.logService = logService;
+    public ReportsConfiguration(final OSGIKillbillDataSource osgiKillbillDataSource, final JobsScheduler scheduler) {
+        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+        this.sqlDao = dbi.onDemand(ReportsConfigurationSqlDao.class);
         this.scheduler = scheduler;
     }
 
     public void initialize() {
-        try {
-            parseConfigurationFile();
-        } catch (IOException e) {
-            logService.log(LogService.LOG_WARNING, "Error during initialization", e);
-        }
-    }
-
-    public String getTableNameForReport(final String reportName) {
-        if (configurationPerReport.get(reportName) != null) {
-            return configurationPerReport.get(reportName).getTableName();
-        } else {
-            return null;
-        }
-    }
-
-    public String getPrettyNameForReport(final String reportName) {
-        if (configurationPerReport.get(reportName) != null) {
-            return Objects.firstNonNull(configurationPerReport.get(reportName).getPrettyName(), reportName);
-        } else {
-            return reportName;
-        }
-    }
-
-    private void parseConfigurationFile() throws IOException {
-        if (REPORTS_CONFIGURATION_FILE_PATH == null) {
-            return;
-        }
-
-        final File configurationFile = new File(REPORTS_CONFIGURATION_FILE_PATH);
-        //noinspection MismatchedQueryAndUpdateOfCollection
-        final Ini ini = new Ini(configurationFile);
-        for (final String reportName : ini.keySet()) {
-            final Section section = ini.get(reportName);
-            Thread.currentThread().setContextClassLoader(ReportsConfiguration.class.getClassLoader());
-            final ReportConfigurationSection reportConfigurationSection = section.as(ReportConfigurationSection.class);
-
-            if (reportConfigurationSection.getFrequency() != null && reportConfigurationSection.getStoredProcedureName() != null) {
-                scheduler.schedule(reportName,
-                                   reportConfigurationSection.getStoredProcedureName(),
-                                   reportConfigurationSection.getFrequency(),
-                                   reportConfigurationSection.getRefreshTimeOfTheDayGMT());
+        final List<ReportsConfigurationModelDao> reports = sqlDao.getAllReportsConfigurations();
+        for (final ReportsConfigurationModelDao report : reports) {
+            if (report.getRefreshFrequency() != null && report.getRefreshProcedureName() != null) {
+                scheduler.schedule(report);
             }
-
-            configurationPerReport.put(reportName, reportConfigurationSection);
         }
+    }
+
+    public void createReportConfiguration(final ReportsConfigurationModelDao report) {
+        sqlDao.addReportConfiguration(report);
+    }
+
+    public void updateReportConfiguration(final ReportsConfigurationModelDao report) {
+        sqlDao.updateReportConfiguration(report);
+    }
+
+    public void deleteReportConfiguration(final String reportName) {
+        sqlDao.deleteReportConfiguration(reportName);
+    }
+
+    public Map<String, ReportsConfigurationModelDao> getAllReportConfigurations() {
+        final Map<String, ReportsConfigurationModelDao> reports = new LinkedHashMap<String, ReportsConfigurationModelDao>();
+
+        final List<ReportsConfigurationModelDao> reportsConfigurationModelDaos = sqlDao.getAllReportsConfigurations();
+        for (final ReportsConfigurationModelDao report : reportsConfigurationModelDaos) {
+            reports.put(report.getReportName(), report);
+        }
+
+        return reports;
+    }
+
+    public ReportsConfigurationModelDao getReportConfigurationForReport(final String reportName) {
+        return sqlDao.getReportConfigurationForReport(reportName);
     }
 }

@@ -1,3 +1,6 @@
+0.4.1
+    Remove INI configuration file (use db table instead)
+
 0.4.0
     API
       - Update to latest Entitlement APIs

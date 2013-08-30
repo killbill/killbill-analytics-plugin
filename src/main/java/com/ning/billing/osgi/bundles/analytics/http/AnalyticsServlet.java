@@ -16,106 +16,61 @@
 
 package com.ning.billing.osgi.bundles.analytics.http;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URL;
-import java.util.List;
 import java.util.UUID;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessSnapshot;
 import com.ning.billing.osgi.bundles.analytics.api.user.AnalyticsUserApi;
-import com.ning.billing.osgi.bundles.analytics.json.CSVNamedXYTimeSeries;
-import com.ning.billing.osgi.bundles.analytics.json.NamedXYTimeSeries;
-import com.ning.billing.osgi.bundles.analytics.json.XY;
 import com.ning.billing.osgi.bundles.analytics.reports.ReportsUserApi;
-import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother;
-import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.SmootherType;
+import com.ning.billing.tenant.api.Tenant;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.CallOrigin;
 import com.ning.billing.util.callcontext.UserType;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.base.Strings;
-import com.google.common.io.Resources;
 
-public class AnalyticsServlet extends HttpServlet {
-
-    public static final String SERVER_IP = System.getProperty("com.ning.core.server.ip", "127.0.0.1");
-    public static final String SERVER_PORT = System.getProperty("com.ning.core.server.port", "8080");
-    public static final String CSV_DATA_FORMAT = "csv";
-    public static final String JSON_DATA_FORMAT = "json";
-    public static DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+// Handle /plugins/killbill-analytics/<kbAccountId>
+public class AnalyticsServlet extends BaseServlet {
 
     private static final String QUERY_TENANT_ID = "tenantId";
     private static final String HDR_CREATED_BY = "X-Killbill-CreatedBy";
     private static final String HDR_REASON = "X-Killbill-Reason";
     private static final String HDR_COMMENT = "X-Killbill-Comment";
 
-    private final static String STATIC_RESOURCES = "static";
-
-    private static final String REPORTS = "reports";
-    private static final String REPORTS_QUERY_NAME = "name";
-    private final static String REPORTS_QUERY_START_DATE = "startDate";
-    private final static String REPORTS_QUERY_END_DATE = "endDate";
-    private static final String REPORTS_SMOOTHER_NAME = "smooth";
-    private static final String REPORTS_DATA_FORMAT = "format";
-
-    private static final ObjectMapper jsonMapper = ObjectMapperProvider.getJsonMapper();
-    private static final ObjectWriter csvMapper = ObjectMapperProvider.getCsvWriter();
-
-    private final AnalyticsUserApi analyticsUserApi;
-    private final ReportsUserApi reportsUserApi;
-    private final LogService logService;
-
     public AnalyticsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
-        this.analyticsUserApi = analyticsUserApi;
-        this.reportsUserApi = reportsUserApi;
-        this.logService = logService;
-    }
-
-    @Override
-    protected void doOptions(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        setCrossSiteScriptingHeaders(resp);
-        super.doOptions(req, resp);
+        super(analyticsUserApi, reportsUserApi, logService);
     }
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        final String uriOperationInfo = extractUriOperationInfo(req);
-        if (uriOperationInfo.startsWith(STATIC_RESOURCES)) {
-            doHandleStaticResource(uriOperationInfo, resp);
-        } else if (uriOperationInfo.startsWith(REPORTS)) {
-            doHandleReports(req, resp);
-        } else {
-            final UUID kbAccountId = getKbAccountId(req, resp);
-            final CallContext context = createCallContext(req, resp);
-
-            final BusinessSnapshot businessSnapshot = analyticsUserApi.getBusinessSnapshot(kbAccountId, context);
-            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(businessSnapshot));
-            resp.setStatus(HttpServletResponse.SC_OK);
+        final UUID kbAccountId = (UUID) req.getAttribute(KB_ACCOUNT_ID_ATTRIBUTE);
+        if (kbAccountId == null) {
+            return;
         }
+
+        final CallContext context = createCallContext(req, resp);
+
+        final BusinessSnapshot businessSnapshot = analyticsUserApi.getBusinessSnapshot(kbAccountId, context);
+        resp.getOutputStream().write(jsonMapper.writeValueAsBytes(businessSnapshot));
+        resp.setStatus(HttpServletResponse.SC_OK);
     }
 
     @Override
     protected void doPut(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        final UUID kbAccountId = getKbAccountId(req, resp);
+        final UUID kbAccountId = (UUID) req.getAttribute(KB_ACCOUNT_ID_ATTRIBUTE);
+        if (kbAccountId == null) {
+            return;
+        }
+
         final CallContext context = createCallContext(req, resp);
 
         try {
@@ -131,111 +86,14 @@ public class AnalyticsServlet extends HttpServlet {
         final String reason = req.getHeader(HDR_REASON);
         final String comment = Objects.firstNonNull(req.getHeader(HDR_COMMENT), req.getRequestURI());
 
-        final String tenantIdString = req.getParameter(QUERY_TENANT_ID);
+        // Set by the TenantFilter
+        final Tenant tenant = (Tenant) req.getAttribute("killbill_tenant");
 
         UUID tenantId = null;
-        if (tenantIdString != null) {
-            try {
-                tenantId = UUID.fromString(tenantIdString);
-            } catch (final IllegalArgumentException e) {
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid UUID for tenant id: " + tenantIdString);
-                return null;
-            }
+        if (tenant != null) {
+            tenantId = tenant.getId();
         }
         return new AnalyticsApiCallContext(createdBy, reason, comment, tenantId);
-    }
-
-    private String extractUriOperationInfo(final HttpServletRequest req) throws ServletException {
-        logService.log(LogService.LOG_INFO, "extractUriOperationInfo :" + req.getPathInfo());
-        return req.getPathInfo().substring(1, req.getPathInfo().length());
-    }
-
-    private void doHandleReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        final String[] rawReportNames = req.getParameterValues(REPORTS_QUERY_NAME);
-        if (rawReportNames == null || rawReportNames.length == 0) {
-            resp.sendError(404);
-            return;
-        }
-
-        final LocalDate startDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_START_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_START_DATE)) : null;
-        final LocalDate endDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_END_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_END_DATE)) : null;
-
-        final SmootherType smootherType = Smoother.fromString(Strings.emptyToNull(req.getParameter(REPORTS_SMOOTHER_NAME)));
-
-        // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
-        final List<NamedXYTimeSeries> result = reportsUserApi.getTimeSeriesDataForReport(rawReportNames, startDate, endDate, smootherType);
-
-        final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
-        if (CSV_DATA_FORMAT.equals(format)) {
-            final OutputStream out = resp.getOutputStream();
-            writeTimeSeriesAsCSV(result, out);
-            resp.setContentType("text/csv");
-        } else {
-            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(result));
-            resp.setContentType("application/json");
-        }
-
-        setCrossSiteScriptingHeaders(resp);
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    @VisibleForTesting
-    static void writeTimeSeriesAsCSV(final List<NamedXYTimeSeries> result, final OutputStream out) throws IOException {
-        for (final NamedXYTimeSeries namedXYTimeSeries : result) {
-            for (final XY value : namedXYTimeSeries.getValues()) {
-                out.write(csvMapper.writeValueAsBytes(new CSVNamedXYTimeSeries(namedXYTimeSeries.getName(), value)));
-            }
-        }
-    }
-
-    private void setCrossSiteScriptingHeaders(final HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", String.format("http://%s:%s", SERVER_IP, SERVER_PORT));
-        resp.setHeader("Access-Control-Request-Method", "GET");
-        resp.setHeader("Access-Control-Allow-Headers", "accept, origin, content-type");
-    }
-
-    private void doHandleStaticResource(final String resourceName, final HttpServletResponse resp) throws IOException {
-        final URL resourceUrl = Resources.getResource(resourceName);
-
-        final String[] parts = resourceName.split("/");
-        if (parts.length > 2) {
-            if (parts[1].equals("javascript")) {
-                resp.setContentType("application/javascript");
-            } else if (parts[1].equals("styles")) {
-                resp.setContentType("text/css");
-            }
-            Resources.copy(resourceUrl, resp.getOutputStream());
-        } else {
-            final ByteArrayOutputStream out = new ByteArrayOutputStream();
-            Resources.copy(resourceUrl, out);
-            String inputHtml = new String(out.toByteArray());
-
-            String tmp1 = inputHtml.replace("$VAR_SERVER", "\"" + SERVER_IP + "\"");
-            String tmp2 = tmp1.replace("$VAR_PORT", "\"" + SERVER_PORT + "\"");
-            resp.getOutputStream().write(tmp2.getBytes());
-            resp.setContentType("text/html");
-        }
-        resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    private UUID getKbAccountId(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
-        final String kbAccountIdString;
-        try {
-            kbAccountIdString = req.getPathInfo().substring(1, req.getPathInfo().length());
-        } catch (final StringIndexOutOfBoundsException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Badly formed kb account id in request: " + req.getPathInfo());
-            return null;
-        }
-
-        final UUID kbAccountId;
-        try {
-            kbAccountId = UUID.fromString(kbAccountIdString);
-        } catch (final IllegalArgumentException e) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid UUID for kb account id: " + kbAccountIdString);
-            return null;
-        }
-
-        return kbAccountId;
     }
 
     private static final class AnalyticsApiCallContext implements CallContext {

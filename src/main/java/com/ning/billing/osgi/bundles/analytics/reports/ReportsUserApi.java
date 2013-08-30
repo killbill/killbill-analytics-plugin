@@ -39,9 +39,12 @@ import org.skife.jdbi.v2.IDBI;
 import com.ning.billing.osgi.bundles.analytics.BusinessExecutor;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
 import com.ning.billing.osgi.bundles.analytics.json.NamedXYTimeSeries;
+import com.ning.billing.osgi.bundles.analytics.json.ReportConfigurationJson;
 import com.ning.billing.osgi.bundles.analytics.json.XY;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.SmootherType;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
+import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
 import com.google.common.base.Predicate;
@@ -57,15 +60,47 @@ public class ReportsUserApi {
 
     private final IDBI dbi;
     private final ReportsConfiguration reportsConfiguration;
+    private final JobsScheduler jobsScheduler;
 
     public ReportsUserApi(final OSGIKillbillDataSource osgiKillbillDataSource,
-                          final ReportsConfiguration reportsConfiguration) {
+                          final ReportsConfiguration reportsConfiguration,
+                          final JobsScheduler jobsScheduler) {
         this.reportsConfiguration = reportsConfiguration;
+        this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
     }
 
     public void shutdownNow() {
         dbiThreadsExecutor.shutdownNow();
+    }
+
+    public ReportConfigurationJson getReportConfiguration(final String reportName) {
+        final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
+        if (reportsConfigurationModelDao != null) {
+            return new ReportConfigurationJson(reportsConfigurationModelDao);
+        } else {
+            return null;
+        }
+    }
+
+    public void createReport(final ReportConfigurationJson reportConfigurationJson) {
+        final ReportsConfigurationModelDao reportsConfigurationModelDao = new ReportsConfigurationModelDao(reportConfigurationJson);
+        reportsConfiguration.createReportConfiguration(reportsConfigurationModelDao);
+    }
+
+    public void updateReport(final String reportName, final ReportConfigurationJson reportConfigurationJson) {
+        final ReportsConfigurationModelDao currentReportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
+        final ReportsConfigurationModelDao reportsConfigurationModelDao = new ReportsConfigurationModelDao(reportConfigurationJson, currentReportsConfigurationModelDao);
+        reportsConfiguration.updateReportConfiguration(reportsConfigurationModelDao);
+    }
+
+    public void deleteReport(final String reportName) {
+        reportsConfiguration.deleteReportConfiguration(reportName);
+    }
+
+    public void refreshReport(final String reportName) {
+        final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
+        jobsScheduler.scheduleNow(reportsConfigurationModelDao);
     }
 
     public List<NamedXYTimeSeries> getTimeSeriesDataForReport(final String[] rawReportNames,
@@ -81,8 +116,11 @@ public class ReportsUserApi {
             reportSpecifications.add(new ReportSpecification(rawReportName));
         }
 
+        // Fetch the latest reports configurations
+        final Map<String, ReportsConfigurationModelDao> reportsConfigurations = reportsConfiguration.getAllReportConfigurations();
+
         // Fetch the data
-        fetchData(reportSpecifications, dataForReports);
+        fetchData(reportSpecifications, dataForReports, reportsConfigurations);
 
         // Filter the data first
         filterValues(reportSpecifications, dataForReports, startDate, endDate);
@@ -94,22 +132,24 @@ public class ReportsUserApi {
         if (smootherType != null) {
             final Smoother smoother = smootherType.createSmoother(dataForReports);
             smoother.smooth();
-            return buildNamedXYTimeSeries(smoother.getDataForReports());
+            return buildNamedXYTimeSeries(smoother.getDataForReports(), reportsConfigurations);
         } else {
-            return buildNamedXYTimeSeries(dataForReports);
+            return buildNamedXYTimeSeries(dataForReports, reportsConfigurations);
         }
     }
 
-    private List<NamedXYTimeSeries> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports) {
+    private List<NamedXYTimeSeries> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
         final List<NamedXYTimeSeries> results = new LinkedList<NamedXYTimeSeries>();
         for (final String reportName : dataForReports.keySet()) {
+            final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
+
             // Sort the pivots by name for a consistent display in the dashboard
             for (final String pivotName : Ordering.natural().sortedCopy(dataForReports.get(reportName).keySet())) {
                 final String timeSeriesName;
                 if (NO_PIVOT.equals(pivotName)) {
-                    timeSeriesName = reportsConfiguration.getPrettyNameForReport(reportName);
+                    timeSeriesName = reportConfiguration.getReportPrettyName();
                 } else {
-                    timeSeriesName = String.format("%s (%s)", reportsConfiguration.getPrettyNameForReport(reportName), pivotName);
+                    timeSeriesName = String.format("%s (%s)", reportConfiguration.getReportPrettyName(), pivotName);
                 }
 
                 final List<XY> timeSeries = dataForReports.get(reportName).get(pivotName);
@@ -120,20 +160,19 @@ public class ReportsUserApi {
         return results;
     }
 
-    private void fetchData(final List<ReportSpecification> reportSpecifications, final Map<String, Map<String, List<XY>>> dataForReports) {
+    private void fetchData(final List<ReportSpecification> reportSpecifications, final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
         final List<Future> jobs = new LinkedList<Future>();
         for (final ReportSpecification reportSpecification : reportSpecifications) {
             final String reportName = reportSpecification.getReportName();
-            final String tableName = reportsConfiguration.getTableNameForReport(reportName);
-            if (tableName != null) {
-                jobs.add(dbiThreadsExecutor.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        final Map<String, List<XY>> data = getData(tableName);
-                        dataForReports.put(reportName, data);
-                    }
-                }));
-            }
+            final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
+            final String tableName = reportConfiguration.getSourceTableName();
+            jobs.add(dbiThreadsExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    final Map<String, List<XY>> data = getData(tableName);
+                    dataForReports.put(reportName, data);
+                }
+            }));
         }
 
         for (final Future job : jobs) {
@@ -296,5 +335,13 @@ public class ReportsUserApi {
         }
 
         return timeSeries;
+    }
+
+    private ReportsConfigurationModelDao getReportConfiguration(final String reportName, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
+        final ReportsConfigurationModelDao reportConfiguration = reportsConfigurations.get(reportName);
+        if (reportConfiguration == null) {
+            throw new IllegalArgumentException("Report " + reportName + " is not configured");
+        }
+        return reportConfiguration;
     }
 }

@@ -23,12 +23,17 @@ import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
 import org.osgi.framework.BundleContext;
+import org.skife.config.ConfigurationObjectFactory;
+import org.skife.jdbi.v2.DBI;
 
 import com.ning.billing.clock.Clock;
 import com.ning.billing.clock.DefaultClock;
+import com.ning.billing.notificationq.DefaultNotificationQueueService;
+import com.ning.billing.notificationq.api.NotificationQueueConfig;
 import com.ning.billing.osgi.api.OSGIPluginProperties;
 import com.ning.billing.osgi.bundles.analytics.api.user.AnalyticsUserApi;
-import com.ning.billing.osgi.bundles.analytics.http.AnalyticsServlet;
+import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
+import com.ning.billing.osgi.bundles.analytics.http.ServletRouter;
 import com.ning.billing.osgi.bundles.analytics.reports.ReportsConfiguration;
 import com.ning.billing.osgi.bundles.analytics.reports.ReportsUserApi;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
@@ -36,10 +41,12 @@ import com.ning.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.ImmutableMap;
 
 public class AnalyticsActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "killbill-analytics";
+    public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
 
     private AnalyticsListener analyticsListener;
     private JobsScheduler jobsScheduler;
@@ -54,18 +61,26 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final Executor executor = BusinessExecutor.newCachedThreadPool();
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor, clock, metricRegistry);
+        final NotificationQueueConfig config = new ConfigurationObjectFactory(System.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
+                                                                                                                            ImmutableMap.<String, String>of("instanceName", "analytics"));
+        final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
+        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry);
+
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor, clock, notificationQueueService);
         analyticsListener.start();
         dispatcher.registerEventHandler(analyticsListener);
 
-        jobsScheduler = new JobsScheduler(logService, dataSource);
-        final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(logService, jobsScheduler);
+        jobsScheduler = new JobsScheduler(logService, dataSource, clock, notificationQueueService);
+        jobsScheduler.start();
+
+        final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
         reportsConfiguration.initialize();
 
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, executor, clock);
-        reportsUserApi = new ReportsUserApi(dataSource, reportsConfiguration);
-        final AnalyticsServlet analyticsServlet = new AnalyticsServlet(analyticsUserApi, reportsUserApi, logService);
-        registerServlet(context, analyticsServlet);
+        reportsUserApi = new ReportsUserApi(dataSource, reportsConfiguration, jobsScheduler);
+
+        final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
+        registerServlet(context, servletRouter);
     }
 
     @Override

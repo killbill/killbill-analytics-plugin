@@ -919,3 +919,16 @@ create table analytics_currency_conversion (
 , primary key(record_id)
 );
 create index idx_comp_where on analytics_currency_conversion(start_date, end_date, currency, reference_currency);
+
+drop table if exists analytics_reports;
+create table analytics_reports (
+  record_id int(11) unsigned not null auto_increment
+, report_name varchar(100) not null
+, report_pretty_name varchar(256) default null
+, source_table_name varchar(256) not null
+, refresh_procedure_name varchar(256) default null
+, refresh_frequency enum('HOURLY', 'DAILY') default null
+, refresh_hour_of_day_gmt tinyint default null
+, primary key(record_id)
+);
+create unique index analytics_reports_report_name on analytics_reports(report_name(100));

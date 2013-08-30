@@ -52,6 +52,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceTagModel
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.CurrencyConversionModelDao;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 
 import com.google.common.base.CaseFormat;
 
@@ -83,6 +84,7 @@ public class BusinessDBIProvider {
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleFieldModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleTagModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(CurrencyConversionModelDao.class));
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(ReportsConfigurationModelDao.class));
 
         dbi.registerMapper(new UUIDMapper());
 

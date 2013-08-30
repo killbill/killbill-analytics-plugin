@@ -42,8 +42,7 @@ import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.catalog.api.PriceList;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.catalog.api.ProductCategory;
-import com.ning.billing.clock.Clock;
-import com.ning.billing.clock.DefaultClock;
+import com.ning.billing.clock.ClockMock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.entitlement.api.SubscriptionEventType;
@@ -52,6 +51,7 @@ import com.ning.billing.invoice.api.InvoiceItem;
 import com.ning.billing.invoice.api.InvoiceItemType;
 import com.ning.billing.invoice.api.InvoicePayment;
 import com.ning.billing.invoice.api.InvoicePaymentType;
+import com.ning.billing.notificationq.DefaultNotificationQueueService;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessEntityBase;
 import com.ning.billing.osgi.bundles.analytics.dao.TestCallContext;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao.BusinessInvoiceItemType;
@@ -100,8 +100,9 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final ReportGroup reportGroup = ReportGroup.partner;
     protected final BusinessInvoiceItemType invoiceItemType = BusinessInvoiceItemType.INVOICE_ITEM_ADJUSTMENT;
     protected final ItemSource itemSource = ItemSource.user;
-    protected final Clock clock = new DefaultClock();
+    protected final ClockMock clock = new ClockMock();
     protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
+    protected final DefaultNotificationQueueService notificationQueueService = Mockito.mock(DefaultNotificationQueueService.class);
 
     protected Account account;
     protected SubscriptionBundle bundle;
