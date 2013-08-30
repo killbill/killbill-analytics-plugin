@@ -98,10 +98,10 @@ public class BusinessSubscription {
                 billingPeriod = null;
             }
 
-            if (currentPhase.getRecurringPrice() != null) {
+            if (currentPhase.getRecurringPrice() != null && currency != null) {
                 BigDecimal tmpPrice;
                 try {
-                    tmpPrice = currentPhase.getRecurringPrice().getPrice(USD);
+                    tmpPrice = currentPhase.getRecurringPrice().getPrice(currency);
                 } catch (CatalogApiException e) {
                     tmpPrice = null;
                 }
