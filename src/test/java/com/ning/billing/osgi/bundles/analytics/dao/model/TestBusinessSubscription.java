@@ -149,7 +149,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSubscription.getSlug(), phase.getName());
         Assert.assertEquals(businessSubscription.getPhase(), phase.getPhaseType().toString());
         Assert.assertEquals(businessSubscription.getBillingPeriod(), phase.getBillingPeriod().toString());
-        Assert.assertEquals(businessSubscription.getPrice(), phase.getRecurringPrice());
+        Assert.assertEquals(businessSubscription.getPrice(), phase.getRecurringPrice().getPrice(Currency.GBP));
         Assert.assertEquals(businessSubscription.getPriceList(), priceList.getName());
         Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
         Assert.assertEquals(businessSubscription.getState(), "ACTIVE");

@@ -45,17 +45,21 @@ public class BusinessAccount extends BusinessEntityBase {
     private final Boolean isNotifiedForInvoices;
     private final DateTime updatedDate;
     private final BigDecimal balance;
+    private final BigDecimal convertedBalance;
     private final LocalDate oldestUnpaidInvoiceDate;
     private final BigDecimal oldestUnpaidInvoiceBalance;
+    private final BigDecimal convertedOldestUnpaidInvoiceBalance;
     private final String oldestUnpaidInvoiceCurrency;
     private final UUID oldestUnpaidInvoiceId;
     private final LocalDate lastInvoiceDate;
     private final BigDecimal lastInvoiceBalance;
+    private final BigDecimal convertedLastInvoiceBalance;
     private final String lastInvoiceCurrency;
     private final UUID lastInvoiceId;
     private final DateTime lastPaymentDate;
     private final String lastPaymentStatus;
     private final Integer nbActiveBundles;
+    private final String convertedCurrency;
 
     public BusinessAccount(final BusinessAccountModelDao businessAccountModelDao) {
         super(businessAccountModelDao.getCreatedDate(),
@@ -85,17 +89,21 @@ public class BusinessAccount extends BusinessEntityBase {
         this.isNotifiedForInvoices = businessAccountModelDao.getNotifiedForInvoices();
         this.updatedDate = businessAccountModelDao.getUpdatedDate();
         this.balance = businessAccountModelDao.getBalance();
+        this.convertedBalance = businessAccountModelDao.getConvertedBalance();
         this.oldestUnpaidInvoiceDate = businessAccountModelDao.getOldestUnpaidInvoiceDate();
         this.oldestUnpaidInvoiceBalance = businessAccountModelDao.getOldestUnpaidInvoiceBalance();
+        this.convertedOldestUnpaidInvoiceBalance = businessAccountModelDao.getConvertedOldestUnpaidInvoiceBalance();
         this.oldestUnpaidInvoiceCurrency = businessAccountModelDao.getOldestUnpaidInvoiceCurrency();
         this.oldestUnpaidInvoiceId = businessAccountModelDao.getOldestUnpaidInvoiceId();
         this.lastInvoiceDate = businessAccountModelDao.getLastInvoiceDate();
         this.lastInvoiceBalance = businessAccountModelDao.getLastInvoiceBalance();
+        this.convertedLastInvoiceBalance = businessAccountModelDao.getConvertedLastInvoiceBalance();
         this.lastInvoiceCurrency = businessAccountModelDao.getLastInvoiceCurrency();
         this.lastInvoiceId = businessAccountModelDao.getLastInvoiceId();
         this.lastPaymentDate = businessAccountModelDao.getLastPaymentDate();
         this.lastPaymentStatus = businessAccountModelDao.getLastPaymentStatus();
         this.nbActiveBundles = businessAccountModelDao.getNbActiveBundles();
+        this.convertedCurrency = businessAccountModelDao.getConvertedCurrency();
     }
 
     public String getEmail() {
@@ -174,12 +182,20 @@ public class BusinessAccount extends BusinessEntityBase {
         return balance;
     }
 
+    public BigDecimal getConvertedBalance() {
+        return convertedBalance;
+    }
+
     public LocalDate getOldestUnpaidInvoiceDate() {
         return oldestUnpaidInvoiceDate;
     }
 
     public BigDecimal getOldestUnpaidInvoiceBalance() {
         return oldestUnpaidInvoiceBalance;
+    }
+
+    public BigDecimal getConvertedOldestUnpaidInvoiceBalance() {
+        return convertedOldestUnpaidInvoiceBalance;
     }
 
     public String getOldestUnpaidInvoiceCurrency() {
@@ -196,6 +212,10 @@ public class BusinessAccount extends BusinessEntityBase {
 
     public BigDecimal getLastInvoiceBalance() {
         return lastInvoiceBalance;
+    }
+
+    public BigDecimal getConvertedLastInvoiceBalance() {
+        return convertedLastInvoiceBalance;
     }
 
     public String getLastInvoiceCurrency() {
@@ -216,6 +236,10 @@ public class BusinessAccount extends BusinessEntityBase {
 
     public Integer getNbActiveBundles() {
         return nbActiveBundles;
+    }
+
+    public String getConvertedCurrency() {
+        return convertedCurrency;
     }
 
     @Override
@@ -240,17 +264,21 @@ public class BusinessAccount extends BusinessEntityBase {
         sb.append(", isNotifiedForInvoices=").append(isNotifiedForInvoices);
         sb.append(", updatedDate=").append(updatedDate);
         sb.append(", balance=").append(balance);
+        sb.append(", convertedBalance=").append(convertedBalance);
         sb.append(", oldestUnpaidInvoiceDate=").append(oldestUnpaidInvoiceDate);
         sb.append(", oldestUnpaidInvoiceBalance=").append(oldestUnpaidInvoiceBalance);
+        sb.append(", convertedOldestUnpaidInvoiceBalance=").append(convertedOldestUnpaidInvoiceBalance);
         sb.append(", oldestUnpaidInvoiceCurrency='").append(oldestUnpaidInvoiceCurrency).append('\'');
         sb.append(", oldestUnpaidInvoiceId=").append(oldestUnpaidInvoiceId);
         sb.append(", lastInvoiceDate=").append(lastInvoiceDate);
         sb.append(", lastInvoiceBalance=").append(lastInvoiceBalance);
+        sb.append(", convertedLastInvoiceBalance=").append(convertedLastInvoiceBalance);
         sb.append(", lastInvoiceCurrency='").append(lastInvoiceCurrency).append('\'');
         sb.append(", lastInvoiceId=").append(lastInvoiceId);
         sb.append(", lastPaymentDate=").append(lastPaymentDate);
         sb.append(", lastPaymentStatus='").append(lastPaymentStatus).append('\'');
         sb.append(", nbActiveBundles=").append(nbActiveBundles);
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -275,7 +303,7 @@ public class BusinessAccount extends BusinessEntityBase {
         if (address2 != null ? !address2.equals(that.address2) : that.address2 != null) {
             return false;
         }
-        if (balance != null ? balance.compareTo(that.balance) != 0 : that.balance != null) {
+        if (balance != null ? !(balance.compareTo(that.balance) == 0) : that.balance != null) {
             return false;
         }
         if (billingCycleDayLocal != null ? !billingCycleDayLocal.equals(that.billingCycleDayLocal) : that.billingCycleDayLocal != null) {
@@ -285,6 +313,18 @@ public class BusinessAccount extends BusinessEntityBase {
             return false;
         }
         if (companyName != null ? !companyName.equals(that.companyName) : that.companyName != null) {
+            return false;
+        }
+        if (convertedBalance != null ? !(convertedBalance.compareTo(that.convertedBalance) == 0) : that.convertedBalance != null) {
+            return false;
+        }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedLastInvoiceBalance != null ? !(convertedLastInvoiceBalance.compareTo(that.convertedLastInvoiceBalance) == 0) : that.convertedLastInvoiceBalance != null) {
+            return false;
+        }
+        if (convertedOldestUnpaidInvoiceBalance != null ? !(convertedOldestUnpaidInvoiceBalance.compareTo(that.convertedOldestUnpaidInvoiceBalance) == 0) : that.convertedOldestUnpaidInvoiceBalance != null) {
             return false;
         }
         if (country != null ? !country.equals(that.country) : that.country != null) {
@@ -305,7 +345,7 @@ public class BusinessAccount extends BusinessEntityBase {
         if (isNotifiedForInvoices != null ? !isNotifiedForInvoices.equals(that.isNotifiedForInvoices) : that.isNotifiedForInvoices != null) {
             return false;
         }
-        if (lastInvoiceBalance != null ? lastInvoiceBalance.compareTo(that.lastInvoiceBalance) != 0 : that.lastInvoiceBalance != null) {
+        if (lastInvoiceBalance != null ? !(lastInvoiceBalance.compareTo(that.lastInvoiceBalance) == 0) : that.lastInvoiceBalance != null) {
             return false;
         }
         if (lastInvoiceCurrency != null ? !lastInvoiceCurrency.equals(that.lastInvoiceCurrency) : that.lastInvoiceCurrency != null) {
@@ -317,7 +357,7 @@ public class BusinessAccount extends BusinessEntityBase {
         if (lastInvoiceId != null ? !lastInvoiceId.equals(that.lastInvoiceId) : that.lastInvoiceId != null) {
             return false;
         }
-        if (lastPaymentDate != null ? !lastPaymentDate.equals(that.lastPaymentDate) : that.lastPaymentDate != null) {
+        if (lastPaymentDate != null ? lastPaymentDate.compareTo(that.lastPaymentDate) != 0 : that.lastPaymentDate != null) {
             return false;
         }
         if (lastPaymentStatus != null ? !lastPaymentStatus.equals(that.lastPaymentStatus) : that.lastPaymentStatus != null) {
@@ -329,7 +369,7 @@ public class BusinessAccount extends BusinessEntityBase {
         if (nbActiveBundles != null ? !nbActiveBundles.equals(that.nbActiveBundles) : that.nbActiveBundles != null) {
             return false;
         }
-        if (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.compareTo(that.oldestUnpaidInvoiceBalance) != 0 : that.oldestUnpaidInvoiceBalance != null) {
+        if (oldestUnpaidInvoiceBalance != null ? !(oldestUnpaidInvoiceBalance.compareTo(that.oldestUnpaidInvoiceBalance) == 0) : that.oldestUnpaidInvoiceBalance != null) {
             return false;
         }
         if (oldestUnpaidInvoiceCurrency != null ? !oldestUnpaidInvoiceCurrency.equals(that.oldestUnpaidInvoiceCurrency) : that.oldestUnpaidInvoiceCurrency != null) {
@@ -356,7 +396,7 @@ public class BusinessAccount extends BusinessEntityBase {
         if (timeZone != null ? !timeZone.equals(that.timeZone) : that.timeZone != null) {
             return false;
         }
-        if (updatedDate != null ? !updatedDate.equals(that.updatedDate) : that.updatedDate != null) {
+        if (updatedDate != null ? updatedDate.compareTo(that.updatedDate) != 0 : that.updatedDate != null) {
             return false;
         }
 
@@ -385,17 +425,21 @@ public class BusinessAccount extends BusinessEntityBase {
         result = 31 * result + (isNotifiedForInvoices != null ? isNotifiedForInvoices.hashCode() : 0);
         result = 31 * result + (updatedDate != null ? updatedDate.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
+        result = 31 * result + (convertedBalance != null ? convertedBalance.hashCode() : 0);
         result = 31 * result + (oldestUnpaidInvoiceDate != null ? oldestUnpaidInvoiceDate.hashCode() : 0);
         result = 31 * result + (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (convertedOldestUnpaidInvoiceBalance != null ? convertedOldestUnpaidInvoiceBalance.hashCode() : 0);
         result = 31 * result + (oldestUnpaidInvoiceCurrency != null ? oldestUnpaidInvoiceCurrency.hashCode() : 0);
         result = 31 * result + (oldestUnpaidInvoiceId != null ? oldestUnpaidInvoiceId.hashCode() : 0);
         result = 31 * result + (lastInvoiceDate != null ? lastInvoiceDate.hashCode() : 0);
         result = 31 * result + (lastInvoiceBalance != null ? lastInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (convertedLastInvoiceBalance != null ? convertedLastInvoiceBalance.hashCode() : 0);
         result = 31 * result + (lastInvoiceCurrency != null ? lastInvoiceCurrency.hashCode() : 0);
         result = 31 * result + (lastInvoiceId != null ? lastInvoiceId.hashCode() : 0);
         result = 31 * result + (lastPaymentDate != null ? lastPaymentDate.hashCode() : 0);
         result = 31 * result + (lastPaymentStatus != null ? lastPaymentStatus.hashCode() : 0);
         result = 31 * result + (nbActiveBundles != null ? nbActiveBundles.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;
     }
 }

@@ -35,10 +35,18 @@ public class BusinessInvoice extends BusinessEntityBase {
     private final LocalDate targetDate;
     private final String currency;
     private final BigDecimal balance;
+    private final BigDecimal convertedBalance;
     private final BigDecimal amountPaid;
+    private final BigDecimal convertedAmountPaid;
     private final BigDecimal amountCharged;
+    private final BigDecimal convertedAmountCharged;
     private final BigDecimal originalAmountCharged;
+    private final BigDecimal convertedOriginalAmountCharged;
     private final BigDecimal amountCredited;
+    private final BigDecimal convertedAmountCredited;
+    private final BigDecimal amountRefunded;
+    private final BigDecimal convertedAmountRefunded;
+    private final String convertedCurrency;
     private final List<BusinessInvoiceItem> invoiceItems = new LinkedList<BusinessInvoiceItem>();
 
     public BusinessInvoice(final BusinessInvoiceModelDao businessInvoiceModelDao,
@@ -57,10 +65,18 @@ public class BusinessInvoice extends BusinessEntityBase {
         this.targetDate = businessInvoiceModelDao.getTargetDate();
         this.currency = businessInvoiceModelDao.getCurrency();
         this.balance = businessInvoiceModelDao.getBalance();
+        this.convertedBalance = businessInvoiceModelDao.getConvertedBalance();
         this.amountPaid = businessInvoiceModelDao.getAmountPaid();
+        this.convertedAmountPaid = businessInvoiceModelDao.getConvertedAmountPaid();
         this.amountCharged = businessInvoiceModelDao.getAmountCharged();
+        this.convertedAmountCharged = businessInvoiceModelDao.getConvertedAmountCharged();
         this.originalAmountCharged = businessInvoiceModelDao.getOriginalAmountCharged();
+        this.convertedOriginalAmountCharged = businessInvoiceModelDao.getConvertedOriginalAmountCharged();
         this.amountCredited = businessInvoiceModelDao.getAmountCredited();
+        this.convertedAmountCredited = businessInvoiceModelDao.getConvertedAmountCredited();
+        this.amountRefunded = businessInvoiceModelDao.getAmountRefunded();
+        this.convertedAmountRefunded = businessInvoiceModelDao.getConvertedAmountRefunded();
+        this.convertedCurrency = businessInvoiceModelDao.getConvertedCurrency();
         for (final BusinessInvoiceItemBaseModelDao businessInvoiceItemModelDao : businessInvoiceItemModelDaos) {
             invoiceItems.add(new BusinessInvoiceItem(businessInvoiceItemModelDao));
         }
@@ -90,20 +106,52 @@ public class BusinessInvoice extends BusinessEntityBase {
         return balance;
     }
 
+    public BigDecimal getConvertedBalance() {
+        return convertedBalance;
+    }
+
     public BigDecimal getAmountPaid() {
         return amountPaid;
+    }
+
+    public BigDecimal getConvertedAmountPaid() {
+        return convertedAmountPaid;
     }
 
     public BigDecimal getAmountCharged() {
         return amountCharged;
     }
 
+    public BigDecimal getConvertedAmountCharged() {
+        return convertedAmountCharged;
+    }
+
     public BigDecimal getOriginalAmountCharged() {
         return originalAmountCharged;
     }
 
+    public BigDecimal getConvertedOriginalAmountCharged() {
+        return convertedOriginalAmountCharged;
+    }
+
     public BigDecimal getAmountCredited() {
         return amountCredited;
+    }
+
+    public BigDecimal getConvertedAmountCredited() {
+        return convertedAmountCredited;
+    }
+
+    public BigDecimal getAmountRefunded() {
+        return amountRefunded;
+    }
+
+    public BigDecimal getConvertedAmountRefunded() {
+        return convertedAmountRefunded;
+    }
+
+    public String getConvertedCurrency() {
+        return convertedCurrency;
     }
 
     public List<BusinessInvoiceItem> getInvoiceItems() {
@@ -112,18 +160,25 @@ public class BusinessInvoice extends BusinessEntityBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessInvoice");
-        sb.append("{invoiceId=").append(invoiceId);
+        final StringBuilder sb = new StringBuilder("BusinessInvoice{");
+        sb.append("invoiceId=").append(invoiceId);
         sb.append(", invoiceNumber=").append(invoiceNumber);
         sb.append(", invoiceDate=").append(invoiceDate);
         sb.append(", targetDate=").append(targetDate);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", balance=").append(balance);
+        sb.append(", convertedBalance=").append(convertedBalance);
         sb.append(", amountPaid=").append(amountPaid);
+        sb.append(", convertedAmountPaid=").append(convertedAmountPaid);
         sb.append(", amountCharged=").append(amountCharged);
+        sb.append(", convertedAmountCharged=").append(convertedAmountCharged);
         sb.append(", originalAmountCharged=").append(originalAmountCharged);
+        sb.append(", convertedOriginalAmountCharged=").append(convertedOriginalAmountCharged);
         sb.append(", amountCredited=").append(amountCredited);
+        sb.append(", convertedAmountCredited=").append(convertedAmountCredited);
+        sb.append(", amountRefunded=").append(amountRefunded);
+        sb.append(", convertedAmountRefunded=").append(convertedAmountRefunded);
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append(", invoiceItems=").append(invoiceItems);
         sb.append('}');
         return sb.toString();
@@ -152,13 +207,37 @@ public class BusinessInvoice extends BusinessEntityBase {
         if (amountPaid != null ? !(amountPaid.compareTo(that.amountPaid) == 0) : that.amountPaid != null) {
             return false;
         }
+        if (amountRefunded != null ? !(amountRefunded.compareTo(that.amountRefunded) == 0) : that.amountRefunded != null) {
+            return false;
+        }
         if (balance != null ? !(balance.compareTo(that.balance) == 0) : that.balance != null) {
+            return false;
+        }
+        if (convertedAmountCharged != null ? !(convertedAmountCharged.compareTo(that.convertedAmountCharged) == 0) : that.convertedAmountCharged != null) {
+            return false;
+        }
+        if (convertedAmountCredited != null ? !(convertedAmountCredited.compareTo(that.convertedAmountCredited) == 0) : that.convertedAmountCredited != null) {
+            return false;
+        }
+        if (convertedAmountPaid != null ? !(convertedAmountPaid.compareTo(that.convertedAmountPaid) == 0) : that.convertedAmountPaid != null) {
+            return false;
+        }
+        if (convertedAmountRefunded != null ? !(convertedAmountRefunded.compareTo(that.convertedAmountRefunded) == 0) : that.convertedAmountRefunded != null) {
+            return false;
+        }
+        if (convertedBalance != null ? !(convertedBalance.compareTo(that.convertedBalance) == 0) : that.convertedBalance != null) {
+            return false;
+        }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedOriginalAmountCharged != null ? !(convertedOriginalAmountCharged.compareTo(that.convertedOriginalAmountCharged) == 0) : that.convertedOriginalAmountCharged != null) {
             return false;
         }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
-        if (invoiceDate != null ? !invoiceDate.equals(that.invoiceDate) : that.invoiceDate != null) {
+        if (invoiceDate != null ? invoiceDate.compareTo(that.invoiceDate) != 0 : that.invoiceDate != null) {
             return false;
         }
         if (invoiceId != null ? !invoiceId.equals(that.invoiceId) : that.invoiceId != null) {
@@ -173,7 +252,7 @@ public class BusinessInvoice extends BusinessEntityBase {
         if (originalAmountCharged != null ? !(originalAmountCharged.compareTo(that.originalAmountCharged) == 0) : that.originalAmountCharged != null) {
             return false;
         }
-        if (targetDate != null ? !targetDate.equals(that.targetDate) : that.targetDate != null) {
+        if (targetDate != null ? targetDate.compareTo(that.targetDate) != 0 : that.targetDate != null) {
             return false;
         }
 
@@ -189,10 +268,18 @@ public class BusinessInvoice extends BusinessEntityBase {
         result = 31 * result + (targetDate != null ? targetDate.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
+        result = 31 * result + (convertedBalance != null ? convertedBalance.hashCode() : 0);
         result = 31 * result + (amountPaid != null ? amountPaid.hashCode() : 0);
+        result = 31 * result + (convertedAmountPaid != null ? convertedAmountPaid.hashCode() : 0);
         result = 31 * result + (amountCharged != null ? amountCharged.hashCode() : 0);
+        result = 31 * result + (convertedAmountCharged != null ? convertedAmountCharged.hashCode() : 0);
         result = 31 * result + (originalAmountCharged != null ? originalAmountCharged.hashCode() : 0);
+        result = 31 * result + (convertedOriginalAmountCharged != null ? convertedOriginalAmountCharged.hashCode() : 0);
         result = 31 * result + (amountCredited != null ? amountCredited.hashCode() : 0);
+        result = 31 * result + (convertedAmountCredited != null ? convertedAmountCredited.hashCode() : 0);
+        result = 31 * result + (amountRefunded != null ? amountRefunded.hashCode() : 0);
+        result = 31 * result + (convertedAmountRefunded != null ? convertedAmountRefunded.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         result = 31 * result + (invoiceItems != null ? invoiceItems.hashCode() : 0);
         return result;
     }

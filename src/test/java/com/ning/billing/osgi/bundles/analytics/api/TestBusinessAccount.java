@@ -60,18 +60,22 @@ public class TestBusinessAccount extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessAccount.getPhone(), accountModelDao.getPhone());
         Assert.assertEquals(businessAccount.getMigrated(), accountModelDao.getMigrated());
         Assert.assertEquals(businessAccount.getNotifiedForInvoices(), accountModelDao.getNotifiedForInvoices());
-        Assert.assertEquals(businessAccount.getUpdatedDate(), accountModelDao.getUpdatedDate());
-        Assert.assertEquals(businessAccount.getBalance(), accountModelDao.getBalance());
+        Assert.assertEquals(businessAccount.getUpdatedDate().compareTo(accountModelDao.getUpdatedDate()), 0);
+        Assert.assertEquals(businessAccount.getBalance().compareTo(accountModelDao.getBalance()), 0);
+        Assert.assertEquals(businessAccount.getConvertedBalance().compareTo(accountModelDao.getConvertedBalance()), 0);
         Assert.assertEquals(businessAccount.getOldestUnpaidInvoiceDate().compareTo(accountModelDao.getOldestUnpaidInvoiceDate()), 0);
         Assert.assertEquals(businessAccount.getOldestUnpaidInvoiceBalance().compareTo(accountModelDao.getOldestUnpaidInvoiceBalance()), 0);
+        Assert.assertEquals(businessAccount.getConvertedOldestUnpaidInvoiceBalance().compareTo(accountModelDao.getConvertedOldestUnpaidInvoiceBalance()), 0);
         Assert.assertEquals(businessAccount.getOldestUnpaidInvoiceCurrency(), accountModelDao.getOldestUnpaidInvoiceCurrency());
         Assert.assertEquals(businessAccount.getOldestUnpaidInvoiceId(), accountModelDao.getOldestUnpaidInvoiceId());
         Assert.assertEquals(businessAccount.getLastInvoiceDate().compareTo(accountModelDao.getLastInvoiceDate()), 0);
         Assert.assertEquals(businessAccount.getLastInvoiceBalance().compareTo(accountModelDao.getLastInvoiceBalance()), 0);
+        Assert.assertEquals(businessAccount.getConvertedLastInvoiceBalance().compareTo(accountModelDao.getConvertedLastInvoiceBalance()), 0);
         Assert.assertEquals(businessAccount.getLastInvoiceCurrency(), accountModelDao.getLastInvoiceCurrency());
         Assert.assertEquals(businessAccount.getLastInvoiceId(), accountModelDao.getLastInvoiceId());
-        Assert.assertEquals(businessAccount.getLastPaymentDate(), accountModelDao.getLastPaymentDate());
+        Assert.assertEquals(businessAccount.getLastPaymentDate().compareTo(accountModelDao.getLastPaymentDate()), 0);
         Assert.assertEquals(businessAccount.getLastPaymentStatus(), accountModelDao.getLastPaymentStatus());
         Assert.assertEquals(businessAccount.getNbActiveBundles(), accountModelDao.getNbActiveBundles());
+        Assert.assertEquals(businessAccount.getConvertedCurrency(), accountModelDao.getConvertedCurrency());
     }
 }

@@ -18,12 +18,10 @@ package com.ning.billing.osgi.bundles.analytics.api;
 
 import org.joda.time.LocalDate;
 
-import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 
 public class BusinessOverdueStatus extends BusinessEntityBase {
 
-    private final String objectType;
     private final String status;
     private final LocalDate startDate;
     private final LocalDate endDate;
@@ -37,17 +35,9 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
               businessOverdueStatusModelDao.getAccountName(),
               businessOverdueStatusModelDao.getAccountExternalKey(),
               businessOverdueStatusModelDao.getReportGroup());
-
-        // TODO For now
-        this.objectType = ObjectType.BUNDLE.toString();
-
         this.status = businessOverdueStatusModelDao.getStatus();
         this.startDate = businessOverdueStatusModelDao.getStartDate();
         this.endDate = businessOverdueStatusModelDao.getEndDate();
-    }
-
-    public String getObjectType() {
-        return objectType;
     }
 
     public String getStatus() {
@@ -62,17 +52,17 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
         return endDate;
     }
 
+    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessOverdueStatus");
-        sb.append("{objectType=").append(objectType);
-        sb.append(", status='").append(status).append('\'');
+        final StringBuilder sb = new StringBuilder("BusinessOverdueStatus{");
+        sb.append("status='").append(status).append('\'');
         sb.append(", startDate=").append(startDate);
         sb.append(", endDate=").append(endDate);
         sb.append('}');
         return sb.toString();
     }
 
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -80,16 +70,16 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         final BusinessOverdueStatus that = (BusinessOverdueStatus) o;
 
-        if (endDate != null ? !endDate.equals(that.endDate) : that.endDate != null) {
+        if (endDate != null ? endDate.compareTo(that.endDate) != 0 : that.endDate != null) {
             return false;
         }
-        if (objectType != null ? !objectType.equals(that.objectType) : that.objectType != null) {
-            return false;
-        }
-        if (startDate != null ? !startDate.equals(that.startDate) : that.startDate != null) {
+        if (startDate != null ? startDate.compareTo(that.startDate) != 0 : that.startDate != null) {
             return false;
         }
         if (status != null ? !status.equals(that.status) : that.status != null) {
@@ -99,8 +89,9 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
         return true;
     }
 
+    @Override
     public int hashCode() {
-        int result = objectType != null ? objectType.hashCode() : 0;
+        int result = super.hashCode();
         result = 31 * result + (status != null ? status.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (endDate != null ? endDate.hashCode() : 0);

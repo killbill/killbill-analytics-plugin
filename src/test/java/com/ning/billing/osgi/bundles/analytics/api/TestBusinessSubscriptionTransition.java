@@ -34,7 +34,7 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, phase, priceList, Currency.GBP, startDate, "ACTIVE", currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
@@ -50,11 +50,11 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
         final BusinessSubscriptionTransition businessSubscriptionTransition = new BusinessSubscriptionTransition(subscriptionTransitionModelDao);
 
         verifyBusinessEntityBase(businessSubscriptionTransition);
-        Assert.assertEquals(businessSubscriptionTransition.getCreatedDate(), subscriptionTransitionModelDao.getCreatedDate());
+        Assert.assertEquals(businessSubscriptionTransition.getCreatedDate().compareTo(subscriptionTransitionModelDao.getCreatedDate()), 0);
         Assert.assertEquals(businessSubscriptionTransition.getBundleId(), subscriptionTransitionModelDao.getBundleId());
         Assert.assertEquals(businessSubscriptionTransition.getBundleExternalKey(), subscriptionTransitionModelDao.getBundleExternalKey());
         Assert.assertEquals(businessSubscriptionTransition.getSubscriptionId(), subscriptionTransitionModelDao.getSubscriptionId());
-        Assert.assertEquals(businessSubscriptionTransition.getRequestedTimestamp(), subscriptionTransitionModelDao.getRequestedTimestamp());
+        Assert.assertEquals(businessSubscriptionTransition.getRequestedTimestamp().compareTo(subscriptionTransitionModelDao.getRequestedTimestamp()), 0);
         Assert.assertEquals(businessSubscriptionTransition.getEvent(), subscriptionTransitionModelDao.getEvent());
 
         Assert.assertNull(businessSubscriptionTransition.getPrevProductName());
@@ -64,8 +64,10 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(businessSubscriptionTransition.getPrevPhase());
         Assert.assertNull(businessSubscriptionTransition.getPrevBillingPeriod());
         Assert.assertNull(businessSubscriptionTransition.getPrevPrice());
+        Assert.assertNull(businessSubscriptionTransition.getConvertedPrevPrice());
         Assert.assertNull(businessSubscriptionTransition.getPrevPriceList());
         Assert.assertNull(businessSubscriptionTransition.getPrevMrr());
+        Assert.assertNull(businessSubscriptionTransition.getConvertedPrevMrr());
         Assert.assertNull(businessSubscriptionTransition.getPrevCurrency());
         Assert.assertNull(businessSubscriptionTransition.getPrevBusinessActive());
         Assert.assertNull(businessSubscriptionTransition.getPrevStartDate());
@@ -77,13 +79,17 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSubscriptionTransition.getNextSlug(), subscriptionTransitionModelDao.getNextSlug());
         Assert.assertEquals(businessSubscriptionTransition.getNextPhase(), subscriptionTransitionModelDao.getNextPhase());
         Assert.assertEquals(businessSubscriptionTransition.getNextBillingPeriod(), subscriptionTransitionModelDao.getNextBillingPeriod());
-        Assert.assertEquals(businessSubscriptionTransition.getNextPrice(), subscriptionTransitionModelDao.getNextPrice());
+        Assert.assertEquals(businessSubscriptionTransition.getNextPrice().compareTo(subscriptionTransitionModelDao.getNextPrice()), 0);
+        Assert.assertEquals(businessSubscriptionTransition.getConvertedNextPrice().compareTo(subscriptionTransitionModelDao.getConvertedNextPrice()), 0);
         Assert.assertEquals(businessSubscriptionTransition.getNextPriceList(), subscriptionTransitionModelDao.getNextPriceList());
-        Assert.assertEquals(businessSubscriptionTransition.getNextMrr(), subscriptionTransitionModelDao.getNextMrr());
+        Assert.assertEquals(businessSubscriptionTransition.getNextMrr().compareTo(subscriptionTransitionModelDao.getNextMrr()), 0);
+        Assert.assertEquals(businessSubscriptionTransition.getConvertedNextMrr().compareTo(subscriptionTransitionModelDao.getConvertedNextMrr()), 0);
         Assert.assertEquals(businessSubscriptionTransition.getNextCurrency(), subscriptionTransitionModelDao.getNextCurrency());
         Assert.assertEquals(businessSubscriptionTransition.getNextBusinessActive(), subscriptionTransitionModelDao.getNextBusinessActive());
-        Assert.assertEquals(businessSubscriptionTransition.getNextStartDate(), subscriptionTransitionModelDao.getNextStartDate());
-        Assert.assertEquals(businessSubscriptionTransition.getNextEndDate(), subscriptionTransitionModelDao.getNextEndDate());
+        Assert.assertEquals(businessSubscriptionTransition.getNextStartDate().compareTo(subscriptionTransitionModelDao.getNextStartDate()), 0);
+        Assert.assertNull(businessSubscriptionTransition.getNextEndDate());
         Assert.assertEquals(businessSubscriptionTransition.getNextState(), subscriptionTransitionModelDao.getNextState());
+
+        Assert.assertEquals(businessSubscriptionTransition.getConvertedCurrency(), subscriptionTransitionModelDao.getConvertedCurrency());
     }
 }

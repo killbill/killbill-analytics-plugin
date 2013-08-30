@@ -19,7 +19,6 @@ package com.ning.billing.osgi.bundles.analytics.api;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
@@ -39,8 +38,10 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final String prevPhase;
     private final String prevBillingPeriod;
     private final BigDecimal prevPrice;
+    private final BigDecimal convertedPrevPrice;
     private final String prevPriceList;
     private final BigDecimal prevMrr;
+    private final BigDecimal convertedPrevMrr;
     private final String prevCurrency;
     private final Boolean prevBusinessActive;
     private final LocalDate prevStartDate;
@@ -53,13 +54,17 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final String nextPhase;
     private final String nextBillingPeriod;
     private final BigDecimal nextPrice;
+    private final BigDecimal convertedNextPrice;
     private final String nextPriceList;
     private final BigDecimal nextMrr;
+    private final BigDecimal convertedNextMrr;
     private final String nextCurrency;
     private final Boolean nextBusinessActive;
     private final LocalDate nextStartDate;
     private final LocalDate nextEndDate;
     private final String nextState;
+
+    private final String convertedCurrency;
 
     public BusinessSubscriptionTransition(final BusinessSubscriptionTransitionModelDao bstModelDao) {
         super(bstModelDao.getCreatedDate(),
@@ -85,8 +90,10 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         this.prevPhase = bstModelDao.getPrevPhase();
         this.prevBillingPeriod = bstModelDao.getPrevBillingPeriod();
         this.prevPrice = bstModelDao.getPrevPrice();
+        this.convertedPrevPrice = bstModelDao.getConvertedPrevPrice();
         this.prevPriceList = bstModelDao.getPrevPriceList();
         this.prevMrr = bstModelDao.getPrevMrr();
+        this.convertedPrevMrr = bstModelDao.getConvertedPrevMrr();
         this.prevCurrency = bstModelDao.getPrevCurrency();
         this.prevBusinessActive = bstModelDao.getPrevBusinessActive();
         this.prevStartDate = bstModelDao.getPrevStartDate();
@@ -99,13 +106,17 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         this.nextPhase = bstModelDao.getNextPhase();
         this.nextBillingPeriod = bstModelDao.getNextBillingPeriod();
         this.nextPrice = bstModelDao.getNextPrice();
+        this.convertedNextPrice = bstModelDao.getConvertedNextPrice();
         this.nextPriceList = bstModelDao.getNextPriceList();
         this.nextMrr = bstModelDao.getNextMrr();
+        this.convertedNextMrr = bstModelDao.getConvertedNextMrr();
         this.nextCurrency = bstModelDao.getNextCurrency();
         this.nextBusinessActive = bstModelDao.getNextBusinessActive();
         this.nextStartDate = bstModelDao.getNextStartDate();
         this.nextEndDate = bstModelDao.getNextEndDate();
         this.nextState = bstModelDao.getNextState();
+
+        this.convertedCurrency = bstModelDao.getConvertedCurrency();
     }
 
     public UUID getBundleId() {
@@ -156,12 +167,20 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return prevPrice;
     }
 
+    public BigDecimal getConvertedPrevPrice() {
+        return convertedPrevPrice;
+    }
+
     public String getPrevPriceList() {
         return prevPriceList;
     }
 
     public BigDecimal getPrevMrr() {
         return prevMrr;
+    }
+
+    public BigDecimal getConvertedPrevMrr() {
+        return convertedPrevMrr;
     }
 
     public String getPrevCurrency() {
@@ -208,12 +227,20 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return nextPrice;
     }
 
+    public BigDecimal getConvertedNextPrice() {
+        return convertedNextPrice;
+    }
+
     public String getNextPriceList() {
         return nextPriceList;
     }
 
     public BigDecimal getNextMrr() {
         return nextMrr;
+    }
+
+    public BigDecimal getConvertedNextMrr() {
+        return convertedNextMrr;
     }
 
     public String getNextCurrency() {
@@ -236,11 +263,14 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return nextState;
     }
 
+    public String getConvertedCurrency() {
+        return convertedCurrency;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessSubscriptionTransition");
-        sb.append("{bundleId=").append(bundleId);
+        final StringBuilder sb = new StringBuilder("BusinessSubscriptionTransition{");
+        sb.append("bundleId=").append(bundleId);
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append(", subscriptionId=").append(subscriptionId);
         sb.append(", requestedTimestamp=").append(requestedTimestamp);
@@ -252,8 +282,10 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         sb.append(", prevPhase='").append(prevPhase).append('\'');
         sb.append(", prevBillingPeriod='").append(prevBillingPeriod).append('\'');
         sb.append(", prevPrice=").append(prevPrice);
+        sb.append(", convertedPrevPrice=").append(convertedPrevPrice);
         sb.append(", prevPriceList='").append(prevPriceList).append('\'');
         sb.append(", prevMrr=").append(prevMrr);
+        sb.append(", convertedPrevMrr=").append(convertedPrevMrr);
         sb.append(", prevCurrency='").append(prevCurrency).append('\'');
         sb.append(", prevBusinessActive=").append(prevBusinessActive);
         sb.append(", prevStartDate=").append(prevStartDate);
@@ -265,13 +297,16 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         sb.append(", nextPhase='").append(nextPhase).append('\'');
         sb.append(", nextBillingPeriod='").append(nextBillingPeriod).append('\'');
         sb.append(", nextPrice=").append(nextPrice);
+        sb.append(", convertedNextPrice=").append(convertedNextPrice);
         sb.append(", nextPriceList='").append(nextPriceList).append('\'');
         sb.append(", nextMrr=").append(nextMrr);
+        sb.append(", convertedNextMrr=").append(convertedNextMrr);
         sb.append(", nextCurrency='").append(nextCurrency).append('\'');
         sb.append(", nextBusinessActive=").append(nextBusinessActive);
         sb.append(", nextStartDate=").append(nextStartDate);
         sb.append(", nextEndDate=").append(nextEndDate);
         sb.append(", nextState='").append(nextState).append('\'');
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -296,6 +331,21 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         if (bundleId != null ? !bundleId.equals(that.bundleId) : that.bundleId != null) {
             return false;
         }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedNextMrr != null ? !(convertedNextMrr.compareTo(that.convertedNextMrr) == 0) : that.convertedNextMrr != null) {
+            return false;
+        }
+        if (convertedNextPrice != null ? !(convertedNextPrice.compareTo(that.convertedNextPrice) == 0) : that.convertedNextPrice != null) {
+            return false;
+        }
+        if (convertedPrevMrr != null ? !(convertedPrevMrr.compareTo(that.convertedPrevMrr) == 0) : that.convertedPrevMrr != null) {
+            return false;
+        }
+        if (convertedPrevPrice != null ? !(convertedPrevPrice.compareTo(that.convertedPrevPrice) == 0) : that.convertedPrevPrice != null) {
+            return false;
+        }
         if (event != null ? !event.equals(that.event) : that.event != null) {
             return false;
         }
@@ -308,7 +358,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         if (nextCurrency != null ? !nextCurrency.equals(that.nextCurrency) : that.nextCurrency != null) {
             return false;
         }
-        if (nextEndDate != null ? !nextEndDate.equals(that.nextEndDate) : that.nextEndDate != null) {
+        if (nextEndDate != null ? nextEndDate.compareTo(that.nextEndDate) != 0 : that.nextEndDate != null) {
             return false;
         }
         if (nextMrr != null ? !(nextMrr.compareTo(that.nextMrr) == 0) : that.nextMrr != null) {
@@ -335,7 +385,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         if (nextSlug != null ? !nextSlug.equals(that.nextSlug) : that.nextSlug != null) {
             return false;
         }
-        if (nextStartDate != null ? !nextStartDate.equals(that.nextStartDate) : that.nextStartDate != null) {
+        if (nextStartDate != null ? nextStartDate.compareTo(that.nextStartDate) != 0 : that.nextStartDate != null) {
             return false;
         }
         if (nextState != null ? !nextState.equals(that.nextState) : that.nextState != null) {
@@ -374,13 +424,13 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         if (prevSlug != null ? !prevSlug.equals(that.prevSlug) : that.prevSlug != null) {
             return false;
         }
-        if (prevStartDate != null ? !prevStartDate.equals(that.prevStartDate) : that.prevStartDate != null) {
+        if (prevStartDate != null ? prevStartDate.compareTo(that.prevStartDate) != 0 : that.prevStartDate != null) {
             return false;
         }
         if (prevState != null ? !prevState.equals(that.prevState) : that.prevState != null) {
             return false;
         }
-        if (requestedTimestamp != null ? !requestedTimestamp.equals(that.requestedTimestamp) : that.requestedTimestamp != null) {
+        if (requestedTimestamp != null ? requestedTimestamp.compareTo(that.requestedTimestamp) != 0 : that.requestedTimestamp != null) {
             return false;
         }
         if (subscriptionId != null ? !subscriptionId.equals(that.subscriptionId) : that.subscriptionId != null) {
@@ -405,8 +455,10 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         result = 31 * result + (prevPhase != null ? prevPhase.hashCode() : 0);
         result = 31 * result + (prevBillingPeriod != null ? prevBillingPeriod.hashCode() : 0);
         result = 31 * result + (prevPrice != null ? prevPrice.hashCode() : 0);
+        result = 31 * result + (convertedPrevPrice != null ? convertedPrevPrice.hashCode() : 0);
         result = 31 * result + (prevPriceList != null ? prevPriceList.hashCode() : 0);
         result = 31 * result + (prevMrr != null ? prevMrr.hashCode() : 0);
+        result = 31 * result + (convertedPrevMrr != null ? convertedPrevMrr.hashCode() : 0);
         result = 31 * result + (prevCurrency != null ? prevCurrency.hashCode() : 0);
         result = 31 * result + (prevBusinessActive != null ? prevBusinessActive.hashCode() : 0);
         result = 31 * result + (prevStartDate != null ? prevStartDate.hashCode() : 0);
@@ -418,13 +470,16 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         result = 31 * result + (nextPhase != null ? nextPhase.hashCode() : 0);
         result = 31 * result + (nextBillingPeriod != null ? nextBillingPeriod.hashCode() : 0);
         result = 31 * result + (nextPrice != null ? nextPrice.hashCode() : 0);
+        result = 31 * result + (convertedNextPrice != null ? convertedNextPrice.hashCode() : 0);
         result = 31 * result + (nextPriceList != null ? nextPriceList.hashCode() : 0);
         result = 31 * result + (nextMrr != null ? nextMrr.hashCode() : 0);
+        result = 31 * result + (convertedNextMrr != null ? convertedNextMrr.hashCode() : 0);
         result = 31 * result + (nextCurrency != null ? nextCurrency.hashCode() : 0);
         result = 31 * result + (nextBusinessActive != null ? nextBusinessActive.hashCode() : 0);
         result = 31 * result + (nextStartDate != null ? nextStartDate.hashCode() : 0);
         result = 31 * result + (nextEndDate != null ? nextEndDate.hashCode() : 0);
         result = 31 * result + (nextState != null ? nextState.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;
     }
 }

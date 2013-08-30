@@ -20,7 +20,6 @@ import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 
@@ -41,10 +40,9 @@ public class TestBusinessOverdueStatus extends AnalyticsTestSuiteNoDB {
                                                                                                               reportGroup);
         final BusinessOverdueStatus businessOverdueStatus = new BusinessOverdueStatus(businessOverdueStatusModelDao);
         verifyBusinessEntityBase(businessOverdueStatus);
-        Assert.assertEquals(businessOverdueStatus.getCreatedDate(), businessOverdueStatusModelDao.getCreatedDate());
-        Assert.assertEquals(businessOverdueStatus.getObjectType(), ObjectType.BUNDLE.toString());
+        Assert.assertEquals(businessOverdueStatus.getCreatedDate().compareTo(businessOverdueStatusModelDao.getCreatedDate()), 0);
         Assert.assertEquals(businessOverdueStatus.getStatus(), businessOverdueStatusModelDao.getStatus());
-        Assert.assertEquals(businessOverdueStatus.getStartDate(), businessOverdueStatusModelDao.getStartDate());
-        Assert.assertEquals(businessOverdueStatus.getEndDate(), businessOverdueStatusModelDao.getEndDate());
+        Assert.assertEquals(businessOverdueStatus.getStartDate().compareTo(businessOverdueStatusModelDao.getStartDate()), 0);
+        Assert.assertEquals(businessOverdueStatus.getEndDate().compareTo(businessOverdueStatusModelDao.getEndDate()), 0);
     }
 }

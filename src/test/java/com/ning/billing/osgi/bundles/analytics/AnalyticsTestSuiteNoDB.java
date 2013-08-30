@@ -17,7 +17,6 @@
 package com.ning.billing.osgi.bundles.analytics;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -36,6 +35,7 @@ import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.BillingPeriod;
 import com.ning.billing.catalog.api.Currency;
+import com.ning.billing.catalog.api.InternationalPrice;
 import com.ning.billing.catalog.api.PhaseType;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
@@ -58,7 +58,6 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBase
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
-import com.ning.billing.osgi.bundles.analytics.dao.model.CurrencyConversionModelDao;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentAttempt;
@@ -78,7 +77,6 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 public abstract class AnalyticsTestSuiteNoDB {
 
@@ -101,7 +99,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final BusinessInvoiceItemType invoiceItemType = BusinessInvoiceItemType.INVOICE_ITEM_ADJUSTMENT;
     protected final ItemSource itemSource = ItemSource.user;
     protected final ClockMock clock = new ClockMock();
-    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
+    protected final CurrencyConverter currencyConverter = Mockito.mock(CurrencyConverter.class);
     protected final DefaultNotificationQueueService notificationQueueService = Mockito.mock(DefaultNotificationQueueService.class);
 
     protected Account account;
@@ -191,6 +189,14 @@ public abstract class AnalyticsTestSuiteNoDB {
 
     @BeforeMethod(groups = "fast")
     public void setUp() throws Exception {
+        Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<String>anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Account>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<InvoiceItem>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<InvoicePayment>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
+
         account = Mockito.mock(Account.class);
         Mockito.when(account.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(account.getExternalKey()).thenReturn(UUID.randomUUID().toString());
@@ -242,6 +248,10 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(phase.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(phase.getPlan()).thenReturn(plan);
         Mockito.when(phase.getPhaseType()).thenReturn(PhaseType.DISCOUNT);
+
+        final InternationalPrice internationalPrice = Mockito.mock(InternationalPrice.class);
+        Mockito.when(internationalPrice.getPrice(Mockito.<Currency>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(phase.getRecurringPrice()).thenReturn(internationalPrice);
         final String phaseName = phase.getName();
 
         priceList = Mockito.mock(PriceList.class);

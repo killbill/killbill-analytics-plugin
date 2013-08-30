@@ -34,16 +34,24 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
     private final LocalDate invoiceTargetDate;
     private final String invoiceCurrency;
     private final BigDecimal invoiceBalance;
+    private final BigDecimal convertedInvoiceBalance;
     private final BigDecimal invoiceAmountPaid;
+    private final BigDecimal convertedInvoiceAmountPaid;
     private final BigDecimal invoiceAmountCharged;
+    private final BigDecimal convertedInvoiceAmountCharged;
     private final BigDecimal invoiceOriginalAmountCharged;
+    private final BigDecimal convertedInvoiceOriginalAmountCharged;
     private final BigDecimal invoiceAmountCredited;
+    private final BigDecimal convertedInvoiceAmountCredited;
+    private final BigDecimal invoiceAmountRefunded;
+    private final BigDecimal convertedInvoiceAmountRefunded;
     private final String invoicePaymentType;
     private final UUID paymentId;
     private final UUID refundId;
     private final Long paymentNumber;
     private final UUID linkedInvoicePaymentId;
     private final BigDecimal amount;
+    private final BigDecimal convertedAmount;
     private final String currency;
     private final String pluginName;
     private final DateTime pluginCreatedDate;
@@ -67,6 +75,7 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
     private final String pluginPmState;
     private final String pluginPmZip;
     private final String pluginPmCountry;
+    private final String convertedCurrency;
 
     public BusinessInvoicePayment(final BusinessInvoicePaymentBaseModelDao businessInvoicePaymentBaseModelDao) {
         super(businessInvoicePaymentBaseModelDao.getCreatedDate(),
@@ -85,16 +94,24 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         this.invoiceTargetDate = businessInvoicePaymentBaseModelDao.getInvoiceTargetDate();
         this.invoiceCurrency = businessInvoicePaymentBaseModelDao.getInvoiceCurrency();
         this.invoiceBalance = businessInvoicePaymentBaseModelDao.getInvoiceBalance();
+        this.convertedInvoiceBalance = businessInvoicePaymentBaseModelDao.getConvertedInvoiceBalance();
         this.invoiceAmountPaid = businessInvoicePaymentBaseModelDao.getInvoiceAmountPaid();
+        this.convertedInvoiceAmountPaid = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountPaid();
         this.invoiceAmountCharged = businessInvoicePaymentBaseModelDao.getInvoiceAmountCharged();
+        this.convertedInvoiceAmountCharged = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountCharged();
         this.invoiceOriginalAmountCharged = businessInvoicePaymentBaseModelDao.getInvoiceOriginalAmountCharged();
+        this.convertedInvoiceOriginalAmountCharged = businessInvoicePaymentBaseModelDao.getConvertedInvoiceOriginalAmountCharged();
         this.invoiceAmountCredited = businessInvoicePaymentBaseModelDao.getInvoiceAmountCredited();
+        this.convertedInvoiceAmountCredited = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountCredited();
+        this.invoiceAmountRefunded = businessInvoicePaymentBaseModelDao.getInvoiceAmountRefunded();
+        this.convertedInvoiceAmountRefunded = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountRefunded();
         this.invoicePaymentType = businessInvoicePaymentBaseModelDao.getInvoicePaymentType();
         this.paymentId = businessInvoicePaymentBaseModelDao.getPaymentId();
         this.refundId = businessInvoicePaymentBaseModelDao.getRefundId();
         this.paymentNumber = businessInvoicePaymentBaseModelDao.getPaymentNumber();
         this.linkedInvoicePaymentId = businessInvoicePaymentBaseModelDao.getLinkedInvoicePaymentId();
         this.amount = businessInvoicePaymentBaseModelDao.getAmount();
+        this.convertedAmount = businessInvoicePaymentBaseModelDao.getConvertedAmount();
         this.currency = businessInvoicePaymentBaseModelDao.getCurrency();
         this.pluginName = businessInvoicePaymentBaseModelDao.getPluginName();
         this.pluginCreatedDate = businessInvoicePaymentBaseModelDao.getPluginCreatedDate();
@@ -118,6 +135,7 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         this.pluginPmState = businessInvoicePaymentBaseModelDao.getPluginPmState();
         this.pluginPmZip = businessInvoicePaymentBaseModelDao.getPluginPmZip();
         this.pluginPmCountry = businessInvoicePaymentBaseModelDao.getPluginPmCountry();
+        this.convertedCurrency = businessInvoicePaymentBaseModelDao.getConvertedCurrency();
     }
 
     public UUID getInvoicePaymentId() {
@@ -152,20 +170,48 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         return invoiceBalance;
     }
 
+    public BigDecimal getConvertedInvoiceBalance() {
+        return convertedInvoiceBalance;
+    }
+
     public BigDecimal getInvoiceAmountPaid() {
         return invoiceAmountPaid;
+    }
+
+    public BigDecimal getConvertedInvoiceAmountPaid() {
+        return convertedInvoiceAmountPaid;
     }
 
     public BigDecimal getInvoiceAmountCharged() {
         return invoiceAmountCharged;
     }
 
+    public BigDecimal getConvertedInvoiceAmountCharged() {
+        return convertedInvoiceAmountCharged;
+    }
+
     public BigDecimal getInvoiceOriginalAmountCharged() {
         return invoiceOriginalAmountCharged;
     }
 
+    public BigDecimal getConvertedInvoiceOriginalAmountCharged() {
+        return convertedInvoiceOriginalAmountCharged;
+    }
+
     public BigDecimal getInvoiceAmountCredited() {
         return invoiceAmountCredited;
+    }
+
+    public BigDecimal getConvertedInvoiceAmountCredited() {
+        return convertedInvoiceAmountCredited;
+    }
+
+    public BigDecimal getInvoiceAmountRefunded() {
+        return invoiceAmountRefunded;
+    }
+
+    public BigDecimal getConvertedInvoiceAmountRefunded() {
+        return convertedInvoiceAmountRefunded;
     }
 
     public String getInvoicePaymentType() {
@@ -190,6 +236,10 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
 
     public BigDecimal getAmount() {
         return amount;
+    }
+
+    public BigDecimal getConvertedAmount() {
+        return convertedAmount;
     }
 
     public String getCurrency() {
@@ -284,6 +334,10 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         return pluginPmCountry;
     }
 
+    public String getConvertedCurrency() {
+        return convertedCurrency;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessInvoicePayment{");
@@ -295,16 +349,24 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         sb.append(", invoiceTargetDate=").append(invoiceTargetDate);
         sb.append(", invoiceCurrency='").append(invoiceCurrency).append('\'');
         sb.append(", invoiceBalance=").append(invoiceBalance);
+        sb.append(", convertedInvoiceBalance=").append(convertedInvoiceBalance);
         sb.append(", invoiceAmountPaid=").append(invoiceAmountPaid);
+        sb.append(", convertedInvoiceAmountPaid=").append(convertedInvoiceAmountPaid);
         sb.append(", invoiceAmountCharged=").append(invoiceAmountCharged);
+        sb.append(", convertedInvoiceAmountCharged=").append(convertedInvoiceAmountCharged);
         sb.append(", invoiceOriginalAmountCharged=").append(invoiceOriginalAmountCharged);
+        sb.append(", convertedInvoiceOriginalAmountCharged=").append(convertedInvoiceOriginalAmountCharged);
         sb.append(", invoiceAmountCredited=").append(invoiceAmountCredited);
+        sb.append(", convertedInvoiceAmountCredited=").append(convertedInvoiceAmountCredited);
+        sb.append(", invoiceAmountRefunded=").append(invoiceAmountRefunded);
+        sb.append(", convertedInvoiceAmountRefunded=").append(convertedInvoiceAmountRefunded);
         sb.append(", invoicePaymentType='").append(invoicePaymentType).append('\'');
         sb.append(", paymentId=").append(paymentId);
         sb.append(", refundId=").append(refundId);
         sb.append(", paymentNumber=").append(paymentNumber);
         sb.append(", linkedInvoicePaymentId=").append(linkedInvoicePaymentId);
         sb.append(", amount=").append(amount);
+        sb.append(", convertedAmount=").append(convertedAmount);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", pluginName='").append(pluginName).append('\'');
         sb.append(", pluginCreatedDate=").append(pluginCreatedDate);
@@ -328,6 +390,7 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         sb.append(", pluginPmState='").append(pluginPmState).append('\'');
         sb.append(", pluginPmZip='").append(pluginPmZip).append('\'');
         sb.append(", pluginPmCountry='").append(pluginPmCountry).append('\'');
+        sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -349,6 +412,30 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         if (amount != null ? !(amount.compareTo(that.amount) == 0) : that.amount != null) {
             return false;
         }
+        if (convertedAmount != null ? !(convertedAmount.compareTo(that.convertedAmount) == 0) : that.convertedAmount != null) {
+            return false;
+        }
+        if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountCharged != null ? !(convertedInvoiceAmountCharged.compareTo(that.convertedInvoiceAmountCharged) == 0) : that.convertedInvoiceAmountCharged != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountCredited != null ? !(convertedInvoiceAmountCredited.compareTo(that.convertedInvoiceAmountCredited) == 0) : that.convertedInvoiceAmountCredited != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountPaid != null ? !(convertedInvoiceAmountPaid.compareTo(that.convertedInvoiceAmountPaid) == 0) : that.convertedInvoiceAmountPaid != null) {
+            return false;
+        }
+        if (convertedInvoiceAmountRefunded != null ? !(convertedInvoiceAmountRefunded.compareTo(that.convertedInvoiceAmountRefunded) == 0) : that.convertedInvoiceAmountRefunded != null) {
+            return false;
+        }
+        if (convertedInvoiceBalance != null ? !(convertedInvoiceBalance.compareTo(that.convertedInvoiceBalance) == 0) : that.convertedInvoiceBalance != null) {
+            return false;
+        }
+        if (convertedInvoiceOriginalAmountCharged != null ? !(convertedInvoiceOriginalAmountCharged.compareTo(that.convertedInvoiceOriginalAmountCharged) == 0) : that.convertedInvoiceOriginalAmountCharged != null) {
+            return false;
+        }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
@@ -361,16 +448,19 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         if (invoiceAmountPaid != null ? !(invoiceAmountPaid.compareTo(that.invoiceAmountPaid) == 0) : that.invoiceAmountPaid != null) {
             return false;
         }
+        if (invoiceAmountRefunded != null ? !(invoiceAmountRefunded.compareTo(that.invoiceAmountRefunded) == 0) : that.invoiceAmountRefunded != null) {
+            return false;
+        }
         if (invoiceBalance != null ? !(invoiceBalance.compareTo(that.invoiceBalance) == 0) : that.invoiceBalance != null) {
             return false;
         }
-        if (invoiceCreatedDate != null ? !invoiceCreatedDate.equals(that.invoiceCreatedDate) : that.invoiceCreatedDate != null) {
+        if (invoiceCreatedDate != null ? invoiceCreatedDate.compareTo(that.invoiceCreatedDate) != 0 : that.invoiceCreatedDate != null) {
             return false;
         }
         if (invoiceCurrency != null ? !invoiceCurrency.equals(that.invoiceCurrency) : that.invoiceCurrency != null) {
             return false;
         }
-        if (invoiceDate != null ? !invoiceDate.equals(that.invoiceDate) : that.invoiceDate != null) {
+        if (invoiceDate != null ? invoiceDate.compareTo(that.invoiceDate) != 0 : that.invoiceDate != null) {
             return false;
         }
         if (invoiceId != null ? !invoiceId.equals(that.invoiceId) : that.invoiceId != null) {
@@ -388,7 +478,7 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         if (invoicePaymentType != null ? !invoicePaymentType.equals(that.invoicePaymentType) : that.invoicePaymentType != null) {
             return false;
         }
-        if (invoiceTargetDate != null ? !invoiceTargetDate.equals(that.invoiceTargetDate) : that.invoiceTargetDate != null) {
+        if (invoiceTargetDate != null ? invoiceTargetDate.compareTo(that.invoiceTargetDate) != 0 : that.invoiceTargetDate != null) {
             return false;
         }
         if (linkedInvoicePaymentId != null ? !linkedInvoicePaymentId.equals(that.linkedInvoicePaymentId) : that.linkedInvoicePaymentId != null) {
@@ -397,19 +487,13 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         if (paymentId != null ? !paymentId.equals(that.paymentId) : that.paymentId != null) {
             return false;
         }
-        if (refundId != null ? !refundId.equals(that.refundId) : that.refundId != null) {
-            return false;
-        }
         if (paymentNumber != null ? !paymentNumber.equals(that.paymentNumber) : that.paymentNumber != null) {
             return false;
         }
-        if (pluginName != null ? !pluginName.equals(that.pluginName) : that.pluginName != null) {
+        if (pluginCreatedDate != null ? pluginCreatedDate.compareTo(that.pluginCreatedDate) != 0 : that.pluginCreatedDate != null) {
             return false;
         }
-        if (pluginCreatedDate != null ? !pluginCreatedDate.equals(that.pluginCreatedDate) : that.pluginCreatedDate != null) {
-            return false;
-        }
-        if (pluginEffectiveDate != null ? !pluginEffectiveDate.equals(that.pluginEffectiveDate) : that.pluginEffectiveDate != null) {
+        if (pluginEffectiveDate != null ? pluginEffectiveDate.compareTo(that.pluginEffectiveDate) != 0 : that.pluginEffectiveDate != null) {
             return false;
         }
         if (pluginFirstReferenceId != null ? !pluginFirstReferenceId.equals(that.pluginFirstReferenceId) : that.pluginFirstReferenceId != null) {
@@ -419,6 +503,9 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
             return false;
         }
         if (pluginGatewayErrorCode != null ? !pluginGatewayErrorCode.equals(that.pluginGatewayErrorCode) : that.pluginGatewayErrorCode != null) {
+            return false;
+        }
+        if (pluginName != null ? !pluginName.equals(that.pluginName) : that.pluginName != null) {
             return false;
         }
         if (pluginPmAddress1 != null ? !pluginPmAddress1.equals(that.pluginPmAddress1) : that.pluginPmAddress1 != null) {
@@ -469,6 +556,9 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         if (pluginStatus != null ? !pluginStatus.equals(that.pluginStatus) : that.pluginStatus != null) {
             return false;
         }
+        if (refundId != null ? !refundId.equals(that.refundId) : that.refundId != null) {
+            return false;
+        }
 
         return true;
     }
@@ -484,16 +574,24 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         result = 31 * result + (invoiceTargetDate != null ? invoiceTargetDate.hashCode() : 0);
         result = 31 * result + (invoiceCurrency != null ? invoiceCurrency.hashCode() : 0);
         result = 31 * result + (invoiceBalance != null ? invoiceBalance.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceBalance != null ? convertedInvoiceBalance.hashCode() : 0);
         result = 31 * result + (invoiceAmountPaid != null ? invoiceAmountPaid.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountPaid != null ? convertedInvoiceAmountPaid.hashCode() : 0);
         result = 31 * result + (invoiceAmountCharged != null ? invoiceAmountCharged.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountCharged != null ? convertedInvoiceAmountCharged.hashCode() : 0);
         result = 31 * result + (invoiceOriginalAmountCharged != null ? invoiceOriginalAmountCharged.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceOriginalAmountCharged != null ? convertedInvoiceOriginalAmountCharged.hashCode() : 0);
         result = 31 * result + (invoiceAmountCredited != null ? invoiceAmountCredited.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountCredited != null ? convertedInvoiceAmountCredited.hashCode() : 0);
+        result = 31 * result + (invoiceAmountRefunded != null ? invoiceAmountRefunded.hashCode() : 0);
+        result = 31 * result + (convertedInvoiceAmountRefunded != null ? convertedInvoiceAmountRefunded.hashCode() : 0);
         result = 31 * result + (invoicePaymentType != null ? invoicePaymentType.hashCode() : 0);
         result = 31 * result + (paymentId != null ? paymentId.hashCode() : 0);
         result = 31 * result + (refundId != null ? refundId.hashCode() : 0);
         result = 31 * result + (paymentNumber != null ? paymentNumber.hashCode() : 0);
         result = 31 * result + (linkedInvoicePaymentId != null ? linkedInvoicePaymentId.hashCode() : 0);
         result = 31 * result + (amount != null ? amount.hashCode() : 0);
+        result = 31 * result + (convertedAmount != null ? convertedAmount.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (pluginName != null ? pluginName.hashCode() : 0);
         result = 31 * result + (pluginCreatedDate != null ? pluginCreatedDate.hashCode() : 0);
@@ -517,6 +615,7 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
         result = 31 * result + (pluginPmState != null ? pluginPmState.hashCode() : 0);
         result = 31 * result + (pluginPmZip != null ? pluginPmZip.hashCode() : 0);
         result = 31 * result + (pluginPmCountry != null ? pluginPmCountry.hashCode() : 0);
+        result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;
     }
 }
