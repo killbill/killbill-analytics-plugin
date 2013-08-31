@@ -3,8 +3,8 @@ select
   prev_phase as pivot
 , date_format(next_start_date, '%Y-%m-%d') as day
 , count(*) as count
-from bst
-where event = 'CANCEL_BASE'
+from analytics_subscriptions
+where event = 'STOP_ENTITLEMENT_BASE'
 and report_group = 'default'
 group by 1, 2
 order by 1, 2 asc

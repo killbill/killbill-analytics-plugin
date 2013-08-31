@@ -2,7 +2,7 @@ create or replace view v_conversions_per_day as
 select
   date_format(next_start_date, '%Y-%m-%d') as day
 , count(*) as count
-from bst
+from analytics_subscriptions
 where prev_phase = 'TRIAL'
 and next_phase != 'TRIAL'
 and report_group = 'default'

@@ -3,7 +3,7 @@ select
   currency as pivot
 , date_format(created_date, '%Y-%m-%d') as day
 , sum(original_amount_charged) as count
-from bin
+from analytics_invoices
 where report_group = 'default'
 group by 1, 2
 order by 1, 2 asc

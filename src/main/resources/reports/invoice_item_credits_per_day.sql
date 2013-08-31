@@ -3,7 +3,7 @@ select
   currency as pivot
 , date_format(created_date, '%Y-%m-%d') as day
 , sum(amount) as count
-from biic
+from analytics_invoice_credits
 where report_group = 'default'
 group by 1, 2
 order by 1, 2 asc
