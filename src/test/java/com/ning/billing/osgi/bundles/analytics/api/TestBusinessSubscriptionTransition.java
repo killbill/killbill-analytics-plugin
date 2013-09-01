@@ -34,7 +34,7 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, phase, priceList, Currency.GBP, startDate, "ACTIVE", currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, phase, priceList, Currency.GBP, startDate, serviceName, stateName, currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
@@ -71,6 +71,7 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(businessSubscriptionTransition.getPrevCurrency());
         Assert.assertNull(businessSubscriptionTransition.getPrevBusinessActive());
         Assert.assertNull(businessSubscriptionTransition.getPrevStartDate());
+        Assert.assertNull(businessSubscriptionTransition.getPrevService());
         Assert.assertNull(businessSubscriptionTransition.getPrevState());
 
         Assert.assertEquals(businessSubscriptionTransition.getNextProductName(), subscriptionTransitionModelDao.getNextProductName());
@@ -88,6 +89,7 @@ public class TestBusinessSubscriptionTransition extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSubscriptionTransition.getNextBusinessActive(), subscriptionTransitionModelDao.getNextBusinessActive());
         Assert.assertEquals(businessSubscriptionTransition.getNextStartDate().compareTo(subscriptionTransitionModelDao.getNextStartDate()), 0);
         Assert.assertNull(businessSubscriptionTransition.getNextEndDate());
+        Assert.assertEquals(businessSubscriptionTransition.getNextService(), subscriptionTransitionModelDao.getNextService());
         Assert.assertEquals(businessSubscriptionTransition.getNextState(), subscriptionTransitionModelDao.getNextState());
 
         Assert.assertEquals(businessSubscriptionTransition.getConvertedCurrency(), subscriptionTransitionModelDao.getConvertedCurrency());

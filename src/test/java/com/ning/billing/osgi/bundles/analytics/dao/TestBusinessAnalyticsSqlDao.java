@@ -315,7 +315,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, serviceName, stateName, currencyConverter);
         final BusinessSubscriptionTransitionModelDao businessSubscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                          accountRecordId,
                                                                                                                                          bundle,
@@ -347,7 +347,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, serviceName, stateName, currencyConverter);
         final BusinessSubscriptionTransitionModelDao businessSubscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                          accountRecordId,
                                                                                                                                          bundle,

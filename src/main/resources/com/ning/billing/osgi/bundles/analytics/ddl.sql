@@ -22,6 +22,7 @@ create table analytics_subscriptions (
 , prev_mrr numeric(10, 4) default 0
 , converted_prev_mrr numeric(10, 4) default null
 , prev_currency varchar(50) default null
+, prev_service varchar(50) default null
 , prev_state varchar(50) default null
 , prev_business_active bool default true
 , prev_start_date datetime default null
@@ -37,6 +38,7 @@ create table analytics_subscriptions (
 , next_mrr numeric(10, 4) default 0
 , converted_next_mrr numeric(10, 4) default null
 , next_currency varchar(50) default null
+, next_service varchar(50) default null
 , next_state varchar(50) default null
 , next_business_active bool default true
 , next_start_date datetime default null
@@ -82,6 +84,7 @@ create table analytics_bundles (
 , current_mrr numeric(10, 4) default 0
 , converted_current_mrr numeric(10, 4) default null
 , current_currency varchar(50) default null
+, current_service varchar(50) default null
 , current_state varchar(50) default null
 , current_business_active bool default true
 , current_start_date datetime default null

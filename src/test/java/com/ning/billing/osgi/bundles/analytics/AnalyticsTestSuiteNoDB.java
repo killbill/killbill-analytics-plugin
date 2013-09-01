@@ -104,6 +104,9 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final CurrencyConverter currencyConverter = Mockito.mock(CurrencyConverter.class);
     protected final DefaultNotificationQueueService notificationQueueService = Mockito.mock(DefaultNotificationQueueService.class);
 
+    protected final String serviceName = UUID.randomUUID().toString();
+    protected final String stateName = UUID.randomUUID().toString();
+
     protected Account account;
     protected SubscriptionBundle bundle;
     protected Plan plan;
@@ -271,7 +274,8 @@ public abstract class AnalyticsTestSuiteNoDB {
 
         subscriptionTransition = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(subscriptionTransition.getEntitlementId()).thenReturn(UUID.randomUUID());
-        Mockito.when(subscriptionTransition.getServiceStateName()).thenReturn("ACTIVE");
+        Mockito.when(subscriptionTransition.getServiceName()).thenReturn(serviceName);
+        Mockito.when(subscriptionTransition.getServiceStateName()).thenReturn(stateName);
         Mockito.when(subscriptionTransition.getNextPlan()).thenReturn(plan);
         Mockito.when(subscriptionTransition.getNextPhase()).thenReturn(phase);
         Mockito.when(subscriptionTransition.getNextPriceList()).thenReturn(priceList);

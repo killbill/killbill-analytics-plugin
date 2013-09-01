@@ -58,6 +58,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private String prevCurrency;
     private Boolean prevBusinessActive;
     private LocalDate prevStartDate;
+    private String prevService;
     private String prevState;
 
     private String nextProductName;
@@ -75,6 +76,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private Boolean nextBusinessActive;
     private LocalDate nextStartDate;
     private LocalDate nextEndDate;
+    private String nextService;
     private String nextState;
 
     private String convertedCurrency;
@@ -133,6 +135,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
             this.prevCurrency = previousSubscription.getCurrency();
             this.prevBusinessActive = previousSubscription.getBusinessActive();
             this.prevStartDate = previousSubscription.getStartDate();
+            this.prevService = previousSubscription.getService();
             this.prevState = previousSubscription.getState();
         } else {
             this.prevProductName = null;
@@ -149,6 +152,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
             this.prevCurrency = null;
             this.prevBusinessActive = null;
             this.prevStartDate = null;
+            this.prevService = null;
             this.prevState = null;
         }
 
@@ -167,6 +171,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         this.nextBusinessActive = nextSubscription.getBusinessActive();
         this.nextStartDate = nextSubscription.getStartDate();
         this.nextEndDate = nextSubscription.getEndDate();
+        this.nextService = nextSubscription.getService();
         this.nextState = nextSubscription.getState();
 
         this.convertedCurrency = convertedCurrency;
@@ -294,6 +299,10 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return prevStartDate;
     }
 
+    public String getPrevService() {
+        return prevService;
+    }
+
     public String getPrevState() {
         return prevState;
     }
@@ -358,6 +367,10 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return nextEndDate;
     }
 
+    public String getNextService() {
+        return nextService;
+    }
+
     public String getNextState() {
         return nextState;
     }
@@ -389,6 +402,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         sb.append(", prevCurrency='").append(prevCurrency).append('\'');
         sb.append(", prevBusinessActive=").append(prevBusinessActive);
         sb.append(", prevStartDate=").append(prevStartDate);
+        sb.append(", prevService='").append(prevService).append('\'');
         sb.append(", prevState='").append(prevState).append('\'');
         sb.append(", nextProductName='").append(nextProductName).append('\'');
         sb.append(", nextProductType='").append(nextProductType).append('\'');
@@ -405,6 +419,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         sb.append(", nextBusinessActive=").append(nextBusinessActive);
         sb.append(", nextStartDate=").append(nextStartDate);
         sb.append(", nextEndDate=").append(nextEndDate);
+        sb.append(", nextService='").append(nextService).append('\'');
         sb.append(", nextState='").append(nextState).append('\'');
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
@@ -482,6 +497,9 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         if (nextProductType != null ? !nextProductType.equals(that.nextProductType) : that.nextProductType != null) {
             return false;
         }
+        if (nextService != null ? !nextService.equals(that.nextService) : that.nextService != null) {
+            return false;
+        }
         if (nextSlug != null ? !nextSlug.equals(that.nextSlug) : that.nextSlug != null) {
             return false;
         }
@@ -519,6 +537,9 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
             return false;
         }
         if (prevProductType != null ? !prevProductType.equals(that.prevProductType) : that.prevProductType != null) {
+            return false;
+        }
+        if (prevService != null ? !prevService.equals(that.prevService) : that.prevService != null) {
             return false;
         }
         if (prevSlug != null ? !prevSlug.equals(that.prevSlug) : that.prevSlug != null) {
@@ -566,6 +587,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         result = 31 * result + (prevCurrency != null ? prevCurrency.hashCode() : 0);
         result = 31 * result + (prevBusinessActive != null ? prevBusinessActive.hashCode() : 0);
         result = 31 * result + (prevStartDate != null ? prevStartDate.hashCode() : 0);
+        result = 31 * result + (prevService != null ? prevService.hashCode() : 0);
         result = 31 * result + (prevState != null ? prevState.hashCode() : 0);
         result = 31 * result + (nextProductName != null ? nextProductName.hashCode() : 0);
         result = 31 * result + (nextProductType != null ? nextProductType.hashCode() : 0);
@@ -582,6 +604,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         result = 31 * result + (nextBusinessActive != null ? nextBusinessActive.hashCode() : 0);
         result = 31 * result + (nextStartDate != null ? nextStartDate.hashCode() : 0);
         result = 31 * result + (nextEndDate != null ? nextEndDate.hashCode() : 0);
+        result = 31 * result + (nextService != null ? nextService.hashCode() : 0);
         result = 31 * result + (nextState != null ? nextState.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;

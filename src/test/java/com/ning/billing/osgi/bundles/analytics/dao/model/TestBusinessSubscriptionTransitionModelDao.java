@@ -33,7 +33,7 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, serviceName, stateName, currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
@@ -67,6 +67,7 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
         Assert.assertNull(subscriptionTransitionModelDao.getPrevCurrency());
         Assert.assertNull(subscriptionTransitionModelDao.getPrevBusinessActive());
         Assert.assertNull(subscriptionTransitionModelDao.getPrevStartDate());
+        Assert.assertNull(subscriptionTransitionModelDao.getPrevService());
         Assert.assertNull(subscriptionTransitionModelDao.getPrevState());
 
         Assert.assertEquals(subscriptionTransitionModelDao.getNextProductName(), nextSubscription.getProductName());
@@ -82,6 +83,7 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
         Assert.assertEquals(subscriptionTransitionModelDao.getNextBusinessActive(), nextSubscription.getBusinessActive());
         Assert.assertEquals(subscriptionTransitionModelDao.getNextStartDate(), nextSubscription.getStartDate());
         Assert.assertEquals(subscriptionTransitionModelDao.getNextEndDate(), nextSubscription.getEndDate());
+        Assert.assertEquals(subscriptionTransitionModelDao.getNextService(), nextSubscription.getService());
         Assert.assertEquals(subscriptionTransitionModelDao.getNextState(), nextSubscription.getState());
     }
 }

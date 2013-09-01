@@ -53,6 +53,7 @@ public class BusinessSubscription {
     private final BigDecimal mrr;
     private final BigDecimal convertedMrr;
     private final String currency;
+    private final String service;
     private final String state;
     private final Boolean businessActive;
     private final LocalDate startDate;
@@ -63,6 +64,7 @@ public class BusinessSubscription {
                                 @Nullable final PriceList priceList,
                                 final Currency currency,
                                 final LocalDate startDate,
+                                final String service,
                                 final String state,
                                 final CurrencyConverter currencyConverter) {
         // TODO
@@ -137,6 +139,8 @@ public class BusinessSubscription {
         } else {
             this.endDate = null;
         }
+
+        this.service = service;
         this.state = state;
 
         convertedPrice = currencyConverter.getConvertedValue(this.price, this.currency, startDate);
@@ -191,6 +195,10 @@ public class BusinessSubscription {
         return currency;
     }
 
+    public String getService() {
+        return service;
+    }
+
     public String getState() {
         return state;
     }
@@ -230,6 +238,7 @@ public class BusinessSubscription {
         sb.append(", mrr=").append(mrr);
         sb.append(", convertedMrr=").append(convertedMrr);
         sb.append(", currency='").append(currency).append('\'');
+        sb.append(", service='").append(service).append('\'');
         sb.append(", state='").append(state).append('\'');
         sb.append(", businessActive=").append(businessActive);
         sb.append(", startDate=").append(startDate);
@@ -288,6 +297,9 @@ public class BusinessSubscription {
         if (productType != null ? !productType.equals(that.productType) : that.productType != null) {
             return false;
         }
+        if (service != null ? !service.equals(that.service) : that.service != null) {
+            return false;
+        }
         if (slug != null ? !slug.equals(that.slug) : that.slug != null) {
             return false;
         }
@@ -315,6 +327,7 @@ public class BusinessSubscription {
         result = 31 * result + (mrr != null ? mrr.hashCode() : 0);
         result = 31 * result + (convertedMrr != null ? convertedMrr.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
+        result = 31 * result + (service != null ? service.hashCode() : 0);
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (businessActive != null ? businessActive.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);

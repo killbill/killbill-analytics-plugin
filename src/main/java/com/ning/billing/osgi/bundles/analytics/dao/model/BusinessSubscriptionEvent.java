@@ -45,6 +45,8 @@ public class BusinessSubscriptionEvent {
     }
 
     private final EventType eventType;
+    // We keep the category in the event name because the prev_product_category and next_product_category fields
+    // can be both NULL
     private final ProductCategory category;
 
     public static BusinessSubscriptionEvent valueOf(final String eventString) {

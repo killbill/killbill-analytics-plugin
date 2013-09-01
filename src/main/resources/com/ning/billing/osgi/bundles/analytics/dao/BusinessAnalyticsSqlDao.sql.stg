@@ -20,6 +20,7 @@ insert into analytics_subscriptions (
 , prev_mrr
 , converted_prev_mrr
 , prev_currency
+, prev_service
 , prev_state
 , prev_business_active
 , prev_start_date
@@ -35,6 +36,7 @@ insert into analytics_subscriptions (
 , next_mrr
 , converted_next_mrr
 , next_currency
+, next_service
 , next_state
 , next_business_active
 , next_start_date
@@ -69,6 +71,7 @@ insert into analytics_subscriptions (
 , :prevMrr
 , :convertedPrevMrr
 , :prevCurrency
+, :prevService
 , :prevState
 , :prevBusinessActive
 , :prevStartDate
@@ -84,6 +87,7 @@ insert into analytics_subscriptions (
 , :nextMrr
 , :convertedNextMrr
 , :nextCurrency
+, :nextService
 , :nextState
 , :nextBusinessActive
 , :nextStartDate
@@ -121,6 +125,7 @@ insert into analytics_bundles (
 , current_mrr
 , converted_current_mrr
 , current_currency
+, current_service
 , current_state
 , current_business_active
 , current_start_date
@@ -154,6 +159,7 @@ insert into analytics_bundles (
 , :currentMrr
 , :convertedCurrentMrr
 , :currentCurrency
+, :currentService
 , :currentState
 , :currentBusinessActive
 , :currentStartDate

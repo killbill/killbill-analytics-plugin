@@ -126,7 +126,8 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
                                                                                null,
                                                                                Currency.GBP,
                                                                                startDate,
-                                                                               "ACTIVE",
+                                                                               serviceName,
+                                                                               stateName,
                                                                                currencyConverter);
 
         return new BusinessSubscriptionTransitionModelDao(account,

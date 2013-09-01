@@ -53,6 +53,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
     private Boolean currentBusinessActive;
     private LocalDate currentStartDate;
     private LocalDate currentEndDate;
+    private String currentService;
     private String currentState;
     private String convertedCurrency;
 
@@ -107,6 +108,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         this.currentBusinessActive = bst.getNextBusinessActive();
         this.currentStartDate = bst.getNextStartDate();
         this.currentEndDate = bst.getNextEndDate();
+        this.currentService = bst.getNextService();
         this.currentState = bst.getNextState();
         this.convertedCurrency = convertedCurrency;
     }
@@ -225,6 +227,10 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         return currentEndDate;
     }
 
+    public String getCurrentService() {
+        return currentService;
+    }
+
     public String getCurrentState() {
         return currentState;
     }
@@ -256,6 +262,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         sb.append(", currentBusinessActive=").append(currentBusinessActive);
         sb.append(", currentStartDate=").append(currentStartDate);
         sb.append(", currentEndDate=").append(currentEndDate);
+        sb.append(", currentService='").append(currentService).append('\'');
         sb.append(", currentState='").append(currentState).append('\'');
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append('}');
@@ -330,6 +337,9 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         if (currentProductType != null ? !currentProductType.equals(that.currentProductType) : that.currentProductType != null) {
             return false;
         }
+        if (currentService != null ? !currentService.equals(that.currentService) : that.currentService != null) {
+            return false;
+        }
         if (currentSlug != null ? !currentSlug.equals(that.currentSlug) : that.currentSlug != null) {
             return false;
         }
@@ -369,6 +379,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         result = 31 * result + (currentBusinessActive != null ? currentBusinessActive.hashCode() : 0);
         result = 31 * result + (currentStartDate != null ? currentStartDate.hashCode() : 0);
         result = 31 * result + (currentEndDate != null ? currentEndDate.hashCode() : 0);
+        result = 31 * result + (currentService != null ? currentService.hashCode() : 0);
         result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         return result;

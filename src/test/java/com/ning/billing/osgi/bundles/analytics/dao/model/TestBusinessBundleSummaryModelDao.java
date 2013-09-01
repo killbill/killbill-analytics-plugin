@@ -31,7 +31,7 @@ public class TestBusinessBundleSummaryModelDao extends AnalyticsTestSuiteNoDB {
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, "ACTIVE", currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, null, null, Currency.GBP, startDate, serviceName, stateName, currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,
@@ -68,12 +68,15 @@ public class TestBusinessBundleSummaryModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(bundleSummaryModelDao.getCurrentPhase(), subscriptionTransitionModelDao.getNextPhase());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentBillingPeriod(), subscriptionTransitionModelDao.getNextBillingPeriod());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentPrice(), subscriptionTransitionModelDao.getNextPrice());
+        Assert.assertEquals(bundleSummaryModelDao.getConvertedCurrentPrice(), subscriptionTransitionModelDao.getConvertedNextPrice());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentPriceList(), subscriptionTransitionModelDao.getNextPriceList());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentMrr(), subscriptionTransitionModelDao.getNextMrr());
+        Assert.assertEquals(bundleSummaryModelDao.getConvertedCurrentMrr(), subscriptionTransitionModelDao.getConvertedNextMrr());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentCurrency(), subscriptionTransitionModelDao.getNextCurrency());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentBusinessActive(), subscriptionTransitionModelDao.getNextBusinessActive());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentStartDate(), subscriptionTransitionModelDao.getNextStartDate());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentEndDate(), subscriptionTransitionModelDao.getNextEndDate());
+        Assert.assertEquals(bundleSummaryModelDao.getCurrentService(), subscriptionTransitionModelDao.getNextService());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentState(), subscriptionTransitionModelDao.getNextState());
     }
 }

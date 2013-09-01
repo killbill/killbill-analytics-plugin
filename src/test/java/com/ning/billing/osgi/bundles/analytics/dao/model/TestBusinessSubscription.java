@@ -115,7 +115,8 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
                                                                                    null,
                                                                                    Currency.GBP,
                                                                                    startDate,
-                                                                                   "ACTIVE",
+                                                                                   serviceName,
+                                                                                   stateName,
                                                                                    currencyConverter);
         Assert.assertNull(businessSubscription.getProductName());
         Assert.assertNull(businessSubscription.getProductType());
@@ -126,7 +127,8 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(businessSubscription.getPrice());
         Assert.assertNull(businessSubscription.getPriceList(), priceList.getName());
         Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
-        Assert.assertEquals(businessSubscription.getState(), "ACTIVE");
+        Assert.assertEquals(businessSubscription.getService(), serviceName);
+        Assert.assertEquals(businessSubscription.getState(), stateName);
         //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
         Assert.assertEquals(businessSubscription.getStartDate(), startDate);
         Assert.assertNull(businessSubscription.getEndDate());
@@ -141,7 +143,8 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
                                                                                    priceList,
                                                                                    Currency.GBP,
                                                                                    startDate,
-                                                                                   "ACTIVE",
+                                                                                   serviceName,
+                                                                                   stateName,
                                                                                    currencyConverter);
         Assert.assertEquals(businessSubscription.getProductName(), plan.getProduct().getName());
         Assert.assertEquals(businessSubscription.getProductType(), plan.getProduct().getCatalogName());
@@ -152,7 +155,8 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSubscription.getPrice(), phase.getRecurringPrice().getPrice(Currency.GBP));
         Assert.assertEquals(businessSubscription.getPriceList(), priceList.getName());
         Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
-        Assert.assertEquals(businessSubscription.getState(), "ACTIVE");
+        Assert.assertEquals(businessSubscription.getService(), serviceName);
+        Assert.assertEquals(businessSubscription.getState(), stateName);
         //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
         Assert.assertEquals(businessSubscription.getStartDate(), startDate);
         Assert.assertNull(businessSubscription.getEndDate());

@@ -154,6 +154,10 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                         subscriptionTransition.getNextPriceList(),
                                         account.getCurrency(),
                                         subscriptionTransition.getEffectiveDate(),
+                                        // We don't record the blockedBilling/blockedEntitlement values
+                                        // as they are implicitly reflected in the subscription transition event name
+                                        // Note: we don't have information on blocked changes though
+                                        subscriptionTransition.getServiceName(),
                                         subscriptionTransition.getServiceStateName(),
                                         currencyConverter);
     }
