@@ -16,17 +16,31 @@
 
 package com.ning.billing.osgi.bundles.analytics.reports;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 
+/**
+ * Interprets the report filters specified by the user
+ */
 public class ReportSpecification {
 
-    private final List<String> pivotNamesToExclude = new ArrayList<String>();
-    private final List<String> pivotNamesToInclude = new ArrayList<String>();
+    private static final Splitter REPORT_FILTERS_SPLITTER = Splitter.on(Pattern.compile("\\|"))
+                                                                    .trimResults()
+                                                                    .omitEmptyStrings();
+    private static final Splitter FILTER_EXCLUDE_SPLITTER = Splitter.on(Pattern.compile("\\!\\="))
+                                                                    .trimResults()
+                                                                    .omitEmptyStrings();
+    private static final Splitter FILTER_INCLUDE_SPLITTER = Splitter.on(Pattern.compile("\\="))
+                                                                    .trimResults()
+                                                                    .omitEmptyStrings();
+    private final Multimap<String, String> exclusions = HashMultimap.create();
+    private final Multimap<String, String> inclusions = HashMultimap.create();
 
     private final String rawReportName;
 
@@ -37,31 +51,28 @@ public class ReportSpecification {
         parseRawReportName();
     }
 
-    public List<String> getPivotNamesToExclude() {
-        return pivotNamesToExclude;
-    }
-
-    public List<String> getPivotNamesToInclude() {
-        return pivotNamesToInclude;
-    }
-
     public String getReportName() {
         return reportName;
     }
 
-    private void parseRawReportName() {
-        final boolean hasExcludes = rawReportName.contains("!");
-        final boolean hasIncludes = rawReportName.contains("$");
-        if (hasExcludes && hasIncludes) {
-            throw new IllegalArgumentException();
-        }
+    // return true if the value should not be graphed
+    public boolean isFiltered(final String column, final String value) {
+        return isExcluded(column, value) || !isIncluded(column, value);
+    }
 
-        // rawReportName is in the form payments_per_day!AUD!BRL or payments_per_day$USD$EUR (but not both!)
-        final Iterator<String> reportIterator = Splitter.on(Pattern.compile("[\\!\\$]"))
-                                                        .trimResults()
-                                                        .omitEmptyStrings()
-                                                        .split(rawReportName)
-                                                        .iterator();
+    private boolean isExcluded(final String column, final String value) {
+        return exclusions.get(column).contains(value);
+    }
+
+    private boolean isIncluded(final String column, final String value) {
+        // Return true if no inclusion
+        return inclusions.get(column).size() == 0 || inclusions.get(column).contains(value);
+    }
+
+    private void parseRawReportName() {
+        // rawReportName is in the form payments_per_day|currency=AUD|currency=EUR or payments_per_day|currency!=AUD|currency!=EUR
+        final Iterator<String> reportIterator = REPORT_FILTERS_SPLITTER.split(rawReportName).iterator();
+
         boolean isFirst = true;
         while (reportIterator.hasNext()) {
             final String piece = reportIterator.next();
@@ -69,12 +80,21 @@ public class ReportSpecification {
             if (isFirst) {
                 reportName = piece;
             } else {
-                if (hasExcludes) {
-                    pivotNamesToExclude.add(piece);
-                } else if (hasIncludes) {
-                    pivotNamesToInclude.add(piece);
-                } else {
-                    throw new IllegalArgumentException();
+                final List<String> exclusion = ImmutableList.<String>copyOf(FILTER_EXCLUDE_SPLITTER.split(piece).iterator());
+                final List<String> inclusion = ImmutableList.<String>copyOf(FILTER_INCLUDE_SPLITTER.split(piece).iterator());
+
+                // Exclusions first
+                if (exclusion.size() == 2) {
+                    final String columnName = exclusion.get(0);
+                    final String value = exclusion.get(1);
+                    exclusions.put(columnName, value);
+                } else if (inclusion.size() == 2) {
+                    final String columnName = inclusion.get(0);
+                    final String value = inclusion.get(1);
+                    inclusions.put(columnName, value);
+                } else if (exclusions.size() != 0 || inclusions.size() != 0) {
+                    // Be lenient?
+                    //throw new IllegalArgumentException();
                 }
             }
 

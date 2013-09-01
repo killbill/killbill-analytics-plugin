@@ -1,5 +1,6 @@
 0.4.1
     Remove INI configuration file (use db table instead)
+    Remove single-pivot restriction (Dashboard API change)
 
 0.4.0
     API

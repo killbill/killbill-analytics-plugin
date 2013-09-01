@@ -56,6 +56,10 @@ public class ReportsUserApi {
     private static final Integer NB_THREADS = Integer.valueOf(System.getProperty("com.ning.billing.osgi.bundles.analytics.dashboard.nb_threads", "10"));
     private static final String NO_PIVOT = "____NO_PIVOT____";
 
+    // Part of the public API
+    private static final String DAY_COLUMN_NAME = "day";
+    private static final String COUNT_COLUMN_NAME = "count";
+
     private final ExecutorService dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(NB_THREADS, "osgi-analytics-dashboard");
 
     private final IDBI dbi;
@@ -120,10 +124,7 @@ public class ReportsUserApi {
         final Map<String, ReportsConfigurationModelDao> reportsConfigurations = reportsConfiguration.getAllReportConfigurations();
 
         // Fetch the data
-        fetchData(reportSpecifications, dataForReports, reportsConfigurations);
-
-        // Filter the data first
-        filterValues(reportSpecifications, dataForReports, startDate, endDate);
+        fetchData(reportSpecifications, dataForReports, reportsConfigurations, startDate, endDate);
 
         // Normalize and sort the data
         normalizeAndSortXValues(dataForReports, startDate, endDate);
@@ -160,7 +161,11 @@ public class ReportsUserApi {
         return results;
     }
 
-    private void fetchData(final List<ReportSpecification> reportSpecifications, final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
+    private void fetchData(final List<ReportSpecification> reportSpecifications,
+                           final Map<String, Map<String, List<XY>>> dataForReports,
+                           final Map<String, ReportsConfigurationModelDao> reportsConfigurations,
+                           @Nullable final LocalDate startDate,
+                           @Nullable final LocalDate endDate) {
         final List<Future> jobs = new LinkedList<Future>();
         for (final ReportSpecification reportSpecification : reportSpecifications) {
             final String reportName = reportSpecification.getReportName();
@@ -169,7 +174,7 @@ public class ReportsUserApi {
             jobs.add(dbiThreadsExecutor.submit(new Runnable() {
                 @Override
                 public void run() {
-                    final Map<String, List<XY>> data = getData(tableName);
+                    final Map<String, List<XY>> data = getData(tableName, reportSpecification, startDate, endDate);
                     dataForReports.put(reportName, data);
                 }
             }));
@@ -182,49 +187,6 @@ public class ReportsUserApi {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private void filterValues(final List<ReportSpecification> reportSpecifications,
-                              final Map<String, Map<String, List<XY>>> dataForReports,
-                              @Nullable final LocalDate startDate,
-                              @Nullable final LocalDate endDate) {
-        if (startDate == null && endDate == null) {
-            return;
-        }
-
-        for (final ReportSpecification reportSpecification : reportSpecifications) {
-            final String reportName = reportSpecification.getReportName();
-            final Map<String, List<XY>> dataForReport = dataForReports.get(reportName);
-            if (dataForReport == null) {
-                throw new IllegalArgumentException();
-            }
-
-            // Handle the exclusion list
-            Iterables.removeAll(dataForReport.keySet(), reportSpecification.getPivotNamesToExclude());
-
-            // Handle the inclusion list
-            if (reportSpecification.getPivotNamesToInclude().size() > 0) {
-                Iterables.removeIf(dataForReport.keySet(),
-                                   new Predicate<String>() {
-                                       @Override
-                                       public boolean apply(final String pivotName) {
-                                           return !reportSpecification.getPivotNamesToInclude().contains(pivotName);
-                                       }
-                                   });
-            }
-
-            // Handle the dates filter
-            for (final List<XY> dataForPivot : dataForReport.values()) {
-                Iterables.removeIf(dataForPivot,
-                                   new Predicate<XY>() {
-                                       @Override
-                                       public boolean apply(final XY xy) {
-                                           return startDate != null && xy.getxDate().toLocalDate().isBefore(startDate) ||
-                                                  endDate != null && xy.getxDate().toLocalDate().isAfter(endDate);
-                                       }
-                                   });
             }
         }
     }
@@ -299,34 +261,40 @@ public class ReportsUserApi {
         }
     }
 
-    private Map<String, List<XY>> getData(final String tableName) {
+    private Map<String, List<XY>> getData(final String tableName,
+                                          final ReportSpecification reportSpecification,
+                                          @Nullable final LocalDate startDate,
+                                          @Nullable final LocalDate endDate) {
         final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
 
         Handle handle = null;
         try {
             handle = dbi.open();
             final List<Map<String, Object>> results = handle.select("select * from " + tableName);
+            if (results.size() == 0) {
+                return timeSeries;
+            }
+
             for (final Map<String, Object> row : results) {
-                if (row.get("day") == null || row.get("count") == null) {
+                final Object dateObject = row.get(DAY_COLUMN_NAME);
+                final Object countObject = row.get(COUNT_COLUMN_NAME);
+                if (dateObject == null || countObject == null) {
                     continue;
                 }
 
-                final String date = row.get("day").toString();
-                final Float value = Float.valueOf(row.get("count").toString());
+                final String date = dateObject.toString();
+                final Float value = Float.valueOf(countObject.toString());
 
-                if (row.keySet().size() == 2) {
-                    // No pivot
-                    if (timeSeries.get(NO_PIVOT) == null) {
-                        timeSeries.put(NO_PIVOT, new LinkedList<XY>());
-                    }
-                    timeSeries.get(NO_PIVOT).add(new XY(date, value));
-                } else if (row.get("pivot") != null) {
-                    final String pivot = row.get("pivot").toString();
-                    if (timeSeries.get(pivot) == null) {
-                        timeSeries.put(pivot, new LinkedList<XY>());
-                    }
-                    timeSeries.get(pivot).add(new XY(date, value));
+                if (shouldFilterRow(date, row, reportSpecification, startDate, endDate)) {
+                    continue;
                 }
+
+                // Create a unique name for that result set
+                final String pivot = createNameForSeries(row);
+                if (timeSeries.get(pivot) == null) {
+                    timeSeries.put(pivot, new LinkedList<XY>());
+                }
+                timeSeries.get(pivot).add(new XY(date, value));
             }
         } finally {
             if (handle != null) {
@@ -335,6 +303,45 @@ public class ReportsUserApi {
         }
 
         return timeSeries;
+    }
+
+    private String createNameForSeries(final Map<String, Object> row) {
+        int i = 0;
+        final StringBuilder pivotBuilder = new StringBuilder();
+        for (final String column : row.keySet()) {
+            if (DAY_COLUMN_NAME.equals(column) || COUNT_COLUMN_NAME.equals(column)) {
+                continue;
+            } else {
+                if (i > 0) {
+                    pivotBuilder.append(" :: ");
+                }
+                pivotBuilder.append(row.get(column) == null ? "NULL" : row.get(column).toString());
+                i++;
+            }
+        }
+        if (i == 0) {
+            return NO_PIVOT;
+        } else {
+            return pivotBuilder.toString();
+        }
+    }
+
+    private boolean shouldFilterRow(final String date, final Map<String, Object> row, final ReportSpecification reportSpecification,
+                                    @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
+        // Handle the dates filter
+        final LocalDate localDate = new DateTime(date, DateTimeZone.UTC).toLocalDate();
+        if (startDate != null && localDate.isBefore(startDate) || endDate != null && localDate.isAfter(endDate)) {
+            return true;
+        }
+
+        for (final String column : row.keySet()) {
+            if (row.get(column) == null) {
+                continue;
+            } else if (reportSpecification.isFiltered(column, row.get(column).toString())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ReportsConfigurationModelDao getReportConfiguration(final String reportName, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
