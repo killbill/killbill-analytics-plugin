@@ -21,12 +21,14 @@ import java.util.List;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
+import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
+import org.skife.jdbi.v2.sqlobject.mixins.Transmogrifier;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
 import com.ning.billing.commons.jdbi.binder.SmartBindBean;
 
 @UseStringTemplate3StatementLocator
-public interface ReportsConfigurationSqlDao {
+public interface ReportsConfigurationSqlDao extends Transmogrifier, Transactional<ReportsConfigurationSqlDao> {
 
     @SqlQuery
     public List<ReportsConfigurationModelDao> getAllReportsConfigurations();

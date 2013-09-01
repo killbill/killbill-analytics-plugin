@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
+import com.ning.billing.osgi.bundles.analytics.reports.scheduler.AnalyticsReportJob;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 
 public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
@@ -35,6 +36,7 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
 
         // Verify initial state
         Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 0);
+        Assert.assertEquals(jobsScheduler.schedules().size(), 0);
 
         final ReportsConfigurationModelDao report1 = createReportConfiguration();
         final ReportsConfigurationModelDao report2 = createReportConfiguration();
@@ -45,6 +47,10 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(report1));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(report1));
 
+        final AnalyticsReportJob reportJob1 = new AnalyticsReportJob(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()));
+        Assert.assertEquals(jobsScheduler.schedules().size(), 1);
+        Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
+
         // Create the second one
         reportsConfiguration.createReportConfiguration(report2);
         Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 2);
@@ -52,6 +58,11 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report2.getReportName()).equalsNoRecordId(report2));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(report1));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName()).equalsNoRecordId(report2));
+
+        final AnalyticsReportJob reportJob2 = new AnalyticsReportJob(reportsConfiguration.getAllReportConfigurations().get(report2.getReportName()));
+        Assert.assertEquals(jobsScheduler.schedules().size(), 2);
+        Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
+        Assert.assertEquals(jobsScheduler.schedules().get(1), reportJob2);
 
         // Update the first one
         final ReportsConfigurationModelDao updatedReport1 = new ReportsConfigurationModelDao(report1.getReportName(),
@@ -66,12 +77,17 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report2.getReportName()).equalsNoRecordId(report2));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(updatedReport1));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName()).equalsNoRecordId(report2));
+        Assert.assertEquals(jobsScheduler.schedules().size(), 2);
+        Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
+        Assert.assertEquals(jobsScheduler.schedules().get(1), reportJob2);
 
         // Delete the second one
         reportsConfiguration.deleteReportConfiguration(report2.getReportName());
         Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 1);
         Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(updatedReport1));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(updatedReport1));
+        Assert.assertEquals(jobsScheduler.schedules().size(), 1);
+        Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
     }
 
     private ReportsConfigurationModelDao createReportConfiguration() {

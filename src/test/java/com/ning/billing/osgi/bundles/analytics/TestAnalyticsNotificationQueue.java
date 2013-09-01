@@ -16,7 +16,6 @@
 
 package com.ning.billing.osgi.bundles.analytics;
 
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -24,9 +23,6 @@ import java.util.concurrent.TimeUnit;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import org.skife.config.ConfigurationObjectFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -36,8 +32,6 @@ import com.ning.billing.account.api.Account;
 import com.ning.billing.account.api.AccountUserApi;
 import com.ning.billing.notification.plugin.api.ExtBusEvent;
 import com.ning.billing.notification.plugin.api.ExtBusEventType;
-import com.ning.billing.notificationq.DefaultNotificationQueueService;
-import com.ning.billing.notificationq.api.NotificationQueueConfig;
 import com.ning.billing.util.api.AuditLevel;
 import com.ning.billing.util.api.AuditUserApi;
 import com.ning.billing.util.api.CustomFieldUserApi;
@@ -48,31 +42,14 @@ import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.billing.util.customfield.CustomField;
 import com.ning.billing.util.tag.Tag;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.jayway.awaitility.Awaitility;
 
 public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbeddedDB {
 
-    private final Properties properties = new Properties();
-
-    // Override the mock
-    private DefaultNotificationQueueService notificationQueueService;
-
     @BeforeMethod(groups = "slow")
     public void prepareMocks() throws Exception {
-        logService = Mockito.mock(OSGIKillbillLogService.class);
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(final InvocationOnMock invocation) throws Throwable {
-                //logger.info(Arrays.toString(invocation.getArguments()));
-                return null;
-            }
-        }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
-
         account = Mockito.mock(Account.class);
         Mockito.when(account.getId()).thenReturn(UUID.randomUUID());
 
@@ -105,13 +82,6 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Mockito.when(killbillAPI.getTagUserApi()).thenReturn(tagUserApi);
         Mockito.when(killbillAPI.getCustomFieldUserApi()).thenReturn(customFieldUserApi);
         Mockito.when(killbillAPI.getAuditUserApi()).thenReturn(auditUserApi);
-
-        properties.setProperty("killbill.billing.notificationq.analytics.tableName", "analytics_notifications");
-        properties.setProperty("killbill.billing.notificationq.analytics.historyTableName", "analytics_notifications_history");
-
-        final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).buildWithReplacements(NotificationQueueConfig.class,
-                                                                                                                ImmutableMap.<String, String>of("instanceName", "analytics"));
-        notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
     }
 
     @Test(groups = "slow")

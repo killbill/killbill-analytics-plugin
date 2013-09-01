@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Transaction;
+import org.skife.jdbi.v2.TransactionStatus;
 
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
@@ -39,17 +41,21 @@ public class ReportsConfiguration {
         this.scheduler = scheduler;
     }
 
-    public void initialize() {
-        final List<ReportsConfigurationModelDao> reports = sqlDao.getAllReportsConfigurations();
-        for (final ReportsConfigurationModelDao report : reports) {
-            if (report.getRefreshFrequency() != null && report.getRefreshProcedureName() != null) {
-                scheduler.schedule(report);
-            }
-        }
-    }
-
     public void createReportConfiguration(final ReportsConfigurationModelDao report) {
-        sqlDao.addReportConfiguration(report);
+        sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
+            @Override
+            public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
+                transactional.addReportConfiguration(report);
+
+                if (report.getRefreshFrequency() != null && report.getRefreshProcedureName() != null) {
+                    // Re-read the record to optimize the schedule creation path
+                    final ReportsConfigurationModelDao reportWithRecordId = transactional.getReportConfigurationForReport(report.getReportName());
+                    scheduler.schedule(reportWithRecordId, transactional);
+                }
+
+                return null;
+            }
+        });
     }
 
     public void updateReportConfiguration(final ReportsConfigurationModelDao report) {
@@ -57,7 +63,17 @@ public class ReportsConfiguration {
     }
 
     public void deleteReportConfiguration(final String reportName) {
-        sqlDao.deleteReportConfiguration(reportName);
+        sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
+            @Override
+            public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
+                // Re-read the record to optimize the schedule deletion path
+                final ReportsConfigurationModelDao reportsConfigurationModelDao = transactional.getReportConfigurationForReport(reportName);
+
+                transactional.deleteReportConfiguration(reportName);
+                scheduler.unSchedule(reportsConfigurationModelDao, transactional);
+                return null;
+            }
+        });
     }
 
     public Map<String, ReportsConfigurationModelDao> getAllReportConfigurations() {

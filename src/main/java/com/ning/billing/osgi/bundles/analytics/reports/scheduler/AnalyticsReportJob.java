@@ -114,6 +114,10 @@ public class AnalyticsReportJob implements NotificationEvent {
         if (recordId != null ? !recordId.equals(that.recordId) : that.recordId != null) {
             return false;
         }
+        return equalsNoRecordId(that);
+    }
+
+    public boolean equalsNoRecordId(final AnalyticsReportJob that) {
         if (refreshFrequency != that.refreshFrequency) {
             return false;
         }

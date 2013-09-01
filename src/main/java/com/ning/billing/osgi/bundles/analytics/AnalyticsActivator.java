@@ -74,7 +74,6 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         jobsScheduler.start();
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
-        reportsConfiguration.initialize();
 
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, executor, clock);
         reportsUserApi = new ReportsUserApi(dataSource, reportsConfiguration, jobsScheduler);

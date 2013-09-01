@@ -17,13 +17,18 @@
 package com.ning.billing.osgi.bundles.analytics.reports.scheduler;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Call;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
+import org.skife.jdbi.v2.sqlobject.mixins.Transmogrifier;
 
 import com.ning.billing.clock.Clock;
 import com.ning.billing.notificationq.DefaultNotificationQueueService;
@@ -46,6 +51,10 @@ import com.google.common.collect.Iterables;
 import static com.ning.billing.osgi.bundles.analytics.AnalyticsActivator.ANALYTICS_QUEUE_SERVICE;
 
 public class JobsScheduler {
+
+    // Current version of the jobs in the notification queue
+    // This is useful to retrieve all currently scheduled ones
+    private static final Long JOBS_SCHEDULER_VERSION = 1L;
 
     private final OSGIKillbillLogService logService;
     private final IDBI dbi;
@@ -75,7 +84,7 @@ public class JobsScheduler {
                 try {
                     callStoredProcedure(job.getRefreshProcedureName());
                 } finally {
-                    schedule(job);
+                    schedule(job, null);
                     logService.log(LogService.LOG_INFO, "Ending job for " + job.getReportName());
                 }
             }
@@ -95,35 +104,69 @@ public class JobsScheduler {
 
     public void scheduleNow(final ReportsConfigurationModelDao report) {
         final AnalyticsReportJob eventJson = new AnalyticsReportJob(report);
-        schedule(eventJson, clock.getUTCNow());
+        schedule(eventJson, clock.getUTCNow(), null);
     }
 
-    public void schedule(final ReportsConfigurationModelDao report) {
+    public void schedule(final ReportsConfigurationModelDao report, final Transmogrifier transmogrifier) {
         final AnalyticsReportJob eventJson = new AnalyticsReportJob(report);
-        schedule(eventJson);
+        schedule(eventJson, transmogrifier);
     }
 
-    private void schedule(final AnalyticsReportJob eventJson) {
+    public void unSchedule(final ReportsConfigurationModelDao report, final Transmogrifier transmogrifier) {
+        final AnalyticsReportJob eventJson = new AnalyticsReportJob(report);
+        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotificationsForReportJob(eventJson)) {
+            jobQueue.removeNotificationFromTransaction(transmogrifier, notification.getRecordId());
+        }
+    }
+
+    public List<AnalyticsReportJob> schedules() {
+        final List<AnalyticsReportJob> schedules = new LinkedList<AnalyticsReportJob>();
+        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotifications()) {
+            schedules.add(notification.getEvent());
+        }
+        return schedules;
+    }
+
+    private List<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications() {
+        return jobQueue.getFutureNotificationForSearchKey2(AnalyticsReportJob.class, JOBS_SCHEDULER_VERSION);
+    }
+
+    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob) {
+        final Integer eventJsonRecordId = reportJob.getRecordId();
+        if (eventJsonRecordId != null) {
+            // Fast search path
+            return jobQueue.getFutureNotificationForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJsonRecordId));
+        } else {
+            // Slow search path
+            return Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>filter(getFutureNotifications(),
+                                                                                       new Predicate<NotificationEventWithMetadata<AnalyticsReportJob>>() {
+                                                                                           @Override
+                                                                                           public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> existingJob) {
+                                                                                               return existingJob.getEvent().equalsNoRecordId(reportJob);
+                                                                                           }
+                                                                                       });
+        }
+    }
+
+    private void schedule(final AnalyticsReportJob eventJson, @Nullable final Transmogrifier transmogrifier) {
         // Verify we don't already have a job for that report
-        if (Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>tryFind(jobQueue.getFutureNotificationForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJson.getRecordId())),
-                                                                                 new Predicate<NotificationEventWithMetadata<AnalyticsReportJob>>() {
-                                                                                     @Override
-                                                                                     public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> notificationEvent) {
-                                                                                         return notificationEvent.getEvent().equals(eventJson);
-                                                                                     }
-                                                                                 }).isPresent()) {
+        if (getFutureNotificationsForReportJob(eventJson).iterator().hasNext()) {
             logService.log(LogService.LOG_DEBUG, "Skipping already present job for report " + eventJson.toString());
             return;
         }
 
         final DateTime nextRun = computeNextRun(eventJson);
         logService.log(LogService.LOG_INFO, "Next run for report " + eventJson.getReportName() + " will be at " + nextRun);
-        schedule(eventJson, nextRun);
+        schedule(eventJson, nextRun, transmogrifier);
     }
 
-    private void schedule(final AnalyticsReportJob eventJson, final DateTime nextRun) {
+    private void schedule(final AnalyticsReportJob eventJson, final DateTime nextRun, @Nullable final Transmogrifier transmogrifier) {
         try {
-            jobQueue.recordFutureNotification(nextRun, eventJson, UUID.randomUUID(), Long.valueOf(eventJson.getRecordId()), null);
+            if (transmogrifier == null) {
+                jobQueue.recordFutureNotification(nextRun, eventJson, UUID.randomUUID(), Long.valueOf(eventJson.getRecordId()), JOBS_SCHEDULER_VERSION);
+            } else {
+                jobQueue.recordFutureNotificationFromTransaction(transmogrifier, nextRun, eventJson, UUID.randomUUID(), Long.valueOf(eventJson.getRecordId()), JOBS_SCHEDULER_VERSION);
+            }
         } catch (IOException e) {
             logService.log(LogService.LOG_WARNING, "Unable to record notification for report " + eventJson.toString());
         }

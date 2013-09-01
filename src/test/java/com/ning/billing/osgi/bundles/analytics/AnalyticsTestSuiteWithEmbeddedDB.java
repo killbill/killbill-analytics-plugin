@@ -19,11 +19,13 @@ package com.ning.billing.osgi.bundles.analytics;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
+import org.skife.config.ConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -33,12 +35,15 @@ import org.testng.annotations.BeforeMethod;
 import com.ning.billing.clock.Clock;
 import com.ning.billing.clock.DefaultClock;
 import com.ning.billing.commons.embeddeddb.mysql.MySQLEmbeddedDB;
+import com.ning.billing.notificationq.DefaultNotificationQueueService;
+import com.ning.billing.notificationq.api.NotificationQueueConfig;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessAnalyticsSqlDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
 import com.ning.billing.osgi.bundles.analytics.dao.model.CurrencyConversionModelDao;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.CharStreams;
@@ -50,9 +55,11 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     protected MySQLEmbeddedDB embeddedDB;
     protected DBI dbi;
     protected BusinessAnalyticsSqlDao analyticsSqlDao;
+    protected DefaultNotificationQueueService notificationQueueService;
 
     protected final Clock clock = new DefaultClock();
     protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
+    protected final Properties properties = new Properties();
 
     @BeforeClass(groups = "slow")
     public void setUpClass() throws Exception {
@@ -76,6 +83,13 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         dbi = BusinessDBIProvider.get(embeddedDB.getDataSource());
         analyticsSqlDao = dbi.onDemand(BusinessAnalyticsSqlDao.class);
+
+        properties.setProperty("killbill.billing.notificationq.analytics.tableName", "analytics_notifications");
+        properties.setProperty("killbill.billing.notificationq.analytics.historyTableName", "analytics_notifications_history");
+
+        final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).buildWithReplacements(NotificationQueueConfig.class,
+                                                                                                                ImmutableMap.<String, String>of("instanceName", "analytics"));
+        notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
     }
 
     @AfterClass(groups = "slow")

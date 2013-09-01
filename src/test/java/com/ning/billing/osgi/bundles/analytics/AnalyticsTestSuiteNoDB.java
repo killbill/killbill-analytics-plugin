@@ -26,6 +26,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -189,6 +191,15 @@ public abstract class AnalyticsTestSuiteNoDB {
 
     @BeforeMethod(groups = "fast")
     public void setUp() throws Exception {
+        logService = Mockito.mock(OSGIKillbillLogService.class);
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(final InvocationOnMock invocation) throws Throwable {
+                //logger.info(Arrays.toString(invocation.getArguments()));
+                return null;
+            }
+        }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
+
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<String>anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Account>any())).thenReturn(BigDecimal.TEN);

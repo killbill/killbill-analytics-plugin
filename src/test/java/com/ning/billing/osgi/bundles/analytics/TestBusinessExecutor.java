@@ -34,21 +34,6 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class TestBusinessExecutor extends AnalyticsTestSuiteNoDB {
 
-    @Override
-    @BeforeMethod(groups = "fast")
-    public void setUp() throws Exception {
-        super.setUp();
-
-        logService = Mockito.mock(OSGIKillbillLogService.class);
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(final InvocationOnMock invocation) throws Throwable {
-                //logger.info(Arrays.toString(invocation.getArguments()));
-                return null;
-            }
-        }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
-    }
-
     @Test(groups = "fast")
     public void testRejectionPolicy() throws Exception {
         final Executor executor = BusinessExecutor.newCachedThreadPool();
