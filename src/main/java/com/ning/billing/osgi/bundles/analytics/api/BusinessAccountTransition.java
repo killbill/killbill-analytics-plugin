@@ -18,30 +18,36 @@ package com.ning.billing.osgi.bundles.analytics.api;
 
 import org.joda.time.LocalDate;
 
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 
-public class BusinessOverdueStatus extends BusinessEntityBase {
+public class BusinessAccountTransition extends BusinessEntityBase {
 
-    private final String status;
+    private final String service;
+    private final String state;
     private final LocalDate startDate;
     private final LocalDate endDate;
 
-    public BusinessOverdueStatus(final BusinessOverdueStatusModelDao businessOverdueStatusModelDao) {
-        super(businessOverdueStatusModelDao.getCreatedDate(),
-              businessOverdueStatusModelDao.getCreatedBy(),
-              businessOverdueStatusModelDao.getCreatedReasonCode(),
-              businessOverdueStatusModelDao.getCreatedComments(),
-              businessOverdueStatusModelDao.getAccountId(),
-              businessOverdueStatusModelDao.getAccountName(),
-              businessOverdueStatusModelDao.getAccountExternalKey(),
-              businessOverdueStatusModelDao.getReportGroup());
-        this.status = businessOverdueStatusModelDao.getStatus();
-        this.startDate = businessOverdueStatusModelDao.getStartDate();
-        this.endDate = businessOverdueStatusModelDao.getEndDate();
+    public BusinessAccountTransition(final BusinessAccountTransitionModelDao businessAccountTransitionModelDao) {
+        super(businessAccountTransitionModelDao.getCreatedDate(),
+              businessAccountTransitionModelDao.getCreatedBy(),
+              businessAccountTransitionModelDao.getCreatedReasonCode(),
+              businessAccountTransitionModelDao.getCreatedComments(),
+              businessAccountTransitionModelDao.getAccountId(),
+              businessAccountTransitionModelDao.getAccountName(),
+              businessAccountTransitionModelDao.getAccountExternalKey(),
+              businessAccountTransitionModelDao.getReportGroup());
+        this.service = businessAccountTransitionModelDao.getService();
+        this.state = businessAccountTransitionModelDao.getState();
+        this.startDate = businessAccountTransitionModelDao.getStartDate();
+        this.endDate = businessAccountTransitionModelDao.getEndDate();
     }
 
-    public String getStatus() {
-        return status;
+    public String getService() {
+        return service;
+    }
+
+    public String getState() {
+        return state;
     }
 
     public LocalDate getStartDate() {
@@ -54,8 +60,9 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("BusinessOverdueStatus{");
-        sb.append("status='").append(status).append('\'');
+        final StringBuilder sb = new StringBuilder("BusinessAccountTransition{");
+        sb.append("service='").append(service).append('\'');
+        sb.append(", state='").append(state).append('\'');
         sb.append(", startDate=").append(startDate);
         sb.append(", endDate=").append(endDate);
         sb.append('}');
@@ -74,7 +81,7 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
             return false;
         }
 
-        final BusinessOverdueStatus that = (BusinessOverdueStatus) o;
+        final BusinessAccountTransition that = (BusinessAccountTransition) o;
 
         if (endDate != null ? endDate.compareTo(that.endDate) != 0 : that.endDate != null) {
             return false;
@@ -82,7 +89,10 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
         if (startDate != null ? startDate.compareTo(that.startDate) != 0 : that.startDate != null) {
             return false;
         }
-        if (status != null ? !status.equals(that.status) : that.status != null) {
+        if (service != null ? !service.equals(that.service) : that.service != null) {
+            return false;
+        }
+        if (state != null ? !state.equals(that.state) : that.state != null) {
             return false;
         }
 
@@ -92,7 +102,8 @@ public class BusinessOverdueStatus extends BusinessEntityBase {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (service != null ? service.hashCode() : 0);
+        result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (endDate != null ? endDate.hashCode() : 0);
         return result;

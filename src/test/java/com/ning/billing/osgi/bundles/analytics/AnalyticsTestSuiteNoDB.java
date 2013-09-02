@@ -113,7 +113,6 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected PlanPhase phase;
     protected PriceList priceList;
     protected SubscriptionEvent subscriptionTransition;
-    protected String blockingStateName = UUID.randomUUID().toString();
     protected Invoice invoice;
     protected InvoiceItem invoiceItem;
     protected InvoicePayment invoicePayment;

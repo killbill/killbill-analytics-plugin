@@ -24,33 +24,34 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import com.ning.billing.account.api.Account;
-import com.ning.billing.entitlement.api.BlockingState;
 import com.ning.billing.util.audit.AuditLog;
 
-public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
+public class BusinessAccountTransitionModelDao extends BusinessModelDaoBase {
 
-    private static final String OVERDUE_STATUS_TABLE_NAME = "analytics_entitlement_states";
+    private static final String ACCOUNT_TRANSITIONS_TABLE_NAME = "analytics_account_transitions";
     private Long blockingStateRecordId;
-    private String status;
+    private String service;
+    private String state;
     private LocalDate startDate;
     private LocalDate endDate;
 
-    public BusinessOverdueStatusModelDao() { /* When reading from the database */ }
+    public BusinessAccountTransitionModelDao() { /* When reading from the database */ }
 
-    public BusinessOverdueStatusModelDao(final Long blockingStateRecordId,
-                                         final String status,
-                                         final LocalDate startDate,
-                                         final LocalDate endDate,
-                                         final DateTime createdDate,
-                                         final String createdBy,
-                                         final String createdReasonCode,
-                                         final String createdComments,
-                                         final UUID accountId,
-                                         final String accountName,
-                                         final String accountExternalKey,
-                                         final Long accountRecordId,
-                                         final Long tenantRecordId,
-                                         @Nullable final ReportGroup reportGroup) {
+    public BusinessAccountTransitionModelDao(final Long blockingStateRecordId,
+                                             final String service,
+                                             final String state,
+                                             final LocalDate startDate,
+                                             final LocalDate endDate,
+                                             final DateTime createdDate,
+                                             final String createdBy,
+                                             final String createdReasonCode,
+                                             final String createdComments,
+                                             final UUID accountId,
+                                             final String accountName,
+                                             final String accountExternalKey,
+                                             final Long accountRecordId,
+                                             final Long tenantRecordId,
+                                             @Nullable final ReportGroup reportGroup) {
         super(createdDate,
               createdBy,
               createdReasonCode,
@@ -62,22 +63,25 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
               tenantRecordId,
               reportGroup);
         this.blockingStateRecordId = blockingStateRecordId;
-        this.status = status;
+        this.service = service;
+        this.state = state;
         this.startDate = startDate;
         this.endDate = endDate;
     }
 
-    public BusinessOverdueStatusModelDao(final Account account,
-                                         final Long accountRecordId,
-                                         final String stateName,
-                                         final LocalDate startDate,
-                                         final Long blockingStateRecordId,
-                                         final LocalDate endDate,
-                                         @Nullable final AuditLog creationAuditLog,
-                                         final Long tenantRecordId,
-                                         @Nullable final ReportGroup reportGroup) {
+    public BusinessAccountTransitionModelDao(final Account account,
+                                             final Long accountRecordId,
+                                             final String service,
+                                             final String state,
+                                             final LocalDate startDate,
+                                             final Long blockingStateRecordId,
+                                             final LocalDate endDate,
+                                             @Nullable final AuditLog creationAuditLog,
+                                             final Long tenantRecordId,
+                                             @Nullable final ReportGroup reportGroup) {
         this(blockingStateRecordId,
-             stateName,
+             service,
+             state,
              startDate,
              endDate,
              creationAuditLog != null ? creationAuditLog.getCreatedDate() : null,
@@ -94,15 +98,19 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
 
     @Override
     public String getTableName() {
-        return OVERDUE_STATUS_TABLE_NAME;
+        return ACCOUNT_TRANSITIONS_TABLE_NAME;
     }
 
     public Long getBlockingStateRecordId() {
         return blockingStateRecordId;
     }
 
-    public String getStatus() {
-        return status;
+    public String getService() {
+        return service;
+    }
+
+    public String getState() {
+        return state;
     }
 
     public LocalDate getStartDate() {
@@ -115,10 +123,10 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessOverdueStatusModelDao");
-        sb.append("{blockingStateRecordId=").append(blockingStateRecordId);
-        sb.append(", status='").append(status).append('\'');
+        final StringBuilder sb = new StringBuilder("BusinessAccountTransitionModelDao{");
+        sb.append("blockingStateRecordId=").append(blockingStateRecordId);
+        sb.append(", service='").append(service).append('\'');
+        sb.append(", state='").append(state).append('\'');
         sb.append(", startDate=").append(startDate);
         sb.append(", endDate=").append(endDate);
         sb.append('}');
@@ -137,7 +145,7 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
             return false;
         }
 
-        final BusinessOverdueStatusModelDao that = (BusinessOverdueStatusModelDao) o;
+        final BusinessAccountTransitionModelDao that = (BusinessAccountTransitionModelDao) o;
 
         if (blockingStateRecordId != null ? !blockingStateRecordId.equals(that.blockingStateRecordId) : that.blockingStateRecordId != null) {
             return false;
@@ -148,7 +156,10 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
         if (startDate != null ? (startDate.compareTo(that.startDate) != 0) : that.startDate != null) {
             return false;
         }
-        if (status != null ? !status.equals(that.status) : that.status != null) {
+        if (service != null ? !service.equals(that.service) : that.service != null) {
+            return false;
+        }
+        if (state != null ? !state.equals(that.state) : that.state != null) {
             return false;
         }
 
@@ -159,7 +170,8 @@ public class BusinessOverdueStatusModelDao extends BusinessModelDaoBase {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (blockingStateRecordId != null ? blockingStateRecordId.hashCode() : 0);
-        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (service != null ? service.hashCode() : 0);
+        result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
         result = 31 * result + (endDate != null ? endDate.hashCode() : 0);
         return result;

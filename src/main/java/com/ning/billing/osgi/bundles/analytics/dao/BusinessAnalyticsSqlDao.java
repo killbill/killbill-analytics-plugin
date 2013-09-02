@@ -44,7 +44,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentR
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
@@ -80,9 +80,9 @@ public interface BusinessAnalyticsSqlDao extends Transactional<BusinessAnalytics
                                                                                    final TenantContext tenantContext);
 
     @SqlQuery
-    public List<BusinessOverdueStatusModelDao> getOverdueStatusesByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
-                                                                                   @Bind("tenantRecordId") final Long tenantRecordId,
-                                                                                   final TenantContext tenantContext);
+    public List<BusinessAccountTransitionModelDao> getAccountTransitionsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
+                                                                                          @Bind("tenantRecordId") final Long tenantRecordId,
+                                                                                          final TenantContext tenantContext);
 
     @SqlQuery
     public List<BusinessInvoiceModelDao> getInvoicesByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,

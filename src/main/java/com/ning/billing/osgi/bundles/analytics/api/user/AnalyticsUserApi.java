@@ -23,10 +23,10 @@ import java.util.concurrent.Executor;
 import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccount;
+import com.ning.billing.osgi.bundles.analytics.api.BusinessAccountTransition;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessField;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoice;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoicePayment;
-import com.ning.billing.osgi.bundles.analytics.api.BusinessOverdueStatus;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessSnapshot;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessSubscriptionTransition;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessTag;
@@ -55,10 +55,10 @@ public class AnalyticsUserApi {
     public BusinessSnapshot getBusinessSnapshot(final UUID accountId, final TenantContext context) {
         // Find account
         final BusinessAccount businessAccount = analyticsDao.getAccountById(accountId, context);
+        final Collection<BusinessAccountTransition> businessAccountTransitions = analyticsDao.getAccountTransitionsForAccount(accountId, context);
 
-        // Find all transitions for all bundles for that account, and associated overdue statuses
+        // Find all transitions for all bundles for that account
         final Collection<BusinessSubscriptionTransition> businessSubscriptionTransitions = analyticsDao.getSubscriptionTransitionsForAccount(accountId, context);
-        final Collection<BusinessOverdueStatus> businessOverdueStatuses = analyticsDao.getOverdueStatusesForAccount(accountId, context);
 
         // Find all invoices for that account
         final Collection<BusinessInvoice> businessInvoices = analyticsDao.getInvoicesForAccount(accountId, context);
@@ -76,7 +76,7 @@ public class AnalyticsUserApi {
                                     businessSubscriptionTransitions,
                                     businessInvoices,
                                     businessInvoicePayments,
-                                    businessOverdueStatuses,
+                                    businessAccountTransitions,
                                     businessTags,
                                     businessFields);
     }

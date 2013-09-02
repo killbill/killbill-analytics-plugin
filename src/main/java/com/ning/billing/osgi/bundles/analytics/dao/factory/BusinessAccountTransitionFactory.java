@@ -27,8 +27,8 @@ import com.ning.billing.account.api.Account;
 import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -38,24 +38,24 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-public class BusinessOverdueStatusFactory extends BusinessFactoryBase {
+public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
 
-    public BusinessOverdueStatusFactory(final OSGIKillbillLogService logService,
-                                        final OSGIKillbillAPI osgiKillbillAPI,
-                                        final OSGIKillbillDataSource osgiKillbillDataSource,
-                                        final Clock clock) {
+    public BusinessAccountTransitionFactory(final OSGIKillbillLogService logService,
+                                            final OSGIKillbillAPI osgiKillbillAPI,
+                                            final OSGIKillbillDataSource osgiKillbillDataSource,
+                                            final Clock clock) {
         super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public Collection<BusinessOverdueStatusModelDao> createBusinessOverdueStatuses(final UUID accountId,
-                                                                                   final CallContext context) throws AnalyticsRefreshException {
+    public Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final UUID accountId,
+                                                                                          final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
-        final Collection<BusinessOverdueStatusModelDao> businessOverdueStatuses = new LinkedList<BusinessOverdueStatusModelDao>();
+        final Collection<BusinessAccountTransitionModelDao> businessAccountTransitions = new LinkedList<BusinessAccountTransitionModelDao>();
 
         final List<SubscriptionEvent> blockingStatesOrdered = getBlockingHistory(accountId, context);
         if (blockingStatesOrdered.size() == 0) {
-            return businessOverdueStatuses;
+            return businessAccountTransitions;
         }
 
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
@@ -67,19 +67,20 @@ public class BusinessOverdueStatusFactory extends BusinessFactoryBase {
         for (final SubscriptionEvent state : blockingStates) {
             final Long blockingStateRecordId = getBlockingStateRecordId(state.getId(), context);
             final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), context);
-            final BusinessOverdueStatusModelDao overdueStatus = new BusinessOverdueStatusModelDao(account,
-                                                                                                  accountRecordId,
-                                                                                                  state.getServiceStateName(),
-                                                                                                  state.getEffectiveDate(),
-                                                                                                  blockingStateRecordId,
-                                                                                                  previousStartDate,
-                                                                                                  creationAuditLog,
-                                                                                                  tenantRecordId,
-                                                                                                  reportGroup);
-            businessOverdueStatuses.add(overdueStatus);
+            final BusinessAccountTransitionModelDao accountTransition = new BusinessAccountTransitionModelDao(account,
+                                                                                                              accountRecordId,
+                                                                                                              state.getServiceName(),
+                                                                                                              state.getServiceStateName(),
+                                                                                                              state.getEffectiveDate(),
+                                                                                                              blockingStateRecordId,
+                                                                                                              previousStartDate,
+                                                                                                              creationAuditLog,
+                                                                                                              tenantRecordId,
+                                                                                                              reportGroup);
+            businessAccountTransitions.add(accountTransition);
             previousStartDate = state.getEffectiveDate();
         }
 
-        return businessOverdueStatuses;
+        return businessAccountTransitions;
     }
 }

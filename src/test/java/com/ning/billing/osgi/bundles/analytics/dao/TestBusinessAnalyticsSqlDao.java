@@ -18,8 +18,6 @@ package com.ning.billing.osgi.bundles.analytics.dao;
 
 import java.math.BigDecimal;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -31,6 +29,7 @@ import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleTagModelDao;
@@ -43,7 +42,6 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentF
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceTagModelDao;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscription;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
@@ -287,26 +285,27 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
     public void testSqlDaoForOverdueStatus() throws Exception {
         final LocalDate startDate = new LocalDate(2005, 6, 5);
         final LocalDate endDate = new LocalDate(2005, 6, 5);
-        final BusinessOverdueStatusModelDao businessOverdueStatusModelDao = new BusinessOverdueStatusModelDao(account,
-                                                                                                              accountRecordId,
-                                                                                                              blockingStateName,
-                                                                                                              startDate,
-                                                                                                              blockingStateRecordId,
-                                                                                                              endDate,
-                                                                                                              auditLog,
-                                                                                                              tenantRecordId,
-                                                                                                              reportGroup);
+        final BusinessAccountTransitionModelDao businessAccountTransitionModelDao = new BusinessAccountTransitionModelDao(account,
+                                                                                                                          accountRecordId,
+                                                                                                                          serviceName,
+                                                                                                                          stateName,
+                                                                                                                          startDate,
+                                                                                                                          blockingStateRecordId,
+                                                                                                                          endDate,
+                                                                                                                          auditLog,
+                                                                                                                          tenantRecordId,
+                                                                                                                          reportGroup);
         // Check the record doesn't exist yet
         Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Create and check we can retrieve it
-        analyticsSqlDao.create(businessOverdueStatusModelDao.getTableName(), businessOverdueStatusModelDao, callContext);
-        Assert.assertEquals(analyticsSqlDao.getOverdueStatusesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 1);
-        Assert.assertEquals(analyticsSqlDao.getOverdueStatusesByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0), businessOverdueStatusModelDao);
+        analyticsSqlDao.create(businessAccountTransitionModelDao.getTableName(), businessAccountTransitionModelDao, callContext);
+        Assert.assertEquals(analyticsSqlDao.getAccountTransitionsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 1);
+        Assert.assertEquals(analyticsSqlDao.getAccountTransitionsByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0), businessAccountTransitionModelDao);
 
         // Delete and verify it doesn't exist anymore
-        analyticsSqlDao.deleteByAccountRecordId(businessOverdueStatusModelDao.getTableName(), accountRecordId, tenantRecordId, callContext);
-        Assert.assertEquals(analyticsSqlDao.getOverdueStatusesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
+        analyticsSqlDao.deleteByAccountRecordId(businessAccountTransitionModelDao.getTableName(), accountRecordId, tenantRecordId, callContext);
+        Assert.assertEquals(analyticsSqlDao.getAccountTransitionsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
     }
 
     @Test(groups = "slow")

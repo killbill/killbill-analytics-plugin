@@ -18,67 +18,65 @@ package com.ning.billing.osgi.bundles.analytics.dao;
 
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.Executor;
 
 import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
-import com.ning.billing.ObjectType;
 import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
-import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessOverdueStatusFactory;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessAccountTransitionFactory;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
-public class BusinessOverdueStatusDao extends BusinessAnalyticsDaoBase {
+public class BusinessAccountTransitionDao extends BusinessAnalyticsDaoBase {
 
     private final LogService logService;
-    private final BusinessOverdueStatusFactory bosFactory;
+    private final BusinessAccountTransitionFactory bosFactory;
 
-    public BusinessOverdueStatusDao(final OSGIKillbillLogService logService,
-                                    final OSGIKillbillAPI osgiKillbillAPI,
-                                    final OSGIKillbillDataSource osgiKillbillDataSource,
-                                    final Clock clock) {
+    public BusinessAccountTransitionDao(final OSGIKillbillLogService logService,
+                                        final OSGIKillbillAPI osgiKillbillAPI,
+                                        final OSGIKillbillDataSource osgiKillbillDataSource,
+                                        final Clock clock) {
         super(logService, osgiKillbillDataSource);
         this.logService = logService;
-        bosFactory = new BusinessOverdueStatusFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bosFactory = new BusinessAccountTransitionFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics overdue states for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics account transitions for account " + accountId);
 
-        final Collection<BusinessOverdueStatusModelDao> businessOverdueStatuses = bosFactory.createBusinessOverdueStatuses(accountId, context);
+        final Collection<BusinessAccountTransitionModelDao> businessAccountTransitions = bosFactory.createBusinessAccountTransitions(accountId, context);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
-                updateInTransaction(businessOverdueStatuses, transactional, context);
+                updateInTransaction(businessAccountTransitions, transactional, context);
                 return null;
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics overdue states for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics account transitions for account " + accountId);
     }
 
-    private void updateInTransaction(final Collection<BusinessOverdueStatusModelDao> businessOverdueStatuses,
+    private void updateInTransaction(final Collection<BusinessAccountTransitionModelDao> businessAccountTransitionModelDaos,
                                      final BusinessAnalyticsSqlDao transactional,
                                      final CallContext context) {
-        if (businessOverdueStatuses.size() == 0) {
+        if (businessAccountTransitionModelDaos.size() == 0) {
             return;
         }
 
-        final BusinessOverdueStatusModelDao firstBst = businessOverdueStatuses.iterator().next();
-        transactional.deleteByAccountRecordId(firstBst.getTableName(),
-                                              firstBst.getAccountRecordId(),
-                                              firstBst.getTenantRecordId(),
+        final BusinessAccountTransitionModelDao firstTransition = businessAccountTransitionModelDaos.iterator().next();
+        transactional.deleteByAccountRecordId(firstTransition.getTableName(),
+                                              firstTransition.getAccountRecordId(),
+                                              firstTransition.getTenantRecordId(),
                                               context);
 
-        for (final BusinessOverdueStatusModelDao bst : businessOverdueStatuses) {
-            transactional.create(bst.getTableName(), bst, context);
+        for (final BusinessAccountTransitionModelDao transition : businessAccountTransitionModelDaos) {
+            transactional.create(transition.getTableName(), transition, context);
         }
     }
 }

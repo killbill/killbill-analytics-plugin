@@ -27,11 +27,11 @@ import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentModelDao;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscription;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
@@ -112,16 +112,17 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
         // Overdue
         final LocalDate startDate = new LocalDate(2005, 2, 5);
         final LocalDate endDate = new LocalDate(2005, 6, 5);
-        final BusinessOverdueStatusModelDao businessOverdueStatusModelDao = new BusinessOverdueStatusModelDao(account,
-                                                                                                              accountRecordId,
-                                                                                                              blockingStateName,
-                                                                                                              startDate,
-                                                                                                              blockingStateRecordId,
-                                                                                                              endDate,
-                                                                                                              auditLog,
-                                                                                                              tenantRecordId,
-                                                                                                              reportGroup);
-        final BusinessOverdueStatus businessOverdueStatus = new BusinessOverdueStatus(businessOverdueStatusModelDao);
+        final BusinessAccountTransitionModelDao businessAccountTransitionModelDao = new BusinessAccountTransitionModelDao(account,
+                                                                                                                          accountRecordId,
+                                                                                                                          serviceName,
+                                                                                                                          stateName,
+                                                                                                                          startDate,
+                                                                                                                          blockingStateRecordId,
+                                                                                                                          endDate,
+                                                                                                                          auditLog,
+                                                                                                                          tenantRecordId,
+                                                                                                                          reportGroup);
+        final BusinessAccountTransition businessAccountTransition = new BusinessAccountTransition(businessAccountTransitionModelDao);
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
@@ -156,7 +157,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                        ImmutableList.<BusinessSubscriptionTransition>of(businessSubscriptionTransition),
                                                                        ImmutableList.<BusinessInvoice>of(businessInvoice),
                                                                        ImmutableList.<BusinessInvoicePayment>of(businessInvoicePayment),
-                                                                       ImmutableList.<BusinessOverdueStatus>of(businessOverdueStatus),
+                                                                       ImmutableList.<BusinessAccountTransition>of(businessAccountTransition),
                                                                        ImmutableList.<BusinessTag>of(businessTag),
                                                                        ImmutableList.<BusinessField>of(businessField));
         Assert.assertEquals(businessSnapshot.getBusinessAccount(), businessAccount);
@@ -166,8 +167,8 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSnapshot.getBusinessInvoices().iterator().next(), businessInvoice);
         Assert.assertEquals(businessSnapshot.getBusinessInvoicePayments().size(), 1);
         Assert.assertEquals(businessSnapshot.getBusinessInvoicePayments().iterator().next(), businessInvoicePayment);
-        Assert.assertEquals(businessSnapshot.getBusinessOverdueStatuses().size(), 1);
-        Assert.assertEquals(businessSnapshot.getBusinessOverdueStatuses().iterator().next(), businessOverdueStatus);
+        Assert.assertEquals(businessSnapshot.getBusinessAccountTransitions().size(), 1);
+        Assert.assertEquals(businessSnapshot.getBusinessAccountTransitions().iterator().next(), businessAccountTransition);
         Assert.assertEquals(businessSnapshot.getBusinessTags().size(), 1);
         Assert.assertEquals(businessSnapshot.getBusinessTags().iterator().next(), businessTag);
         Assert.assertEquals(businessSnapshot.getBusinessFields().size(), 1);

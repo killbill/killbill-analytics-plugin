@@ -37,9 +37,9 @@ import com.ning.billing.notificationq.api.NotificationQueueService.NotificationQ
 import com.ning.billing.notificationq.api.NotificationQueueService.NotificationQueueHandler;
 import com.ning.billing.osgi.bundles.analytics.dao.AllBusinessObjectsDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessAccountDao;
+import com.ning.billing.osgi.bundles.analytics.dao.BusinessAccountTransitionDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessFieldDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessInvoiceAndInvoicePaymentDao;
-import com.ning.billing.osgi.bundles.analytics.dao.BusinessOverdueStatusDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessSubscriptionTransitionDao;
 import com.ning.billing.util.api.RecordIdApi;
 import com.ning.billing.util.callcontext.CallContext;
@@ -71,7 +71,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final BusinessSubscriptionTransitionDao bstDao;
     private final BusinessInvoiceAndInvoicePaymentDao binAndBipDao;
-    private final BusinessOverdueStatusDao bosDao;
+    private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
     private final NotificationQueue jobQueue;
@@ -101,7 +101,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
         this.binAndBipDao = new BusinessInvoiceAndInvoicePaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
-        this.bosDao = new BusinessOverdueStatusDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
 

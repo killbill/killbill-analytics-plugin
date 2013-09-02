@@ -26,18 +26,18 @@ import java.util.UUID;
 
 import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccount;
+import com.ning.billing.osgi.bundles.analytics.api.BusinessAccountTransition;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessField;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoice;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoicePayment;
-import com.ning.billing.osgi.bundles.analytics.api.BusinessOverdueStatus;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessSubscriptionTransition;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessTag;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessOverdueStatusModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
 import com.ning.billing.util.api.RecordIdApi;
@@ -87,15 +87,15 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         });
     }
 
-    public Collection<BusinessOverdueStatus> getOverdueStatusesForAccount(final UUID accountId, final TenantContext context) {
+    public Collection<BusinessAccountTransition> getAccountTransitionsForAccount(final UUID accountId, final TenantContext context) {
         final Long accountRecordId = getAccountRecordId(accountId, context);
         final Long tenantRecordId = getTenantRecordId(context);
 
-        final List<BusinessOverdueStatusModelDao> businessOverdueStatusModelDaos = sqlDao.getOverdueStatusesByAccountRecordId(accountRecordId, tenantRecordId, context);
-        return Lists.transform(businessOverdueStatusModelDaos, new Function<BusinessOverdueStatusModelDao, BusinessOverdueStatus>() {
+        final List<BusinessAccountTransitionModelDao> businessAccountTransitionModelDaos = sqlDao.getAccountTransitionsByAccountRecordId(accountRecordId, tenantRecordId, context);
+        return Lists.transform(businessAccountTransitionModelDaos, new Function<BusinessAccountTransitionModelDao, BusinessAccountTransition>() {
             @Override
-            public BusinessOverdueStatus apply(final BusinessOverdueStatusModelDao input) {
-                return new BusinessOverdueStatus(input);
+            public BusinessAccountTransition apply(final BusinessAccountTransitionModelDao input) {
+                return new BusinessAccountTransition(input);
             }
         });
     }

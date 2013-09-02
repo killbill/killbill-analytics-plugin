@@ -1124,10 +1124,11 @@ insert into analytics_chargebacks (
 );
 >>
 
-createAnalyticsEntitlementStates() ::= <<
-insert into analytics_entitlement_states (
+createAnalyticsAccountTransitions() ::= <<
+insert into analytics_account_transitions (
   blocking_state_record_id
-, status
+, service
+, state
 , start_date
 , end_date
 , created_date
@@ -1142,7 +1143,8 @@ insert into analytics_entitlement_states (
 , report_group
 ) values (
   :blockingStateRecordId
-, :status
+, :service
+, :state
 , :startDate
 , :endDate
 , :createdDate
@@ -1450,8 +1452,8 @@ getBundleSummariesByAccountRecordId() ::= <<
 ;
 >>
 
-getOverdueStatusesByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("analytics_entitlement_states")>
+getAccountTransitionsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_account_transitions")>
 ;
 >>
 

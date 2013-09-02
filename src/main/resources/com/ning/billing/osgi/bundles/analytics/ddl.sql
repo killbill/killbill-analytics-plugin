@@ -163,6 +163,30 @@ create index analytics_accounts_account_id on analytics_accounts(account_id);
 create index analytics_accounts_account_record_id on analytics_accounts(account_record_id);
 create index analytics_accounts_tenant_account_record_id on analytics_accounts(tenant_record_id, account_record_id);
 
+drop table if exists analytics_account_transitions;
+create table analytics_account_transitions (
+  record_id int(11) unsigned not null auto_increment
+, blocking_state_record_id int(11) unsigned default null
+, service varchar(50) default null
+, state varchar(50) default null
+, start_date datetime default null
+, end_date datetime default null
+, created_date datetime default null
+, created_by varchar(50) default null
+, created_reason_code varchar(255) default null
+, created_comments varchar(255) default null
+, account_id char(36) default null
+, account_name varchar(100) default null
+, account_external_key varchar(50) default null
+, account_record_id int(11) unsigned default null
+, tenant_record_id int(11) unsigned default null
+, report_group enum('default', 'test', 'partner') not null
+, primary key(record_id)
+);
+create index analytics_account_transitions_account_id on analytics_account_transitions(account_id);
+create index analytics_account_transitions_account_record_id on analytics_account_transitions(account_record_id);
+create index analytics_account_transitions_tenant_account_record_id on analytics_account_transitions(tenant_record_id, account_record_id);
+
 -- Invoices
 drop table if exists analytics_invoices;
 create table analytics_invoices (
@@ -667,29 +691,6 @@ create index analytics_chargebacks_invoice_id on analytics_chargebacks(invoice_i
 create index analytics_chargebacks_account_id on analytics_chargebacks(account_id);
 create index analytics_chargebacks_account_record_id on analytics_chargebacks(account_record_id);
 create index analytics_chargebacks_tenant_account_record_id on analytics_chargebacks(tenant_record_id, account_record_id);
-
-drop table if exists analytics_entitlement_states;
-create table analytics_entitlement_states (
-  record_id int(11) unsigned not null auto_increment
-, blocking_state_record_id int(11) unsigned default null
-, status varchar(50) default null
-, start_date datetime default null
-, end_date datetime default null
-, created_date datetime default null
-, created_by varchar(50) default null
-, created_reason_code varchar(255) default null
-, created_comments varchar(255) default null
-, account_id char(36) default null
-, account_name varchar(100) default null
-, account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
-, primary key(record_id)
-);
-create index analytics_entitlement_states_account_id on analytics_entitlement_states(account_id);
-create index analytics_entitlement_states_account_record_id on analytics_entitlement_states(account_record_id);
-create index analytics_entitlement_states_tenant_account_record_id on analytics_entitlement_states(tenant_record_id, account_record_id);
 
 drop table if exists analytics_account_tags;
 create table analytics_account_tags (
