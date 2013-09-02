@@ -30,6 +30,7 @@ import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceItem;
+import com.ning.billing.osgi.bundles.analytics.utils.BusinessInvoiceItemUtils;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 
@@ -329,7 +330,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              (planPhase != null && planPhase.getBillingPeriod() != null) ? planPhase.getBillingPeriod().toString() : null,
              invoiceItem.getStartDate(),
              /* Populate end date for fixed items for convenience (null in invoice_items table) */
-             (invoiceItem.getEndDate() == null && planPhase != null && planPhase.getDuration() != null) ? invoiceItem.getStartDate().plus(planPhase.getDuration().toJodaPeriod()) : invoiceItem.getEndDate(),
+             BusinessInvoiceItemUtils.computeServicePeriodEndDate(invoiceItem, planPhase, bundle),
              invoiceItem.getAmount(),
              currencyConverter.getConvertedValue(invoiceItem, invoice),
              invoiceItem.getCurrency() == null ? null : invoiceItem.getCurrency().toString(),
