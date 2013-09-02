@@ -25,7 +25,7 @@ create table analytics_subscriptions (
 , prev_service varchar(50) default null
 , prev_state varchar(50) default null
 , prev_business_active bool default true
-, prev_start_date datetime default null
+, prev_start_date date default null
 , next_product_name varchar(50) default null
 , next_product_type varchar(50) default null
 , next_product_category varchar(50) default null
@@ -41,8 +41,8 @@ create table analytics_subscriptions (
 , next_service varchar(50) default null
 , next_state varchar(50) default null
 , next_business_active bool default true
-, next_start_date datetime default null
-, next_end_date datetime default null
+, next_start_date date default null
+, next_end_date date default null
 , converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
@@ -87,8 +87,8 @@ create table analytics_bundles (
 , current_service varchar(50) default null
 , current_state varchar(50) default null
 , current_business_active bool default true
-, current_start_date datetime default null
-, current_end_date datetime default null
+, current_start_date date default null
+, current_end_date date default null
 , converted_currency char(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
