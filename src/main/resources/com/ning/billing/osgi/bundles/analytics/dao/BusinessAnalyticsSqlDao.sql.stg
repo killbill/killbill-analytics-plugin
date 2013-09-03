@@ -1,7 +1,7 @@
 group BusinessAnalyticsSqlDao;
 
-createAnalyticsSubscriptions() ::= <<
-insert into analytics_subscriptions (
+createAnalyticsSubscriptionTransitions() ::= <<
+insert into analytics_subscription_transitions (
   subscription_event_record_id
 , bundle_id
 , bundle_external_key
@@ -1443,7 +1443,7 @@ getAccountByAccountRecordId() ::= <<
 >>
 
 getSubscriptionTransitionsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("analytics_subscriptions")>
+<SELECT_STAR_FROM_TABLE("analytics_subscription_transitions")>
 ;
 >>
 

@@ -1,8 +1,8 @@
 /*! SET storage_engine=INNODB */;
 
 -- Subscription events
-drop table if exists analytics_subscriptions;
-create table analytics_subscriptions (
+drop table if exists analytics_subscription_transitions;
+create table analytics_subscription_transitions (
   record_id int(11) unsigned not null auto_increment
 , subscription_event_record_id int(11) unsigned default null
 , bundle_id char(36) default null
@@ -56,11 +56,11 @@ create table analytics_subscriptions (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index analytics_subscriptions_bundle_id on analytics_subscriptions(bundle_id);
-create index analytics_subscriptions_bundle_external_key on analytics_subscriptions(bundle_external_key);
-create index analytics_subscriptions_account_id on analytics_subscriptions(account_id);
-create index analytics_subscriptions_account_record_id on analytics_subscriptions(account_record_id);
-create index analytics_subscriptions_tenant_account_record_id on analytics_subscriptions(tenant_record_id, account_record_id);
+create index analytics_subscription_transitions_bundle_id on analytics_subscription_transitions(bundle_id);
+create index analytics_subscription_transitions_bundle_external_key on analytics_subscription_transitions(bundle_external_key);
+create index analytics_subscription_transitions_account_id on analytics_subscription_transitions(account_id);
+create index analytics_subscription_transitions_account_record_id on analytics_subscription_transitions(account_record_id);
+create index analytics_subscription_transitions_tenant_account_record_id on analytics_subscription_transitions(tenant_record_id, account_record_id);
 
 -- Bundle summary
 drop table if exists analytics_bundles;
