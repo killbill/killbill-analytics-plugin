@@ -21,6 +21,7 @@ import java.util.Collection;
 public class BusinessSnapshot {
 
     private final BusinessAccount businessAccount;
+    private final Collection<BusinessBundle> businessBundles;
     private final Collection<BusinessSubscriptionTransition> businessSubscriptionTransitions;
     private final Collection<BusinessInvoice> businessInvoices;
     private final Collection<BusinessInvoicePayment> businessInvoicePayments;
@@ -29,6 +30,7 @@ public class BusinessSnapshot {
     private final Collection<BusinessField> businessFields;
 
     public BusinessSnapshot(final BusinessAccount businessAccount,
+                            final Collection<BusinessBundle> businessBundles,
                             final Collection<BusinessSubscriptionTransition> businessSubscriptionTransitions,
                             final Collection<BusinessInvoice> businessInvoices,
                             final Collection<BusinessInvoicePayment> businessInvoicePayments,
@@ -36,6 +38,7 @@ public class BusinessSnapshot {
                             final Collection<BusinessTag> businessTags,
                             final Collection<BusinessField> businessFields) {
         this.businessAccount = businessAccount;
+        this.businessBundles = businessBundles;
         this.businessSubscriptionTransitions = businessSubscriptionTransitions;
         this.businessInvoices = businessInvoices;
         this.businessInvoicePayments = businessInvoicePayments;
@@ -46,6 +49,10 @@ public class BusinessSnapshot {
 
     public BusinessAccount getBusinessAccount() {
         return businessAccount;
+    }
+
+    public Collection<BusinessBundle> getBusinessBundles() {
+        return businessBundles;
     }
 
     public Collection<BusinessSubscriptionTransition> getBusinessSubscriptionTransitions() {
@@ -72,10 +79,11 @@ public class BusinessSnapshot {
         return businessFields;
     }
 
+    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessSnapshot");
-        sb.append("{businessAccount=").append(businessAccount);
+        final StringBuilder sb = new StringBuilder("BusinessSnapshot{");
+        sb.append("businessAccount=").append(businessAccount);
+        sb.append(", businessBundles=").append(businessBundles);
         sb.append(", businessSubscriptionTransitions=").append(businessSubscriptionTransitions);
         sb.append(", businessInvoices=").append(businessInvoices);
         sb.append(", businessInvoicePayments=").append(businessInvoicePayments);
@@ -86,6 +94,7 @@ public class BusinessSnapshot {
         return sb.toString();
     }
 
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -99,6 +108,12 @@ public class BusinessSnapshot {
         if (businessAccount != null ? !businessAccount.equals(that.businessAccount) : that.businessAccount != null) {
             return false;
         }
+        if (businessAccountTransitions != null ? !businessAccountTransitions.equals(that.businessAccountTransitions) : that.businessAccountTransitions != null) {
+            return false;
+        }
+        if (businessBundles != null ? !businessBundles.equals(that.businessBundles) : that.businessBundles != null) {
+            return false;
+        }
         if (businessFields != null ? !businessFields.equals(that.businessFields) : that.businessFields != null) {
             return false;
         }
@@ -106,9 +121,6 @@ public class BusinessSnapshot {
             return false;
         }
         if (businessInvoices != null ? !businessInvoices.equals(that.businessInvoices) : that.businessInvoices != null) {
-            return false;
-        }
-        if (businessAccountTransitions != null ? !businessAccountTransitions.equals(that.businessAccountTransitions) : that.businessAccountTransitions != null) {
             return false;
         }
         if (businessSubscriptionTransitions != null ? !businessSubscriptionTransitions.equals(that.businessSubscriptionTransitions) : that.businessSubscriptionTransitions != null) {
@@ -121,8 +133,10 @@ public class BusinessSnapshot {
         return true;
     }
 
+    @Override
     public int hashCode() {
         int result = businessAccount != null ? businessAccount.hashCode() : 0;
+        result = 31 * result + (businessBundles != null ? businessBundles.hashCode() : 0);
         result = 31 * result + (businessSubscriptionTransitions != null ? businessSubscriptionTransitions.hashCode() : 0);
         result = 31 * result + (businessInvoices != null ? businessInvoices.hashCode() : 0);
         result = 31 * result + (businessInvoicePayments != null ? businessInvoicePayments.hashCode() : 0);

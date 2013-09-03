@@ -28,6 +28,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldMod
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
@@ -141,6 +142,20 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                                                                  reportGroup);
         final BusinessSubscriptionTransition businessSubscriptionTransition = new BusinessSubscriptionTransition(subscriptionTransitionModelDao);
 
+        // Bundle
+        final BusinessBundleModelDao bundleModelDao = new BusinessBundleModelDao(account,
+                                                                                 accountRecordId,
+                                                                                 bundle,
+                                                                                 bundleRecordId,
+                                                                                 1,
+                                                                                 new LocalDate(2013, 10, 1),
+                                                                                 subscriptionTransitionModelDao,
+                                                                                 currencyConverter,
+                                                                                 auditLog,
+                                                                                 tenantRecordId,
+                                                                                 reportGroup);
+        final BusinessBundle businessBundle = new BusinessBundle(bundleModelDao);
+
         // Tag
         final BusinessAccountTagModelDao businessAccountTagModelDao = new BusinessAccountTagModelDao(account,
                                                                                                      accountRecordId,
@@ -154,6 +169,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
 
         // Create the snapshot
         final BusinessSnapshot businessSnapshot = new BusinessSnapshot(businessAccount,
+                                                                       ImmutableList.<BusinessBundle>of(businessBundle),
                                                                        ImmutableList.<BusinessSubscriptionTransition>of(businessSubscriptionTransition),
                                                                        ImmutableList.<BusinessInvoice>of(businessInvoice),
                                                                        ImmutableList.<BusinessInvoicePayment>of(businessInvoicePayment),
@@ -161,6 +177,8 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                        ImmutableList.<BusinessTag>of(businessTag),
                                                                        ImmutableList.<BusinessField>of(businessField));
         Assert.assertEquals(businessSnapshot.getBusinessAccount(), businessAccount);
+        Assert.assertEquals(businessSnapshot.getBusinessBundles().size(), 1);
+        Assert.assertEquals(businessSnapshot.getBusinessBundles().iterator().next(), businessBundle);
         Assert.assertEquals(businessSnapshot.getBusinessSubscriptionTransitions().size(), 1);
         Assert.assertEquals(businessSnapshot.getBusinessSubscriptionTransitions().iterator().next(), businessSubscriptionTransition);
         Assert.assertEquals(businessSnapshot.getBusinessInvoices().size(), 1);

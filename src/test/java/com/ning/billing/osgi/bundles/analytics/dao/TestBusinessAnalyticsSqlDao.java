@@ -364,6 +364,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
                                                                                         bundle,
                                                                                         bundleRecordId,
                                                                                         3,
+                                                                                        new LocalDate(2013, 10, 1),
                                                                                         businessSubscriptionTransitionModelDao,
                                                                                         currencyConverter,
                                                                                         auditLog,

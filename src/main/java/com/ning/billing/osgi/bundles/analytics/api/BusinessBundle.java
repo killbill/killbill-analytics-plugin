@@ -14,142 +14,75 @@
  * under the License.
  */
 
-package com.ning.billing.osgi.bundles.analytics.dao.model;
+package com.ning.billing.osgi.bundles.analytics.api;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
-import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
-import com.ning.billing.account.api.Account;
-import com.ning.billing.entitlement.api.SubscriptionBundle;
-import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
-import com.ning.billing.util.audit.AuditLog;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 
-public class BusinessBundleModelDao extends BusinessModelDaoBase {
+public class BusinessBundle extends BusinessEntityBase {
 
-    public static final String BUNDLES_TABLE_NAME = "analytics_bundles";
+    private final Long bundleRecordId;
+    private final UUID bundleId;
+    private final String bundleExternalKey;
+    private final UUID subscriptionId;
+    private final Integer bundleAccountRank;
+    private final LocalDate chargedThroughDate;
+    private final String currentProductName;
+    private final String currentProductType;
+    private final String currentProductCategory;
+    private final String currentSlug;
+    private final String currentPhase;
+    private final String currentBillingPeriod;
+    private final BigDecimal currentPrice;
+    private final BigDecimal convertedCurrentPrice;
+    private final String currentPriceList;
+    private final BigDecimal currentMrr;
+    private final BigDecimal convertedCurrentMrr;
+    private final String currentCurrency;
+    private final Boolean currentBusinessActive;
+    private final LocalDate currentStartDate;
+    private final LocalDate currentEndDate;
+    private final String currentService;
+    private final String currentState;
+    private final String convertedCurrency;
 
-    private Long bundleRecordId;
-    private UUID bundleId;
-    private String bundleExternalKey;
-    private UUID subscriptionId;
-    private Integer bundleAccountRank;
-    private LocalDate chargedThroughDate;
-    private String currentProductName;
-    private String currentProductType;
-    private String currentProductCategory;
-    private String currentSlug;
-    private String currentPhase;
-    private String currentBillingPeriod;
-    private BigDecimal currentPrice;
-    private BigDecimal convertedCurrentPrice;
-    private String currentPriceList;
-    private BigDecimal currentMrr;
-    private BigDecimal convertedCurrentMrr;
-    private String currentCurrency;
-    private Boolean currentBusinessActive;
-    private LocalDate currentStartDate;
-    private LocalDate currentEndDate;
-    private String currentService;
-    private String currentState;
-    private String convertedCurrency;
-
-    public BusinessBundleModelDao() { /* When reading from the database */ }
-
-    public BusinessBundleModelDao(final Long bundleRecordId,
-                                  final UUID bundleId,
-                                  final String bundleExternalKey,
-                                  final UUID subscriptionId,
-                                  final Integer bundleAccountRank,
-                                  final LocalDate chargedThroughDate,
-                                  final BusinessSubscriptionTransitionModelDao bst,
-                                  final String convertedCurrency,
-                                  final DateTime createdDate,
-                                  final String createdBy,
-                                  final String createdReasonCode,
-                                  final String createdComments,
-                                  final UUID accountId,
-                                  final String accountName,
-                                  final String accountExternalKey,
-                                  final Long accountRecordId,
-                                  final Long tenantRecordId,
-                                  @Nullable final ReportGroup reportGroup)
-
-    {
-        super(createdDate,
-              createdBy,
-              createdReasonCode,
-              createdComments,
-              accountId,
-              accountName,
-              accountExternalKey,
-              accountRecordId,
-              tenantRecordId,
-              reportGroup);
-        this.bundleRecordId = bundleRecordId;
-        this.bundleId = bundleId;
-        this.bundleExternalKey = bundleExternalKey;
-        this.subscriptionId = subscriptionId;
-        this.bundleAccountRank = bundleAccountRank;
-        this.chargedThroughDate = chargedThroughDate;
-        this.currentProductName = bst.getNextProductName();
-        this.currentProductType = bst.getNextProductType();
-        this.currentProductCategory = bst.getNextProductCategory();
-        this.currentSlug = bst.getNextSlug();
-        this.currentPhase = bst.getNextPhase();
-        this.currentBillingPeriod = bst.getNextBillingPeriod();
-        this.currentPrice = bst.getNextPrice();
-        this.convertedCurrentPrice = bst.getConvertedNextPrice();
-        this.currentPriceList = bst.getNextPriceList();
-        this.currentMrr = bst.getNextMrr();
-        this.convertedCurrentMrr = bst.getConvertedNextMrr();
-        this.currentCurrency = bst.getNextCurrency();
-        this.currentBusinessActive = bst.getNextBusinessActive();
-        this.currentStartDate = bst.getNextStartDate();
-        this.currentEndDate = bst.getNextEndDate();
-        this.currentService = bst.getNextService();
-        this.currentState = bst.getNextState();
-        this.convertedCurrency = convertedCurrency;
-    }
-
-    public BusinessBundleModelDao(final Account account,
-                                  final Long accountRecordId,
-                                  final SubscriptionBundle bundle,
-                                  final Long bundleRecordId,
-                                  final Integer bundleAccountRank,
-                                  final LocalDate chargedThroughDate,
-                                  final BusinessSubscriptionTransitionModelDao bst,
-                                  final CurrencyConverter currencyConverter,
-                                  @Nullable final AuditLog creationAuditLog,
-                                  final Long tenantRecordId,
-                                  @Nullable final ReportGroup reportGroup) {
-        this(bundleRecordId,
-             bundle.getId(),
-             bundle.getExternalKey(),
-             bst.getSubscriptionId(),
-             bundleAccountRank,
-             chargedThroughDate,
-             bst,
-             currencyConverter.getConvertedCurrency(),
-             bundle.getCreatedDate(),
-             creationAuditLog != null ? creationAuditLog.getUserName() : null,
-             creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
-             creationAuditLog != null ? creationAuditLog.getComment() : null,
-             account.getId(),
-             account.getName(),
-             account.getExternalKey(),
-             accountRecordId,
-             tenantRecordId,
-             reportGroup);
-    }
-
-    @Override
-    public String getTableName() {
-        return BUNDLES_TABLE_NAME;
+    public BusinessBundle(final BusinessBundleModelDao businessBundleModelDao) {
+        super(businessBundleModelDao.getCreatedDate(),
+              businessBundleModelDao.getCreatedBy(),
+              businessBundleModelDao.getCreatedReasonCode(),
+              businessBundleModelDao.getCreatedComments(),
+              businessBundleModelDao.getAccountId(),
+              businessBundleModelDao.getAccountName(),
+              businessBundleModelDao.getAccountExternalKey(),
+              businessBundleModelDao.getReportGroup());
+        this.bundleRecordId = businessBundleModelDao.getBundleRecordId();
+        this.bundleId = businessBundleModelDao.getBundleId();
+        this.bundleExternalKey = businessBundleModelDao.getBundleExternalKey();
+        this.subscriptionId = businessBundleModelDao.getSubscriptionId();
+        this.bundleAccountRank = businessBundleModelDao.getBundleAccountRank();
+        this.chargedThroughDate = businessBundleModelDao.getChargedThroughDate();
+        this.currentProductName = businessBundleModelDao.getCurrentProductName();
+        this.currentProductType = businessBundleModelDao.getCurrentProductType();
+        this.currentProductCategory = businessBundleModelDao.getCurrentProductCategory();
+        this.currentSlug = businessBundleModelDao.getCurrentSlug();
+        this.currentPhase = businessBundleModelDao.getCurrentPhase();
+        this.currentBillingPeriod = businessBundleModelDao.getCurrentBillingPeriod();
+        this.currentPrice = businessBundleModelDao.getCurrentPrice();
+        this.convertedCurrentPrice = businessBundleModelDao.getConvertedCurrentPrice();
+        this.currentPriceList = businessBundleModelDao.getCurrentPriceList();
+        this.currentMrr = businessBundleModelDao.getCurrentMrr();
+        this.convertedCurrentMrr = businessBundleModelDao.getConvertedCurrentMrr();
+        this.currentCurrency = businessBundleModelDao.getCurrentCurrency();
+        this.currentBusinessActive = businessBundleModelDao.getCurrentBusinessActive();
+        this.currentStartDate = businessBundleModelDao.getCurrentStartDate();
+        this.currentEndDate = businessBundleModelDao.getCurrentEndDate();
+        this.currentService = businessBundleModelDao.getCurrentService();
+        this.currentState = businessBundleModelDao.getCurrentState();
+        this.convertedCurrency = businessBundleModelDao.getConvertedCurrency();
     }
 
     public Long getBundleRecordId() {
@@ -250,7 +183,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("BusinessBundleModelDao{");
+        final StringBuilder sb = new StringBuilder("BusinessBundle{");
         sb.append("bundleRecordId=").append(bundleRecordId);
         sb.append(", bundleId=").append(bundleId);
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
@@ -291,7 +224,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
             return false;
         }
 
-        final BusinessBundleModelDao that = (BusinessBundleModelDao) o;
+        final BusinessBundle that = (BusinessBundle) o;
 
         if (bundleAccountRank != null ? !bundleAccountRank.equals(that.bundleAccountRank) : that.bundleAccountRank != null) {
             return false;
@@ -305,7 +238,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         if (bundleRecordId != null ? !bundleRecordId.equals(that.bundleRecordId) : that.bundleRecordId != null) {
             return false;
         }
-        if (chargedThroughDate != null ? !chargedThroughDate.equals(that.chargedThroughDate) : that.chargedThroughDate != null) {
+        if (chargedThroughDate != null ? chargedThroughDate.compareTo(that.chargedThroughDate) != 0 : that.chargedThroughDate != null) {
             return false;
         }
         if (convertedCurrency != null ? !convertedCurrency.equals(that.convertedCurrency) : that.convertedCurrency != null) {
@@ -326,7 +259,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         if (currentCurrency != null ? !currentCurrency.equals(that.currentCurrency) : that.currentCurrency != null) {
             return false;
         }
-        if (currentEndDate != null ? (currentEndDate.compareTo(that.currentEndDate) != 0) : that.currentEndDate != null) {
+        if (currentEndDate != null ? currentEndDate.compareTo(that.currentEndDate) != 0 : that.currentEndDate != null) {
             return false;
         }
         if (currentMrr != null ? !(currentMrr.compareTo(that.currentMrr) == 0) : that.currentMrr != null) {
@@ -356,7 +289,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         if (currentSlug != null ? !currentSlug.equals(that.currentSlug) : that.currentSlug != null) {
             return false;
         }
-        if (currentStartDate != null ? (currentStartDate.compareTo(that.currentStartDate) != 0) : that.currentStartDate != null) {
+        if (currentStartDate != null ? currentStartDate.compareTo(that.currentStartDate) != 0 : that.currentStartDate != null) {
             return false;
         }
         if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) {

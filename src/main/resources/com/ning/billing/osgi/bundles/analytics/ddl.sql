@@ -71,7 +71,7 @@ create table analytics_bundles (
 , bundle_external_key varchar(50) default null
 , subscription_id char(36) default null
 , bundle_account_rank int(11) default null
-, charged_through_date datetime default null
+, charged_through_date date default null
 , current_product_name varchar(50) default null
 , current_product_type varchar(50) default null
 , current_product_category varchar(50) default null

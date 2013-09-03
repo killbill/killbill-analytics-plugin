@@ -28,9 +28,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 
+import org.joda.time.LocalDate;
+
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.ProductCategory;
 import com.ning.billing.clock.Clock;
+import com.ning.billing.entitlement.api.Subscription;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
@@ -44,6 +47,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
@@ -142,11 +146,24 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), context);
         final CurrencyConverter currencyConverter = getCurrencyConverter();
 
+        LocalDate chargedThroughDate = null;
+        final Optional<Subscription> base = Iterables.tryFind(bundle.getSubscriptions(),
+                                                              new Predicate<Subscription>() {
+                                                                  @Override
+                                                                  public boolean apply(final Subscription subscription) {
+                                                                      return ProductCategory.BASE.equals(subscription.getProductCategory());
+                                                                  }
+                                                              });
+        if (base.isPresent()) {
+            chargedThroughDate = base.get().getChargedThroughDate();
+        }
+
         return new BusinessBundleModelDao(account,
                                           accountRecordId,
                                           bundle,
                                           bundleRecordId,
                                           bundleAccountRank,
+                                          chargedThroughDate,
                                           bst,
                                           currencyConverter,
                                           creationAuditLog,

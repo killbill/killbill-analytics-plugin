@@ -24,6 +24,7 @@ import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccount;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccountTransition;
+import com.ning.billing.osgi.bundles.analytics.api.BusinessBundle;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessField;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoice;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoicePayment;
@@ -57,6 +58,9 @@ public class AnalyticsUserApi {
         final BusinessAccount businessAccount = analyticsDao.getAccountById(accountId, context);
         final Collection<BusinessAccountTransition> businessAccountTransitions = analyticsDao.getAccountTransitionsForAccount(accountId, context);
 
+        // Find all bundles
+        final Collection<BusinessBundle> businessBundles = analyticsDao.getBundlesForAccount(accountId, context);
+
         // Find all transitions for all bundles for that account
         final Collection<BusinessSubscriptionTransition> businessSubscriptionTransitions = analyticsDao.getSubscriptionTransitionsForAccount(accountId, context);
 
@@ -73,6 +77,7 @@ public class AnalyticsUserApi {
         final Collection<BusinessField> businessFields = analyticsDao.getFieldsForAccount(accountId, context);
 
         return new BusinessSnapshot(businessAccount,
+                                    businessBundles,
                                     businessSubscriptionTransitions,
                                     businessInvoices,
                                     businessInvoicePayments,

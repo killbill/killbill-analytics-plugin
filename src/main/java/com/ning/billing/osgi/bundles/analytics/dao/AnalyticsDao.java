@@ -27,6 +27,7 @@ import java.util.UUID;
 import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccount;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessAccountTransition;
+import com.ning.billing.osgi.bundles.analytics.api.BusinessBundle;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessField;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoice;
 import com.ning.billing.osgi.bundles.analytics.api.BusinessInvoicePayment;
@@ -34,6 +35,7 @@ import com.ning.billing.osgi.bundles.analytics.api.BusinessSubscriptionTransitio
 import com.ning.billing.osgi.bundles.analytics.api.BusinessTag;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
@@ -72,6 +74,19 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         } else {
             return new BusinessAccount(businessAccountModelDao);
         }
+    }
+
+    public Collection<BusinessBundle> getBundlesForAccount(final UUID accountId, final TenantContext context) {
+        final Long accountRecordId = getAccountRecordId(accountId, context);
+        final Long tenantRecordId = getTenantRecordId(context);
+
+        final List<BusinessBundleModelDao> businessBundleModelDaos = sqlDao.getBundlesByAccountRecordId(accountRecordId, tenantRecordId, context);
+        return Lists.transform(businessBundleModelDaos, new Function<BusinessBundleModelDao, BusinessBundle>() {
+            @Override
+            public BusinessBundle apply(final BusinessBundleModelDao input) {
+                return new BusinessBundle(input);
+            }
+        });
     }
 
     public Collection<BusinessSubscriptionTransition> getSubscriptionTransitionsForAccount(final UUID accountId, final TenantContext context) {
