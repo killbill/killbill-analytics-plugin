@@ -33,7 +33,7 @@ import com.ning.billing.catalog.api.ProductCategory;
 import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
@@ -48,24 +48,24 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 
-public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
+public class BusinessBundleFactory extends BusinessFactoryBase {
 
     private final Executor executor;
 
-    public BusinessBundleSummaryFactory(final OSGIKillbillLogService logService,
-                                        final OSGIKillbillAPI osgiKillbillAPI,
-                                        final OSGIKillbillDataSource osgiKillbillDataSource,
-                                        final Executor executor,
-                                        final Clock clock) {
+    public BusinessBundleFactory(final OSGIKillbillLogService logService,
+                                 final OSGIKillbillAPI osgiKillbillAPI,
+                                 final OSGIKillbillDataSource osgiKillbillDataSource,
+                                 final Executor executor,
+                                 final Clock clock) {
         super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.executor = executor;
     }
 
-    public Collection<BusinessBundleSummaryModelDao> createBusinessBundleSummaries(final UUID accountId,
-                                                                                   final Long accountRecordId,
-                                                                                   final Collection<BusinessSubscriptionTransitionModelDao> bsts,
-                                                                                   final Long tenantRecordId,
-                                                                                   final CallContext context) throws AnalyticsRefreshException {
+    public Collection<BusinessBundleModelDao> createBusinessBundles(final UUID accountId,
+                                                                    final Long accountRecordId,
+                                                                    final Collection<BusinessSubscriptionTransitionModelDao> bsts,
+                                                                    final Long tenantRecordId,
+                                                                    final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
 
@@ -74,12 +74,12 @@ public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
         filterBstsForBasePlans(bsts, rankForBundle, bstForBundle);
 
         // We fetch the bundles in parallel as these can be very large on a per account basis (@see BusinessSubscriptionTransitionFactory)
-        final CompletionService<BusinessBundleSummaryModelDao> completionService = new ExecutorCompletionService<BusinessBundleSummaryModelDao>(executor);
-        final Collection<BusinessBundleSummaryModelDao> bbss = new LinkedList<BusinessBundleSummaryModelDao>();
+        final CompletionService<BusinessBundleModelDao> completionService = new ExecutorCompletionService<BusinessBundleModelDao>(executor);
+        final Collection<BusinessBundleModelDao> bbss = new LinkedList<BusinessBundleModelDao>();
         for (final BusinessSubscriptionTransitionModelDao bst : bstForBundle.values()) {
-            completionService.submit(new Callable<BusinessBundleSummaryModelDao>() {
+            completionService.submit(new Callable<BusinessBundleModelDao>() {
                 @Override
-                public BusinessBundleSummaryModelDao call() throws Exception {
+                public BusinessBundleModelDao call() throws Exception {
                     return buildBBS(account,
                                     accountRecordId,
                                     bst,
@@ -113,6 +113,7 @@ public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
         }).sortedCopy(Iterables.filter(bsts, new Predicate<BusinessSubscriptionTransitionModelDao>() {
             @Override
             public boolean apply(final BusinessSubscriptionTransitionModelDao input) {
+                // TODO wrong
                 return ProductCategory.BASE.toString().equals(input.getNextProductCategory());
             }
         }));
@@ -135,21 +136,21 @@ public class BusinessBundleSummaryFactory extends BusinessFactoryBase {
         }
     }
 
-    private BusinessBundleSummaryModelDao buildBBS(final Account account, final Long accountRecordId, final BusinessSubscriptionTransitionModelDao bst, final Integer bundleAccountRank, final Long tenantRecordId, final ReportGroup reportGroup, final CallContext context) throws AnalyticsRefreshException {
+    private BusinessBundleModelDao buildBBS(final Account account, final Long accountRecordId, final BusinessSubscriptionTransitionModelDao bst, final Integer bundleAccountRank, final Long tenantRecordId, final ReportGroup reportGroup, final CallContext context) throws AnalyticsRefreshException {
         final SubscriptionBundle bundle = getSubscriptionBundle(bst.getBundleId(), context);
         final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
         final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), context);
         final CurrencyConverter currencyConverter = getCurrencyConverter();
 
-        return new BusinessBundleSummaryModelDao(account,
-                                                 accountRecordId,
-                                                 bundle,
-                                                 bundleRecordId,
-                                                 bundleAccountRank,
-                                                 bst,
-                                                 currencyConverter,
-                                                 creationAuditLog,
-                                                 tenantRecordId,
-                                                 reportGroup);
+        return new BusinessBundleModelDao(account,
+                                          accountRecordId,
+                                          bundle,
+                                          bundleRecordId,
+                                          bundleAccountRank,
+                                          bst,
+                                          currencyConverter,
+                                          creationAuditLog,
+                                          tenantRecordId,
+                                          reportGroup);
     }
 }

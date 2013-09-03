@@ -27,10 +27,10 @@ import org.skife.jdbi.v2.TransactionStatus;
 import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessAccountFactory;
-import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessBundleSummaryFactory;
+import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessBundleFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessSubscriptionTransitionFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -40,9 +40,9 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase {
 
     private final BusinessAccountDao businessAccountDao;
-    private final BusinessBundleSummaryDao businessBundleSummaryDao;
+    private final BusinessBundleDao businessBundleDao;
     private final BusinessAccountFactory bacFactory;
-    private final BusinessBundleSummaryFactory bbsFactory;
+    private final BusinessBundleFactory bbsFactory;
     private final BusinessSubscriptionTransitionFactory bstFactory;
 
     public BusinessSubscriptionTransitionDao(final OSGIKillbillLogService logService,
@@ -53,9 +53,9 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
                                              final Clock clock) {
         super(logService, osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
-        this.businessBundleSummaryDao = new BusinessBundleSummaryDao(logService, osgiKillbillDataSource);
+        this.businessBundleDao = new BusinessBundleDao(logService, osgiKillbillDataSource);
         bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        bbsFactory = new BusinessBundleSummaryFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
+        bbsFactory = new BusinessBundleFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
         bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
@@ -72,11 +72,11 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
                                                                                                                          context);
 
         // Recompute the bundle summary records
-        final Collection<BusinessBundleSummaryModelDao> bbss = bbsFactory.createBusinessBundleSummaries(accountId,
-                                                                                                        bac.getAccountRecordId(),
-                                                                                                        bsts,
-                                                                                                        bac.getTenantRecordId(),
-                                                                                                        context);
+        final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(accountId,
+                                                                                         bac.getAccountRecordId(),
+                                                                                         bsts,
+                                                                                         bac.getTenantRecordId(),
+                                                                                         context);
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
@@ -89,7 +89,7 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
     }
 
     private void updateInTransaction(final BusinessAccountModelDao bac,
-                                     final Collection<BusinessBundleSummaryModelDao> bbss,
+                                     final Collection<BusinessBundleModelDao> bbss,
                                      final Collection<BusinessSubscriptionTransitionModelDao> bsts,
                                      final BusinessAnalyticsSqlDao transactional,
                                      final CallContext context) {
@@ -104,11 +104,11 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
         }
 
         // Update the summary table per bundle
-        businessBundleSummaryDao.updateInTransaction(bbss,
-                                                     bac.getAccountRecordId(),
-                                                     bac.getTenantRecordId(),
-                                                     transactional,
-                                                     context);
+        businessBundleDao.updateInTransaction(bbss,
+                                              bac.getAccountRecordId(),
+                                              bac.getTenantRecordId(),
+                                              transactional,
+                                              context);
 
         // Update BAC
         businessAccountDao.updateInTransaction(bac, transactional, context);

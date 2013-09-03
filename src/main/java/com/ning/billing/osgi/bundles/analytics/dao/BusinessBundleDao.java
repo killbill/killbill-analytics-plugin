@@ -18,29 +18,29 @@ package com.ning.billing.osgi.bundles.analytics.dao;
 
 import java.util.Collection;
 
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
-public class BusinessBundleSummaryDao extends BusinessAnalyticsDaoBase {
+public class BusinessBundleDao extends BusinessAnalyticsDaoBase {
 
-    public BusinessBundleSummaryDao(final OSGIKillbillLogService logService,
-                                    final OSGIKillbillDataSource osgiKillbillDataSource) {
+    public BusinessBundleDao(final OSGIKillbillLogService logService,
+                             final OSGIKillbillDataSource osgiKillbillDataSource) {
         super(logService, osgiKillbillDataSource);
     }
 
-    public void updateInTransaction(final Collection<BusinessBundleSummaryModelDao> bbss,
+    public void updateInTransaction(final Collection<BusinessBundleModelDao> bbss,
                                     final Long accountRecordId,
                                     final Long tenantRecordId,
                                     final BusinessAnalyticsSqlDao transactional,
                                     final CallContext context) {
-        transactional.deleteByAccountRecordId(BusinessBundleSummaryModelDao.BUNDLE_SUMMARIES_TABLE_NAME,
+        transactional.deleteByAccountRecordId(BusinessBundleModelDao.BUNDLES_TABLE_NAME,
                                               accountRecordId,
                                               tenantRecordId,
                                               context);
 
-        for (final BusinessBundleSummaryModelDao bbs : bbss) {
+        for (final BusinessBundleModelDao bbs : bbss) {
             transactional.create(bbs.getTableName(), bbs, context);
         }
 

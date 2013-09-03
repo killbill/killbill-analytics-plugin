@@ -48,9 +48,9 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.collect.ImmutableList;
 
-public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
+public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
 
-    private BusinessBundleSummaryFactory bundleSummaryDao;
+    private BusinessBundleFactory bundleFactory;
 
     @Override
     @BeforeMethod(groups = "fast")
@@ -71,7 +71,7 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
             }
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
-        bundleSummaryDao = new BusinessBundleSummaryFactory(osgiKillbillLogService, null, osgiKillbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
+        bundleFactory = new BusinessBundleFactory(osgiKillbillLogService, null, osgiKillbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
     }
 
     @Test(groups = "fast")
@@ -97,7 +97,7 @@ public class TestBusinessBundleSummaryFactory extends AnalyticsTestSuiteNoDB {
 
         final Map<UUID, Integer> rankForBundle = new LinkedHashMap<UUID, Integer>();
         final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle = new LinkedHashMap<UUID, BusinessSubscriptionTransitionModelDao>();
-        bundleSummaryDao.filterBstsForBasePlans(bsts, rankForBundle, bstForBundle);
+        bundleFactory.filterBstsForBasePlans(bsts, rankForBundle, bstForBundle);
 
         final List<BusinessSubscriptionTransitionModelDao> filteredBsts = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(bstForBundle.values());
         Assert.assertEquals(filteredBsts.size(), 3);

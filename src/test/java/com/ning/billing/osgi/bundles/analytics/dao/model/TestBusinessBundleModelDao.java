@@ -23,7 +23,7 @@ import org.testng.annotations.Test;
 import com.ning.billing.catalog.api.Currency;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 
-public class TestBusinessBundleSummaryModelDao extends AnalyticsTestSuiteNoDB {
+public class TestBusinessBundleModelDao extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
@@ -45,16 +45,16 @@ public class TestBusinessBundleSummaryModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                                                  tenantRecordId,
                                                                                                                                  reportGroup);
 
-        final BusinessBundleSummaryModelDao bundleSummaryModelDao = new BusinessBundleSummaryModelDao(account,
-                                                                                                      accountRecordId,
-                                                                                                      bundle,
-                                                                                                      bundleRecordId,
-                                                                                                      3,
-                                                                                                      subscriptionTransitionModelDao,
-                                                                                                      currencyConverter,
-                                                                                                      auditLog,
-                                                                                                      tenantRecordId,
-                                                                                                      reportGroup);
+        final BusinessBundleModelDao bundleSummaryModelDao = new BusinessBundleModelDao(account,
+                                                                                        accountRecordId,
+                                                                                        bundle,
+                                                                                        bundleRecordId,
+                                                                                        3,
+                                                                                        subscriptionTransitionModelDao,
+                                                                                        currencyConverter,
+                                                                                        auditLog,
+                                                                                        tenantRecordId,
+                                                                                        reportGroup);
         verifyBusinessModelDaoBase(bundleSummaryModelDao, accountRecordId, tenantRecordId);
         Assert.assertEquals(bundleSummaryModelDao.getBundleRecordId(), bundleRecordId);
         Assert.assertEquals(bundleSummaryModelDao.getBundleId(), bundle.getId());

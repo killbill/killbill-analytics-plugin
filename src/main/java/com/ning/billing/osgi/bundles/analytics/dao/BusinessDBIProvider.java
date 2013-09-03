@@ -36,7 +36,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleFieldModelDao;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceAdjustmentModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceFieldModelDao;
@@ -80,7 +80,7 @@ public class BusinessDBIProvider {
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessInvoiceTagModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessAccountTransitionModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessSubscriptionTransitionModelDao.class));
-        dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleSummaryModelDao.class));
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleFieldModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessBundleTagModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(CurrencyConversionModelDao.class));

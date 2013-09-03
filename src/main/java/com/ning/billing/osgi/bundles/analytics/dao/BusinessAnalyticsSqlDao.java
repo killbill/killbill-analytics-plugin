@@ -28,8 +28,9 @@ import com.ning.billing.commons.jdbi.binder.SmartBindBean;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleFieldModelDao;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleSummaryModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceAdjustmentModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceFieldModelDao;
@@ -44,7 +45,6 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentR
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase;
-import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
@@ -75,9 +75,9 @@ public interface BusinessAnalyticsSqlDao extends Transactional<BusinessAnalytics
                                                                                                     final TenantContext tenantContext);
 
     @SqlQuery
-    public List<BusinessBundleSummaryModelDao> getBundleSummariesByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
-                                                                                   @Bind("tenantRecordId") final Long tenantRecordId,
-                                                                                   final TenantContext tenantContext);
+    public List<BusinessBundleModelDao> getBundlesByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
+                                                                    @Bind("tenantRecordId") final Long tenantRecordId,
+                                                                    final TenantContext tenantContext);
 
     @SqlQuery
     public List<BusinessAccountTransitionModelDao> getAccountTransitionsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,

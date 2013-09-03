@@ -29,9 +29,9 @@ import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.util.audit.AuditLog;
 
-public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
+public class BusinessBundleModelDao extends BusinessModelDaoBase {
 
-    public static final String BUNDLE_SUMMARIES_TABLE_NAME = "analytics_bundles";
+    public static final String BUNDLES_TABLE_NAME = "analytics_bundles";
 
     private Long bundleRecordId;
     private UUID bundleId;
@@ -57,25 +57,25 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
     private String currentState;
     private String convertedCurrency;
 
-    public BusinessBundleSummaryModelDao() { /* When reading from the database */ }
+    public BusinessBundleModelDao() { /* When reading from the database */ }
 
-    public BusinessBundleSummaryModelDao(final Long bundleRecordId,
-                                         final UUID bundleId,
-                                         final String bundleExternalKey,
-                                         final UUID subscriptionId,
-                                         final Integer bundleAccountRank,
-                                         final BusinessSubscriptionTransitionModelDao bst,
-                                         final String convertedCurrency,
-                                         final DateTime createdDate,
-                                         final String createdBy,
-                                         final String createdReasonCode,
-                                         final String createdComments,
-                                         final UUID accountId,
-                                         final String accountName,
-                                         final String accountExternalKey,
-                                         final Long accountRecordId,
-                                         final Long tenantRecordId,
-                                         @Nullable final ReportGroup reportGroup)
+    public BusinessBundleModelDao(final Long bundleRecordId,
+                                  final UUID bundleId,
+                                  final String bundleExternalKey,
+                                  final UUID subscriptionId,
+                                  final Integer bundleAccountRank,
+                                  final BusinessSubscriptionTransitionModelDao bst,
+                                  final String convertedCurrency,
+                                  final DateTime createdDate,
+                                  final String createdBy,
+                                  final String createdReasonCode,
+                                  final String createdComments,
+                                  final UUID accountId,
+                                  final String accountName,
+                                  final String accountExternalKey,
+                                  final Long accountRecordId,
+                                  final Long tenantRecordId,
+                                  @Nullable final ReportGroup reportGroup)
 
     {
         super(createdDate,
@@ -113,16 +113,16 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
         this.convertedCurrency = convertedCurrency;
     }
 
-    public BusinessBundleSummaryModelDao(final Account account,
-                                         final Long accountRecordId,
-                                         final SubscriptionBundle bundle,
-                                         final Long bundleRecordId,
-                                         final Integer bundleAccountRank,
-                                         final BusinessSubscriptionTransitionModelDao bst,
-                                         final CurrencyConverter currencyConverter,
-                                         @Nullable final AuditLog creationAuditLog,
-                                         final Long tenantRecordId,
-                                         @Nullable final ReportGroup reportGroup) {
+    public BusinessBundleModelDao(final Account account,
+                                  final Long accountRecordId,
+                                  final SubscriptionBundle bundle,
+                                  final Long bundleRecordId,
+                                  final Integer bundleAccountRank,
+                                  final BusinessSubscriptionTransitionModelDao bst,
+                                  final CurrencyConverter currencyConverter,
+                                  @Nullable final AuditLog creationAuditLog,
+                                  final Long tenantRecordId,
+                                  @Nullable final ReportGroup reportGroup) {
         this(bundleRecordId,
              bundle.getId(),
              bundle.getExternalKey(),
@@ -144,7 +144,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
 
     @Override
     public String getTableName() {
-        return BUNDLE_SUMMARIES_TABLE_NAME;
+        return BUNDLES_TABLE_NAME;
     }
 
     public Long getBundleRecordId() {
@@ -241,7 +241,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("BusinessBundleSummaryModelDao{");
+        final StringBuilder sb = new StringBuilder("BusinessBundleModelDao{");
         sb.append("bundleRecordId=").append(bundleRecordId);
         sb.append(", bundleId=").append(bundleId);
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
@@ -281,7 +281,7 @@ public class BusinessBundleSummaryModelDao extends BusinessModelDaoBase {
             return false;
         }
 
-        final BusinessBundleSummaryModelDao that = (BusinessBundleSummaryModelDao) o;
+        final BusinessBundleModelDao that = (BusinessBundleModelDao) o;
 
         if (bundleAccountRank != null ? !bundleAccountRank.equals(that.bundleAccountRank) : that.bundleAccountRank != null) {
             return false;

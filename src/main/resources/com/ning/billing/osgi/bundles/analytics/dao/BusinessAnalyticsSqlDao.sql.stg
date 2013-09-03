@@ -1447,7 +1447,7 @@ getSubscriptionTransitionsByAccountRecordId() ::= <<
 ;
 >>
 
-getBundleSummariesByAccountRecordId() ::= <<
+getBundlesByAccountRecordId() ::= <<
 <SELECT_STAR_FROM_TABLE("analytics_bundles")>
 ;
 >>
