@@ -117,7 +117,6 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         }).sortedCopy(Iterables.filter(bsts, new Predicate<BusinessSubscriptionTransitionModelDao>() {
             @Override
             public boolean apply(final BusinessSubscriptionTransitionModelDao input) {
-                // TODO wrong
                 return ProductCategory.BASE.toString().equals(input.getNextProductCategory());
             }
         }));

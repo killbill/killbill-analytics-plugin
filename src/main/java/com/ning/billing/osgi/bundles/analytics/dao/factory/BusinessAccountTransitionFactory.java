@@ -68,6 +68,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
         for (final SubscriptionEvent state : blockingStates) {
             final Long blockingStateRecordId = getBlockingStateRecordId(state.getId(), context);
             final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), context);
+            // TODO We're missing information about block billing, etc. Maybe capture it in an event name?
             final BusinessAccountTransitionModelDao accountTransition = new BusinessAccountTransitionModelDao(account,
                                                                                                               accountRecordId,
                                                                                                               state.getServiceName(),
