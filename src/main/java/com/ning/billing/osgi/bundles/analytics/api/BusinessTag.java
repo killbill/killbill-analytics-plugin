@@ -16,6 +16,8 @@
 
 package com.ning.billing.osgi.bundles.analytics.api;
 
+import java.util.UUID;
+
 import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleTagModelDao;
@@ -26,9 +28,10 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
 public class BusinessTag extends BusinessEntityBase {
 
     private final ObjectType objectType;
+    private final UUID objectId;
     private final String name;
 
-    private BusinessTag(final ObjectType objectType, final BusinessTagModelDao businessTagModelDao) {
+    private BusinessTag(final ObjectType objectType, final BusinessTagModelDao businessTagModelDao, final UUID objectId) {
         super(businessTagModelDao.getCreatedDate(),
               businessTagModelDao.getCreatedBy(),
               businessTagModelDao.getCreatedReasonCode(),
@@ -39,17 +42,18 @@ public class BusinessTag extends BusinessEntityBase {
               businessTagModelDao.getReportGroup());
         this.objectType = objectType;
         this.name = businessTagModelDao.getName();
+        this.objectId = objectId;
     }
 
     public static BusinessTag create(final BusinessTagModelDao businessTagModelDao) {
         if (businessTagModelDao instanceof BusinessAccountTagModelDao) {
-            return new BusinessTag(ObjectType.ACCOUNT, businessTagModelDao);
+            return new BusinessTag(ObjectType.ACCOUNT, businessTagModelDao, businessTagModelDao.getAccountId());
         } else if (businessTagModelDao instanceof BusinessBundleTagModelDao) {
-            return new BusinessTag(ObjectType.BUNDLE, businessTagModelDao);
+            return new BusinessTag(ObjectType.BUNDLE, businessTagModelDao, ((BusinessBundleTagModelDao) businessTagModelDao).getBundleId());
         } else if (businessTagModelDao instanceof BusinessInvoiceTagModelDao) {
-            return new BusinessTag(ObjectType.INVOICE, businessTagModelDao);
+            return new BusinessTag(ObjectType.INVOICE, businessTagModelDao, ((BusinessInvoiceTagModelDao) businessTagModelDao).getInvoiceId());
         } else if (businessTagModelDao instanceof BusinessInvoicePaymentTagModelDao) {
-            return new BusinessTag(ObjectType.INVOICE_PAYMENT, businessTagModelDao);
+            return new BusinessTag(ObjectType.INVOICE_PAYMENT, businessTagModelDao, ((BusinessInvoicePaymentTagModelDao) businessTagModelDao).getInvoicePaymentId());
         } else {
             return null;
         }
@@ -63,11 +67,15 @@ public class BusinessTag extends BusinessEntityBase {
         return name;
     }
 
+    public UUID getObjectId() {
+        return objectId;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessTag");
-        sb.append("{objectType=").append(objectType);
+        final StringBuilder sb = new StringBuilder("BusinessTag{");
+        sb.append("objectType=").append(objectType);
+        sb.append(", objectId=").append(objectId);
         sb.append(", name='").append(name).append('\'');
         sb.append('}');
         return sb.toString();
@@ -81,10 +89,16 @@ public class BusinessTag extends BusinessEntityBase {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         final BusinessTag that = (BusinessTag) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) {
+            return false;
+        }
+        if (objectId != null ? !objectId.equals(that.objectId) : that.objectId != null) {
             return false;
         }
         if (objectType != that.objectType) {
@@ -96,7 +110,9 @@ public class BusinessTag extends BusinessEntityBase {
 
     @Override
     public int hashCode() {
-        int result = objectType != null ? objectType.hashCode() : 0;
+        int result = super.hashCode();
+        result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
+        result = 31 * result + (objectId != null ? objectId.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         return result;
     }

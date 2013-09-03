@@ -47,6 +47,7 @@ public class TestBusinessTag extends AnalyticsTestSuiteNoDB {
     public void testConstructorBundle() throws Exception {
         final BusinessBundleTagModelDao businessBundleTagModelDao = new BusinessBundleTagModelDao(account,
                                                                                                   accountRecordId,
+                                                                                                  bundle,
                                                                                                   tag,
                                                                                                   tagRecordId,
                                                                                                   tagDefinition,
@@ -92,5 +93,6 @@ public class TestBusinessTag extends AnalyticsTestSuiteNoDB {
         verifyBusinessEntityBase(accountTag);
         Assert.assertEquals(accountTag.getCreatedDate(), accountTag.getCreatedDate());
         Assert.assertEquals(accountTag.getName(), accountTag.getName());
+        Assert.assertEquals(accountTag.getObjectId(), accountTag.getObjectId());
     }
 }

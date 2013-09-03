@@ -24,6 +24,7 @@ import org.joda.time.DateTime;
 
 import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.tag.Tag;
 import com.ning.billing.util.tag.TagDefinition;
@@ -42,6 +43,7 @@ public abstract class BusinessTagModelDao extends BusinessModelDaoBase {
 
     public static BusinessTagModelDao create(final Account account,
                                              final Long accountRecordId,
+                                             @Nullable final SubscriptionBundle bundle,
                                              final Tag tag,
                                              final Long tagRecordId,
                                              final TagDefinition tagDefinition,
@@ -60,6 +62,7 @@ public abstract class BusinessTagModelDao extends BusinessModelDaoBase {
         } else if (ObjectType.BUNDLE.equals(tag.getObjectType())) {
             return new BusinessBundleTagModelDao(account,
                                                  accountRecordId,
+                                                 bundle,
                                                  tag,
                                                  tagRecordId,
                                                  tagDefinition,

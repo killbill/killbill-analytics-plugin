@@ -21,6 +21,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.ning.billing.account.api.Account;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.tag.Tag;
 import com.ning.billing.util.tag.TagDefinition;
@@ -28,11 +29,13 @@ import com.ning.billing.util.tag.TagDefinition;
 public class BusinessBundleTagModelDao extends BusinessTagModelDao {
 
     private UUID bundleId;
+    private String bundleExternalKey;
 
     public BusinessBundleTagModelDao() { /* When reading from the database */ }
 
     public BusinessBundleTagModelDao(final Account account,
                                      final Long accountRecordId,
+                                     final SubscriptionBundle bundle,
                                      final Tag tag,
                                      final Long tagRecordId,
                                      final TagDefinition tagDefinition,
@@ -48,6 +51,7 @@ public class BusinessBundleTagModelDao extends BusinessTagModelDao {
               tenantRecordId,
               reportGroup);
         this.bundleId = tag.getObjectId();
+        this.bundleExternalKey = bundle.getExternalKey();
     }
 
     @Override
@@ -59,11 +63,15 @@ public class BusinessBundleTagModelDao extends BusinessTagModelDao {
         return bundleId;
     }
 
+    public String getBundleExternalKey() {
+        return bundleExternalKey;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessBundleTagModelDao");
-        sb.append("{bundleId=").append(bundleId);
+        final StringBuilder sb = new StringBuilder("BusinessBundleTagModelDao{");
+        sb.append("bundleId=").append(bundleId);
+        sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -82,6 +90,9 @@ public class BusinessBundleTagModelDao extends BusinessTagModelDao {
 
         final BusinessBundleTagModelDao that = (BusinessBundleTagModelDao) o;
 
+        if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
+            return false;
+        }
         if (bundleId != null ? !bundleId.equals(that.bundleId) : that.bundleId != null) {
             return false;
         }
@@ -93,6 +104,7 @@ public class BusinessBundleTagModelDao extends BusinessTagModelDao {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);
+        result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         return result;
     }
 }

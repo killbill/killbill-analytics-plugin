@@ -1196,6 +1196,7 @@ createAnalyticsBundleTags() ::= <<
 insert into analytics_bundle_tags (
   tag_record_id
 , bundle_id
+, bundle_external_key
 , name
 , created_date
 , created_by
@@ -1210,6 +1211,7 @@ insert into analytics_bundle_tags (
 ) values (
   :tagRecordId
 , :bundleId
+, :bundleExternalKey
 , :name
 , :createdDate
 , :createdBy
@@ -1324,6 +1326,7 @@ createAnalyticsBundleFields() ::= <<
 insert into analytics_bundle_fields (
   custom_field_record_id
 , bundle_id
+, bundle_external_key
 , name
 , value
 , created_date
@@ -1339,6 +1342,7 @@ insert into analytics_bundle_fields (
 ) values (
   :customFieldRecordId
 , :bundleId
+, :bundleExternalKey
 , :name
 , :value
 , :createdDate

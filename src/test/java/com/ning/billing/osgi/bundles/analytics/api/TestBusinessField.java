@@ -38,7 +38,12 @@ public class TestBusinessField extends AnalyticsTestSuiteNoDB {
                                                                                                            tenantRecordId,
                                                                                                            reportGroup);
         final BusinessField businessField = BusinessField.create(businessAccountFieldModelDao);
-        verifyBusinessField(businessField);
+        // We can't use verifyBusinessField below as the customField objectId won't match the accountId in this test
+        verifyBusinessEntityBase(businessField);
+        Assert.assertEquals(businessField.getCreatedDate(), customField.getCreatedDate());
+        Assert.assertEquals(businessField.getName(), customField.getFieldName());
+        Assert.assertEquals(businessField.getValue(), customField.getFieldValue());
+        Assert.assertEquals(businessField.getObjectId(), account.getId());
         Assert.assertEquals(businessField.getObjectType(), ObjectType.ACCOUNT);
     }
 
@@ -46,6 +51,7 @@ public class TestBusinessField extends AnalyticsTestSuiteNoDB {
     public void testConstructorBundle() throws Exception {
         final BusinessBundleFieldModelDao businessBundleFieldModelDao = new BusinessBundleFieldModelDao(account,
                                                                                                         accountRecordId,
+                                                                                                        bundle,
                                                                                                         customField,
                                                                                                         fieldRecordId,
                                                                                                         auditLog,
@@ -89,5 +95,6 @@ public class TestBusinessField extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(accountField.getCreatedDate(), customField.getCreatedDate());
         Assert.assertEquals(accountField.getName(), customField.getFieldName());
         Assert.assertEquals(accountField.getValue(), customField.getFieldValue());
+        Assert.assertEquals(accountField.getObjectId(), customField.getObjectId());
     }
 }

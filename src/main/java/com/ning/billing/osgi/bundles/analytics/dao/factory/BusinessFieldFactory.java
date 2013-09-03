@@ -20,8 +20,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.clock.Clock;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
@@ -56,8 +58,14 @@ public class BusinessFieldFactory extends BusinessFactoryBase {
         for (final CustomField field : fields) {
             final Long customFieldRecordId = getFieldRecordId(field.getId(), context);
             final AuditLog creationAuditLog = getFieldCreationAuditLog(field.getId(), context);
+
+            SubscriptionBundle bundle = null;
+            if (ObjectType.BUNDLE.equals(field.getObjectType())) {
+                bundle = getSubscriptionBundle(field.getObjectId(), context);
+            }
             final BusinessFieldModelDao fieldModelDao = BusinessFieldModelDao.create(account,
                                                                                      accountRecordId,
+                                                                                     bundle,
                                                                                      field,
                                                                                      customFieldRecordId,
                                                                                      creationAuditLog,

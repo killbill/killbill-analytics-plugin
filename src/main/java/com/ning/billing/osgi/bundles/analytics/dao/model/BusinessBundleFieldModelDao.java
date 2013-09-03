@@ -21,17 +21,20 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.ning.billing.account.api.Account;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.customfield.CustomField;
 
 public class BusinessBundleFieldModelDao extends BusinessFieldModelDao {
 
     private UUID bundleId;
+    private String bundleExternalKey;
 
     public BusinessBundleFieldModelDao() { /* When reading from the database */ }
 
     public BusinessBundleFieldModelDao(final Account account,
                                        final Long accountRecordId,
+                                       final SubscriptionBundle bundle,
                                        final CustomField customField,
                                        final Long customFieldRecordId,
                                        @Nullable final AuditLog creationAuditLog,
@@ -45,6 +48,7 @@ public class BusinessBundleFieldModelDao extends BusinessFieldModelDao {
               tenantRecordId,
               reportGroup);
         this.bundleId = customField.getObjectId();
+        this.bundleExternalKey = bundle.getExternalKey();
     }
 
     @Override
@@ -56,11 +60,15 @@ public class BusinessBundleFieldModelDao extends BusinessFieldModelDao {
         return bundleId;
     }
 
+    public String getBundleExternalKey() {
+        return bundleExternalKey;
+    }
+
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessBundleFieldModelDao");
-        sb.append("{bundleId=").append(bundleId);
+        final StringBuilder sb = new StringBuilder("BusinessBundleFieldModelDao{");
+        sb.append("bundleId=").append(bundleId);
+        sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -79,6 +87,9 @@ public class BusinessBundleFieldModelDao extends BusinessFieldModelDao {
 
         final BusinessBundleFieldModelDao that = (BusinessBundleFieldModelDao) o;
 
+        if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
+            return false;
+        }
         if (bundleId != null ? !bundleId.equals(that.bundleId) : that.bundleId != null) {
             return false;
         }
@@ -90,6 +101,7 @@ public class BusinessBundleFieldModelDao extends BusinessFieldModelDao {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);
+        result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         return result;
     }
 }

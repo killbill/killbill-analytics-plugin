@@ -718,6 +718,7 @@ create table analytics_bundle_tags (
   record_id int(11) unsigned not null auto_increment
 , tag_record_id int(11) unsigned default null
 , bundle_id char(36) default null
+, bundle_external_key varchar(50) default null
 , name varchar(50) default null
 , created_date datetime default null
 , created_by varchar(50) default null
@@ -732,6 +733,8 @@ create table analytics_bundle_tags (
 , primary key(record_id)
 );
 create index analytics_bundle_tags_account_id on analytics_bundle_tags(account_id);
+create index analytics_bundle_tags_bundle_id on analytics_bundle_tags(bundle_id);
+create index analytics_bundle_tags_bundle_external_key on analytics_bundle_tags(bundle_external_key);
 create index analytics_bundle_tags_account_record_id on analytics_bundle_tags(account_record_id);
 create index analytics_bundle_tags_tenant_account_record_id on analytics_bundle_tags(tenant_record_id, account_record_id);
 
@@ -806,6 +809,7 @@ create table analytics_bundle_fields (
   record_id int(11) unsigned not null auto_increment
 , custom_field_record_id int(11) unsigned default null
 , bundle_id char(36) default null
+, bundle_external_key varchar(50) default null
 , name varchar(50) default null
 , value varchar(255) default null
 , created_date datetime default null
@@ -821,6 +825,8 @@ create table analytics_bundle_fields (
 , primary key(record_id)
 );
 create index analytics_bundle_fields_account_id on analytics_bundle_fields(account_id);
+create index analytics_bundle_fields_bundle_id on analytics_bundle_fields(bundle_id);
+create index analytics_bundle_fields_bundle_external_key on analytics_bundle_fields(bundle_external_key);
 create index analytics_bundle_fields_account_record_id on analytics_bundle_fields(account_record_id);
 create index analytics_bundle_fields_tenant_account_record_id on analytics_bundle_fields(tenant_record_id, account_record_id);
 

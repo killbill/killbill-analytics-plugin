@@ -24,6 +24,7 @@ import org.joda.time.DateTime;
 
 import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.customfield.CustomField;
 
@@ -42,6 +43,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
 
     public static BusinessFieldModelDao create(final Account account,
                                                final Long accountRecordId,
+                                               @Nullable final SubscriptionBundle bundle,
                                                final CustomField customField,
                                                final Long customFieldRecordId,
                                                @Nullable final AuditLog creationAuditLog,
@@ -58,6 +60,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
         } else if (ObjectType.BUNDLE.equals(customField.getObjectType())) {
             return new BusinessBundleFieldModelDao(account,
                                                    accountRecordId,
+                                                   bundle,
                                                    customField,
                                                    customFieldRecordId,
                                                    creationAuditLog,

@@ -16,6 +16,8 @@
 
 package com.ning.billing.osgi.bundles.analytics.api;
 
+import java.util.UUID;
+
 import com.ning.billing.ObjectType;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleFieldModelDao;
@@ -26,10 +28,11 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentF
 public class BusinessField extends BusinessEntityBase {
 
     private final ObjectType objectType;
+    private final UUID objectId;
     private final String name;
     private final String value;
 
-    private BusinessField(final ObjectType objectType, final BusinessFieldModelDao businessFieldModelDao) {
+    private BusinessField(final ObjectType objectType, final BusinessFieldModelDao businessFieldModelDao, final UUID objectId) {
         super(businessFieldModelDao.getCreatedDate(),
               businessFieldModelDao.getCreatedBy(),
               businessFieldModelDao.getCreatedReasonCode(),
@@ -41,17 +44,18 @@ public class BusinessField extends BusinessEntityBase {
         this.objectType = objectType;
         this.name = businessFieldModelDao.getName();
         this.value = businessFieldModelDao.getValue();
+        this.objectId = objectId;
     }
 
     public static BusinessField create(final BusinessFieldModelDao businessFieldModelDao) {
         if (businessFieldModelDao instanceof BusinessAccountFieldModelDao) {
-            return new BusinessField(ObjectType.ACCOUNT, businessFieldModelDao);
+            return new BusinessField(ObjectType.ACCOUNT, businessFieldModelDao, businessFieldModelDao.getAccountId());
         } else if (businessFieldModelDao instanceof BusinessBundleFieldModelDao) {
-            return new BusinessField(ObjectType.BUNDLE, businessFieldModelDao);
+            return new BusinessField(ObjectType.BUNDLE, businessFieldModelDao, ((BusinessBundleFieldModelDao) businessFieldModelDao).getBundleId());
         } else if (businessFieldModelDao instanceof BusinessInvoiceFieldModelDao) {
-            return new BusinessField(ObjectType.INVOICE, businessFieldModelDao);
+            return new BusinessField(ObjectType.INVOICE, businessFieldModelDao, ((BusinessInvoiceFieldModelDao) businessFieldModelDao).getInvoiceId());
         } else if (businessFieldModelDao instanceof BusinessInvoicePaymentFieldModelDao) {
-            return new BusinessField(ObjectType.INVOICE_PAYMENT, businessFieldModelDao);
+            return new BusinessField(ObjectType.INVOICE_PAYMENT, businessFieldModelDao, ((BusinessInvoicePaymentFieldModelDao) businessFieldModelDao).getInvoicePaymentId());
         } else {
             return null;
         }
@@ -69,16 +73,22 @@ public class BusinessField extends BusinessEntityBase {
         return value;
     }
 
+    public UUID getObjectId() {
+        return objectId;
+    }
+
+    @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("BusinessField");
-        sb.append("{objectType=").append(objectType);
+        final StringBuilder sb = new StringBuilder("BusinessField{");
+        sb.append("objectType=").append(objectType);
+        sb.append(", objectId=").append(objectId);
         sb.append(", name='").append(name).append('\'');
         sb.append(", value='").append(value).append('\'');
         sb.append('}');
         return sb.toString();
     }
 
+    @Override
     public boolean equals(final Object o) {
         if (this == o) {
             return true;
@@ -86,10 +96,16 @@ public class BusinessField extends BusinessEntityBase {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
+        if (!super.equals(o)) {
+            return false;
+        }
 
         final BusinessField that = (BusinessField) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) {
+            return false;
+        }
+        if (objectId != null ? !objectId.equals(that.objectId) : that.objectId != null) {
             return false;
         }
         if (objectType != that.objectType) {
@@ -102,8 +118,11 @@ public class BusinessField extends BusinessEntityBase {
         return true;
     }
 
+    @Override
     public int hashCode() {
-        int result = objectType != null ? objectType.hashCode() : 0;
+        int result = super.hashCode();
+        result = 31 * result + (objectType != null ? objectType.hashCode() : 0);
+        result = 31 * result + (objectId != null ? objectId.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;

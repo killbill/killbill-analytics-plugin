@@ -20,8 +20,10 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.UUID;
 
+import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
 import com.ning.billing.clock.Clock;
+import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
@@ -58,8 +60,14 @@ public class BusinessTagFactory extends BusinessFactoryBase {
             final Long tagRecordId = getTagRecordId(tag.getId(), context);
             final TagDefinition tagDefinition = getTagDefinition(tag.getTagDefinitionId(), context);
             final AuditLog creationAuditLog = getTagCreationAuditLog(tag.getId(), context);
+
+            SubscriptionBundle bundle = null;
+            if (ObjectType.BUNDLE.equals(tag.getObjectType())) {
+                bundle = getSubscriptionBundle(tag.getObjectId(), context);
+            }
             final BusinessTagModelDao tagModelDao = BusinessTagModelDao.create(account,
                                                                                accountRecordId,
+                                                                               bundle,
                                                                                tag,
                                                                                tagRecordId,
                                                                                tagDefinition,

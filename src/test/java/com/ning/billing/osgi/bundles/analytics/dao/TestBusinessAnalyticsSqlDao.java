@@ -110,6 +110,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
     public void testSqlDaoForBundleField() throws Exception {
         final BusinessFieldModelDao businessFieldModelDao = new BusinessBundleFieldModelDao(account,
                                                                                             accountRecordId,
+                                                                                            bundle,
                                                                                             customField,
                                                                                             fieldRecordId,
                                                                                             auditLog,
@@ -410,6 +411,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
     public void testSqlDaoForBundleTag() throws Exception {
         final BusinessTagModelDao businessTagModelDao = new BusinessBundleTagModelDao(account,
                                                                                       accountRecordId,
+                                                                                      bundle,
                                                                                       tag,
                                                                                       tagRecordId,
                                                                                       tagDefinition,
