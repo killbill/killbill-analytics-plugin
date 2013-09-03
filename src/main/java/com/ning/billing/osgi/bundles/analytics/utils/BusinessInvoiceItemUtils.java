@@ -47,7 +47,7 @@ public class BusinessInvoiceItemUtils {
                                                                                                    @Override
                                                                                                    public boolean apply(final SubscriptionEvent input) {
                                                                                                        if (input.getEntitlementId().equals(invoiceItem.getSubscriptionId()) &&
-                                                                                                           input.getNextPhase().equals(planPhase) &&
+                                                                                                           input.getNextPhase() != null && input.getNextPhase().equals(planPhase) &&
                                                                                                            input.getEffectiveDate().compareTo(invoiceItem.getStartDate()) == 0) {
                                                                                                            subscriptionEventForInvoiceItem = input;
                                                                                                            return false;
