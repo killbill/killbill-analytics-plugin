@@ -51,7 +51,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
                                                                                           final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
-        final Collection<BusinessAccountTransitionModelDao> businessAccountTransitions = new LinkedList<BusinessAccountTransitionModelDao>();
+        final List<BusinessAccountTransitionModelDao> businessAccountTransitions = new LinkedList<BusinessAccountTransitionModelDao>();
 
         final List<SubscriptionEvent> blockingStatesOrdered = getBlockingHistory(accountId, context);
         if (blockingStatesOrdered.size() == 0) {
@@ -62,6 +62,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
 
+        // Reverse to compute the end date of each state
         final List<SubscriptionEvent> blockingStates = Lists.reverse(ImmutableList.<SubscriptionEvent>copyOf(blockingStatesOrdered));
         LocalDate previousStartDate = null;
         for (final SubscriptionEvent state : blockingStates) {
@@ -81,6 +82,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
             previousStartDate = state.getEffectiveDate();
         }
 
-        return businessAccountTransitions;
+        // Reverse again to store the events chronologically
+        return Lists.<BusinessAccountTransitionModelDao>reverse(businessAccountTransitions);
     }
 }

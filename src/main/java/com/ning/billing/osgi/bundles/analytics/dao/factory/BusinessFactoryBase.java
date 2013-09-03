@@ -282,7 +282,6 @@ public abstract class BusinessFactoryBase {
                                                                                                      return SubscriptionEventType.SERVICE_STATE_CHANGE.equals(event.getSubscriptionEventType());
                                                                                                  }
                                                                                              });
-        // TODO Should we re-order?
         return ImmutableList.<SubscriptionEvent>copyOf(Sets.newLinkedHashSet(stateChanges));
     }
 
