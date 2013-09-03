@@ -17,10 +17,12 @@
 package com.ning.billing.osgi.bundles.analytics.dao.factory;
 
 import java.util.Collection;
-import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -50,7 +52,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Ordering;
 
 public class BusinessBundleFactory extends BusinessFactoryBase {
 
@@ -67,15 +68,24 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
 
     public Collection<BusinessBundleModelDao> createBusinessBundles(final UUID accountId,
                                                                     final Long accountRecordId,
-                                                                    final Collection<BusinessSubscriptionTransitionModelDao> bsts,
+                                                                    // Correctly ordered
+                                                                    final Collection<BusinessSubscriptionTransitionModelDao> sortedBsts,
                                                                     final Long tenantRecordId,
                                                                     final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
 
+        final Set<UUID> baseSubscriptionIds = new HashSet<UUID>();
+        final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
+        for (final SubscriptionBundle bundle : bundles) {
+            for (final Subscription subscription : bundle.getSubscriptions()) {
+                baseSubscriptionIds.add(subscription.getBaseEntitlementId());
+            }
+        }
+
         final Map<UUID, Integer> rankForBundle = new LinkedHashMap<UUID, Integer>();
         final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle = new LinkedHashMap<UUID, BusinessSubscriptionTransitionModelDao>();
-        filterBstsForBasePlans(bsts, rankForBundle, bstForBundle);
+        filterBstsForBasePlans(sortedBsts, baseSubscriptionIds, rankForBundle, bstForBundle);
 
         // We fetch the bundles in parallel as these can be very large on a per account basis (@see BusinessSubscriptionTransitionFactory)
         final CompletionService<BusinessBundleModelDao> completionService = new ExecutorCompletionService<BusinessBundleModelDao>(executor);
@@ -108,22 +118,14 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
     }
 
     @VisibleForTesting
-    void filterBstsForBasePlans(final Collection<BusinessSubscriptionTransitionModelDao> bsts, final Map<UUID, Integer> rankForBundle, final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle) {// Find bsts for BASE subscriptions only and sort them using the next start date
-        final Collection<BusinessSubscriptionTransitionModelDao> sortedBundlesBst = Ordering.from(new Comparator<BusinessSubscriptionTransitionModelDao>() {
-            @Override
-            public int compare(final BusinessSubscriptionTransitionModelDao o1, final BusinessSubscriptionTransitionModelDao o2) {
-                return o1.getNextStartDate().compareTo(o2.getNextStartDate());
-            }
-        }).sortedCopy(Iterables.filter(bsts, new Predicate<BusinessSubscriptionTransitionModelDao>() {
-            @Override
-            public boolean apply(final BusinessSubscriptionTransitionModelDao input) {
-                return ProductCategory.BASE.toString().equals(input.getNextProductCategory());
-            }
-        }));
-
+    void filterBstsForBasePlans(final Collection<BusinessSubscriptionTransitionModelDao> sortedBundlesBst, final Set<UUID> baseSubscriptionIds, final Map<UUID, Integer> rankForBundle, final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle) {
         UUID lastBundleId = null;
         Integer lastBundleRank = 0;
         for (final BusinessSubscriptionTransitionModelDao bst : sortedBundlesBst) {
+            if (!baseSubscriptionIds.contains(bst.getSubscriptionId())) {
+                continue;
+            }
+
             // Note that sortedBundlesBst is not ordered bundle by bundle, i.e. we may have:
             // bundleId1 CREATE, bundleId2 CREATE, bundleId1 PHASE, bundleId3 CREATE bundleId2 PHASE
             if (lastBundleId == null || (!lastBundleId.equals(bst.getBundleId()) && rankForBundle.get(bst.getBundleId()) == null)) {
@@ -132,10 +134,8 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                 rankForBundle.put(lastBundleId, lastBundleRank);
             }
 
-            if (bstForBundle.get(bst.getBundleId()) == null ||
-                bstForBundle.get(bst.getBundleId()).getNextStartDate().isBefore(bst.getNextStartDate())) {
-                bstForBundle.put(bst.getBundleId(), bst);
-            }
+            // We want the last entry to get the current state
+            bstForBundle.put(bst.getBundleId(), bst);
         }
     }
 

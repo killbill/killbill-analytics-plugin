@@ -47,6 +47,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
 
@@ -77,27 +78,30 @@ public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testFilterBsts() throws Exception {
         final UUID bundleId1 = UUID.randomUUID();
+        final UUID subscriptionId1 = UUID.randomUUID();
         final LocalDate bundle1StartDate = new LocalDate(2012, 1, 1);
         final LocalDate bundle1PhaseDate = new LocalDate(2012, 2, 2);
         final UUID bundleId2 = UUID.randomUUID();
+        final UUID subscriptionId2 = UUID.randomUUID();
         final LocalDate bundle2StartDate = new LocalDate(2012, 2, 1);
         final LocalDate bundle2PhaseDate = new LocalDate(2012, 3, 2);
         final UUID bundleId3 = UUID.randomUUID();
+        final UUID subscriptionId3 = UUID.randomUUID();
         final LocalDate bundle3StartDate = new LocalDate(2012, 3, 1);
 
         // Real order is: bundleId1 START_ENTITLEMENT_BASE, bundleId2 START_ENTITLEMENT_BASE, bundleId1 SYSTEM_CHANGE_BASE, bundleId3 START_ENTITLEMENT_BASE bundleId2 SYSTEM_CHANGE_BASE
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = ImmutableList.<BusinessSubscriptionTransitionModelDao>of(
-                createBst(bundleId1, "START_ENTITLEMENT_BASE", bundle1StartDate),
-                createBst(bundleId1, "SYSTEM_CHANGE_BASE", bundle1PhaseDate),
-                createBst(bundleId2, "START_ENTITLEMENT_BASE", bundle2StartDate),
-                createBst(bundleId2, "SYSTEM_CHANGE_BASE", bundle2PhaseDate),
-                createBst(bundleId3, "START_ENTITLEMENT_BASE", bundle3StartDate),
-                createBst(UUID.randomUUID(), "START_ENTITLEMENT_ADD_ON", new LocalDate(DateTimeZone.UTC))
+                createBst(bundleId1, subscriptionId1, "START_ENTITLEMENT_BASE", bundle1StartDate),
+                createBst(bundleId1, subscriptionId1, "SYSTEM_CHANGE_BASE", bundle1PhaseDate),
+                createBst(bundleId2, subscriptionId2, "START_ENTITLEMENT_BASE", bundle2StartDate),
+                createBst(bundleId2, subscriptionId2, "SYSTEM_CHANGE_BASE", bundle2PhaseDate),
+                createBst(bundleId3, subscriptionId3, "START_ENTITLEMENT_BASE", bundle3StartDate),
+                createBst(UUID.randomUUID(), UUID.randomUUID(), "START_ENTITLEMENT_ADD_ON", new LocalDate(DateTimeZone.UTC))
                                                                                                                                 );
 
         final Map<UUID, Integer> rankForBundle = new LinkedHashMap<UUID, Integer>();
         final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle = new LinkedHashMap<UUID, BusinessSubscriptionTransitionModelDao>();
-        bundleFactory.filterBstsForBasePlans(bsts, rankForBundle, bstForBundle);
+        bundleFactory.filterBstsForBasePlans(bsts, ImmutableSet.<UUID>of(subscriptionId1, subscriptionId2, subscriptionId3), rankForBundle, bstForBundle);
 
         final List<BusinessSubscriptionTransitionModelDao> filteredBsts = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(bstForBundle.values());
         Assert.assertEquals(filteredBsts.size(), 3);
@@ -110,7 +114,7 @@ public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(filteredBsts.get(2).getNextStartDate(), bundle3StartDate);
     }
 
-    private BusinessSubscriptionTransitionModelDao createBst(final UUID bundleId, final String eventString, final LocalDate startDate) {
+    private BusinessSubscriptionTransitionModelDao createBst(final UUID bundleId, final UUID subscriptionId, final String eventString, final LocalDate startDate) {
         final SubscriptionBundle bundle = Mockito.mock(SubscriptionBundle.class);
         Mockito.when(bundle.getId()).thenReturn(bundleId);
 
@@ -130,6 +134,7 @@ public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
                                                                                stateName,
                                                                                currencyConverter);
 
+        Mockito.when(subscriptionTransition.getEntitlementId()).thenReturn(subscriptionId);
         return new BusinessSubscriptionTransitionModelDao(account,
                                                           accountRecordId,
                                                           bundle,
