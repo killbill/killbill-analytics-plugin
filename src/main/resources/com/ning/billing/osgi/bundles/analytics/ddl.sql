@@ -8,7 +8,7 @@ create table analytics_subscription_transitions (
 , bundle_id char(36) default null
 , bundle_external_key varchar(50) default null
 , subscription_id char(36) default null
-, requested_timestamp datetime default null
+, requested_timestamp date default null
 , event varchar(50) default null
 , prev_product_name varchar(50) default null
 , prev_product_type varchar(50) default null
@@ -169,8 +169,8 @@ create table analytics_account_transitions (
 , blocking_state_record_id int(11) unsigned default null
 , service varchar(50) default null
 , state varchar(50) default null
-, start_date datetime default null
-, end_date datetime default null
+, start_date date default null
+, end_date date default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
