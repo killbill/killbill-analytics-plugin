@@ -62,9 +62,9 @@ or (coalesce(a.tenant_record_id, '') != coalesce(bac.tenant_record_id, ''))
 
 -- A2
 select *
-from analytics_accounts bac b
-join account_history ah on b.account_record_id = ah.record_id
-join audit_log al on ah.record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'ACCOUNT_HISTORY'
+from analytics_accounts b
+join account_history ah on b.account_record_id = ah.target_record_id
+join audit_log al on ah.record_id = al.target_record_id and al.change_type = 'INSERT' and al.table_name = 'ACCOUNT_HISTORY'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
 or coalesce(b.created_by, '') != coalesce(al.created_by, '')
@@ -388,10 +388,11 @@ from analytics_invoice_item_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
 where coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
-or (coalesce(case when ii.type= 'REPAIR_ADJ' then 'ITEM_ADJ' else ii.type end, '') != coalesce(b.item_type, ''))
+or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
-or (coalesce(ii.phase_name, '') != coalesce(b.slug, ''))
+/* The code is smart and will populate NULL columns from the linked item id */
+or (ii.phase_name is not null and ii.phase_name != b.slug)
 or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
 or ( (coalesce(ii.amount, '') != coalesce(b.amount, '')) and ii.type != 'REPAIR_ADJ' ) -- need to calc correct amount in case of REPAIR_ADJ case
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
@@ -426,8 +427,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 -- D4
 select *
 from analytics_invoice_item_adjustments b
-left outer join invoice_items ii on ii.id = b.item_id
-left outer join bundles bndl on ii.bundle_id = bndl.id
+left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
@@ -518,8 +518,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 -- E4
 select *
 from analytics_invoice_credits b
-left outer join invoice_items ii on ii.id = b.item_id
-left outer join bundles bndl on ii.bundle_id = bndl.id
+left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
@@ -842,7 +841,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 -- H1a
 select *
 from invoice_payments ip
-left outer join analytics_refunds on ip.id = bipr.invoice_payment_id
+left outer join analytics_refunds bipr on ip.id = bipr.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipr.invoice_id, 'NULL')
@@ -861,7 +860,7 @@ select *
 from analytics_refunds bipr
 left outer join invoice_payments ip on ip.id = bipr.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
-or coalesce(ip.ID, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
+or coalesce(ip.id, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipr.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bipr.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bipr.linked_invoice_payment_id, 'NULL')
@@ -929,12 +928,16 @@ select *
 from blocking_states bs
 left outer join analytics_account_transitions bos on bs.record_id = bos.blocking_state_record_id
 where (coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
-or coalesce(bs.state, 'NULL') != coalesce(bos.status, 'NULL')
-or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL')
-or coalesce(bs.created_date, 'NULL') != coalesce(bos.start_date, 'NULL')
+or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
+/* TODO SubscriptionEvent is not an entity, we don't have that info yet
+or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
+/* Tricky... Need to look at the account timezone */
+or (coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
+and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
+and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL'))
 or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
 or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL'))
-and coalesce(bs.TYPE, 'NULL') = 'SUBSCRIPTION_BUNDLE'
+and coalesce(bs.type, 'NULL') = 'ACCOUNT'
 ;
 
 -- I1b
@@ -942,10 +945,14 @@ select *
 from analytics_account_transitions bos
 left outer join blocking_states bs on bs.record_id = bos.blocking_state_record_id
 where coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
-or coalesce(bs.TYPE, 'NULL') != 'SUBSCRIPTION_BUNDLE'
-or coalesce(bs.state, 'NULL') != coalesce(bos.status, 'NULL')
-or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL')
-or coalesce(bs.created_date, 'NULL') != coalesce(bos.start_date, 'NULL')
+or coalesce(bs.type, 'NULL') != 'ACCOUNT'
+or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
+/* TODO SubscriptionEvent is not an entity, we don't have that info yet
+or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
+/* Tricky... Need to look at the account timezone */
+or (coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
+and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
+and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL'))
 or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
 or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
 ;
@@ -975,14 +982,25 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select *
 from analytics_subscription_transitions bst
 left outer join subscription_events se on bst.subscription_event_record_id = se.record_id
-where coalesce(se.requested_date, '') != coalesce(bst.requested_timestamp, '')
-or coalesce(se.effective_date, '') != coalesce(bst.next_start_date, '')
+/* TODO Look at entilement rows only, ignore in-memory events and blocking states */
+where (coalesce(bst.prev_service, 'entitlement-service') = 'entitlement-service'
+and coalesce(bst.next_service, 'entitlement-service') = 'entitlement-service'
+and bst.subscription_event_record_id is not null)
+/* Tricky... Need to look at the account timezone */
+and ((coalesce(date(se.requested_date), '') != coalesce(date(bst.requested_timestamp), '')
+and coalesce(date(se.requested_date), '') != coalesce(date_add(date(bst.requested_timestamp), INTERVAL 1 DAY), '')
+and coalesce(date(se.requested_date), '') != coalesce(date_sub(date(bst.requested_timestamp), INTERVAL 1 DAY), ''))
+or (coalesce(date(se.effective_date), '') != coalesce(date(bst.next_start_date), '')
+and coalesce(date(se.effective_date), '') != coalesce(date_add(date(bst.next_start_date), INTERVAL 1 DAY), '')
+and coalesce(date(se.effective_date), '') != coalesce(date_sub(date(bst.next_start_date), INTERVAL 1 DAY), ''))
 or coalesce(se.subscription_id, '') != coalesce(bst.subscription_id, '')
 or coalesce(se.phase_name, '') != coalesce(bst.next_slug, '')
-or coalesce(se.price_list_name, '') != coalesce(bst.next_price_list, '')
-or coalesce(se.created_date, '') != coalesce(bst.created_date, '')
+/* See https://github.com/killbill/killbill/issues/65: subscription_events won't have the pricelist but the SubscriptionEvent object will at runtime */
+or (se.price_list_name is not null and se.price_list_name != coalesce(bst.next_price_list, ''))
+/* TODO SubscriptionEvent is not an entity, we don't have that info yet (we currently look at audit logs but this doesn't work for in-memory events)
+or coalesce(se.created_date, '') != coalesce(bst.created_date, '') */
 or coalesce(se.account_record_id, '') != coalesce(bst.account_record_id, '')
-or coalesce(se.tenant_record_id, '') != coalesce(bst.tenant_record_id, '')
+or coalesce(se.tenant_record_id, '') != coalesce(bst.tenant_record_id, ''))
 ;
 
 -- J2
@@ -999,9 +1017,13 @@ or coalesce(a.name, '') != coalesce(b.account_name, '')
 select *
 from analytics_subscription_transitions b
 join audit_log al on b.subscription_event_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'SUBSCRIPTION_EVENTS'
-where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
+/* TODO Look at entilement rows only, ignore in-memory events and blocking states */
+where (coalesce(b.prev_service, 'entitlement-service') = 'entitlement-service'
+and coalesce(b.next_service, 'entitlement-service') = 'entitlement-service'
+and b.subscription_event_record_id is not null)
+and (coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
-or coalesce(b.created_by, '') != coalesce(al.created_by, '')
+or coalesce(b.created_by, '') != coalesce(al.created_by, ''))
 ;
 
 
