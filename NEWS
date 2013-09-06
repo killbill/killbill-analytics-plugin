@@ -1,3 +1,7 @@
+0.4.3
+    Sanity queries updated
+    Switch a few fields from datetime to date
+
 0.4.2
     NPE bug fix
 
