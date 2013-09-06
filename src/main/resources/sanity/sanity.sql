@@ -200,7 +200,7 @@ or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
 
 -- B1b
 select *
-from invoice_adjustments b
+from analytics_invoice_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
 where (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, ''))
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
@@ -220,16 +220,17 @@ or ii.type not in ('CREDIT_ADJ','REFUND_ADJ')
 
 -- B2
 select *
-from invoice_adjustments b
+from analytics_invoice_adjustments b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
+;
 
 -- B3
 select *
-from invoice_adjustments b
+from analytics_invoice_adjustments b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
 or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
@@ -240,7 +241,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 
 -- B4
 select *
-from invoice_adjustments b
+from analytics_invoice_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
 left outer join bundles bndl on ii.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
@@ -248,8 +249,8 @@ where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NU
 
 -- B5
 select *
-from invoice_adjustments b
-left outer join bin on b.invoice_id = bin.invoice_id
+from analytics_invoice_adjustments b
+left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
 or b.invoice_amount_charged != bin.amount_charged
@@ -259,7 +260,7 @@ or b.invoice_amount_credited != bin.amount_credited
 
 -- B6
 select *
-from invoice_adjustments b
+from analytics_invoice_adjustments b
 join audit_log al on b.invoice_item_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_ITEMS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
@@ -433,7 +434,7 @@ where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NU
 -- D5
 select *
 from analytics_invoice_item_adjustments b
-left outer join bin on b.invoice_id = bin.invoice_id
+left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
 or b.invoice_amount_charged != bin.amount_charged
@@ -525,7 +526,7 @@ where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NU
 -- E5
 select *
 from analytics_invoice_credits b
-left outer join bin on b.invoice_id = bin.invoice_id
+left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
 or b.invoice_amount_charged != bin.amount_charged
@@ -535,7 +536,7 @@ or b.invoice_amount_credited != bin.amount_credited
 
 -- E6
 select *
-from biic b
+from analytics_invoice_credits b
 join audit_log al on b.invoice_item_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_ITEMS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
@@ -571,7 +572,7 @@ or (coalesce(i.tenant_record_id, '') != coalesce(bin.tenant_record_id, ''))
 
 -- F1b
 select *
-from analytics_invoices
+from analytics_invoices bin
 left outer join invoices i on i.id = bin.invoice_id
 where (coalesce(i.record_id, '') != coalesce(bin.invoice_record_id, ''))
 or (coalesce(i.id, '') != coalesce(bin.invoice_id, ''))
@@ -608,7 +609,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 -- G1a
 select *
 from invoice_payments ip
-left outer join analytics_payments on ip.id = bip.invoice_payment_id
+left outer join analytics_payments bip on ip.id = bip.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bip.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bip.invoice_id, 'NULL')
@@ -662,7 +663,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 -- G4
 select *
 from analytics_payments b
-left outer join bin on b.invoice_id = bin.invoice_id
+left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
 or b.invoice_amount_charged != bin.amount_charged
@@ -772,7 +773,7 @@ and ip.type = 'CHARGED_BACK'
 
 -- H1b
 select *
-from analytics_chargebacks
+from analytics_chargebacks bipc
 left outer join invoice_payments ip on ip.id = bipc.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bipc.invoice_payment_id, 'NULL')
@@ -870,6 +871,7 @@ or coalesce(ip.created_date, 'NULL') != coalesce(bipr.created_date, 'NULL')
 or coalesce(ip.account_record_id, 'NULL') != coalesce(bipr.account_record_id, 'NULL')
 or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipr.tenant_record_id, 'NULL')
 or bipr.invoice_payment_type != 'REFUND'
+;
 
 -- H2
 select *
@@ -894,7 +896,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 -- H4
 select *
 from analytics_refunds b
-left outer join bin on b.invoice_id = bin.invoice_id
+left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
 or b.invoice_amount_charged != bin.amount_charged
@@ -912,7 +914,7 @@ where coalesce(p.record_id, 'NULL') != coalesce(bipr.payment_number, 'NULL')
 
 -- H8
 select *
-from bipr b
+from analytics_refunds b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
