@@ -73,7 +73,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- ACCOUNT FIELDS
 
--- K1a TODO
+-- K1a
 select *
 from custom_fields cf
 left outer join analytics_account_fields b on cf.record_id = b.custom_field_record_id
@@ -85,7 +85,7 @@ or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
 and cf.object_type = 'ACCOUNT'
 ;
 
--- K1b TODO
+-- K1b
 select *
 from analytics_account_fields b
 left outer join custom_fields cf on cf.record_id = b.custom_field_record_id
@@ -181,7 +181,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 -- this will find things it thinks should be in bia but it's correct that they're not there
 select *
 from invoice_items ii
-left outer join invoice_adjustments b on ii.id = b.item_id
+left outer join analytics_invoice_adjustments b on ii.id = b.item_id
 where ii.type in ('CREDIT_ADJ','REFUND_ADJ')
 and (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
@@ -242,8 +242,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 -- B4
 select *
 from analytics_invoice_adjustments b
-left outer join invoice_items ii on ii.id = b.item_id
-left outer join bundles bndl on ii.bundle_id = bndl.id
+left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
@@ -334,8 +333,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 -- C4
 select *
 from analytics_invoice_items b
-left outer join invoice_items ii on ii.id = b.item_id
-left outer join bundles bndl on ii.bundle_id = bndl.id
+left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
@@ -366,13 +364,13 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select *
 from invoice_items ii
 left outer join analytics_invoice_item_adjustments b on ii.id = b.item_id
-where ii.type in ('ITEM_ADJ')
+where ii.type in ('ITEM_ADJ', 'REPAIR_ADJ')
 and (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
-or (coalesce(ii.phase_name, '') != coalesce(b.slug, ''))
+or ((coalesce(ii.phase_name, '') != coalesce(b.slug,'')) and ii.phase_name is not null)
 or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
 or (coalesce(ii.amount, '') != coalesce(b.amount, ''))
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
@@ -429,6 +427,7 @@ select *
 from analytics_invoice_item_adjustments b
 left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
+and b.bundle_id is not null
 ;
 
 -- D5
@@ -592,6 +591,110 @@ or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
+
+-- F3a
+select *
+from (
+  select
+    invoice_id
+  , invoice_amount_charged
+  , sum(coalesce(amount,0)) bii_sum
+  from analytics_invoice_items
+  group by invoice_id, invoice_amount_charged, invoice_original_amount_charged
+) bii_sum
+left outer join (
+  select
+    invoice_id
+  , sum(coalesce(amount,0)) bia_sum
+  from analytics_invoice_adjustments
+  group by invoice_id
+) bia_sum using (invoice_id)
+left outer join (
+  select
+    invoice_id
+  , sum(coalesce(amount,0)) biia_sum
+  from analytics_invoice_item_adjustments
+  group by invoice_id
+) biia_sum using (invoice_id)
+where bii_sum + coalesce(bia_sum,0) + coalesce(biia_sum,0) != bii_sum.invoice_amount_charged
+;
+
+-- F3b
+select
+  bin.invoice_id
+, bin.original_amount_charged
+, sum(bii.amount)
+from analytics_invoice_items bii
+join analytics_invoices bin on bii.invoice_id = bin.invoice_id and bii.created_date = bin.created_date
+group by bin.invoice_id, bin.original_amount_charged
+having sum(bii.amount) != bin.original_amount_charged
+;
+
+-- F3c
+select *
+from (
+  select
+    invoice_id
+  , invoice_amount_credited
+  , sum(coalesce(amount,0)) biic_sum
+  from analytics_invoice_credits biic
+  group by invoice_id,invoice_amount_credited
+) biic_sum
+where biic_sum != biic_sum.invoice_amount_credited
+;
+
+-- F3d
+select
+  *
+, bip_sum invoice_amount_paid
+from (
+  select
+    invoice_id
+  , invoice_amount_paid
+  , sum(coalesce(amount,0)) bip_sum
+  from analytics_payments bip
+  group by invoice_id, invoice_amount_paid
+) bip_sum
+where bip_sum != bip_sum.invoice_amount_paid
+;
+
+-- F3e
+select *
+from (
+  select
+    invoice_id
+  , balance
+  , amount_charged
+  , amount_credited
+  , amount_paid
+  , amount_refunded
+  , original_amount_charged
+  from bin
+) bin
+left outer join (
+  select
+    invoice_id
+  , sum(coalesce(amount,0)) bipc_sum
+  from analytics_payments bipc
+  group by invoice_id
+) bipc_sum using (invoice_id)
+left outer join (
+  select
+    invoice_id
+  , sum(coalesce(amount,0)) bipr_sum
+  from analytics_refunds bipr
+  group by invoice_id
+) bipr_sum using (invoice_id)
+where bipc_sum + bipr_sum != bin.amount_refunded
+;
+
+-- F3f
+select *
+from analytics_invoices bin
+where bin.amount_charged + bin.amount_credited - bin.amount_paid - bin.amount_refunded != bin.balance
+and (bin.amount_charged != 0 and bin.amount_paid != 0 and bin.amount_refunded != 0 and bin.balance != 0) -- deal w / acct credit
+;
+
 
 -- F6
 select *
@@ -923,7 +1026,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- ACCOUNT TRANSITIONS
 
--- I1a
+-- I1a TODO
 select *
 from blocking_states bs
 left outer join analytics_account_transitions bos on bs.record_id = bos.blocking_state_record_id
