@@ -126,7 +126,18 @@
             dataType: "json",
             url: request_url
           }).done(function(data) { fn(position, reports, data); })
-            .fail(function(jqXHR, textStatus) { alert("Request failed: " + textStatus); });
+            .fail(function(jqXHR, textStatus) {
+              try {
+                errors = $.parseJSON(jqXHR.responseText);
+                if (errors['message']) {
+                  alert("Error generating the report:\n" + errors['message']);
+                } else {
+                  alert("Error generating the report:\n" + errors);
+                }
+              } catch(err) {
+                alert("Error generating the report:\n" + jqXHR.responseText);
+              }
+            });
         }
 
         // The URL structure is expected to be in the form: analytics.html?report1=new_trials_per_day&report1=cancellations_per_day&report2=conversions_per_day
