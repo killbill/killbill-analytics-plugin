@@ -150,7 +150,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                                                               new Predicate<Subscription>() {
                                                                   @Override
                                                                   public boolean apply(final Subscription subscription) {
-                                                                      return ProductCategory.BASE.equals(subscription.getProductCategory());
+                                                                      return ProductCategory.BASE.equals(subscription.getLastActiveProductCategory());
                                                                   }
                                                               });
         if (base.isPresent()) {

@@ -29,8 +29,10 @@ import com.ning.billing.commons.jdbi.argument.DateTimeZoneArgumentFactory;
 import com.ning.billing.commons.jdbi.argument.EnumArgumentFactory;
 import com.ning.billing.commons.jdbi.argument.LocalDateArgumentFactory;
 import com.ning.billing.commons.jdbi.argument.UUIDArgumentFactory;
+import com.ning.billing.commons.jdbi.log.Slf4jLogging;
 import com.ning.billing.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import com.ning.billing.commons.jdbi.mapper.UUIDMapper;
+import com.ning.billing.commons.jdbi.transaction.RestartTransactionRunner;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTagModelDao;
@@ -95,6 +97,10 @@ public class BusinessDBIProvider {
         dbi.registerArgumentFactory(new EnumArgumentFactory());
 
         dbi.setStatementLocator(new AnalyticsStatementLocator());
+
+        dbi.setSQLLog(new Slf4jLogging());
+
+        dbi.setTransactionHandler(new RestartTransactionRunner());
 
         return dbi;
     }

@@ -1,6 +1,8 @@
 0.4.3
     Sanity queries updated
     Switch a few fields from datetime to date
+    Restart InnoDB transactions (to work around lock wait timeouts)
+    Update to latest Kill Bill APIs
 
 0.4.2
     NPE bug fix

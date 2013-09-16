@@ -372,8 +372,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(payment.getCurrency()).thenReturn(Currency.USD);
         Mockito.when(payment.getPaymentStatus()).thenReturn(PaymentStatus.AUTO_PAY_OFF);
         Mockito.when(payment.getAttempts()).thenReturn(ImmutableList.<PaymentAttempt>of(paymentAttempt));
-        Mockito.when(payment.getExtFirstPaymentIdRef()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(payment.getExtSecondPaymentIdRef()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(payment.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 56, DateTimeZone.UTC));
 
         refund = Mockito.mock(Refund.class);
