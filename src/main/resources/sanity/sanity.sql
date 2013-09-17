@@ -1,7 +1,7 @@
 -- ACCOUNTS
 
--- A1a
-select *
+select 'A1a' as sanity_query_name;
+select distinct a.record_id
 from accounts a
 left outer join analytics_accounts bac on a.id = bac.account_id
 where a.record_id != bac.account_record_id
@@ -30,8 +30,8 @@ or a.updated_date != bac.updated_date
 or a.tenant_record_id != bac.tenant_record_id
 ;
 
--- A1b
-select *
+select 'A1b' as sanity_query_name;
+select distinct bac.account_record_id
 from analytics_accounts bac
 left outer join accounts a on a.id = bac.account_id
 where a.record_id != bac.account_record_id
@@ -60,8 +60,8 @@ or (coalesce(a.updated_date, '') != coalesce(bac.updated_date, ''))
 or (coalesce(a.tenant_record_id, '') != coalesce(bac.tenant_record_id, ''))
 ;
 
--- A2
-select *
+select 'A2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_accounts b
 join account_history ah on b.account_record_id = ah.target_record_id
 join audit_log al on ah.record_id = al.target_record_id and al.change_type = 'INSERT' and al.table_name = 'ACCOUNT_HISTORY'
@@ -73,20 +73,20 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- ACCOUNT FIELDS
 
--- K1a
-select *
+select 'K1a' as sanity_query_name;
+select distinct cf.account_record_id
 from custom_fields cf
 left outer join analytics_account_fields b on cf.record_id = b.custom_field_record_id
 where (coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
 or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
 or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
 or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
-or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL') )
+or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL'))
 and cf.object_type = 'ACCOUNT'
 ;
 
--- K1b
-select *
+select 'K1b' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_fields b
 left outer join custom_fields cf on cf.record_id = b.custom_field_record_id
 where coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
@@ -97,8 +97,8 @@ or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
 or cf.object_type != 'ACCOUNT'
 ;
 
--- K2
-select *
+select 'K2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_fields b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -107,8 +107,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- K3
-select *
+select 'K3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_fields b
 join custom_field_history cfh on b.custom_field_record_id = cfh.target_record_id
 join audit_log al on cfh.record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'CUSTOM_FIELD_HISTORY'
@@ -120,8 +120,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- ACCOUNT TAGS
 
--- L1a
-select *
+select 'L1a' as sanity_query_name;
+select distinct t.account_record_id
 from tags t
 join tag_definitions td on t.tag_definition_id = td.id
 left outer join analytics_account_tags b on t.record_id = b.tag_record_id
@@ -133,8 +133,8 @@ or coalesce(b.tenant_record_id, 'NULL') != coalesce(t.tenant_record_id, 'NULL'))
 and t.object_type = 'ACCOUNT'
 ;
 
--- L1b
-select *
+select 'L1b' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_tags b
 left outer join tags t on t.record_id = b.tag_record_id
 left outer join tag_definitions td on t.tag_definition_id = td.id
@@ -154,8 +154,8 @@ and t.tag_definition_id not in ('00000000-0000-0000-0000-000000000001',
                                 '00000000-0000-0000-0000-000000000007')
 ;
 
--- L2
-select *
+select 'L2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_tags b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -164,8 +164,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- L3
-select *
+select 'L3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_tags b
 join tag_history th on b.tag_record_id = th.target_record_id
 join audit_log al on th.record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'TAG_HISTORY'
@@ -177,9 +177,9 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- INVOICE ADJUSTMENTS
 
--- B1a
+select 'B1a' as sanity_query_name;
 -- this will find things it thinks should be in bia but it's correct that they're not there
-select *
+select distinct b.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_adjustments b on ii.id = b.item_id
 where ii.type in ('CREDIT_ADJ','REFUND_ADJ')
@@ -198,8 +198,8 @@ or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
 or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
 ;
 
--- B1b
-select *
+select 'B1b' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
 where (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, ''))
@@ -218,8 +218,8 @@ or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, ''))
 or ii.type not in ('CREDIT_ADJ','REFUND_ADJ')
 ;
 
--- B2
-select *
+select 'B2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -228,8 +228,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- B3
-select *
+select 'B3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -239,15 +239,15 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- B4
-select *
+select 'B4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
--- B5
-select *
+select 'B5' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -257,8 +257,8 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- B6
-select *
+select 'B6' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_adjustments b
 join audit_log al on b.invoice_item_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_ITEMS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -269,8 +269,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- INVOICE ITEMS
 
--- C1a
-select *
+select 'C1a' as sanity_query_name;
+select distinct ii.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_items bii on ii.id = bii.item_id
 where ii.type in ('FIXED','RECURRING','EXTERNAL_CHARGE')
@@ -289,8 +289,8 @@ or (coalesce(ii.account_record_id, '') != coalesce(bii.account_record_id, ''))
 or (coalesce(ii.tenant_record_id, '') != coalesce(bii.tenant_record_id, '')))
 ;
 
--- C1b
-select *
+select 'C1b' as sanity_query_name;
+select distinct bii.account_record_id
 from analytics_invoice_items bii
 left outer join invoice_items ii on ii.id = bii.item_id
 where (coalesce(ii.record_id, '') != coalesce(bii.invoice_item_record_id, ''))
@@ -309,8 +309,8 @@ or (coalesce(ii.tenant_record_id, '') != coalesce(bii.tenant_record_id, ''))
 or ii.type not in ('FIXED','RECURRING','EXTERNAL_CHARGE')
 ;
 
--- C2
-select *
+select 'C2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_items b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -319,8 +319,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- C3
-select *
+select 'C3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_items b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -330,15 +330,15 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- C4
-select *
+select 'C4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_items b
 left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
--- C5
-select *
+select 'C5' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_items b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -348,8 +348,8 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- C6
-select *
+select 'C6' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_items b
 join audit_log al on b.invoice_item_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_ITEMS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -360,8 +360,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- INVOICE ITEM ADJUSTMENTS
 
--- D1a
-select *
+select 'D1a' as sanity_query_name;
+select distinct ii.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_item_adjustments b on ii.id = b.item_id
 where ii.type in ('ITEM_ADJ', 'REPAIR_ADJ')
@@ -380,8 +380,8 @@ or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
 or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
 ;
 
--- D1b
-select *
+select 'D1b' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
 where coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
@@ -401,8 +401,8 @@ or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, ''))
 or ii.type not in ('ITEM_ADJ','REPAIR_ADJ')
 ;
 
--- D2
-select *
+select 'D2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -411,8 +411,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- D3
-select *
+select 'D3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -422,16 +422,16 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- D4
-select *
+select 'D4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 and b.bundle_id is not null
 ;
 
--- D5
-select *
+select 'D5' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -441,8 +441,8 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- D6
-select *
+select 'D6' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 join audit_log al on b.invoice_item_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_ITEMS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -453,8 +453,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- INVOICE CREDITS
 
--- E1a
-select *
+select 'E1a' as sanity_query_name;
+select distinct ii.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_credits b on ii.id = b.item_id
 where ii.type in ('CBA_ADJ')
@@ -473,8 +473,8 @@ or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
 or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
 ;
 
--- E1b
-select *
+select 'E1b' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join invoice_items ii on ii.id = b.item_id
 where (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, ''))
@@ -493,8 +493,8 @@ or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, ''))
 or ii.type not in ('CBA_ADJ')
 ;
 
--- E2
-select *
+select 'E2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -503,8 +503,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- E3
-select *
+select 'E3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -514,15 +514,15 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- E4
-select *
+select 'E4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join bundles bndl on b.bundle_id = bndl.id
 where coalesce(bndl.external_key, 'NULL') != coalesce(b.bundle_external_key, 'NULL')
 ;
 
--- E5
-select *
+select 'E5' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -532,8 +532,8 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- E6
-select *
+select 'E6' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoice_credits b
 join audit_log al on b.invoice_item_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_ITEMS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -552,10 +552,10 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- INVOICES
 
--- F1a
-select *
+select 'F1a' as sanity_query_name;
+select distinct i.account_record_id
 from invoices i
-left outer join analytics_invoices on i.id = bin.invoice_id
+left outer join analytics_invoices bin on i.id = bin.invoice_id
 where coalesce(i.record_id, '') != coalesce(bin.invoice_record_id, '')
 or coalesce(i.record_id, '') != coalesce(bin.invoice_number, '')
 or coalesce(i.id, '') != coalesce(bin.invoice_id, '')
@@ -568,8 +568,8 @@ or (coalesce(i.account_record_id, '') != coalesce(bin.account_record_id, ''))
 or (coalesce(i.tenant_record_id, '') != coalesce(bin.tenant_record_id, ''))
 ;
 
--- F1b
-select *
+select 'F1b' as sanity_query_name;
+select distinct bin.account_record_id
 from analytics_invoices bin
 left outer join invoices i on i.id = bin.invoice_id
 where (coalesce(i.record_id, '') != coalesce(bin.invoice_record_id, ''))
@@ -582,8 +582,8 @@ or (coalesce(i.created_date, '') != coalesce(bin.created_date, ''))
 or (coalesce(i.account_record_id, '') != coalesce(bin.account_record_id, ''))
 ;
 
--- F2
-select *
+select 'F2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoices b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -592,7 +592,7 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- F3a
+select 'F3a' as sanity_query_name;
 select *
 from (
   select
@@ -619,7 +619,7 @@ left outer join (
 where bii_sum + coalesce(bia_sum,0) + coalesce(biia_sum,0) != bii_sum.invoice_amount_charged
 ;
 
--- F3b
+select 'F3b' as sanity_query_name;
 select
   bin.invoice_id
 , bin.original_amount_charged
@@ -630,7 +630,7 @@ group by bin.invoice_id, bin.original_amount_charged
 having sum(bii.amount) != bin.original_amount_charged
 ;
 
--- F3c
+select 'F3c' as sanity_query_name;
 select *
 from (
   select
@@ -643,7 +643,7 @@ from (
 where biic_sum != biic_sum.invoice_amount_credited
 ;
 
--- F3d
+select 'F3d' as sanity_query_name;
 select
   *
 , bip_sum invoice_amount_paid
@@ -658,7 +658,7 @@ from (
 where bip_sum != bip_sum.invoice_amount_paid
 ;
 
--- F3e
+select 'F3e' as sanity_query_name;
 select *
 from (
   select
@@ -688,16 +688,16 @@ left outer join (
 where bipc_sum + bipr_sum != bin.amount_refunded
 ;
 
--- F3f
-select *
+select 'F3f' as sanity_query_name;
+select distinct bin.account_record_id
 from analytics_invoices bin
 where bin.amount_charged + bin.amount_credited - bin.amount_paid - bin.amount_refunded != bin.balance
 and (bin.amount_charged != 0 and bin.amount_paid != 0 and bin.amount_refunded != 0 and bin.balance != 0) -- deal w / acct credit
 ;
 
 
--- F6
-select *
+select 'F6' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_invoices b
 join audit_log al on b.invoice_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICES'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -708,8 +708,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- PAYMENTS
 
--- G1a
-select *
+select 'G1a' as sanity_query_name;
+select distinct ip.account_record_id
 from invoice_payments ip
 left outer join analytics_payments bip on ip.id = bip.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
@@ -725,8 +725,8 @@ or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bip.tenant_record_id, 'NULL
 and ip.type = 'ATTEMPT'
 ;
 
--- G1b
-select *
+select 'G1b' as sanity_query_name;
+select distinct bip.account_record_id
 from analytics_payments bip
 left outer join invoice_payments ip on ip.id = bip.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
@@ -742,8 +742,8 @@ or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bip.tenant_record_id, 'NULL
 or bip.invoice_payment_type != 'ATTEMPT'
 ;
 
--- G2
-select *
+select 'G2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_payments b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -751,8 +751,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- G3
-select *
+select 'G3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_payments b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -762,8 +762,8 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- G4
-select *
+select 'G4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_payments b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -773,15 +773,15 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- G5
-select *
+select 'G5' as sanity_query_name;
+select distinct bip.account_record_id
 from analytics_payments bip
 left outer join invoice_payments ip on bip.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
 where coalesce(p.record_id, 'NULL') != coalesce(bip.payment_number, 'NULL')
 ;
 
--- G6ai
+select 'G6ai' as sanity_query_name;
 -- Zuora
 /*
 select *
@@ -801,7 +801,7 @@ or coalesce(pp.z_snd_reference_id, 'NULL') != coalesce(bip.plugin_second_referen
 
 -- PayPal
 
--- G6bi
+select 'G6bi' as sanity_query_name;
 
 -- Zuora
 /*
@@ -822,8 +822,9 @@ or coalesce(pp.z_snd_reference_id, 'NULL') != coalesce(bip.plugin_second_referen
 
 -- PayPal
 
--- G7i
---Zuora
+select 'G7i' as sanity_query_name;
+
+-- Zuora
 /*
 select *
 from analytics_payments bip
@@ -836,8 +837,8 @@ or coalesce(ppm.z_default, 'NULL') != coalesce(bip.plugin_pm_is_default, 'NULL')
 
 -- PayPal
 
--- G8
-select *
+select 'G8' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_payments b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -856,10 +857,10 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- CHARGEBACKS
 
--- H1a
-select *
+select 'H1a' as sanity_query_name;
+select distinct ip.account_record_id
 from invoice_payments ip
-left outer join analytics_chargebacks on ip.id = bipc.invoice_payment_id
+left outer join analytics_chargebacks bipc on ip.id = bipc.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bipc.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipc.invoice_id, 'NULL')
@@ -873,8 +874,8 @@ or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipc.tenant_record_id, 'NUL
 and ip.type = 'CHARGED_BACK'
 ;
 
--- H1b
-select *
+select 'H1b' as sanity_query_name;
+select distinct bipc.account_record_id
 from analytics_chargebacks bipc
 left outer join invoice_payments ip on ip.id = bipc.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
@@ -890,8 +891,8 @@ or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipc.tenant_record_id, 'NUL
 or bipc.invoice_payment_type != 'CHARGED_BACK'
 ;
 
--- H2
-select *
+select 'H2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_chargebacks b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -899,8 +900,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- H3
-select *
+select 'H3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_chargebacks b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -910,8 +911,8 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- H4
-select *
+select 'H4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_chargebacks b
 left outer join bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -921,16 +922,16 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- H5
-select *
+select 'H5' as sanity_query_name;
+select distinct bipc.account_record_id
 from analytics_chargebacks bipc
 left outer join invoice_payments ip on bipc.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
 where coalesce(p.record_id, 'NULL') != coalesce(bipc.payment_number, 'NULL')
 ;
 
--- H8
-select *
+select 'H8' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_chargebacks b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -941,8 +942,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- REFUNDS
 
--- H1a
-select *
+select 'H1a' as sanity_query_name;
+select distinct ip.account_record_id
 from invoice_payments ip
 left outer join analytics_refunds bipr on ip.id = bipr.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
@@ -958,8 +959,8 @@ or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipr.tenant_record_id, 'NUL
 and ip.type = 'REFUND'
 ;
 
--- H1b
-select *
+select 'H1b' as sanity_query_name;
+select distinct bipr.account_record_id
 from analytics_refunds bipr
 left outer join invoice_payments ip on ip.id = bipr.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
@@ -975,8 +976,8 @@ or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipr.tenant_record_id, 'NUL
 or bipr.invoice_payment_type != 'REFUND'
 ;
 
--- H2
-select *
+select 'H2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_refunds b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -984,8 +985,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- H3
-select *
+select 'H3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_refunds b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
@@ -995,8 +996,8 @@ or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
--- H4
-select *
+select 'H4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_refunds b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
@@ -1006,16 +1007,16 @@ or b.invoice_original_amount_charged != bin.original_amount_charged
 or b.invoice_amount_credited != bin.amount_credited
 ;
 
--- H5
-select *
+select 'H5' as sanity_query_name;
+select distinct bipr.account_record_id
 from analytics_refunds bipr
 left outer join invoice_payments ip on bipr.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
 where coalesce(p.record_id, 'NULL') != coalesce(bipr.payment_number, 'NULL')
 ;
 
--- H8
-select *
+select 'H8' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_refunds b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -1026,8 +1027,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- ACCOUNT TRANSITIONS
 
--- I1a TODO
-select *
+select 'I1a' as sanity_query_name;
+select distinct bs.account_record_id
 from blocking_states bs
 left outer join analytics_account_transitions bos on bs.record_id = bos.blocking_state_record_id
 where (coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
@@ -1043,8 +1044,8 @@ or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL
 and coalesce(bs.type, 'NULL') = 'ACCOUNT'
 ;
 
--- I1b
-select *
+select 'I1b' as sanity_query_name;
+select distinct bos.account_record_id
 from analytics_account_transitions bos
 left outer join blocking_states bs on bs.record_id = bos.blocking_state_record_id
 where coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
@@ -1060,8 +1061,8 @@ or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NU
 or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
 ;
 
--- I2
-select *
+select 'I2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_transitions b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -1069,8 +1070,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- I3
-select *
+select 'I3' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_account_transitions b
 join audit_log al on b.blocking_state_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'BLOCKING_STATES'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
@@ -1081,8 +1082,8 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 
 -- SUBSCRIPTION TRANSITIONS
 
--- J1
-select *
+select 'J1' as sanity_query_name;
+select distinct bst.account_record_id
 from analytics_subscription_transitions bst
 left outer join subscription_events se on bst.subscription_event_record_id = se.record_id
 /* TODO Look at entilement rows only, ignore in-memory events and blocking states */
@@ -1106,8 +1107,8 @@ or coalesce(se.account_record_id, '') != coalesce(bst.account_record_id, '')
 or coalesce(se.tenant_record_id, '') != coalesce(bst.tenant_record_id, ''))
 ;
 
--- J2
-select *
+select 'J2' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_subscription_transitions b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
@@ -1116,8 +1117,8 @@ or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
 
--- J4
-select *
+select 'J4' as sanity_query_name;
+select distinct b.account_record_id
 from analytics_subscription_transitions b
 join audit_log al on b.subscription_event_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'SUBSCRIPTION_EVENTS'
 /* TODO Look at entilement rows only, ignore in-memory events and blocking states */
