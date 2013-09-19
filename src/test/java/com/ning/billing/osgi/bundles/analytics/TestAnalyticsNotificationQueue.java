@@ -20,69 +20,17 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.ning.billing.ObjectType;
-import com.ning.billing.account.api.Account;
-import com.ning.billing.account.api.AccountUserApi;
 import com.ning.billing.notification.plugin.api.ExtBusEvent;
 import com.ning.billing.notification.plugin.api.ExtBusEventType;
-import com.ning.billing.util.api.AuditLevel;
-import com.ning.billing.util.api.AuditUserApi;
-import com.ning.billing.util.api.CustomFieldUserApi;
-import com.ning.billing.util.api.RecordIdApi;
-import com.ning.billing.util.api.TagUserApi;
-import com.ning.billing.util.audit.AuditLog;
-import com.ning.billing.util.callcontext.TenantContext;
-import com.ning.billing.util.customfield.CustomField;
-import com.ning.billing.util.tag.Tag;
-import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 
-import com.google.common.collect.ImmutableList;
 import com.jayway.awaitility.Awaitility;
 
 public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbeddedDB {
-
-    @BeforeMethod(groups = "slow")
-    public void prepareMocks() throws Exception {
-        account = Mockito.mock(Account.class);
-        Mockito.when(account.getId()).thenReturn(UUID.randomUUID());
-
-        final AccountUserApi accountUserApi = Mockito.mock(AccountUserApi.class);
-        Mockito.when(accountUserApi.getAccountById(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(account);
-
-        final RecordIdApi recordIdApi = Mockito.mock(RecordIdApi.class);
-        Mockito.when(recordIdApi.getRecordId(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<TenantContext>any())).thenReturn(1L);
-
-        final TagUserApi tagUserApi = Mockito.mock(TagUserApi.class);
-        Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
-
-        customField = Mockito.mock(CustomField.class);
-        Mockito.when(customField.getId()).thenReturn(UUID.randomUUID());
-        Mockito.when(customField.getObjectId()).thenReturn(UUID.randomUUID());
-        Mockito.when(customField.getObjectType()).thenReturn(ObjectType.ACCOUNT);
-        Mockito.when(customField.getFieldName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(customField.getFieldValue()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(customField.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 57, DateTimeZone.UTC));
-
-        final CustomFieldUserApi customFieldUserApi = Mockito.mock(CustomFieldUserApi.class);
-        Mockito.when(customFieldUserApi.getCustomFieldsForAccount(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<CustomField>of(customField));
-
-        final AuditUserApi auditUserApi = Mockito.mock(AuditUserApi.class);
-        Mockito.when(auditUserApi.getAuditLogs(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<AuditLog>of());
-
-        killbillAPI = Mockito.mock(OSGIKillbillAPI.class);
-        Mockito.when(killbillAPI.getAccountUserApi()).thenReturn(accountUserApi);
-        Mockito.when(killbillAPI.getRecordIdApi()).thenReturn(recordIdApi);
-        Mockito.when(killbillAPI.getTagUserApi()).thenReturn(tagUserApi);
-        Mockito.when(killbillAPI.getCustomFieldUserApi()).thenReturn(customFieldUserApi);
-        Mockito.when(killbillAPI.getAuditUserApi()).thenReturn(auditUserApi);
-    }
 
     @Test(groups = "slow")
     public void testSendOneEvent() throws Exception {
@@ -90,19 +38,19 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         analyticsListener.start();
 
         // Verify the original state
-        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         final ExtBusEvent event = createExtBusEvent();
         analyticsListener.handleKillbillEvent(event);
 
         // Shouldn't be anything right after it
-        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Wait for the notification to kick in
         Awaitility.await().atMost(10, TimeUnit.SECONDS).until(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
-                return analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size() == 1;
+                return analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size() == 1;
             }
         });
 
@@ -116,7 +64,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 0);
 
         // Verify the original state
-        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Send the first event
         final ExtBusEvent firstEvent = createExtBusEvent();
@@ -141,13 +89,15 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 2);
 
         // Verify the final state
-        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(1L, 1L, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
     }
 
     private ExtBusEvent createExtBusEvent() {
         final ExtBusEvent event = Mockito.mock(ExtBusEvent.class);
-        Mockito.when(event.getAccountId()).thenReturn(UUID.randomUUID());
-        Mockito.when(event.getTenantId()).thenReturn(UUID.randomUUID());
+        final UUID accountId = account.getId();
+        Mockito.when(event.getAccountId()).thenReturn(accountId);
+        final UUID tenantId = callContext.getTenantId();
+        Mockito.when(event.getTenantId()).thenReturn(tenantId);
         Mockito.when(event.getEventType()).thenReturn(ExtBusEventType.CUSTOM_FIELD_CREATION);
         return event;
     }

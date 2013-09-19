@@ -35,6 +35,7 @@ import org.testng.annotations.BeforeMethod;
 
 import com.ning.billing.ObjectType;
 import com.ning.billing.account.api.Account;
+import com.ning.billing.account.api.AccountUserApi;
 import com.ning.billing.catalog.api.BillingPeriod;
 import com.ning.billing.catalog.api.Currency;
 import com.ning.billing.catalog.api.InternationalPrice;
@@ -67,10 +68,15 @@ import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.PaymentMethodPlugin;
 import com.ning.billing.payment.api.PaymentStatus;
 import com.ning.billing.payment.api.Refund;
+import com.ning.billing.util.api.AuditLevel;
+import com.ning.billing.util.api.AuditUserApi;
+import com.ning.billing.util.api.CustomFieldUserApi;
 import com.ning.billing.util.api.RecordIdApi;
+import com.ning.billing.util.api.TagUserApi;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.audit.ChangeType;
 import com.ning.billing.util.callcontext.CallContext;
+import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.billing.util.customfield.CustomField;
 import com.ning.billing.util.tag.Tag;
 import com.ning.billing.util.tag.TagDefinition;
@@ -385,7 +391,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         customField = Mockito.mock(CustomField.class);
         Mockito.when(customField.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(customField.getObjectId()).thenReturn(UUID.randomUUID());
-        Mockito.when(customField.getObjectType()).thenReturn(ObjectType.TENANT);
+        Mockito.when(customField.getObjectType()).thenReturn(ObjectType.ACCOUNT);
         Mockito.when(customField.getFieldName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(customField.getFieldValue()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(customField.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 57, DateTimeZone.UTC));
@@ -420,17 +426,32 @@ public abstract class AnalyticsTestSuiteNoDB {
         final UUID tenantId = callContext.getTenantId();
 
         final RecordIdApi recordIdApi = Mockito.mock(RecordIdApi.class);
-        Mockito.when(recordIdApi.getRecordId(accountId, ObjectType.ACCOUNT, callContext)).thenReturn(accountRecordId);
-        Mockito.when(recordIdApi.getRecordId(nextEventId, ObjectType.SUBSCRIPTION_EVENT, callContext)).thenReturn(subscriptionEventRecordId);
-        Mockito.when(recordIdApi.getRecordId(invoiceId, ObjectType.INVOICE, callContext)).thenReturn(invoiceRecordId);
-        Mockito.when(recordIdApi.getRecordId(invoiceItemId, ObjectType.INVOICE_ITEM, callContext)).thenReturn(invoiceItemRecordId);
-        Mockito.when(recordIdApi.getRecordId(invoicePaymentId, ObjectType.INVOICE_PAYMENT, callContext)).thenReturn(invoicePaymentRecordId);
-        Mockito.when(recordIdApi.getRecordId(fieldId, ObjectType.CUSTOM_FIELD, callContext)).thenReturn(fieldRecordId);
-        Mockito.when(recordIdApi.getRecordId(tagId, ObjectType.TAG, callContext)).thenReturn(tagRecordId);
-        Mockito.when(recordIdApi.getRecordId(tenantId, ObjectType.TENANT, callContext)).thenReturn(tenantRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(accountId), Mockito.eq(ObjectType.ACCOUNT), Mockito.<TenantContext>any())).thenReturn(accountRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(nextEventId), Mockito.eq(ObjectType.SUBSCRIPTION_EVENT), Mockito.<TenantContext>any())).thenReturn(subscriptionEventRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(invoiceId), Mockito.eq(ObjectType.INVOICE), Mockito.<TenantContext>any())).thenReturn(invoiceRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(invoiceItemId), Mockito.eq(ObjectType.INVOICE_ITEM), Mockito.<TenantContext>any())).thenReturn(invoiceItemRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(invoicePaymentId), Mockito.eq(ObjectType.INVOICE_PAYMENT), Mockito.<TenantContext>any())).thenReturn(invoicePaymentRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(fieldId), Mockito.eq(ObjectType.CUSTOM_FIELD), Mockito.<TenantContext>any())).thenReturn(fieldRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(tagId), Mockito.eq(ObjectType.TAG), Mockito.<TenantContext>any())).thenReturn(tagRecordId);
+        Mockito.when(recordIdApi.getRecordId(Mockito.eq(tenantId), Mockito.eq(ObjectType.TENANT), Mockito.<TenantContext>any())).thenReturn(tenantRecordId);
 
         killbillAPI = Mockito.mock(OSGIKillbillAPI.class);
+        final AccountUserApi accountUserApi = Mockito.mock(AccountUserApi.class);
+        Mockito.when(accountUserApi.getAccountById(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(account);
+        final TagUserApi tagUserApi = Mockito.mock(TagUserApi.class);
+
+        final CustomFieldUserApi customFieldUserApi = Mockito.mock(CustomFieldUserApi.class);
+        Mockito.when(customFieldUserApi.getCustomFieldsForAccount(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<CustomField>of(customField));
+
+        final AuditUserApi auditUserApi = Mockito.mock(AuditUserApi.class);
+        Mockito.when(auditUserApi.getAuditLogs(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<AuditLog>of());
+
+        Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
+        Mockito.when(killbillAPI.getAccountUserApi()).thenReturn(accountUserApi);
         Mockito.when(killbillAPI.getRecordIdApi()).thenReturn(recordIdApi);
+        Mockito.when(killbillAPI.getTagUserApi()).thenReturn(tagUserApi);
+        Mockito.when(killbillAPI.getCustomFieldUserApi()).thenReturn(customFieldUserApi);
+        Mockito.when(killbillAPI.getAuditUserApi()).thenReturn(auditUserApi);
 
         killbillDataSource = Mockito.mock(OSGIKillbillDataSource.class);
         final DataSource dataSource = Mockito.mock(DataSource.class);
