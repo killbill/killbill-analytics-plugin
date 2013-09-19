@@ -28,7 +28,7 @@ import com.ning.billing.entitlement.api.SubscriptionEvent;
  */
 public class BusinessSubscriptionEvent {
 
-    private static final String MISC = "MISC";
+    private static final String CATEGORY_UNSPECIFIED = "UNSPECIFIED";
 
     public enum EventType {
         START_BILLING,
@@ -41,7 +41,8 @@ public class BusinessSubscriptionEvent {
         STATE_CHANGE,
         CHANGE,
         SYSTEM_CHANGE,
-        START_ENTITLEMENT
+        START_ENTITLEMENT,
+        ERROR
     }
 
     private final EventType eventType;
@@ -57,7 +58,7 @@ public class BusinessSubscriptionEvent {
 
             final String categoryString = eventString.substring(possibleEventType.toString().length() + 1, eventString.length());
 
-            if (categoryString.equals(MISC)) {
+            if (categoryString.equals(CATEGORY_UNSPECIFIED)) {
                 return new BusinessSubscriptionEvent(possibleEventType, null);
             } else {
                 return new BusinessSubscriptionEvent(possibleEventType, ProductCategory.valueOf(categoryString));
@@ -106,7 +107,8 @@ public class BusinessSubscriptionEvent {
             case SERVICE_STATE_CHANGE:
                 return subscriptionStateChanged(transition.getNextPlan());
             default:
-                return null;
+                // Should never happen
+                return unexpectedEvent(transition.getNextPlan());
         }
     }
 
@@ -154,6 +156,10 @@ public class BusinessSubscriptionEvent {
         return eventFromType(EventType.SYSTEM_CHANGE, plan);
     }
 
+    private static BusinessSubscriptionEvent unexpectedEvent(final Plan plan) {
+        return eventFromType(EventType.ERROR, plan);
+    }
+
     private static BusinessSubscriptionEvent eventFromType(final EventType eventType, final Plan plan) {
         final ProductCategory category = getTypeFromSubscription(plan);
         return new BusinessSubscriptionEvent(eventType, category);
@@ -172,7 +178,7 @@ public class BusinessSubscriptionEvent {
 
     @Override
     public String toString() {
-        return eventType.toString() + "_" + (category == null ? MISC : category.toString().toUpperCase());
+        return eventType.toString() + "_" + (category == null ? CATEGORY_UNSPECIFIED : category.toString().toUpperCase());
     }
 
     @Override
