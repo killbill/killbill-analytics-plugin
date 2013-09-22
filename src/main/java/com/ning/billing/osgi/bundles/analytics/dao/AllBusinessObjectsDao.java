@@ -59,7 +59,7 @@ public class AllBusinessObjectsDao {
         // Refresh invoices and payments. This will automatically trigger a refresh of account
         binAndBipDao.update(accountId, context);
 
-        // Refresh BST
+        // Refresh subscription transitions
         bstDao.update(accountId, context);
 
         // Refresh tags
@@ -68,7 +68,7 @@ public class AllBusinessObjectsDao {
         // Refresh fields
         bFieldDao.update(accountId, context);
 
-        // Refresh BOS (bundles only for now)
+        // Refresh account transitions
         bosDao.update(accountId, context);
 
         logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics for account " + accountId);

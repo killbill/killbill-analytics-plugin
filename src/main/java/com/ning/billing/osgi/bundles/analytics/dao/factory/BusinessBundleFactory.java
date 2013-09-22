@@ -75,11 +75,14 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         final Account account = getAccount(accountId, context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
 
+        // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each bundle)
         final Set<UUID> baseSubscriptionIds = new HashSet<UUID>();
-        final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
-        for (final SubscriptionBundle bundle : bundles) {
+        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
+        final List<SubscriptionBundle> bundlesForAccount = getSubscriptionBundlesForAccount(account.getId(), context);
+        for (final SubscriptionBundle bundle : bundlesForAccount) {
             for (final Subscription subscription : bundle.getSubscriptions()) {
                 baseSubscriptionIds.add(subscription.getBaseEntitlementId());
+                bundles.put(bundle.getId(), bundle);
             }
         }
 
@@ -96,6 +99,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                 public BusinessBundleModelDao call() throws Exception {
                     return buildBBS(account,
                                     accountRecordId,
+                                    bundles,
                                     bst,
                                     rankForBundle.get(bst.getBundleId()),
                                     tenantRecordId,
@@ -139,8 +143,15 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         }
     }
 
-    private BusinessBundleModelDao buildBBS(final Account account, final Long accountRecordId, final BusinessSubscriptionTransitionModelDao bst, final Integer bundleAccountRank, final Long tenantRecordId, final ReportGroup reportGroup, final CallContext context) throws AnalyticsRefreshException {
-        final SubscriptionBundle bundle = getSubscriptionBundle(bst.getBundleId(), context);
+    private BusinessBundleModelDao buildBBS(final Account account,
+                                            final Long accountRecordId,
+                                            final Map<UUID, SubscriptionBundle> bundles,
+                                            final BusinessSubscriptionTransitionModelDao bst,
+                                            final Integer bundleAccountRank,
+                                            final Long tenantRecordId,
+                                            final ReportGroup reportGroup,
+                                            final CallContext context) throws AnalyticsRefreshException {
+        final SubscriptionBundle bundle = bundles.get(bst.getBundleId());
         final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
         final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), context);
         final CurrencyConverter currencyConverter = getCurrencyConverter();

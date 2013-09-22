@@ -17,7 +17,10 @@
 package com.ning.billing.osgi.bundles.analytics.dao.factory;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.ning.billing.ObjectType;
@@ -54,6 +57,14 @@ public class BusinessTagFactory extends BusinessFactoryBase {
 
         final Collection<Tag> tags = getTagsForAccount(account.getId(), context);
 
+        // Lookup once all SubscriptionBundle for that account (optimized call, should be faster in case an account has a lot
+        // of tagged bundles)
+        final List<SubscriptionBundle> bundlesForAccount = getSubscriptionBundlesForAccount(accountId, context);
+        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
+        for (final SubscriptionBundle bundle : bundlesForAccount) {
+            bundles.put(bundle.getId(), bundle);
+        }
+
         final Collection<BusinessTagModelDao> tagModelDaos = new LinkedList<BusinessTagModelDao>();
         // We process tags sequentially: in practice, an account will be associated with a dozen tags at most
         for (final Tag tag : tags) {
@@ -63,7 +74,7 @@ public class BusinessTagFactory extends BusinessFactoryBase {
 
             SubscriptionBundle bundle = null;
             if (ObjectType.BUNDLE.equals(tag.getObjectType())) {
-                bundle = getSubscriptionBundle(tag.getObjectId(), context);
+                bundle = bundles.get(tag.getObjectId());
             }
             final BusinessTagModelDao tagModelDao = BusinessTagModelDao.create(account,
                                                                                accountRecordId,

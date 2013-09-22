@@ -46,6 +46,7 @@ import com.ning.billing.catalog.api.PriceList;
 import com.ning.billing.catalog.api.Product;
 import com.ning.billing.catalog.api.ProductCategory;
 import com.ning.billing.clock.ClockMock;
+import com.ning.billing.entitlement.api.SubscriptionApi;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.entitlement.api.SubscriptionEventType;
@@ -446,8 +447,12 @@ public abstract class AnalyticsTestSuiteNoDB {
         final AuditUserApi auditUserApi = Mockito.mock(AuditUserApi.class);
         Mockito.when(auditUserApi.getAuditLogs(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<AuditLog>of());
 
+        final SubscriptionApi subscriptionApi = Mockito.mock(SubscriptionApi.class);
+        Mockito.when(subscriptionApi.getSubscriptionBundlesForAccountId(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of());
+
         Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
         Mockito.when(killbillAPI.getAccountUserApi()).thenReturn(accountUserApi);
+        Mockito.when(killbillAPI.getSubscriptionApi()).thenReturn(subscriptionApi);
         Mockito.when(killbillAPI.getRecordIdApi()).thenReturn(recordIdApi);
         Mockito.when(killbillAPI.getTagUserApi()).thenReturn(tagUserApi);
         Mockito.when(killbillAPI.getCustomFieldUserApi()).thenReturn(customFieldUserApi);

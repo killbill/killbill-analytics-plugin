@@ -19,6 +19,7 @@ package com.ning.billing.osgi.bundles.analytics.dao.factory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -107,6 +108,13 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
             allInvoiceItems.get(invoice.getId()).addAll(invoice.getInvoiceItems());
         }
 
+        // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each item)
+        final List<SubscriptionBundle> bundlesForAccount = getSubscriptionBundlesForAccount(accountId, context);
+        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
+        for (final SubscriptionBundle bundle : bundlesForAccount) {
+            bundles.put(bundle.getId(), bundle);
+        }
+
         // Create the business invoice items
         // We build them in parallel as invoice items are directly proportional to subscriptions (@see BusinessSubscriptionTransitionFactory)
         final CompletionService<BusinessInvoiceItemBaseModelDao> completionService = new ExecutorCompletionService<BusinessInvoiceItemBaseModelDao>(executor);
@@ -119,6 +127,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                      allInvoiceItems,
                                                      invoiceIdToInvoiceMappings,
                                                      account,
+                                                     bundles,
                                                      currencyConverter,
                                                      accountRecordId,
                                                      tenantRecordId,
@@ -165,6 +174,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Multimap<UUID, InvoiceItem> allInvoiceItems,
                                                                       final Map<UUID, Invoice> invoiceIdToInvoiceMappings,
                                                                       final Account account,
+                                                                      final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
@@ -182,6 +192,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          invoice,
                                          invoiceItem,
                                          otherInvoiceItems,
+                                         bundles,
                                          currencyConverter,
                                          accountRecordId,
                                          tenantRecordId,
@@ -213,6 +224,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Invoice invoice,
                                                                       final InvoiceItem invoiceItem,
                                                                       final Collection<InvoiceItem> otherInvoiceItems,
+                                                                      final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
@@ -229,10 +241,10 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         SubscriptionBundle bundle = null;
         // Subscription and bundle could be null for e.g. credits or adjustments
         if (invoiceItem.getBundleId() != null) {
-            bundle = getSubscriptionBundle(invoiceItem.getBundleId(), context);
+            bundle = bundles.get(invoiceItem.getBundleId());
         }
         if (bundle == null && linkedInvoiceItem != null && linkedInvoiceItem.getBundleId() != null) {
-            bundle = getSubscriptionBundle(linkedInvoiceItem.getBundleId(), context);
+            bundle = bundles.get(linkedInvoiceItem.getBundleId());
         }
 
         Plan plan = null;

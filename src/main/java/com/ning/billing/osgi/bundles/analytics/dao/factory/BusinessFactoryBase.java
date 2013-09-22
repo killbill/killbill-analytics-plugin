@@ -191,17 +191,6 @@ public abstract class BusinessFactoryBase {
     // SUBSCRIPTION
     //
 
-    protected SubscriptionBundle getSubscriptionBundle(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
-        final SubscriptionApi subscriptionApi = getSubscriptionApi();
-
-        try {
-            return subscriptionApi.getSubscriptionBundle(bundleId, context);
-        } catch (SubscriptionApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving bundle for id " + bundleId, e);
-            throw new AnalyticsRefreshException(e);
-        }
-    }
-
     protected List<SubscriptionBundle> getSubscriptionBundlesForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final SubscriptionApi subscriptionApi = getSubscriptionApi();
 
