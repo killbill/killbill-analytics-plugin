@@ -30,10 +30,13 @@ import java.util.concurrent.ExecutorCompletionService;
 
 import javax.annotation.Nullable;
 
+import org.joda.time.LocalDate;
+
 import com.ning.billing.account.api.Account;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.clock.Clock;
+import com.ning.billing.entitlement.api.Subscription;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceItem;
@@ -256,11 +259,18 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         }
 
         PlanPhase planPhase = null;
-        if (invoiceItem.getSubscriptionId() != null && Strings.emptyToNull(invoiceItem.getPhaseName()) != null) {
-            planPhase = getPlanPhaseFromInvoiceItem(invoiceItem, context);
+
+        if (invoiceItem.getSubscriptionId() != null && Strings.emptyToNull(invoiceItem.getPhaseName()) != null && bundle != null) {
+            final LocalDate subscriptionStartDate = getSubscriptionStartDate(invoiceItem, bundle);
+            if (subscriptionStartDate != null) {
+                planPhase = getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate, context);
+            }
         }
-        if (planPhase == null && linkedInvoiceItem != null && linkedInvoiceItem.getSubscriptionId() != null && Strings.emptyToNull(linkedInvoiceItem.getPhaseName()) != null) {
-            planPhase = getPlanPhaseFromInvoiceItem(linkedInvoiceItem, context);
+        if (planPhase == null && linkedInvoiceItem != null && linkedInvoiceItem.getSubscriptionId() != null && Strings.emptyToNull(linkedInvoiceItem.getPhaseName()) != null && bundle != null) {
+            final LocalDate subscriptionStartDate = getSubscriptionStartDate(linkedInvoiceItem, bundle);
+            if (subscriptionStartDate != null) {
+                planPhase = getPlanPhaseFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate, context);
+            }
         }
 
         final Long invoiceItemRecordId = invoiceItem.getId() != null ? getInvoiceItemRecordId(invoiceItem.getId(), context) : null;
@@ -279,6 +289,16 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          accountRecordId,
                                          tenantRecordId,
                                          reportGroup);
+    }
+
+    private LocalDate getSubscriptionStartDate(final InvoiceItem invoiceItem, final SubscriptionBundle bundle) {
+        final Subscription subscription = Iterables.find(bundle.getSubscriptions(), new Predicate<Subscription>() {
+            @Override
+            public boolean apply(final Subscription subscription) {
+                return invoiceItem.getSubscriptionId().equals(subscription.getId());
+            }
+        }, null);
+        return subscription == null ? null : subscription.getEffectiveStartDate();
     }
 
     @VisibleForTesting

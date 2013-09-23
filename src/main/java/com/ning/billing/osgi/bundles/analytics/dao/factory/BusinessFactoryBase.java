@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.joda.time.LocalDate;
 import org.osgi.service.log.LogService;
 
 import com.ning.billing.ObjectType;
@@ -219,17 +220,6 @@ public abstract class BusinessFactoryBase {
         return null;
     }
 
-    protected Subscription getSubscription(final UUID subscriptionId, final TenantContext context) throws AnalyticsRefreshException {
-        final SubscriptionApi subscriptionApi = getSubscriptionApi();
-
-        try {
-            return subscriptionApi.getSubscriptionForEntitlementId(subscriptionId, context);
-        } catch (SubscriptionApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving subscription for id " + subscriptionId, e);
-            throw new AnalyticsRefreshException(e);
-        }
-    }
-
     protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final TenantContext context) throws AnalyticsRefreshException {
         final List<AuditLog> auditLogsForSubscriptionEvent = getAuditUserApi().getAuditLogs(subscriptionEventId, objectType, AuditLevel.MINIMAL, context);
         for (final AuditLog auditLog : auditLogsForSubscriptionEvent) {
@@ -363,13 +353,11 @@ public abstract class BusinessFactoryBase {
         }
     }
 
-    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final TenantContext context) throws AnalyticsRefreshException {
-        final Subscription subscription = getSubscription(invoiceItem.getSubscriptionId(), context);
-
+    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final TenantContext context) throws AnalyticsRefreshException {
         try {
             final Catalog catalog = getCatalog(context);
             // TODO - Inaccurate timing
-            return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscription.getEffectiveStartDate().toDateTimeAtStartOfDay());
+            return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
         } catch (CatalogApiException e) {
             logService.log(LogService.LOG_INFO, "Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
             return null;
