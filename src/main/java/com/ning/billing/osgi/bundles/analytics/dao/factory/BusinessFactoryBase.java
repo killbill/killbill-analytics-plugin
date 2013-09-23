@@ -553,14 +553,6 @@ public abstract class BusinessFactoryBase {
         return subscriptionApi;
     }
 
-    private EntitlementApi getEntitlementUserApi() throws AnalyticsRefreshException {
-        final EntitlementApi junctionApi = osgiKillbillAPI.getEntitlementApi();
-        if (junctionApi == null) {
-            throw new AnalyticsRefreshException("Error retrieving junctionApi");
-        }
-        return junctionApi;
-    }
-
     private InvoiceUserApi getInvoiceUserApi() throws AnalyticsRefreshException {
         final InvoiceUserApi invoiceUserApi = osgiKillbillAPI.getInvoiceUserApi();
         if (invoiceUserApi == null) {
