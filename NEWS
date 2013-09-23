@@ -1,3 +1,6 @@
+0.4.5
+    Optimizations to reduce refresh times
+
 0.4.4
     Fix bugs in transition tables
     Rename MISC to UNSPECIFIED in AST
