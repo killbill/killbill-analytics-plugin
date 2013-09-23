@@ -17,7 +17,9 @@
 package com.ning.billing.osgi.bundles.analytics.dao.factory;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -60,10 +62,18 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
         final CurrencyConverter currencyConverter = getCurrencyConverter();
 
+        // Optimize invoice lookups by fetching all invoices at once
+        final Collection<Invoice> invoicesForAccount = getInvoicesByAccountId(account.getId(), context);
+        final Map<UUID, Invoice> invoices = new LinkedHashMap<UUID, Invoice>();
+        for (final Invoice invoice : invoicesForAccount) {
+            invoices.put(invoice.getId(), invoice);
+        }
+
         final Collection<InvoicePayment> invoicePayments = getAccountInvoicePayments(account.getId(), context);
         for (final InvoicePayment invoicePayment : invoicePayments) {
             final BusinessInvoicePaymentBaseModelDao businessInvoicePayment = createBusinessInvoicePayment(account,
                                                                                                            invoicePayment,
+                                                                                                           invoices,
                                                                                                            currencyConverter,
                                                                                                            accountRecordId,
                                                                                                            tenantRecordId,
@@ -79,6 +89,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
 
     private BusinessInvoicePaymentBaseModelDao createBusinessInvoicePayment(final Account account,
                                                                             final InvoicePayment invoicePayment,
+                                                                            final Map<UUID, Invoice> invoices,
                                                                             final CurrencyConverter currencyConverter,
                                                                             final Long accountRecordId,
                                                                             final Long tenantRecordId,
@@ -92,7 +103,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
             refund = getRefundWithPluginInfo(invoicePayment.getPaymentCookieId(), context);
         }
 
-        final Invoice invoice = getInvoice(invoicePayment.getInvoiceId(), context);
+        final Invoice invoice = invoices.get(invoicePayment.getInvoiceId());
         final PaymentMethod paymentMethod = getPaymentMethod(payment.getPaymentMethodId(), context);
         final AuditLog creationAuditLog = getInvoicePaymentCreationAuditLog(invoicePayment.getId(), context);
 

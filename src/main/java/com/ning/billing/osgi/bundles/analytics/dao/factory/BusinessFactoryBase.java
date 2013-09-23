@@ -289,16 +289,6 @@ public abstract class BusinessFactoryBase {
     // INVOICE
     //
 
-    protected Invoice getInvoice(final UUID invoiceId, final TenantContext context) throws AnalyticsRefreshException {
-        final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
-        try {
-            return invoiceUserApi.getInvoice(invoiceId, context);
-        } catch (InvoiceApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving subscription for id " + invoiceId, e);
-            throw new AnalyticsRefreshException(e);
-        }
-    }
-
     protected AuditLog getInvoiceCreationAuditLog(final UUID invoiceId, final TenantContext context) throws AnalyticsRefreshException {
         final List<AuditLog> auditLogsForInvoice = getAuditUserApi().getAuditLogs(invoiceId, ObjectType.INVOICE, AuditLevel.MINIMAL, context);
         for (final AuditLog auditLog : auditLogsForInvoice) {
