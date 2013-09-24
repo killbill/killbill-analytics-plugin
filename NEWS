@@ -1,3 +1,6 @@
+0.5.0
+    New latest_for_bundle_external_key column in analytics_bundles (see #9)
+
 0.4.5
     Optimizations to reduce refresh times
 

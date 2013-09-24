@@ -38,6 +38,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
     private String bundleExternalKey;
     private UUID subscriptionId;
     private Integer bundleAccountRank;
+    private Boolean latestForBundleExternalKey;
     private LocalDate chargedThroughDate;
     private String currentProductName;
     private String currentProductType;
@@ -65,6 +66,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
                                   final String bundleExternalKey,
                                   final UUID subscriptionId,
                                   final Integer bundleAccountRank,
+                                  final Boolean latestForBundleExternalKey,
                                   final LocalDate chargedThroughDate,
                                   final BusinessSubscriptionTransitionModelDao bst,
                                   final String convertedCurrency,
@@ -95,6 +97,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         this.bundleExternalKey = bundleExternalKey;
         this.subscriptionId = subscriptionId;
         this.bundleAccountRank = bundleAccountRank;
+        this.latestForBundleExternalKey = latestForBundleExternalKey;
         this.chargedThroughDate = chargedThroughDate;
         this.currentProductName = bst.getNextProductName();
         this.currentProductType = bst.getNextProductType();
@@ -121,6 +124,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
                                   final SubscriptionBundle bundle,
                                   final Long bundleRecordId,
                                   final Integer bundleAccountRank,
+                                  final Boolean latestForBundleExternalKey,
                                   final LocalDate chargedThroughDate,
                                   final BusinessSubscriptionTransitionModelDao bst,
                                   final CurrencyConverter currencyConverter,
@@ -132,6 +136,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
              bundle.getExternalKey(),
              bst.getSubscriptionId(),
              bundleAccountRank,
+             latestForBundleExternalKey,
              chargedThroughDate,
              bst,
              currencyConverter.getConvertedCurrency(),
@@ -170,6 +175,10 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
 
     public Integer getBundleAccountRank() {
         return bundleAccountRank;
+    }
+
+    public Boolean getLatestForBundleExternalKey() {
+        return latestForBundleExternalKey;
     }
 
     public LocalDate getChargedThroughDate() {
@@ -256,6 +265,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append(", subscriptionId=").append(subscriptionId);
         sb.append(", bundleAccountRank=").append(bundleAccountRank);
+        sb.append(", latestForBundleExternalKey=").append(latestForBundleExternalKey);
         sb.append(", chargedThroughDate=").append(chargedThroughDate);
         sb.append(", currentProductName='").append(currentProductName).append('\'');
         sb.append(", currentProductType='").append(currentProductType).append('\'');
@@ -294,6 +304,9 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         final BusinessBundleModelDao that = (BusinessBundleModelDao) o;
 
         if (bundleAccountRank != null ? !bundleAccountRank.equals(that.bundleAccountRank) : that.bundleAccountRank != null) {
+            return false;
+        }
+        if (latestForBundleExternalKey != null ? !latestForBundleExternalKey.equals(that.latestForBundleExternalKey) : that.latestForBundleExternalKey != null) {
             return false;
         }
         if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
@@ -377,6 +390,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         result = 31 * result + (subscriptionId != null ? subscriptionId.hashCode() : 0);
         result = 31 * result + (bundleAccountRank != null ? bundleAccountRank.hashCode() : 0);
+        result = 31 * result + (latestForBundleExternalKey != null ? latestForBundleExternalKey.hashCode() : 0);
         result = 31 * result + (chargedThroughDate != null ? chargedThroughDate.hashCode() : 0);
         result = 31 * result + (currentProductName != null ? currentProductName.hashCode() : 0);
         result = 31 * result + (currentProductType != null ? currentProductType.hashCode() : 0);

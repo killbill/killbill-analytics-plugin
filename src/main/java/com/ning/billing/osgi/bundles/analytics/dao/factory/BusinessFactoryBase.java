@@ -35,15 +35,12 @@ import com.ning.billing.catalog.api.CatalogUserApi;
 import com.ning.billing.catalog.api.Plan;
 import com.ning.billing.catalog.api.PlanPhase;
 import com.ning.billing.clock.Clock;
-import com.ning.billing.entitlement.api.EntitlementApi;
-import com.ning.billing.entitlement.api.Subscription;
 import com.ning.billing.entitlement.api.SubscriptionApi;
 import com.ning.billing.entitlement.api.SubscriptionApiException;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.entitlement.api.SubscriptionEventType;
 import com.ning.billing.invoice.api.Invoice;
-import com.ning.billing.invoice.api.InvoiceApiException;
 import com.ning.billing.invoice.api.InvoiceItem;
 import com.ning.billing.invoice.api.InvoicePayment;
 import com.ning.billing.invoice.api.InvoicePaymentApi;
@@ -199,6 +196,21 @@ public abstract class BusinessFactoryBase {
             return subscriptionApi.getSubscriptionBundlesForAccountId(accountId, context);
         } catch (SubscriptionApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving bundles for account id " + accountId, e);
+            throw new AnalyticsRefreshException(e);
+        }
+    }
+
+    protected SubscriptionBundle getLatestSubscriptionBundleForExternalKey(final String bundleExternalKey, final TenantContext context) throws AnalyticsRefreshException {
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
+
+        try {
+            final List<SubscriptionBundle> bundles = subscriptionApi.getSubscriptionBundlesForExternalKey(bundleExternalKey, context);
+            if (bundles.size() == 0) {
+                throw new AnalyticsRefreshException("Unable to retrieve latest bundle for bundle external key " + bundleExternalKey);
+            }
+            return bundles.get(bundles.size() - 1);
+        } catch (SubscriptionApiException e) {
+            logService.log(LogService.LOG_WARNING, "Error retrieving bundles for bundle external key " + bundleExternalKey, e);
             throw new AnalyticsRefreshException(e);
         }
     }

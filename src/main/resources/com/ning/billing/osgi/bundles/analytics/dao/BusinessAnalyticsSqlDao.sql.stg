@@ -113,6 +113,7 @@ insert into analytics_bundles (
 , bundle_external_key
 , subscription_id
 , bundle_account_rank
+, latest_for_bundle_external_key
 , charged_through_date
 , current_product_name
 , current_product_type
@@ -148,6 +149,7 @@ insert into analytics_bundles (
 , :bundleExternalKey
 , :subscriptionId
 , :bundleAccountRank
+, :latestForBundleExternalKey
 , :chargedThroughDate
 , :currentProductName
 , :currentProductType

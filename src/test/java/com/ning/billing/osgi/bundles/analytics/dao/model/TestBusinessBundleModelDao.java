@@ -50,6 +50,7 @@ public class TestBusinessBundleModelDao extends AnalyticsTestSuiteNoDB {
                                                                                         bundle,
                                                                                         bundleRecordId,
                                                                                         3,
+                                                                                        true,
                                                                                         new LocalDate(2013, 10, 1),
                                                                                         subscriptionTransitionModelDao,
                                                                                         currencyConverter,
@@ -62,6 +63,7 @@ public class TestBusinessBundleModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(bundleSummaryModelDao.getBundleExternalKey(), bundle.getExternalKey());
         Assert.assertEquals(bundleSummaryModelDao.getSubscriptionId(), subscriptionTransition.getEntitlementId());
         Assert.assertEquals(bundleSummaryModelDao.getBundleAccountRank(), (Integer) 3);
+        Assert.assertTrue(bundleSummaryModelDao.getLatestForBundleExternalKey());
         Assert.assertEquals(bundleSummaryModelDao.getChargedThroughDate().compareTo(new LocalDate(2013, 10, 1)), 0);
         Assert.assertEquals(bundleSummaryModelDao.getCurrentProductName(), subscriptionTransitionModelDao.getNextProductName());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentProductType(), subscriptionTransitionModelDao.getNextProductType());

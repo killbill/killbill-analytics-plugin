@@ -30,6 +30,7 @@ public class BusinessBundle extends BusinessEntityBase {
     private final String bundleExternalKey;
     private final UUID subscriptionId;
     private final Integer bundleAccountRank;
+    private final Boolean latestForBundleExternalKey;
     private final LocalDate chargedThroughDate;
     private final String currentProductName;
     private final String currentProductType;
@@ -64,6 +65,7 @@ public class BusinessBundle extends BusinessEntityBase {
         this.bundleExternalKey = businessBundleModelDao.getBundleExternalKey();
         this.subscriptionId = businessBundleModelDao.getSubscriptionId();
         this.bundleAccountRank = businessBundleModelDao.getBundleAccountRank();
+        this.latestForBundleExternalKey = businessBundleModelDao.getLatestForBundleExternalKey();
         this.chargedThroughDate = businessBundleModelDao.getChargedThroughDate();
         this.currentProductName = businessBundleModelDao.getCurrentProductName();
         this.currentProductType = businessBundleModelDao.getCurrentProductType();
@@ -103,6 +105,10 @@ public class BusinessBundle extends BusinessEntityBase {
 
     public Integer getBundleAccountRank() {
         return bundleAccountRank;
+    }
+
+    public Boolean getLatestForBundleExternalKey() {
+        return latestForBundleExternalKey;
     }
 
     public LocalDate getChargedThroughDate() {
@@ -189,6 +195,7 @@ public class BusinessBundle extends BusinessEntityBase {
         sb.append(", bundleExternalKey='").append(bundleExternalKey).append('\'');
         sb.append(", subscriptionId=").append(subscriptionId);
         sb.append(", bundleAccountRank=").append(bundleAccountRank);
+        sb.append(", latestForBundleExternalKey=").append(latestForBundleExternalKey);
         sb.append(", chargedThroughDate=").append(chargedThroughDate);
         sb.append(", currentProductName='").append(currentProductName).append('\'');
         sb.append(", currentProductType='").append(currentProductType).append('\'');
@@ -227,6 +234,9 @@ public class BusinessBundle extends BusinessEntityBase {
         final BusinessBundle that = (BusinessBundle) o;
 
         if (bundleAccountRank != null ? !bundleAccountRank.equals(that.bundleAccountRank) : that.bundleAccountRank != null) {
+            return false;
+        }
+        if (latestForBundleExternalKey != null ? !latestForBundleExternalKey.equals(that.latestForBundleExternalKey) : that.latestForBundleExternalKey != null) {
             return false;
         }
         if (bundleExternalKey != null ? !bundleExternalKey.equals(that.bundleExternalKey) : that.bundleExternalKey != null) {
@@ -310,6 +320,7 @@ public class BusinessBundle extends BusinessEntityBase {
         result = 31 * result + (bundleExternalKey != null ? bundleExternalKey.hashCode() : 0);
         result = 31 * result + (subscriptionId != null ? subscriptionId.hashCode() : 0);
         result = 31 * result + (bundleAccountRank != null ? bundleAccountRank.hashCode() : 0);
+        result = 31 * result + (latestForBundleExternalKey != null ? latestForBundleExternalKey.hashCode() : 0);
         result = 31 * result + (chargedThroughDate != null ? chargedThroughDate.hashCode() : 0);
         result = 31 * result + (currentProductName != null ? currentProductName.hashCode() : 0);
         result = 31 * result + (currentProductType != null ? currentProductType.hashCode() : 0);

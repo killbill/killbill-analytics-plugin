@@ -148,6 +148,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                  bundle,
                                                                                  bundleRecordId,
                                                                                  1,
+                                                                                 true,
                                                                                  new LocalDate(2013, 10, 1),
                                                                                  subscriptionTransitionModelDao,
                                                                                  currencyConverter,

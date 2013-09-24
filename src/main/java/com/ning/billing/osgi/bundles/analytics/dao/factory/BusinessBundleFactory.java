@@ -155,6 +155,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
         final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), context);
         final CurrencyConverter currencyConverter = getCurrencyConverter();
+        final Boolean latestForBundleExternalKey = getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey(), context).getId().equals(bundle.getId());
 
         LocalDate chargedThroughDate = null;
         final Optional<Subscription> base = Iterables.tryFind(bundle.getSubscriptions(),
@@ -173,6 +174,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                                           bundle,
                                           bundleRecordId,
                                           bundleAccountRank,
+                                          latestForBundleExternalKey,
                                           chargedThroughDate,
                                           bst,
                                           currencyConverter,
