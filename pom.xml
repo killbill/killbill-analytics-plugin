@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>com.ning.billing</groupId>
-        <version>0.4.11</version>
+        <version>0.4.12</version>
     </parent>
     <artifactId>killbill-osgi-bundles-analytics</artifactId>
     <name>Kill Bill OSGI Analytics bundle</name>
@@ -80,7 +80,6 @@
             <groupId>com.ning.billing</groupId>
             <artifactId>killbill-api</artifactId>
             <scope>provided</scope>
-            <version>0.6.6-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.ning.billing.plugin</groupId>

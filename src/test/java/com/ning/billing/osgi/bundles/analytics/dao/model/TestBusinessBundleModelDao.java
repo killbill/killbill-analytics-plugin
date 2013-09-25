@@ -82,5 +82,6 @@ public class TestBusinessBundleModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(bundleSummaryModelDao.getCurrentEndDate(), subscriptionTransitionModelDao.getNextEndDate());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentService(), subscriptionTransitionModelDao.getNextService());
         Assert.assertEquals(bundleSummaryModelDao.getCurrentState(), subscriptionTransitionModelDao.getNextState());
+        Assert.assertEquals(bundleSummaryModelDao.getOriginalCreatedDate(), bundle.getOriginalCreatedDate());
     }
 }

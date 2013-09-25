@@ -133,6 +133,7 @@ insert into analytics_bundles (
 , current_start_date
 , current_end_date
 , converted_currency
+, original_created_date
 , created_date
 , created_by
 , created_reason_code
@@ -169,6 +170,7 @@ insert into analytics_bundles (
 , :currentStartDate
 , :currentEndDate
 , :convertedCurrency
+, :originalCreatedDate
 , :createdDate
 , :createdBy
 , :createdReasonCode

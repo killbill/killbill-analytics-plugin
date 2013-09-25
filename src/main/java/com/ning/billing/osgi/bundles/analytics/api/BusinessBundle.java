@@ -19,6 +19,7 @@ package com.ning.billing.osgi.bundles.analytics.api;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
@@ -50,6 +51,7 @@ public class BusinessBundle extends BusinessEntityBase {
     private final String currentService;
     private final String currentState;
     private final String convertedCurrency;
+    private final DateTime originalCreatedDate;
 
     public BusinessBundle(final BusinessBundleModelDao businessBundleModelDao) {
         super(businessBundleModelDao.getCreatedDate(),
@@ -85,6 +87,7 @@ public class BusinessBundle extends BusinessEntityBase {
         this.currentService = businessBundleModelDao.getCurrentService();
         this.currentState = businessBundleModelDao.getCurrentState();
         this.convertedCurrency = businessBundleModelDao.getConvertedCurrency();
+        this.originalCreatedDate = businessBundleModelDao.getOriginalCreatedDate();
     }
 
     public Long getBundleRecordId() {
@@ -187,6 +190,10 @@ public class BusinessBundle extends BusinessEntityBase {
         return convertedCurrency;
     }
 
+    public DateTime getOriginalCreatedDate() {
+        return originalCreatedDate;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessBundle{");
@@ -215,6 +222,7 @@ public class BusinessBundle extends BusinessEntityBase {
         sb.append(", currentService='").append(currentService).append('\'');
         sb.append(", currentState='").append(currentState).append('\'');
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
+        sb.append(", originalCreatedDate='").append(originalCreatedDate).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -308,6 +316,9 @@ public class BusinessBundle extends BusinessEntityBase {
         if (subscriptionId != null ? !subscriptionId.equals(that.subscriptionId) : that.subscriptionId != null) {
             return false;
         }
+        if (originalCreatedDate != null ? originalCreatedDate.compareTo(that.originalCreatedDate) != 0 : that.originalCreatedDate != null) {
+            return false;
+        }
 
         return true;
     }
@@ -340,6 +351,7 @@ public class BusinessBundle extends BusinessEntityBase {
         result = 31 * result + (currentService != null ? currentService.hashCode() : 0);
         result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
+        result = 31 * result + (originalCreatedDate != null ? originalCreatedDate.hashCode() : 0);
         return result;
     }
 }

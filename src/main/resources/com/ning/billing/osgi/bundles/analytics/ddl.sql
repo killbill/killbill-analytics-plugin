@@ -91,6 +91,7 @@ create table analytics_bundles (
 , current_start_date date default null
 , current_end_date date default null
 , converted_currency char(3) default null
+, original_created_date datetime default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null

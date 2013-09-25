@@ -87,5 +87,6 @@ public class TestBusinessBundle extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessBundle.getCurrentService(), bundleModelDao.getCurrentService());
         Assert.assertEquals(businessBundle.getCurrentState(), bundleModelDao.getCurrentState());
         Assert.assertEquals(businessBundle.getConvertedCurrency(), bundleModelDao.getConvertedCurrency());
+        Assert.assertEquals(businessBundle.getOriginalCreatedDate(), bundleModelDao.getOriginalCreatedDate());
     }
 }

@@ -58,6 +58,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
     private String currentService;
     private String currentState;
     private String convertedCurrency;
+    private DateTime originalCreatedDate;
 
     public BusinessBundleModelDao() { /* When reading from the database */ }
 
@@ -70,6 +71,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
                                   final LocalDate chargedThroughDate,
                                   final BusinessSubscriptionTransitionModelDao bst,
                                   final String convertedCurrency,
+                                  final DateTime originalCreatedDate,
                                   final DateTime createdDate,
                                   final String createdBy,
                                   final String createdReasonCode,
@@ -117,6 +119,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         this.currentService = bst.getNextService();
         this.currentState = bst.getNextState();
         this.convertedCurrency = convertedCurrency;
+        this.originalCreatedDate = originalCreatedDate;
     }
 
     public BusinessBundleModelDao(final Account account,
@@ -140,6 +143,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
              chargedThroughDate,
              bst,
              currencyConverter.getConvertedCurrency(),
+             bundle.getOriginalCreatedDate(),
              bundle.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
@@ -257,6 +261,10 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         return convertedCurrency;
     }
 
+    public DateTime getOriginalCreatedDate() {
+        return originalCreatedDate;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessBundleModelDao{");
@@ -285,6 +293,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         sb.append(", currentService='").append(currentService).append('\'');
         sb.append(", currentState='").append(currentState).append('\'');
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
+        sb.append(", originalCreatedDate='").append(originalCreatedDate).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -378,6 +387,9 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         if (subscriptionId != null ? !subscriptionId.equals(that.subscriptionId) : that.subscriptionId != null) {
             return false;
         }
+        if (originalCreatedDate != null ? (originalCreatedDate.compareTo(that.originalCreatedDate) != 0) : that.originalCreatedDate != null) {
+            return false;
+        }
 
         return true;
     }
@@ -410,6 +422,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         result = 31 * result + (currentService != null ? currentService.hashCode() : 0);
         result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
+        result = 31 * result + (originalCreatedDate != null ? originalCreatedDate.hashCode() : 0);
         return result;
     }
 }
