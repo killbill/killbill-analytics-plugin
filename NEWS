@@ -1,5 +1,6 @@
 0.5.0
     New original_created_date and latest_for_bundle_external_key columns in analytics_bundles (see #7 and #9)
+    Fix bug in AST (see #12 and #13)
 
 0.4.5
     Optimizations to reduce refresh times

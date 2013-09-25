@@ -98,8 +98,8 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                                                  @Nullable final ReportGroup reportGroup,
                                                                                  final CallContext context) throws AnalyticsRefreshException {
         final List<BusinessSubscriptionTransitionModelDao> bsts = new LinkedList<BusinessSubscriptionTransitionModelDao>();
-        final Map<String, List<BusinessSubscriptionTransitionModelDao>> bstsPerService = new HashMap<String, List<BusinessSubscriptionTransitionModelDao>>();
-        final Map<String, BusinessSubscription> prevSubscriptionPerService = new HashMap<String, BusinessSubscription>();
+        final Map<String, Map<UUID, List<BusinessSubscriptionTransitionModelDao>>> bstsPerServicePerSubscription = new HashMap<String, Map<UUID, List<BusinessSubscriptionTransitionModelDao>>>();
+        final Map<String, Map<UUID, BusinessSubscription>> prevSubscriptionPerServicePerSubscription = new HashMap<String, Map<UUID, BusinessSubscription>>();
 
         // Ordered for us by entitlement
         for (final SubscriptionEvent transition : transitions) {
@@ -110,28 +110,34 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
             } else {
                 nextSubscription = getBusinessSubscriptionFromTransition(account, transition, currencyConverter);
             }
-            createBusinessSubscriptionTransition(transition, bsts, bstsPerService, prevSubscriptionPerService, nextSubscription, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup, context);
+            createBusinessSubscriptionTransition(transition, bsts, bstsPerServicePerSubscription, prevSubscriptionPerServicePerSubscription, nextSubscription, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup, context);
 
             // Multiplex these events
             if (transition.getServiceName().equals(ENTITLEMENT_BILLING_SERVICE_NAME)) {
                 final BusinessSubscription nextNextSubscription = getBusinessSubscriptionFromTransition(account, transition, BILLING_SERVICE_NAME, currencyConverter);
-                createBusinessSubscriptionTransition(transition, bsts, bstsPerService, prevSubscriptionPerService, nextNextSubscription, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup, context);
+                createBusinessSubscriptionTransition(transition, bsts, bstsPerServicePerSubscription, prevSubscriptionPerServicePerSubscription, nextNextSubscription, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup, context);
             }
         }
 
         // We can now fix the next end date (the last next_end date will be set by the catalog by using the phase name)
-        final Map<String, Iterator<BusinessSubscriptionTransitionModelDao>> iteratorPerService = new HashMap<String, Iterator<BusinessSubscriptionTransitionModelDao>>();
+        final Map<String, Map<UUID, Iterator<BusinessSubscriptionTransitionModelDao>>> iteratorPerServicePerSubscription = new HashMap<String, Map<UUID, Iterator<BusinessSubscriptionTransitionModelDao>>>();
         for (final BusinessSubscriptionTransitionModelDao bst : bsts) {
-            if (iteratorPerService.get(bst.getNextService()) == null) {
-                final Iterator<BusinessSubscriptionTransitionModelDao> iterator = bstsPerService.get(bst.getNextService()).iterator();
-                // Skip the first one
-                iterator.next();
-                iteratorPerService.put(bst.getNextService(), iterator);
+            Map<UUID, Iterator<BusinessSubscriptionTransitionModelDao>> iteratorPerSubscription = iteratorPerServicePerSubscription.get(bst.getNextService());
+            if (iteratorPerSubscription == null) {
+                iteratorPerSubscription = new HashMap<UUID, Iterator<BusinessSubscriptionTransitionModelDao>>();
+                iteratorPerServicePerSubscription.put(bst.getNextService(), iteratorPerSubscription);
             }
-            final Iterator<BusinessSubscriptionTransitionModelDao> bstIteratorPerService = iteratorPerService.get(bst.getNextService());
 
-            if (bstIteratorPerService.hasNext()) {
-                final BusinessSubscriptionTransitionModelDao nextBstPerService = bstIteratorPerService.next();
+            Iterator<BusinessSubscriptionTransitionModelDao> bstIterator = iteratorPerSubscription.get(bst.getSubscriptionId());
+            if (bstIterator == null) {
+                bstIterator = bstsPerServicePerSubscription.get(bst.getNextService()).get(bst.getSubscriptionId()).iterator();
+                // Skip the first one
+                bstIterator.next();
+                iteratorPerSubscription.put(bst.getSubscriptionId(), bstIterator);
+            }
+
+            if (bstIterator.hasNext()) {
+                final BusinessSubscriptionTransitionModelDao nextBstPerService = bstIterator.next();
                 bst.setNextEndDate(nextBstPerService.getNextStartDate());
             }
         }
@@ -141,8 +147,8 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
 
     private void createBusinessSubscriptionTransition(final SubscriptionEvent transition,
                                                       final Collection<BusinessSubscriptionTransitionModelDao> bsts,
-                                                      final Map<String, List<BusinessSubscriptionTransitionModelDao>> bstsPerService,
-                                                      final Map<String, BusinessSubscription> prevSubscriptionPerService,
+                                                      final Map<String, Map<UUID, List<BusinessSubscriptionTransitionModelDao>>> bstsPerServicePerSubscription,
+                                                      final Map<String, Map<UUID, BusinessSubscription>> prevSubscriptionPerServicePerSubscription,
                                                       final BusinessSubscription nextSubscription,
                                                       final Account account,
                                                       final SubscriptionBundle bundle,
@@ -151,10 +157,16 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                       final Long tenantRecordId,
                                                       @Nullable final ReportGroup reportGroup,
                                                       final CallContext context) throws AnalyticsRefreshException {
+        Map<UUID, BusinessSubscription> prevSubscriptionPerSubscription = prevSubscriptionPerServicePerSubscription.get(nextSubscription.getService());
+        if (prevSubscriptionPerSubscription == null) {
+            prevSubscriptionPerSubscription = new HashMap<UUID, BusinessSubscription>();
+            prevSubscriptionPerServicePerSubscription.put(nextSubscription.getService(), prevSubscriptionPerSubscription);
+        }
+
         final BusinessSubscriptionTransitionModelDao bst = createBusinessSubscriptionTransition(account,
                                                                                                 bundle,
                                                                                                 transition,
-                                                                                                prevSubscriptionPerService.get(nextSubscription.getService()),
+                                                                                                prevSubscriptionPerSubscription.get(transition.getEntitlementId()),
                                                                                                 nextSubscription,
                                                                                                 currencyConverter,
                                                                                                 accountRecordId,
@@ -163,12 +175,17 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                                                                 context);
         bsts.add(bst);
 
-        if (bstsPerService.get(nextSubscription.getService()) == null) {
-            bstsPerService.put(nextSubscription.getService(), new LinkedList<BusinessSubscriptionTransitionModelDao>());
+        Map<UUID, List<BusinessSubscriptionTransitionModelDao>> bstsPerSubscription = bstsPerServicePerSubscription.get(nextSubscription.getService());
+        if (bstsPerSubscription == null) {
+            bstsPerSubscription = new HashMap<UUID, List<BusinessSubscriptionTransitionModelDao>>();
+            bstsPerServicePerSubscription.put(nextSubscription.getService(), bstsPerSubscription);
         }
-        bstsPerService.get(nextSubscription.getService()).add(bst);
+        if (bstsPerSubscription.get(transition.getEntitlementId()) == null) {
+            bstsPerSubscription.put(transition.getEntitlementId(), new LinkedList<BusinessSubscriptionTransitionModelDao>());
+        }
+        bstsPerSubscription.get(transition.getEntitlementId()).add(bst);
 
-        prevSubscriptionPerService.put(nextSubscription.getService(), nextSubscription);
+        prevSubscriptionPerSubscription.put(transition.getEntitlementId(), nextSubscription);
     }
 
     private BusinessSubscriptionTransitionModelDao createBusinessSubscriptionTransition(final Account account,
