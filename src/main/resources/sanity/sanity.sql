@@ -1130,6 +1130,42 @@ or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
 or coalesce(b.created_by, '') != coalesce(al.created_by, ''))
 ;
 
+select 'J5' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions
+where 1 = 1
+and event like 'START%'
+and prev_product_name is not null
+;
+
+select 'J6' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions
+where 1 = 1
+and event like 'STOP%'
+and prev_product_name is null
+;
+
+select 'J7' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions
+where 1 = 1
+and event like 'ERROR%'
+;
+
+select 'J8' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions
+where 1 = 1
+and prev_service != next_service
+;
+
+select 'J9' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions
+where 1 = 1
+and coalesce(prev_product_category, next_product_category) != coalesce(next_product_category, prev_product_category)
+;
 
 -- BUNDLE FIELDS
 /* table not currently used */
