@@ -675,7 +675,7 @@ left outer join (
   select
     invoice_id
   , sum(coalesce(amount,0)) bipc_sum
-  from analytics_payments bipc
+  from analytics_chargebacks bipc
   group by invoice_id
 ) bipc_sum using (invoice_id)
 left outer join (
