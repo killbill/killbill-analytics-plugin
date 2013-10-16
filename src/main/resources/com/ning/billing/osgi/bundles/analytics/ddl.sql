@@ -188,6 +188,8 @@ create table analytics_account_transitions (
 create index analytics_account_transitions_account_id on analytics_account_transitions(account_id);
 create index analytics_account_transitions_account_record_id on analytics_account_transitions(account_record_id);
 create index analytics_account_transitions_tenant_account_record_id on analytics_account_transitions(tenant_record_id, account_record_id);
+-- For sanity queries
+create index analytics_account_transitions_blocking_state_record_id on analytics_account_transitions(blocking_state_record_id);
 
 -- Invoices
 drop table if exists analytics_invoices;
