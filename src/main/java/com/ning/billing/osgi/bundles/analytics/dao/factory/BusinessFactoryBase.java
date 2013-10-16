@@ -39,7 +39,6 @@ import com.ning.billing.entitlement.api.SubscriptionApi;
 import com.ning.billing.entitlement.api.SubscriptionApiException;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.entitlement.api.SubscriptionEvent;
-import com.ning.billing.entitlement.api.SubscriptionEventType;
 import com.ning.billing.invoice.api.Invoice;
 import com.ning.billing.invoice.api.InvoiceItem;
 import com.ning.billing.invoice.api.InvoicePayment;
@@ -270,7 +269,11 @@ public abstract class BusinessFactoryBase {
                                                                                              new Predicate<SubscriptionEvent>() {
                                                                                                  @Override
                                                                                                  public boolean apply(final SubscriptionEvent event) {
-                                                                                                     return SubscriptionEventType.SERVICE_STATE_CHANGE.equals(event.getSubscriptionEventType());
+                                                                                                     return event.getSubscriptionEventType() != null &&
+                                                                                                            // We want events coming from the blocking states table...
+                                                                                                            ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
+                                                                                                            // ...that are for any service but entitlement
+                                                                                                            !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
                                                                                                  }
                                                                                              });
         return ImmutableList.<SubscriptionEvent>copyOf(Sets.newLinkedHashSet(stateChanges));
