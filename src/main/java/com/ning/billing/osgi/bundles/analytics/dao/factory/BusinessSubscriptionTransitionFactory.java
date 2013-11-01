@@ -104,7 +104,10 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
         // Ordered for us by entitlement
         for (final SubscriptionEvent transition : transitions) {
             final BusinessSubscription nextSubscription;
-            // Special service, will be multiplexed
+            // Special service, will be multiplexed. These events are only for PHASE/CHANGE: since Kill Bill doesn't support different
+            // entitlement and billing dates for PHASE/CHANGE, we will only see one event in the subscription bundle timeline stream
+            // but we want two in Analytics for convenience. All other events will have their own entitlement and billing events
+            // already (coming either from subscription base or blocking states).
             if (ENTITLEMENT_BILLING_SERVICE_NAME.equals(transition.getServiceName())) {
                 nextSubscription = getBusinessSubscriptionFromTransition(account, transition, ENTITLEMENT_SERVICE_NAME, currencyConverter);
             } else {
