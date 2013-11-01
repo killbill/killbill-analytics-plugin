@@ -146,11 +146,15 @@
           var now = new Date();
           var from = $.url().param('startDate');
           if (!from) {
-            from = now.getFullYear() + '-' + (now.getMonth() - 3) + '-' + now.getDay();
+            var fromDate = new Date(now.getTime());
+            fromDate.setMonth(now.getMonth() - 3);
+            from = fromDate.getFullYear() + '-' + fromDate.getMonth() + '-' + fromDate.getDay();
           }
           var to = $.url().param('endDate');
           if (!to) {
-            to = now.getFullYear() + '-' + (now.getMonth() + 3) + '-' + now.getDay();
+            var toDate = new Date(now.getTime());
+            toDate.setMonth(now.getMonth() + 3);
+            to = toDate.getFullYear() + '-' + toDate.getMonth() + '-' + toDate.getDay();
           }
 
           // Map of position (starting from the top) to an array of reports
