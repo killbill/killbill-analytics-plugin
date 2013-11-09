@@ -914,7 +914,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 select 'H4' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_chargebacks b
-left outer join bin on b.invoice_id = bin.invoice_id
+left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
 or b.invoice_amount_charged != bin.amount_charged
