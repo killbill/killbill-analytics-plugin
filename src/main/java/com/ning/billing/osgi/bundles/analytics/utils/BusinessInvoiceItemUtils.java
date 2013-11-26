@@ -47,7 +47,8 @@ public class BusinessInvoiceItemUtils {
                                                                                                    @Override
                                                                                                    public boolean apply(final SubscriptionEvent input) {
                                                                                                        if (input.getEntitlementId().equals(invoiceItem.getSubscriptionId()) &&
-                                                                                                           input.getNextPhase() != null && input.getNextPhase().equals(planPhase) &&
+                                                                                                           // planPhase can't be null here
+                                                                                                           planPhase.equals(input.getNextPhase()) &&
                                                                                                            input.getEffectiveDate().compareTo(invoiceItem.getStartDate()) == 0) {
                                                                                                            subscriptionEventForInvoiceItem = input;
                                                                                                            return false;
@@ -55,7 +56,8 @@ public class BusinessInvoiceItemUtils {
 
                                                                                                        return subscriptionEventForInvoiceItem != null &&
                                                                                                               input.getEntitlementId().equals(invoiceItem.getSubscriptionId()) &&
-                                                                                                              input.getPrevPhase().equals(planPhase);
+                                                                                                              // planPhase can't be null here (prev phase can be for the first event)
+                                                                                                              planPhase.equals(input.getPrevPhase());
                                                                                                    }
                                                                                                });
             if (nextEvent.isPresent()) {
