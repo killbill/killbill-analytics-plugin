@@ -1175,6 +1175,22 @@ where 1 = 1
 and coalesce(prev_product_category, next_product_category) != coalesce(next_product_category, prev_product_category)
 ;
 
+select 'J10' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions ast
+join (
+  select
+    subscription_id
+  , event
+  , count(*)
+  from analytics_subscription_transitions
+  where 1 = 1
+  and (event like 'START_%' or event like 'STOP_%')
+  group by 1, 2
+  having(count(*)) > 1
+) duplicates using(subscription_id)
+;
+
 -- BUNDLE FIELDS
 /* table not currently used */
 
