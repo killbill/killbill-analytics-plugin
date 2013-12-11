@@ -148,13 +148,13 @@
           if (!from) {
             var fromDate = new Date(now.getTime());
             fromDate.setMonth(now.getMonth() - 3);
-            from = fromDate.getFullYear() + '-' + fromDate.getMonth() + '-' + fromDate.getDay();
+            from = fromDate.getFullYear() + '-' + (fromDate.getMonth() + 1) + '-' + fromDate.getDate();
           }
           var to = $.url().param('endDate');
           if (!to) {
             var toDate = new Date(now.getTime());
-            toDate.setMonth(now.getMonth() + 3);
-            to = toDate.getFullYear() + '-' + toDate.getMonth() + '-' + toDate.getDay();
+            //toDate.setMonth(now.getMonth() + 3);
+            to = toDate.getFullYear() + '-' + (toDate.getMonth() + 1) + '-' + toDate.getDate();
           }
 
           // Map of position (starting from the top) to an array of reports
