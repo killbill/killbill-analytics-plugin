@@ -1030,53 +1030,67 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select 'I1a' as sanity_query_name;
 select distinct bs.account_record_id
 from blocking_states bs
-left outer join analytics_account_transitions bos on bs.record_id = bos.blocking_state_record_id
-where (coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
-or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
-/* TODO SubscriptionEvent is not an entity, we don't have that info yet
-or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
-/* Tricky... Need to look at the account timezone */
-or (coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
-and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
-and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL'))
-or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
-or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL'))
-and coalesce(bs.type, 'NULL') = 'ACCOUNT'
+join analytics_account_transitions bos on bs.record_id = bos.blocking_state_record_id
+where 1 = 1
+and bs.is_active = 1
+and (
+     coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
+  or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
+  /* TODO SubscriptionEvent is not an entity, we don't have that info yet
+  or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
+  or (
+    /* Tricky... Need to look at the account timezone */
+        coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
+    and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
+    and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
+  )
+  or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
+  or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
+)
 ;
 
 select 'I1b' as sanity_query_name;
 select distinct bos.account_record_id
 from analytics_account_transitions bos
-left outer join blocking_states bs on bs.record_id = bos.blocking_state_record_id
-where coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
-or coalesce(bs.type, 'NULL') != 'ACCOUNT'
-or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
-/* TODO SubscriptionEvent is not an entity, we don't have that info yet
-or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
-/* Tricky... Need to look at the account timezone */
-or (coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
-and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
-and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL'))
-or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
-or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
+join blocking_states bs on bs.record_id = bos.blocking_state_record_id
+where 1 = 1
+and bs.is_active = 1
+and (
+     coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
+  or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
+  /* TODO SubscriptionEvent is not an entity, we don't have that info yet
+  or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
+  /* Tricky... Need to look at the account timezone */
+  or (coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
+  and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
+  and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL'))
+  or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
+  or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
+)
 ;
 
 select 'I2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_account_transitions b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
-or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
-or coalesce(a.name, '') != coalesce(b.account_name, '')
+where 1 = 1
+and (
+     coalesce(a.record_id) != coalesce(b.account_record_id, '')
+  or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
+  or coalesce(a.name, '') != coalesce(b.account_name, '')
+)
 ;
 
 select 'I3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_account_transitions b
 join audit_log al on b.blocking_state_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'BLOCKING_STATES'
-where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
-or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
-or coalesce(b.created_by, '') != coalesce(al.created_by, '')
+where 1 = 1
+and (
+     coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
+  or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
+  or coalesce(b.created_by, '') != coalesce(al.created_by, '')
+)
 ;
 
 
