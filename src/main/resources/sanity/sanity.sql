@@ -1205,6 +1205,23 @@ join (
 ) duplicates using(subscription_id)
 ;
 
+select 'J11' as sanity_query_name;
+select distinct account_record_id
+from analytics_subscription_transitions ast
+join (
+  select
+    account_record_id
+  , event
+  , next_service
+  from analytics_subscription_transitions
+  where 1 = 1
+  and (
+       (event like '%ENTITLEMENT%' and next_service = 'billing-service')
+    or (event like '%BILLING%' and next_service = 'entitlement-service')
+  )
+) wrong_service using(account_record_id)
+;
+
 -- BUNDLE FIELDS
 /* table not currently used */
 
