@@ -76,25 +76,31 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select 'K1a' as sanity_query_name;
 select distinct cf.account_record_id
 from custom_fields cf
-left outer join analytics_account_fields b on cf.record_id = b.custom_field_record_id
-where (coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
-or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
-or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
-or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
-or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL'))
+left outer join analytics_account_fields b on cf.record_id = b.custom_field_record_id and cf.object_id = b.account_id /* To use the index */
+where 1 = 1
+and (
+     coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
+  or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
+  or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
+  or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
+  or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
+)
 and cf.object_type = 'ACCOUNT'
 ;
 
 select 'K1b' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_account_fields b
-left outer join custom_fields cf on cf.record_id = b.custom_field_record_id
-where coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
-or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
-or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
-or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
-or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
-or cf.object_type != 'ACCOUNT'
+left outer join custom_fields cf on cf.record_id = b.custom_field_record_id and cf.object_id = b.account_id /* To use the index */
+where 1 = 1
+and (
+     coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
+  or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
+  or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
+  or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
+  or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
+  or cf.object_type != 'ACCOUNT'
+)
 ;
 
 select 'K2' as sanity_query_name;
@@ -124,12 +130,15 @@ select 'L1a' as sanity_query_name;
 select distinct t.account_record_id
 from tags t
 join tag_definitions td on t.tag_definition_id = td.id
-left outer join analytics_account_tags b on t.record_id = b.tag_record_id
-where (coalesce(b.tag_record_id, 'NULL') != coalesce(t.record_id, 'NULL')
-or coalesce(b.name, 'NULL') != coalesce(td.name, 'NULL')
-or coalesce(b.created_date, 'NULL') != coalesce(t.created_date, 'NULL')
-or coalesce(b.account_record_id, 'NULL') != coalesce(t.account_record_id, 'NULL')
-or coalesce(b.tenant_record_id, 'NULL') != coalesce(t.tenant_record_id, 'NULL'))
+left outer join analytics_account_tags b on t.record_id = b.tag_record_id and t.object_id = b.account_id /* To use the index */
+where 1 = 1
+and (
+     coalesce(b.tag_record_id, 'NULL') != coalesce(t.record_id, 'NULL')
+  or coalesce(b.name, 'NULL') != coalesce(td.name, 'NULL')
+  or coalesce(b.created_date, 'NULL') != coalesce(t.created_date, 'NULL')
+  or coalesce(b.account_record_id, 'NULL') != coalesce(t.account_record_id, 'NULL')
+  or coalesce(b.tenant_record_id, 'NULL') != coalesce(t.tenant_record_id, 'NULL')
+)
 and t.object_type = 'ACCOUNT'
 ;
 
