@@ -74,9 +74,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Sets;
 
 /**
  * Wrapper around Kill Bill APIs
@@ -252,7 +250,7 @@ public abstract class BusinessFactoryBase {
     // OVERDUE
     //
 
-    protected List<SubscriptionEvent> getBlockingHistory(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+    protected Iterable<SubscriptionEvent> getBlockingHistory(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(accountId, context);
 
         // Find all subscription events for that account
@@ -265,18 +263,17 @@ public abstract class BusinessFactoryBase {
                                                                                                                                                                     }));
 
         // Filter all service state changes
-        final Iterable<SubscriptionEvent> stateChanges = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
-                                                                                             new Predicate<SubscriptionEvent>() {
-                                                                                                 @Override
-                                                                                                 public boolean apply(final SubscriptionEvent event) {
-                                                                                                     return event.getSubscriptionEventType() != null &&
-                                                                                                            // We want events coming from the blocking states table...
-                                                                                                            ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
-                                                                                                            // ...that are for any service but entitlement
-                                                                                                            !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
-                                                                                                 }
-                                                                                             });
-        return ImmutableList.<SubscriptionEvent>copyOf(Sets.newLinkedHashSet(stateChanges));
+        return Iterables.<SubscriptionEvent>filter(subscriptionEvents,
+                                                   new Predicate<SubscriptionEvent>() {
+                                                       @Override
+                                                       public boolean apply(final SubscriptionEvent event) {
+                                                           return event.getSubscriptionEventType() != null &&
+                                                                  // We want events coming from the blocking states table...
+                                                                  ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
+                                                                  // ...that are for any service but entitlement
+                                                                  !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
+                                                       }
+                                                   });
     }
 
     //

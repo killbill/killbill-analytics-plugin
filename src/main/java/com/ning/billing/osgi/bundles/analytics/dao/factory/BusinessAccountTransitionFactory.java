@@ -18,9 +18,11 @@ package com.ning.billing.osgi.bundles.analytics.dao.factory;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.joda.time.LocalDate;
@@ -54,8 +56,8 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
                                                                                           final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
-        final List<SubscriptionEvent> blockingStatesOrdered = getBlockingHistory(accountId, context);
-        if (blockingStatesOrdered.size() == 0) {
+        final Iterable<SubscriptionEvent> blockingStatesOrdered = getBlockingHistory(accountId, context);
+        if (!blockingStatesOrdered.iterator().hasNext()) {
             return ImmutableList.<BusinessAccountTransitionModelDao>of();
         }
 
@@ -64,7 +66,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
 
     @VisibleForTesting
     Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final Account account,
-                                                                                   final List<SubscriptionEvent> blockingStatesOrdered,
+                                                                                   final Iterable<SubscriptionEvent> blockingStatesOrdered,
                                                                                    final CallContext context) throws AnalyticsRefreshException {
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
         final Long tenantRecordId = getTenantRecordId(context);
@@ -75,8 +77,17 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
         // Reverse to compute the end date of each state
         final List<SubscriptionEvent> blockingStates = Lists.reverse(ImmutableList.<SubscriptionEvent>copyOf(blockingStatesOrdered));
 
+        // To remove duplicates
+        final Set<UUID> blockingStateIdsSeen = new HashSet<UUID>();
+
         final Map<String, LocalDate> previousStartDatePerService = new HashMap<String, LocalDate>();
         for (final SubscriptionEvent state : blockingStates) {
+            if (blockingStateIdsSeen.contains(state.getId())) {
+                continue;
+            } else {
+                blockingStateIdsSeen.add(state.getId());
+            }
+
             final Long blockingStateRecordId = getBlockingStateRecordId(state.getId(), context);
             final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), context);
             // TODO We're missing information about block billing, etc. Maybe capture it in an event name?

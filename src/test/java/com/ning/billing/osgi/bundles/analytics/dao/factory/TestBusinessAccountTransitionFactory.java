@@ -18,6 +18,7 @@ package com.ning.billing.osgi.bundles.analytics.dao.factory;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.joda.time.LocalDate;
 import org.mockito.Mockito;
@@ -39,21 +40,25 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
 
         final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
         final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event1.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event1.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event1.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 1));
         Mockito.when(event1.getServiceName()).thenReturn("service-A");
         events.add(event1);
         final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event2.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event2.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event2.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 2));
         Mockito.when(event2.getServiceName()).thenReturn("service-B");
         events.add(event2);
         final SubscriptionEvent event3 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event3.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event3.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event3.getEffectiveDate()).thenReturn(new LocalDate(2012, 6, 1));
         Mockito.when(event3.getServiceName()).thenReturn("service-A");
         events.add(event3);
         final SubscriptionEvent event4 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event4.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event4.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event4.getEffectiveDate()).thenReturn(new LocalDate(2012, 6, 2));
         Mockito.when(event4.getServiceName()).thenReturn("service-B");
