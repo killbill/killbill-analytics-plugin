@@ -1,3 +1,8 @@
+0.5.3
+    Fix default dates handling in dashboards (actual fix)
+    Sanity queries: bug fixes, performance optimizations and new queries
+    Fix duplicates in analytics_account_transitions
+
 0.5.2
     Fix default dates handling in dashboards
     Fix typo in sanity queries
