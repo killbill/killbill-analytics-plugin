@@ -29,6 +29,7 @@ import com.ning.billing.clock.Clock;
 import com.ning.billing.entitlement.api.SubscriptionBundle;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
@@ -47,8 +48,8 @@ public class BusinessTagFactory extends BusinessFactoryBase {
         super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public Collection<BusinessTagModelDao> createBusinessTags(final UUID accountId,
-                                                              final CallContext context) throws AnalyticsRefreshException {
+    public BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> createBusinessTags(final UUID accountId,
+                                                                                                 final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
@@ -88,6 +89,6 @@ public class BusinessTagFactory extends BusinessFactoryBase {
             tagModelDaos.add(tagModelDao);
         }
 
-        return tagModelDaos;
+        return new BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao>(accountRecordId, tenantRecordId, tagModelDaos);
     }
 }

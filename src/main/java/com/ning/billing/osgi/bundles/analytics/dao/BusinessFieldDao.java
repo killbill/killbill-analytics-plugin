@@ -16,7 +16,6 @@
 
 package com.ning.billing.osgi.bundles.analytics.dao;
 
-import java.util.Collection;
 import java.util.UUID;
 
 import org.osgi.service.log.LogService;
@@ -27,6 +26,7 @@ import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessFieldFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
+import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -47,7 +47,7 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
     public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics custom fields for account " + accountId);
 
-        final Collection<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(accountId, context);
+        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(accountId, context);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
@@ -60,22 +60,17 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
         logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics custom fields for account " + accountId);
     }
 
-    private void updateInTransaction(final Collection<BusinessFieldModelDao> fieldModelDaos,
+    private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos,
                                      final BusinessAnalyticsSqlDao transactional,
                                      final CallContext context) {
-        // TODO We should delete first
-        if (fieldModelDaos.size() == 0) {
-            return;
+        for (final String tableName : BusinessFieldModelDao.ALL_FIELDS_TABLE_NAMES) {
+            transactional.deleteByAccountRecordId(tableName,
+                                                  fieldModelDaos.getAccountRecordId(),
+                                                  fieldModelDaos.getTenantRecordId(),
+                                                  context);
         }
 
-        // We assume all fieldModelDaos are for a single type
-        final BusinessFieldModelDao firstFieldModelDao = fieldModelDaos.iterator().next();
-        transactional.deleteByAccountRecordId(firstFieldModelDao.getTableName(),
-                                              firstFieldModelDao.getAccountRecordId(),
-                                              firstFieldModelDao.getTenantRecordId(),
-                                              context);
-
-        for (final BusinessFieldModelDao fieldModelDao : fieldModelDaos) {
+        for (final BusinessFieldModelDao fieldModelDao : fieldModelDaos.getBusinessModelDaos()) {
             transactional.create(fieldModelDao.getTableName(), fieldModelDao, context);
         }
     }
