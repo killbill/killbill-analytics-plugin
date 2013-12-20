@@ -1,6 +1,6 @@
 create or replace view v_system_report_notifications_per_queue_name as
 select
-  queue_name as pivot
+  queue_name
 , date_format(effective_date, '%Y-%m-%d') as day
 , count(*) as count
 from notifications
