@@ -35,21 +35,27 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
+import org.skife.jdbi.v2.tweak.HandleCallback;
 
 import com.ning.billing.osgi.bundles.analytics.BusinessExecutor;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessDBIProvider;
+import com.ning.billing.osgi.bundles.analytics.json.Chart;
+import com.ning.billing.osgi.bundles.analytics.json.CounterChart;
+import com.ning.billing.osgi.bundles.analytics.json.DataMarker;
 import com.ning.billing.osgi.bundles.analytics.json.NamedXYTimeSeries;
 import com.ning.billing.osgi.bundles.analytics.json.ReportConfigurationJson;
 import com.ning.billing.osgi.bundles.analytics.json.XY;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.SmootherType;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ReportsUserApi {
 
@@ -58,6 +64,7 @@ public class ReportsUserApi {
 
     // Part of the public API
     private static final String DAY_COLUMN_NAME = "day";
+    private static final String LABEL = "label";
     private static final String COUNT_COLUMN_NAME = "count";
 
     private final ExecutorService dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(NB_THREADS, "osgi-analytics-dashboard");
@@ -107,12 +114,13 @@ public class ReportsUserApi {
         jobsScheduler.scheduleNow(reportsConfigurationModelDao);
     }
 
-    public List<NamedXYTimeSeries> getTimeSeriesDataForReport(final String[] rawReportNames,
-                                                              @Nullable final LocalDate startDate,
-                                                              @Nullable final LocalDate endDate,
-                                                              @Nullable final SmootherType smootherType) {
-        // Mapping of report name -> pivots -> data
-        final Map<String, Map<String, List<XY>>> dataForReports = new ConcurrentHashMap<String, Map<String, List<XY>>>();
+    public List<Chart> getDataForReport(final String[] rawReportNames,
+                                        @Nullable final LocalDate startDate,
+                                        @Nullable final LocalDate endDate,
+                                        @Nullable final SmootherType smootherType) {
+
+        final List<Chart> result = new LinkedList<Chart>();
+        final Map<String, Map<String, List<XY>>> timeSeriesData = new ConcurrentHashMap<String, Map<String, List<XY>>>();
 
         // Parse the reports
         final List<ReportSpecification> reportSpecifications = new ArrayList<ReportSpecification>();
@@ -123,24 +131,56 @@ public class ReportsUserApi {
         // Fetch the latest reports configurations
         final Map<String, ReportsConfigurationModelDao> reportsConfigurations = reportsConfiguration.getAllReportConfigurations();
 
-        // Fetch the data
-        fetchData(reportSpecifications, dataForReports, reportsConfigurations, startDate, endDate);
+        final List<Future> jobs = new LinkedList<Future>();
+        for (final ReportSpecification reportSpecification : reportSpecifications) {
 
-        // Normalize and sort the data
-        normalizeAndSortXValues(dataForReports, startDate, endDate);
+            final String reportName = reportSpecification.getReportName();
+            final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
+            final String tableName = reportConfiguration.getSourceTableName();
+            final String prettyName = reportConfiguration.getReportPrettyName();
+            final ReportType reportType = reportConfiguration.getReportType();
 
-        // Smooth the data if needed and build the named timeseries
-        if (smootherType != null) {
-            final Smoother smoother = smootherType.createSmoother(dataForReports);
-            smoother.smooth();
-            return buildNamedXYTimeSeries(smoother.getDataForReports(), reportsConfigurations);
-        } else {
-            return buildNamedXYTimeSeries(dataForReports, reportsConfigurations);
+            jobs.add(dbiThreadsExecutor.submit(new Runnable() {
+                @Override
+                public void run() {
+                    switch (reportType) {
+                        case COUNTERS:
+                            List<DataMarker> counters = getCountersData(tableName);
+                            result.add(new Chart(ReportType.COUNTERS, prettyName, counters));
+                            break;
+
+                        case TIMELINE:
+                            final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, startDate, endDate);
+                            timeSeriesData.put(reportName, data);
+                            break;
+                        default:
+                            throw new RuntimeException("Unknown reportType " + reportType);
+                    }
+                }
+            }));
         }
+        waitForJobCompletion(jobs);
+
+        //
+        // Normalization and smoothing of time series if needed
+        //
+        normalizeAndSortXValues(timeSeriesData, startDate, endDate);
+        if (smootherType != null) {
+            final Smoother smoother = smootherType.createSmoother(timeSeriesData);
+            smoother.smooth();
+            result.addAll(buildNamedXYTimeSeries(smoother.getDataForReports(), reportsConfigurations));
+        } else {
+            result.addAll(buildNamedXYTimeSeries(timeSeriesData, reportsConfigurations));
+        }
+
+        return result;
     }
 
-    private List<NamedXYTimeSeries> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
-        final List<NamedXYTimeSeries> results = new LinkedList<NamedXYTimeSeries>();
+
+    private List<Chart> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
+
+        final List<Chart> results = new LinkedList<Chart>();
+        final List<DataMarker> timeSeries = new LinkedList<DataMarker>();
         for (final String reportName : dataForReports.keySet()) {
             final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
 
@@ -153,42 +193,12 @@ public class ReportsUserApi {
                     timeSeriesName = String.format("%s (%s)", reportConfiguration.getReportPrettyName(), pivotName);
                 }
 
-                final List<XY> timeSeries = dataForReports.get(reportName).get(pivotName);
-                results.add(new NamedXYTimeSeries(timeSeriesName, timeSeries));
+                final List<XY> dataForReport = dataForReports.get(reportName).get(pivotName);
+                timeSeries.add(new NamedXYTimeSeries(timeSeriesName, dataForReport));
             }
+            results.add(new Chart(ReportType.TIMELINE, reportConfiguration.getReportPrettyName(), timeSeries));
         }
-
         return results;
-    }
-
-    private void fetchData(final List<ReportSpecification> reportSpecifications,
-                           final Map<String, Map<String, List<XY>>> dataForReports,
-                           final Map<String, ReportsConfigurationModelDao> reportsConfigurations,
-                           @Nullable final LocalDate startDate,
-                           @Nullable final LocalDate endDate) {
-        final List<Future> jobs = new LinkedList<Future>();
-        for (final ReportSpecification reportSpecification : reportSpecifications) {
-            final String reportName = reportSpecification.getReportName();
-            final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
-            final String tableName = reportConfiguration.getSourceTableName();
-            jobs.add(dbiThreadsExecutor.submit(new Runnable() {
-                @Override
-                public void run() {
-                    final Map<String, List<XY>> data = getData(tableName, reportSpecification, startDate, endDate);
-                    dataForReports.put(reportName, data);
-                }
-            }));
-        }
-
-        for (final Future job : jobs) {
-            try {
-                job.get();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     // TODO PIERRE Naive implementation
@@ -261,48 +271,74 @@ public class ReportsUserApi {
         }
     }
 
-    private Map<String, List<XY>> getData(final String tableName,
-                                          final ReportSpecification reportSpecification,
-                                          @Nullable final LocalDate startDate,
-                                          @Nullable final LocalDate endDate) {
-        final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
+    private List<DataMarker> getCountersData(final String tableName) {
 
-        Handle handle = null;
-        try {
-            handle = dbi.open();
-            final List<Map<String, Object>> results = handle.select("select * from " + tableName);
-            if (results.size() == 0) {
+        return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
+            @Override
+            public List<DataMarker> withHandle(final Handle handle) throws Exception {
+
+                final List<Map<String, Object>> results = handle.select("select * from " + tableName);
+                if (results.size() == 0) {
+                    return Collections.emptyList();
+                }
+
+                final List<DataMarker> counters = new LinkedList<DataMarker>();
+                for (final Map<String, Object> row : results) {
+                    final Object labelObject = row.get(LABEL);
+                    final Object countObject = row.get(COUNT_COLUMN_NAME);
+                    if (labelObject == null || countObject == null) {
+                        continue;
+                    }
+
+                    final String label = labelObject.toString();
+                    final Float value = Float.valueOf(countObject.toString());
+
+                    final DataMarker counter = new CounterChart(label, value);
+                    counters.add(counter);
+                }
+                return counters;
+            }
+        });
+    }
+
+    private Map<String, List<XY>> getTimeSeriesData(final String tableName,
+                                                    final ReportSpecification reportSpecification,
+                                                    @Nullable final LocalDate startDate,
+                                                    @Nullable final LocalDate endDate) {
+
+        return dbi.withHandle(new HandleCallback<Map<String, List<XY>>>() {
+            @Override
+            public Map<String, List<XY>> withHandle(final Handle handle) throws Exception {
+                final List<Map<String, Object>> results = handle.select("select * from " + tableName);
+                if (results.size() == 0) {
+                    Collections.emptyMap();
+                }
+
+                final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
+                for (final Map<String, Object> row : results) {
+                    final Object dateObject = row.get(DAY_COLUMN_NAME);
+                    final Object countObject = row.get(COUNT_COLUMN_NAME);
+                    if (dateObject == null || countObject == null) {
+                        continue;
+                    }
+
+                    final String date = dateObject.toString();
+                    final Float value = Float.valueOf(countObject.toString());
+
+                    if (shouldFilterRow(date, row, reportSpecification, startDate, endDate)) {
+                        continue;
+                    }
+
+                    // Create a unique name for that result set
+                    final String pivot = createNameForSeries(row);
+                    if (timeSeries.get(pivot) == null) {
+                        timeSeries.put(pivot, new LinkedList<XY>());
+                    }
+                    timeSeries.get(pivot).add(new XY(date, value));
+                }
                 return timeSeries;
             }
-
-            for (final Map<String, Object> row : results) {
-                final Object dateObject = row.get(DAY_COLUMN_NAME);
-                final Object countObject = row.get(COUNT_COLUMN_NAME);
-                if (dateObject == null || countObject == null) {
-                    continue;
-                }
-
-                final String date = dateObject.toString();
-                final Float value = Float.valueOf(countObject.toString());
-
-                if (shouldFilterRow(date, row, reportSpecification, startDate, endDate)) {
-                    continue;
-                }
-
-                // Create a unique name for that result set
-                final String pivot = createNameForSeries(row);
-                if (timeSeries.get(pivot) == null) {
-                    timeSeries.put(pivot, new LinkedList<XY>());
-                }
-                timeSeries.get(pivot).add(new XY(date, value));
-            }
-        } finally {
-            if (handle != null) {
-                handle.close();
-            }
-        }
-
-        return timeSeries;
+        });
     }
 
     private String createNameForSeries(final Map<String, Object> row) {
@@ -350,5 +386,17 @@ public class ReportsUserApi {
             throw new IllegalArgumentException("Report " + reportName + " is not configured");
         }
         return reportConfiguration;
+    }
+
+    private void waitForJobCompletion(final List<Future> jobs) {
+        for (final Future job : jobs) {
+            try {
+                job.get();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

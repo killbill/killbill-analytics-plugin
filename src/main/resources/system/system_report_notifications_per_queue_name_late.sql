@@ -1,6 +1,6 @@
 create or replace view v_system_report_notifications_per_queue_name_late as
 select
-  queue_name as pivot
+  queue_name as label
 , count(*) as count
 from notifications
 where 1=1

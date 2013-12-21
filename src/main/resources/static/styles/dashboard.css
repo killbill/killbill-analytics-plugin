@@ -69,3 +69,24 @@ path {
   fill: none;
   stroke: #000;
 }
+
+.title {
+    font: 15px sans-serif;
+    font-weight: bold;
+}
+
+.bar rect {
+    fill: steelblue;
+    shape-rendering: crispEdges;
+}
+
+.bar text {
+    fill: #fff;
+}
+
+.legend {
+    padding: 5px;
+    font: 10px sans-serif;
+    background: yellow;
+    box-shadow: 2px 2px 1px #888;
+}

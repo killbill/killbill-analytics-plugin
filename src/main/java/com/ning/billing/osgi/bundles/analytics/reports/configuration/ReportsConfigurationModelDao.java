@@ -29,10 +29,16 @@ public class ReportsConfigurationModelDao {
         DAILY
     }
 
+    public static enum ReportType {
+        TIMELINE,
+        COUNTERS
+    }
+
     // Used as a search key in the notification queue
     private Integer recordId;
     private String reportName;
     private String reportPrettyName;
+    private ReportType reportType;
     private String sourceTableName;
     private String refreshProcedureName;
     private Frequency refreshFrequency;
@@ -44,6 +50,7 @@ public class ReportsConfigurationModelDao {
         this(reportConfigurationJson.getRecordId(),
              reportConfigurationJson.getReportName(),
              reportConfigurationJson.getReportPrettyName(),
+             reportConfigurationJson.getReportType(),
              reportConfigurationJson.getSourceTableName(),
              reportConfigurationJson.getRefreshProcedureName(),
              reportConfigurationJson.getRefreshFrequency(),
@@ -54,22 +61,24 @@ public class ReportsConfigurationModelDao {
         this(currentReportsConfigurationModelDao.getRecordId(), // Never override
              currentReportsConfigurationModelDao.getReportName(), // Never override
              Objects.firstNonNull(reportConfigurationJson.getReportPrettyName(), currentReportsConfigurationModelDao.getReportPrettyName()),
+             currentReportsConfigurationModelDao.getReportType(),
              Objects.firstNonNull(reportConfigurationJson.getSourceTableName(), currentReportsConfigurationModelDao.getSourceTableName()),
              Objects.firstNonNull(reportConfigurationJson.getRefreshProcedureName(), currentReportsConfigurationModelDao.getRefreshProcedureName()),
              Objects.firstNonNull(reportConfigurationJson.getRefreshFrequency(), currentReportsConfigurationModelDao.getRefreshFrequency()),
              Objects.firstNonNull(reportConfigurationJson.getRefreshHourOfDayGmt(), currentReportsConfigurationModelDao.getRefreshHourOfDayGmt()));
     }
 
-    public ReportsConfigurationModelDao(final String reportName, final String reportPrettyName, final String sourceTableName,
+    public ReportsConfigurationModelDao(final String reportName, final String reportPrettyName, final ReportType type, final String sourceTableName,
                                         final String refreshProcedureName, final Frequency refreshFrequency, final Integer refreshHourOfDayGmt) {
-        this(null, reportName, reportPrettyName, sourceTableName, refreshProcedureName, refreshFrequency, refreshHourOfDayGmt);
+        this(null, reportName, reportPrettyName, type, sourceTableName, refreshProcedureName, refreshFrequency, refreshHourOfDayGmt);
     }
 
-    public ReportsConfigurationModelDao(@Nullable final Integer recordId, final String reportName, final String reportPrettyName, final String sourceTableName,
+    public ReportsConfigurationModelDao(@Nullable final Integer recordId, final String reportName, final String reportPrettyName, final ReportType type, final String sourceTableName,
                                         final String refreshProcedureName, final Frequency refreshFrequency, final Integer refreshHourOfDayGmt) {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
+        this.reportType = type;
         this.sourceTableName = sourceTableName;
         this.refreshProcedureName = refreshProcedureName;
         this.refreshFrequency = refreshFrequency;
@@ -104,6 +113,8 @@ public class ReportsConfigurationModelDao {
         return refreshHourOfDayGmt;
     }
 
+    public ReportType getReportType() { return reportType; }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("ReportsConfigurationModelDao{");
@@ -111,6 +122,7 @@ public class ReportsConfigurationModelDao {
         sb.append(", reportName='").append(reportName).append('\'');
         sb.append(", reportPrettyName='").append(reportPrettyName).append('\'');
         sb.append(", sourceTableName='").append(sourceTableName).append('\'');
+        sb.append(", reportType='").append(reportType).append('\'');
         sb.append(", refreshProcedureName='").append(refreshProcedureName).append('\'');
         sb.append(", refreshFrequency=").append(refreshFrequency);
         sb.append(", refreshHourOfDayGmt=").append(refreshHourOfDayGmt);
@@ -155,6 +167,9 @@ public class ReportsConfigurationModelDao {
         if (sourceTableName != null ? !sourceTableName.equals(that.sourceTableName) : that.sourceTableName != null) {
             return false;
         }
+        if (reportType != null ? !reportType.equals(that.reportType) : that.reportType != null) {
+            return false;
+        }
         return true;
     }
 
@@ -164,6 +179,7 @@ public class ReportsConfigurationModelDao {
         result = 31 * result + (reportName != null ? reportName.hashCode() : 0);
         result = 31 * result + (reportPrettyName != null ? reportPrettyName.hashCode() : 0);
         result = 31 * result + (sourceTableName != null ? sourceTableName.hashCode() : 0);
+        result = 31 * result + (reportType != null ? reportType.hashCode() : 0);
         result = 31 * result + (refreshProcedureName != null ? refreshProcedureName.hashCode() : 0);
         result = 31 * result + (refreshFrequency != null ? refreshFrequency.hashCode() : 0);
         result = 31 * result + (refreshHourOfDayGmt != null ? refreshHourOfDayGmt.hashCode() : 0);

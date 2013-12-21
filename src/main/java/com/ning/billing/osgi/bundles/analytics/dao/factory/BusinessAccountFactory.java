@@ -87,11 +87,12 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
         }
 
         final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
-        final int nbActiveBundles = Iterables.<SubscriptionBundle>size(Iterables.<SubscriptionBundle>filter(bundles,
+
+        final int nbActiveBundles = Iterables.size(Iterables.<SubscriptionBundle>filter(bundles,
                                                                                                             new Predicate<SubscriptionBundle>() {
                                                                                                                 @Override
                                                                                                                 public boolean apply(final SubscriptionBundle bundle) {
-                                                                                                                    return Iterables.<Subscription>size(Iterables.<Subscription>filter(bundle.getSubscriptions(),
+                                                                                                                    return Iterables.size(Iterables.<Subscription>filter(bundle.getSubscriptions(),
                                                                                                                                                                                        new Predicate<Subscription>() {
                                                                                                                                                                                            @Override
                                                                                                                                                                                            public boolean apply(final Subscription subscription) {
@@ -99,10 +100,9 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
                                                                                                                                                                                                return ProductCategory.BASE.equals(subscription.getLastActiveProductCategory()) &&
                                                                                                                                                                                                       !subscription.getState().equals(EntitlementState.CANCELLED);
                                                                                                                                                                                            }
-                                                                                                                                                                                       })) > 0; /* 0 or 1 */
+                                                                                                                                                                                       })) > 0;
                                                                                                                 }
                                                                                                             }));
-
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportGroup reportGroup = getReportGroup(account.getId(), context);
