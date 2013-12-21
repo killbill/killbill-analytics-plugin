@@ -42,6 +42,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -67,6 +68,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
     }
 
     public Collection<BusinessBundleModelDao> createBusinessBundles(final UUID accountId,
+                                                                    final AccountAuditLogs accountAuditLogs,
                                                                     final Long accountRecordId,
                                                                     // Correctly ordered
                                                                     final Collection<BusinessSubscriptionTransitionModelDao> sortedBsts,
@@ -98,6 +100,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                 @Override
                 public BusinessBundleModelDao call() throws Exception {
                     return buildBBS(account,
+                                    accountAuditLogs,
                                     accountRecordId,
                                     bundles,
                                     bst,
@@ -144,6 +147,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
     }
 
     private BusinessBundleModelDao buildBBS(final Account account,
+                                            final AccountAuditLogs accountAuditLogs,
                                             final Long accountRecordId,
                                             final Map<UUID, SubscriptionBundle> bundles,
                                             final BusinessSubscriptionTransitionModelDao bst,
@@ -153,7 +157,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                                             final CallContext context) throws AnalyticsRefreshException {
         final SubscriptionBundle bundle = bundles.get(bst.getBundleId());
         final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
-        final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), context);
+        final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), accountAuditLogs);
         final CurrencyConverter currencyConverter = getCurrencyConverter();
         final Boolean latestForBundleExternalKey = getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey(), context).getId().equals(bundle.getId());
 

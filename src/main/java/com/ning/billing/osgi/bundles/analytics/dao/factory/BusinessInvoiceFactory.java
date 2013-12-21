@@ -48,6 +48,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBase
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
@@ -89,9 +90,9 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
      * @param context   call context
      * @return all business invoice and invoice items to create
      * @throws com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException
-     *
      */
     public Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> createBusinessInvoicesAndInvoiceItems(final UUID accountId,
+                                                                                                                           final AccountAuditLogs accountAuditLogs,
                                                                                                                            final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
@@ -132,6 +133,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                      account,
                                                      bundles,
                                                      currencyConverter,
+                                                     accountAuditLogs,
                                                      accountRecordId,
                                                      tenantRecordId,
                                                      reportGroup,
@@ -163,6 +165,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
             final BusinessInvoiceModelDao businessInvoice = createBusinessInvoice(account,
                                                                                   invoice,
                                                                                   currencyConverter,
+                                                                                  accountAuditLogs,
                                                                                   accountRecordId,
                                                                                   tenantRecordId,
                                                                                   reportGroup,
@@ -179,6 +182,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Account account,
                                                                       final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
+                                                                      final AccountAuditLogs accountAuditLogs,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
                                                                       final ReportGroup reportGroup,
@@ -197,6 +201,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          otherInvoiceItems,
                                          bundles,
                                          currencyConverter,
+                                         accountAuditLogs,
                                          accountRecordId,
                                          tenantRecordId,
                                          reportGroup,
@@ -206,12 +211,13 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
     private BusinessInvoiceModelDao createBusinessInvoice(final Account account,
                                                           final Invoice invoice,
                                                           final CurrencyConverter currencyConverter,
+                                                          final AccountAuditLogs accountAuditLogs,
                                                           final Long accountRecordId,
                                                           final Long tenantRecordId,
                                                           @Nullable final ReportGroup reportGroup,
                                                           final CallContext context) throws AnalyticsRefreshException {
         final Long invoiceRecordId = getInvoiceRecordId(invoice.getId(), context);
-        final AuditLog creationAuditLog = getInvoiceCreationAuditLog(invoice.getId(), context);
+        final AuditLog creationAuditLog = getInvoiceCreationAuditLog(invoice.getId(), accountAuditLogs);
 
         return new BusinessInvoiceModelDao(account,
                                            accountRecordId,
@@ -229,6 +235,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Collection<InvoiceItem> otherInvoiceItems,
                                                                       final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
+                                                                      final AccountAuditLogs accountAuditLogs,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
                                                                       @Nullable final ReportGroup reportGroup,
@@ -274,7 +281,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         }
 
         final Long invoiceItemRecordId = invoiceItem.getId() != null ? getInvoiceItemRecordId(invoiceItem.getId(), context) : null;
-        final AuditLog creationAuditLog = invoiceItem.getId() != null ? getInvoiceItemCreationAuditLog(invoiceItem.getId(), context) : null;
+        final AuditLog creationAuditLog = invoiceItem.getId() != null ? getInvoiceItemCreationAuditLog(invoiceItem.getId(), accountAuditLogs) : null;
 
         return createBusinessInvoiceItem(account,
                                          invoice,

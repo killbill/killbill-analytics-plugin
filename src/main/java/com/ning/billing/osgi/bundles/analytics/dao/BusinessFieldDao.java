@@ -27,6 +27,7 @@ import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessFieldFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -44,10 +45,10 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
         bFieldFactory = new BusinessFieldFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics custom fields for account " + accountId);
 
-        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(accountId, context);
+        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(accountId, accountAuditLogs, context);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override

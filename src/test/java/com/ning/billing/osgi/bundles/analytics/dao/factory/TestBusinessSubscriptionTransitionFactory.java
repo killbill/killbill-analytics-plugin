@@ -121,7 +121,7 @@ public class TestBusinessSubscriptionTransitionFactory extends AnalyticsTestSuit
         Mockito.when(event7.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
         events.add(event7);
 
-        final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(factory.buildTransitionsForBundle(account, bundle, events, currencyConverter, accountRecordId, tenantRecordId, ReportGroup.test, callContext));
+        final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(factory.buildTransitionsForBundle(account, bundle, events, currencyConverter, accountAuditLogs, accountRecordId, tenantRecordId, ReportGroup.test, callContext));
         Assert.assertEquals(result.get(0).getEvent(), "START_ENTITLEMENT_UNSPECIFIED");
         Assert.assertEquals(result.get(0).getSubscriptionId(), subscriptionId1);
         Assert.assertNull(result.get(0).getPrevStartDate());

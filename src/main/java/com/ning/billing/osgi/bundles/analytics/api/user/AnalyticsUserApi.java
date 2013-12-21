@@ -33,6 +33,9 @@ import com.ning.billing.osgi.bundles.analytics.api.BusinessSubscriptionTransitio
 import com.ning.billing.osgi.bundles.analytics.api.BusinessTag;
 import com.ning.billing.osgi.bundles.analytics.dao.AllBusinessObjectsDao;
 import com.ning.billing.osgi.bundles.analytics.dao.AnalyticsDao;
+import com.ning.billing.util.api.AuditLevel;
+import com.ning.billing.util.api.AuditUserApi;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -41,6 +44,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class AnalyticsUserApi {
 
+    private final OSGIKillbillAPI osgiKillbillAPI;
     private final AnalyticsDao analyticsDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
 
@@ -49,6 +53,7 @@ public class AnalyticsUserApi {
                             final OSGIKillbillDataSource osgiKillbillDataSource,
                             final Executor executor,
                             final Clock clock) {
+        this.osgiKillbillAPI = osgiKillbillAPI;
         this.analyticsDao = new AnalyticsDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
     }
@@ -87,7 +92,16 @@ public class AnalyticsUserApi {
     }
 
     public void rebuildAnalyticsForAccount(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+        final AccountAuditLogs accountAuditLogs = getAuditUserApi().getAccountAuditLogs(accountId, AuditLevel.MINIMAL, context);
         // TODO Should we take the account lock?
-        allBusinessObjectsDao.update(accountId, context);
+        allBusinessObjectsDao.update(accountId, accountAuditLogs, context);
+    }
+
+    private AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
+        final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
+        if (auditUserApi == null) {
+            throw new AnalyticsRefreshException("Error retrieving auditUserApi");
+        }
+        return auditUserApi;
     }
 }

@@ -41,7 +41,10 @@ import com.ning.billing.osgi.bundles.analytics.dao.BusinessAccountTransitionDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessFieldDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessInvoiceAndInvoicePaymentDao;
 import com.ning.billing.osgi.bundles.analytics.dao.BusinessSubscriptionTransitionDao;
+import com.ning.billing.util.api.AuditLevel;
+import com.ning.billing.util.api.AuditUserApi;
 import com.ning.billing.util.api.RecordIdApi;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.CallOrigin;
 import com.ning.billing.util.callcontext.UserType;
@@ -184,44 +187,53 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
+        final AccountAuditLogs accountAuditLogs = getAuditUserApi().getAccountAuditLogs(job.getAccountId(), AuditLevel.MINIMAL, callContext);
         switch (job.getEventType()) {
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:
                 // Note: account information is denormalized across all tables, we pretty much
                 // have to refresh all objects
-                allBusinessObjectsDao.update(job.getAccountId(), callContext);
+                allBusinessObjectsDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             case SUBSCRIPTION_CREATION:
             case SUBSCRIPTION_CHANGE:
             case SUBSCRIPTION_CANCEL:
             case SUBSCRIPTION_PHASE:
             case SUBSCRIPTION_UNCANCEL:
-                bstDao.update(job.getAccountId(), callContext);
+                bstDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             case OVERDUE_CHANGE:
-                bosDao.update(job.getAccountId(), callContext);
+                bosDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             case INVOICE_CREATION:
             case INVOICE_ADJUSTMENT:
-                binAndBipDao.update(job.getAccountId(), callContext);
+                binAndBipDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             case PAYMENT_SUCCESS:
             case PAYMENT_FAILED:
-                binAndBipDao.update(job.getAccountId(), callContext);
+                binAndBipDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             case TAG_CREATION:
             case TAG_DELETION:
                 // Note: tags determine the report group. Since it is denormalized across all tables, we pretty much
                 // have to refresh all objects
-                allBusinessObjectsDao.update(job.getAccountId(), callContext);
+                allBusinessObjectsDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             case CUSTOM_FIELD_CREATION:
             case CUSTOM_FIELD_DELETION:
-                bFieldDao.update(job.getAccountId(), callContext);
+                bFieldDao.update(job.getAccountId(), accountAuditLogs, callContext);
                 break;
             default:
                 break;
         }
+    }
+
+    private AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
+        final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
+        if (auditUserApi == null) {
+            throw new AnalyticsRefreshException("Error retrieving auditUserApi");
+        }
+        return auditUserApi;
     }
 
     @VisibleForTesting

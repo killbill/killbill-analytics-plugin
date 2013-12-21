@@ -27,6 +27,7 @@ import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessTagFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -44,10 +45,10 @@ public class BusinessTagDao extends BusinessAnalyticsDaoBase {
         bTagFactory = new BusinessTagFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics tags for account " + accountId);
 
-        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos = bTagFactory.createBusinessTags(accountId, context);
+        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos = bTagFactory.createBusinessTags(accountId, accountAuditLogs, context);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override

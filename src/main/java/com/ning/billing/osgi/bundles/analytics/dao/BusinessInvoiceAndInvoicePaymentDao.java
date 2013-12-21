@@ -35,6 +35,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoiceModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -75,17 +76,17 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
         bipFactory = new BusinessInvoicePaymentFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics invoices and payments for account " + accountId);
 
         // Recompute the account record
-        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, context);
+        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, accountAuditLogs, context);
 
         // Recompute invoice, invoice items and invoice payments records
         final Map<UUID, BusinessInvoiceModelDao> invoices = new HashMap<UUID, BusinessInvoiceModelDao>();
         final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems = ArrayListMultimap.<UUID, BusinessInvoiceItemBaseModelDao>create();
         final Multimap<UUID, BusinessInvoicePaymentBaseModelDao> invoicePayments = ArrayListMultimap.<UUID, BusinessInvoicePaymentBaseModelDao>create();
-        createBusinessPojos(accountId, invoices, invoiceItems, invoicePayments, context);
+        createBusinessPojos(accountId, accountAuditLogs, invoices, invoiceItems, invoicePayments, context);
 
         // Delete and recreate all items in the transaction
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
@@ -101,15 +102,16 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
 
     @VisibleForTesting
     void createBusinessPojos(final UUID accountId,
+                             final AccountAuditLogs accountAuditLogs,
                              final Map<UUID, BusinessInvoiceModelDao> invoices,
                              final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems,
                              final Multimap<UUID, BusinessInvoicePaymentBaseModelDao> invoicePayments,
                              final CallContext context) throws AnalyticsRefreshException {
         // Recompute all invoices and invoice items
-        final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessInvoices = binFactory.createBusinessInvoicesAndInvoiceItems(accountId, context);
+        final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessInvoices = binFactory.createBusinessInvoicesAndInvoiceItems(accountId, accountAuditLogs, context);
 
         // Recompute all invoice payments
-        final Collection<BusinessInvoicePaymentBaseModelDao> businessInvoicePayments = bipFactory.createBusinessInvoicePayments(accountId, context);
+        final Collection<BusinessInvoicePaymentBaseModelDao> businessInvoicePayments = bipFactory.createBusinessInvoicePayments(accountId, accountAuditLogs, context);
 
         // Transform the results
         for (final BusinessInvoiceModelDao businessInvoice : businessInvoices.keySet()) {

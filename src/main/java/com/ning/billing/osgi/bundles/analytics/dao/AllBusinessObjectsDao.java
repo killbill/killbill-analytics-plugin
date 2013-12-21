@@ -23,6 +23,7 @@ import org.osgi.service.log.LogService;
 
 import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -53,23 +54,23 @@ public class AllBusinessObjectsDao {
     }
 
     // TODO: each refresh is done in a transaction - do we want to share a long running transaction across all refreshes?
-    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics for account " + accountId);
 
         // Refresh invoices and payments. This will automatically trigger a refresh of account
-        binAndBipDao.update(accountId, context);
+        binAndBipDao.update(accountId, accountAuditLogs, context);
 
         // Refresh subscription transitions
-        bstDao.update(accountId, context);
+        bstDao.update(accountId, accountAuditLogs, context);
 
         // Refresh tags
-        bTagDao.update(accountId, context);
+        bTagDao.update(accountId, accountAuditLogs, context);
 
         // Refresh fields
-        bFieldDao.update(accountId, context);
+        bFieldDao.update(accountId, accountAuditLogs, context);
 
         // Refresh account transitions
-        bosDao.update(accountId, context);
+        bosDao.update(accountId, accountAuditLogs, context);
 
         logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics for account " + accountId);
     }

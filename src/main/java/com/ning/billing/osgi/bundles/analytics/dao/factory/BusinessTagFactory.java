@@ -31,6 +31,7 @@ import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessTagModelDao;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.tag.Tag;
@@ -49,6 +50,7 @@ public class BusinessTagFactory extends BusinessFactoryBase {
     }
 
     public BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> createBusinessTags(final UUID accountId,
+                                                                                                 final AccountAuditLogs accountAuditLogs,
                                                                                                  final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
@@ -71,7 +73,7 @@ public class BusinessTagFactory extends BusinessFactoryBase {
         for (final Tag tag : tags) {
             final Long tagRecordId = getTagRecordId(tag.getId(), context);
             final TagDefinition tagDefinition = getTagDefinition(tag.getTagDefinitionId(), context);
-            final AuditLog creationAuditLog = getTagCreationAuditLog(tag.getId(), context);
+            final AuditLog creationAuditLog = getTagCreationAuditLog(tag.getId(), accountAuditLogs);
 
             SubscriptionBundle bundle = null;
             if (ObjectType.BUNDLE.equals(tag.getObjectType())) {

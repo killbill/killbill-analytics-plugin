@@ -31,6 +31,7 @@ import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessFieldModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.customfield.CustomField;
@@ -48,6 +49,7 @@ public class BusinessFieldFactory extends BusinessFactoryBase {
     }
 
     public BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> createBusinessFields(final UUID accountId,
+                                                                                                     final AccountAuditLogs accountAuditLogs,
                                                                                                      final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
@@ -69,7 +71,7 @@ public class BusinessFieldFactory extends BusinessFactoryBase {
         // We process custom fields sequentially: in practice, an account will be associated with a dozen fields at most
         for (final CustomField field : fields) {
             final Long customFieldRecordId = getFieldRecordId(field.getId(), context);
-            final AuditLog creationAuditLog = getFieldCreationAuditLog(field.getId(), context);
+            final AuditLog creationAuditLog = getFieldCreationAuditLog(field.getId(), accountAuditLogs);
 
             SubscriptionBundle bundle = null;
             if (ObjectType.BUNDLE.equals(field.getObjectType())) {

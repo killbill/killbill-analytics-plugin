@@ -33,6 +33,7 @@ import com.ning.billing.entitlement.api.SubscriptionEvent;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountTransitionModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -53,6 +54,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
     }
 
     public Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final UUID accountId,
+                                                                                          final AccountAuditLogs accountAuditLogs,
                                                                                           final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
@@ -61,11 +63,12 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
             return ImmutableList.<BusinessAccountTransitionModelDao>of();
         }
 
-        return createBusinessAccountTransitions(account, blockingStatesOrdered, context);
+        return createBusinessAccountTransitions(account, accountAuditLogs, blockingStatesOrdered, context);
     }
 
     @VisibleForTesting
     Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final Account account,
+                                                                                   final AccountAuditLogs accountAuditLogs,
                                                                                    final Iterable<SubscriptionEvent> blockingStatesOrdered,
                                                                                    final CallContext context) throws AnalyticsRefreshException {
         final Long accountRecordId = getAccountRecordId(account.getId(), context);
@@ -89,7 +92,7 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
             }
 
             final Long blockingStateRecordId = getBlockingStateRecordId(state.getId(), context);
-            final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), context);
+            final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), accountAuditLogs);
             // TODO We're missing information about block billing, etc. Maybe capture it in an event name?
             final BusinessAccountTransitionModelDao accountTransition = new BusinessAccountTransitionModelDao(account,
                                                                                                               accountRecordId,

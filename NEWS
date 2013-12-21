@@ -1,5 +1,7 @@
 0.5.4
     Fix deletion of tags and custom fields
+    Performance improvement (audits)
+    Update to killbill-oss-parent 0.5.9
 
 0.5.3
     Fix default dates handling in dashboards (actual fix)

@@ -32,6 +32,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessSubscriptionT
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessBundleModelDao;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -59,20 +60,22 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
         bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics subscriptions for account " + accountId);
 
         // Recompute the account record
-        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, context);
+        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, accountAuditLogs, context);
 
         // Recompute all invoices and invoice items
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(accountId,
+                                                                                                                         accountAuditLogs,
                                                                                                                          bac.getAccountRecordId(),
                                                                                                                          bac.getTenantRecordId(),
                                                                                                                          context);
 
         // Recompute the bundle summary records
         final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(accountId,
+                                                                                         accountAuditLogs,
                                                                                          bac.getAccountRecordId(),
                                                                                          bsts,
                                                                                          bac.getTenantRecordId(),

@@ -33,6 +33,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -52,11 +53,12 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
     }
 
     public BusinessAccountModelDao createBusinessAccount(final UUID accountId,
+                                                         final AccountAuditLogs accountAuditLogs,
                                                          final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
         // Retrieve the account creation audit log
-        final AuditLog creationAuditLog = getAccountCreationAuditLog(account.getId(), context);
+        final AuditLog creationAuditLog = getAccountCreationAuditLog(account.getId(), accountAuditLogs);
 
         // Retrieve the account balance
         // Note: since we retrieve the invoices below, we could compute it ourselves and avoid fetching the invoices

@@ -35,6 +35,7 @@ import com.ning.billing.osgi.bundles.analytics.utils.CurrencyConverter;
 import com.ning.billing.payment.api.Payment;
 import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.Refund;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
@@ -50,8 +51,8 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
         super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-
     public Collection<BusinessInvoicePaymentBaseModelDao> createBusinessInvoicePayments(final UUID accountId,
+                                                                                        final AccountAuditLogs accountAuditLogs,
                                                                                         final CallContext context) throws AnalyticsRefreshException {
         final Account account = getAccount(accountId, context);
 
@@ -75,6 +76,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
                                                                                                            invoicePayment,
                                                                                                            invoices,
                                                                                                            currencyConverter,
+                                                                                                           accountAuditLogs,
                                                                                                            accountRecordId,
                                                                                                            tenantRecordId,
                                                                                                            reportGroup,
@@ -91,6 +93,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
                                                                             final InvoicePayment invoicePayment,
                                                                             final Map<UUID, Invoice> invoices,
                                                                             final CurrencyConverter currencyConverter,
+                                                                            final AccountAuditLogs accountAuditLogs,
                                                                             final Long accountRecordId,
                                                                             final Long tenantRecordId,
                                                                             @Nullable final ReportGroup reportGroup,
@@ -105,7 +108,7 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
 
         final Invoice invoice = invoices.get(invoicePayment.getInvoiceId());
         final PaymentMethod paymentMethod = getPaymentMethod(payment.getPaymentMethodId(), context);
-        final AuditLog creationAuditLog = getInvoicePaymentCreationAuditLog(invoicePayment.getId(), context);
+        final AuditLog creationAuditLog = getInvoicePaymentCreationAuditLog(invoicePayment.getId(), accountAuditLogs);
 
         return BusinessInvoicePaymentBaseModelDao.create(account,
                                                          accountRecordId,

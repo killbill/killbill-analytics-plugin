@@ -74,6 +74,8 @@ import com.ning.billing.util.api.AuditUserApi;
 import com.ning.billing.util.api.CustomFieldUserApi;
 import com.ning.billing.util.api.RecordIdApi;
 import com.ning.billing.util.api.TagUserApi;
+import com.ning.billing.util.audit.AccountAuditLogs;
+import com.ning.billing.util.audit.AccountAuditLogsForObjectType;
 import com.ning.billing.util.audit.AuditLog;
 import com.ning.billing.util.audit.ChangeType;
 import com.ning.billing.util.callcontext.CallContext;
@@ -130,6 +132,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected CustomField customField;
     protected Tag tag;
     protected TagDefinition tagDefinition;
+    protected AccountAuditLogs accountAuditLogs;
     protected AuditLog auditLog;
     protected CallContext callContext;
     protected OSGIKillbillLogService logService;
@@ -422,6 +425,24 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(auditLog.getUserToken()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(auditLog.getComment()).thenReturn(UUID.randomUUID().toString());
 
+        accountAuditLogs = Mockito.mock(AccountAuditLogs.class);
+        Mockito.when(accountAuditLogs.getAuditLogsForAccount()).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForBundle(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForSubscription(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForSubscriptionEvent(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForBlockingState(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForInvoice(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForInvoiceItem(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForInvoicePayment(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForPayment(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForRefund(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForChargeback(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForTag(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogsForCustomField(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        final AccountAuditLogsForObjectType accountAuditLogsForObjectType = Mockito.mock(AccountAuditLogsForObjectType.class);
+        Mockito.when(accountAuditLogsForObjectType.getAuditLogs(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
+        Mockito.when(accountAuditLogs.getAuditLogs(Mockito.<ObjectType>any())).thenReturn(accountAuditLogsForObjectType);
+
         // Real class for the binding to work with JDBI
         callContext = new TestCallContext();
         final UUID tenantId = callContext.getTenantId();
@@ -445,12 +466,14 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(customFieldUserApi.getCustomFieldsForAccount(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<CustomField>of(customField));
 
         final AuditUserApi auditUserApi = Mockito.mock(AuditUserApi.class);
+        Mockito.when(auditUserApi.getAccountAuditLogs(Mockito.<UUID>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(accountAuditLogs);
+        Mockito.when(auditUserApi.getAccountAuditLogs(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(accountAuditLogsForObjectType);
         Mockito.when(auditUserApi.getAuditLogs(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<AuditLog>of());
 
         final SubscriptionApi subscriptionApi = Mockito.mock(SubscriptionApi.class);
         Mockito.when(subscriptionApi.getSubscriptionBundlesForAccountId(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of());
 
-        Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
+        Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.anyBoolean(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
         Mockito.when(killbillAPI.getAccountUserApi()).thenReturn(accountUserApi);
         Mockito.when(killbillAPI.getSubscriptionApi()).thenReturn(subscriptionApi);
         Mockito.when(killbillAPI.getRecordIdApi()).thenReturn(recordIdApi);

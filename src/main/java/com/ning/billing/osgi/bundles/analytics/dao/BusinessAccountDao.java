@@ -17,7 +17,6 @@
 package com.ning.billing.osgi.bundles.analytics.dao;
 
 import java.util.UUID;
-import java.util.concurrent.Executor;
 
 import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
@@ -27,6 +26,7 @@ import com.ning.billing.clock.Clock;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsRefreshException;
 import com.ning.billing.osgi.bundles.analytics.dao.factory.BusinessAccountFactory;
 import com.ning.billing.osgi.bundles.analytics.dao.model.BusinessAccountModelDao;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -44,11 +44,11 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
         bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
-    public void update(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
         logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics account for account " + accountId);
 
         // Recompute the account record
-        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, context);
+        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, accountAuditLogs, context);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override

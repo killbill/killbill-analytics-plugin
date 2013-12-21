@@ -53,14 +53,12 @@ import com.ning.billing.payment.api.PaymentApi;
 import com.ning.billing.payment.api.PaymentApiException;
 import com.ning.billing.payment.api.PaymentMethod;
 import com.ning.billing.payment.api.Refund;
-import com.ning.billing.util.api.AuditLevel;
-import com.ning.billing.util.api.AuditUserApi;
 import com.ning.billing.util.api.CustomFieldUserApi;
 import com.ning.billing.util.api.RecordIdApi;
 import com.ning.billing.util.api.TagDefinitionApiException;
 import com.ning.billing.util.api.TagUserApi;
+import com.ning.billing.util.audit.AccountAuditLogs;
 import com.ning.billing.util.audit.AuditLog;
-import com.ning.billing.util.audit.AuditLogsForAccount;
 import com.ning.billing.util.audit.ChangeType;
 import com.ning.billing.util.callcontext.CallContext;
 import com.ning.billing.util.callcontext.TenantContext;
@@ -141,9 +139,9 @@ public abstract class BusinessFactoryBase {
         }
     }
 
-    protected AuditLog getAccountCreationAuditLog(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final AuditLogsForAccount auditLogsForAccount = getAuditUserApi().getAuditLogsForAccount(accountId, AuditLevel.MINIMAL, context);
-        for (final AuditLog auditLog : auditLogsForAccount.getAccountAuditLogs()) {
+    protected AuditLog getAccountCreationAuditLog(final UUID accountId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForAccount = accountAuditLogs.getAuditLogsForAccount();
+        for (final AuditLog auditLog : auditLogsForAccount) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
             }
@@ -163,7 +161,7 @@ public abstract class BusinessFactoryBase {
         boolean isTestAccount = false;
         boolean isPartnerAccount = false;
 
-        final List<Tag> tagForAccount = tagUserApi.getTagsForObject(accountId, ObjectType.ACCOUNT, context);
+        final List<Tag> tagForAccount = tagUserApi.getTagsForObject(accountId, ObjectType.ACCOUNT, false, context);
         for (final Tag tag : tagForAccount) {
             if (ControlTagType.TEST.getId().equals(tag.getTagDefinitionId())) {
                 isTestAccount = true;
@@ -217,8 +215,8 @@ public abstract class BusinessFactoryBase {
         return recordIdUserApi.getRecordId(bundleId, ObjectType.BUNDLE, context);
     }
 
-    protected AuditLog getBundleCreationAuditLog(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForBundle = getAuditUserApi().getAuditLogs(bundleId, ObjectType.BUNDLE, AuditLevel.MINIMAL, context);
+    protected AuditLog getBundleCreationAuditLog(final UUID bundleId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForBundle = accountAuditLogs.getAuditLogsForBundle(bundleId);
         for (final AuditLog auditLog : auditLogsForBundle) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -229,8 +227,8 @@ public abstract class BusinessFactoryBase {
         return null;
     }
 
-    protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForSubscriptionEvent = getAuditUserApi().getAuditLogs(subscriptionEventId, objectType, AuditLevel.MINIMAL, context);
+    protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForSubscriptionEvent = accountAuditLogs.getAuditLogs(objectType).getAuditLogs(subscriptionEventId);
         for (final AuditLog auditLog : auditLogsForSubscriptionEvent) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -280,8 +278,8 @@ public abstract class BusinessFactoryBase {
     // BLOCKING STATES
     //
 
-    protected AuditLog getBlockingStateCreationAuditLog(final UUID blockingStateId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForBlockingState = getAuditUserApi().getAuditLogs(blockingStateId, ObjectType.BLOCKING_STATES, AuditLevel.MINIMAL, context);
+    protected AuditLog getBlockingStateCreationAuditLog(final UUID blockingStateId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForBlockingState = accountAuditLogs.getAuditLogsForBlockingState(blockingStateId);
         for (final AuditLog auditLog : auditLogsForBlockingState) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -301,8 +299,8 @@ public abstract class BusinessFactoryBase {
     // INVOICE
     //
 
-    protected AuditLog getInvoiceCreationAuditLog(final UUID invoiceId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForInvoice = getAuditUserApi().getAuditLogs(invoiceId, ObjectType.INVOICE, AuditLevel.MINIMAL, context);
+    protected AuditLog getInvoiceCreationAuditLog(final UUID invoiceId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForInvoice = accountAuditLogs.getAuditLogsForInvoice(invoiceId);
         for (final AuditLog auditLog : auditLogsForInvoice) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -318,8 +316,8 @@ public abstract class BusinessFactoryBase {
         return recordIdUserApi.getRecordId(invoiceId, ObjectType.INVOICE, context);
     }
 
-    protected AuditLog getInvoiceItemCreationAuditLog(final UUID invoiceItemId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForInvoiceItem = getAuditUserApi().getAuditLogs(invoiceItemId, ObjectType.INVOICE_ITEM, AuditLevel.MINIMAL, context);
+    protected AuditLog getInvoiceItemCreationAuditLog(final UUID invoiceItemId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForInvoiceItem = accountAuditLogs.getAuditLogsForInvoiceItem(invoiceItemId);
         for (final AuditLog auditLog : auditLogsForInvoiceItem) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -392,8 +390,8 @@ public abstract class BusinessFactoryBase {
         return allInvoicePayments;
     }
 
-    protected AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForInvoicePayment = getAuditUserApi().getAuditLogs(invoicePaymentId, ObjectType.INVOICE_PAYMENT, AuditLevel.MINIMAL, context);
+    protected AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForInvoicePayment = accountAuditLogs.getAuditLogsForInvoicePayment(invoicePaymentId);
         for (final AuditLog auditLog : auditLogsForInvoicePayment) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -483,8 +481,8 @@ public abstract class BusinessFactoryBase {
         return tagUserApi.getCustomFieldsForAccount(accountId, context);
     }
 
-    protected AuditLog getFieldCreationAuditLog(final UUID fieldId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForTag = getAuditUserApi().getAuditLogs(fieldId, ObjectType.CUSTOM_FIELD, AuditLevel.MINIMAL, context);
+    protected AuditLog getFieldCreationAuditLog(final UUID fieldId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForCustomField(fieldId);
         for (final AuditLog auditLog : auditLogsForTag) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -506,7 +504,7 @@ public abstract class BusinessFactoryBase {
 
     protected Collection<Tag> getTagsForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final TagUserApi tagUserApi = getTagUserApi();
-        return tagUserApi.getTagsForAccount(accountId, context);
+        return tagUserApi.getTagsForAccount(accountId, false, context);
     }
 
     protected TagDefinition getTagDefinition(final UUID tagDefinitionId, final TenantContext context) throws AnalyticsRefreshException {
@@ -520,8 +518,8 @@ public abstract class BusinessFactoryBase {
         }
     }
 
-    protected AuditLog getTagCreationAuditLog(final UUID tagId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForTag = getAuditUserApi().getAuditLogs(tagId, ObjectType.TAG, AuditLevel.MINIMAL, context);
+    protected AuditLog getTagCreationAuditLog(final UUID tagId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForTag(tagId);
         for (final AuditLog auditLog : auditLogsForTag) {
             if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
                 return auditLog;
@@ -547,14 +545,6 @@ public abstract class BusinessFactoryBase {
             throw new AnalyticsRefreshException("Error retrieving accountUserApi");
         }
         return accountUserApi;
-    }
-
-    private AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
-        final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
-        if (auditUserApi == null) {
-            throw new AnalyticsRefreshException("Error retrieving auditUserApi");
-        }
-        return auditUserApi;
     }
 
     private SubscriptionApi getSubscriptionApi() throws AnalyticsRefreshException {
