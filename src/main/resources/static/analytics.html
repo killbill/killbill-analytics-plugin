@@ -141,8 +141,9 @@ function drawAll(input) {
             theGraph.drawStackLayers();
             theGraph.addLegend();
         } else if (curType == 'pie') {
-            theGraph = new killbillGraph.KBPie(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
+            theGraph = new killbillGraph.KBPie(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c(), true);
             theGraph.drawPie();
+            theGraph.addLegend();
         } else if (curType == 'histogram') {
             var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
             theGraph = new killbillGraph.KBHistogram(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());

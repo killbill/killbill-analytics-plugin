@@ -45,7 +45,6 @@
     }
 
 
-
     /**
      * KBHistogram : Histogram chart
      */
@@ -66,8 +65,8 @@
 
 
         this.computeMinMax = function () {
-             var min;
-             var max;
+            var min;
+            var max;
             for (var i = 0; i < this.data.length; i++) {
                 if (min == null || this.data[i] < min) {
                     min = this.data[i];
@@ -77,7 +76,7 @@
                 }
             }
             this.minValue = min - 1;
-            this.maxValue = max + 2 ;
+            this.maxValue = max + 2;
         }
 
         this.drawHistogram = function () {
@@ -95,7 +94,9 @@
                 (this.data);
 
             var y = d3.scale.linear()
-                .domain([0, d3.max(data, function(d) { return d.y; })])
+                .domain([0, d3.max(data, function (d) {
+                    return d.y;
+                })])
                 .range([this.heigth, 0]);
 
             var xAxis = d3.svg.axis()
@@ -113,21 +114,26 @@
                 .data(data)
                 .enter().append("g")
                 .attr("class", "bar")
-                .attr("transform", function(d) { return "translate(" + x(d.x) + "," + y(d.y) + ")"; });
+                .attr("transform", function (d) {
+                    return "translate(" + x(d.x) + "," + y(d.y) + ")";
+                });
 
             var myself = this;
             bar.append("rect")
                 .attr("x", 1)
                 .attr("width", x(data[0].dx) - 1)
-                .attr("height", function(d) {
-                    return myself.heigth - y(d.y); });
+                .attr("height", function (d) {
+                    return myself.heigth - y(d.y);
+                });
 
             bar.append("text")
                 .attr("dy", ".75em")
                 .attr("y", 6)
                 .attr("x", x(data[0].dx) / 2)
                 .attr("text-anchor", "middle")
-                .text(function(d) { return formatCount(d.y); });
+                .text(function (d) {
+                    return formatCount(d.y);
+                });
 
             svg.append("g")
                 .attr("class", "x axis")
@@ -145,7 +151,7 @@
     /**
      * KBPie : A Pie chart
      */
-    killbillGraph.KBPie = function (graphCanvas, title, data, width, heigth, palette) {
+    killbillGraph.KBPie = function (graphCanvas, title, data, width, heigth, palette, isLegendOnside) {
 
 
         this.graphCanvas = graphCanvas;
@@ -156,6 +162,7 @@
         this.radius = (this.width / 4);
         this.palette = palette;
         this.title = title;
+        this.isLegendOnside = isLegendOnside;
 
         this.drawPie = function () {
 
@@ -186,11 +193,15 @@
                     return palette(i);
                 })
                 .attr("d", arc);
-            this.addLabels(arcs, arc, this.data);
+
+            if (!isLegendOnside) {
+                this.addLabels(arcs, arc, this.data);
+            }
+
         }
 
 
-        this.addLabels = function(arcs, arc, theData) {
+        this.addLabels = function (arcs, arc, theData) {
 
             this.graphCanvas.append("svg:text")
                 .attr("class", "title")
@@ -209,6 +220,59 @@
                     return theData[i].label;
                 });
         }
+
+
+        this.addLegend = function () {
+
+            if (!isLegendOnside) {
+                return;
+            }
+
+            this.graphCanvas.append("svg:text")
+                .attr("class", "title")
+                .attr("x", 100)
+                .attr("y", -30)
+                .text(this.title);
+
+            var legend = this.graphCanvas.append("g")
+                .attr("class", "legend")
+                .attr("height", 100)
+                .attr("width", 200)
+                .attr('transform', 'translate(-180,-60)')
+
+
+            var myself = this;
+            legend.selectAll('rect')
+                .data(this.data)
+                .enter()
+                .append("rect")
+                .attr("x", this.width - 65)
+                .attr("y", function (d, i) {
+                    return i * 20;
+                })
+                .attr("width", 11)
+                .attr("height", 11)
+                .attr("rx", 3)
+                .attr("ry", 3)
+                .style("fill", function (d, i) {
+                    var color = palette(i);
+                    return color;
+                })
+
+            legend.selectAll('text')
+                .data(this.data)
+                .enter()
+                .append("text")
+                .attr("x", this.width - 52)
+                .attr("y", function (d, i) {
+                    return i * 20 + 9;
+                })
+                .text(function (d, i) {
+                    var text = d.label;
+                    return text;
+                });
+        }
+
     }
 
     /**
@@ -236,6 +300,14 @@
             var minDate = new Date(dataX[0]);
             var maxDate = new Date(dataX[dataX.length - 1]);
             return d3.time.scale().domain([minDate, maxDate]).range([0, width]);
+        }
+
+
+        this.formatDate = function (date) {
+            var date_part = date.getDate();
+            var month_part = date.getMonth() + 1
+            var year_part = date.getFullYear();
+            return year_part + "-" + month_part + "-" + date_part;
         }
 
         /**
@@ -272,6 +344,9 @@
          * This is used for both stacked and non stacked lines
          */
         this.addCirclesForGraph = function (circleGroup, lineId, dataX, dataY, scaleX, scaleY, lineColor) {
+
+            var myself = this;
+
             var node = circleGroup.selectAll("circles")
                 .data(dataY)
                 .enter()
@@ -305,7 +380,7 @@
                 .attr("class", "overlay")
                 .attr("display", "none")
                 .text(function (d, i) {
-                    return "value = " + d;
+                    return "{x = " + myself.formatDate(new Date(dataX[i])) + ", y = " + d + "}";
                 });
         }
 
@@ -385,11 +460,11 @@
                 .attr("y", -30)
                 .text(this.title);
 
-            var legend =  this.graphCanvas.append("g")
+            var legend = this.graphCanvas.append("g")
                 .attr("class", "legend")
                 .attr("height", 100)
                 .attr("width", 200)
-                .attr('transform', 'translate(-160,-60)')
+                .attr('transform', 'translate(-180,-60)')
 
 
             var myself = this;
@@ -398,10 +473,14 @@
                 .enter()
                 .append("rect")
                 .attr("x", this.width - 65)
-                .attr("y", function(d, i){ return i *  20;})
-                .attr("width", 10)
-                .attr("height", 10)
-                .style("fill", function(d, i) {
+                .attr("y", function (d, i) {
+                    return i * 20;
+                })
+                .attr("width", 11)
+                .attr("height", 11)
+                .attr("rx", 3)
+                .attr("ry", 3)
+                .style("fill", function (d, i) {
                     var color = myself.getColor(i);
                     return color;
                 })
@@ -411,8 +490,10 @@
                 .enter()
                 .append("text")
                 .attr("x", this.width - 52)
-                .attr("y", function(d, i){ return i *  20 + 9;})
-                .text(function(d, i) {
+                .attr("y", function (d, i) {
+                    return i * 20 + 9;
+                })
+                .text(function (d, i) {
                     var text = d.name;
                     return text;
                 });
