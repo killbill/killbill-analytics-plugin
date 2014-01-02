@@ -18,6 +18,7 @@ package com.ning.billing.osgi.bundles.analytics.json;
 
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,6 +27,7 @@ public class ReportConfigurationJson {
     private final Integer recordId;
     private final String reportName;
     private final String reportPrettyName;
+    private final ReportType reportType;
     private final String sourceTableName;
     private final String refreshProcedureName;
     private final Frequency refreshFrequency;
@@ -35,6 +37,7 @@ public class ReportConfigurationJson {
         this(reportsConfigurationModelDao.getRecordId(),
              reportsConfigurationModelDao.getReportName(),
              reportsConfigurationModelDao.getReportPrettyName(),
+             reportsConfigurationModelDao.getReportType(),
              reportsConfigurationModelDao.getSourceTableName(),
              reportsConfigurationModelDao.getRefreshProcedureName(),
              reportsConfigurationModelDao.getRefreshFrequency(),
@@ -44,6 +47,7 @@ public class ReportConfigurationJson {
     public ReportConfigurationJson(@JsonProperty("recordId") final Integer recordId,
                                    @JsonProperty("reportName") final String reportName,
                                    @JsonProperty("reportPrettyName") final String reportPrettyName,
+                                   @JsonProperty("reportType") final ReportType reportType,
                                    @JsonProperty("sourceTableName") final String sourceTableName,
                                    @JsonProperty("refreshProcedureName") final String refreshProcedureName,
                                    @JsonProperty("refreshFrequency") final Frequency refreshFrequency,
@@ -51,6 +55,7 @@ public class ReportConfigurationJson {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
+        this.reportType = reportType;
         this.sourceTableName = sourceTableName;
         this.refreshProcedureName = refreshProcedureName;
         this.refreshFrequency = refreshFrequency;
@@ -85,12 +90,15 @@ public class ReportConfigurationJson {
         return refreshHourOfDayGmt;
     }
 
+    public ReportType getReportType() { return reportType; }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("AnalyticsReportJob{");
         sb.append("recordId=").append(recordId);
         sb.append(", reportName='").append(reportName).append('\'');
         sb.append(", reportPrettyName='").append(reportPrettyName).append('\'');
+        sb.append(", reportType=").append(reportType);
         sb.append(", sourceTableName='").append(sourceTableName).append('\'');
         sb.append(", refreshProcedureName='").append(refreshProcedureName).append('\'');
         sb.append(", refreshFrequency=").append(refreshFrequency);
@@ -114,6 +122,9 @@ public class ReportConfigurationJson {
             return false;
         }
         if (refreshFrequency != that.refreshFrequency) {
+            return false;
+        }
+        if (reportType != that.reportType) {
             return false;
         }
         if (refreshHourOfDayGmt != null ? !refreshHourOfDayGmt.equals(that.refreshHourOfDayGmt) : that.refreshHourOfDayGmt != null) {
@@ -143,6 +154,7 @@ public class ReportConfigurationJson {
         result = 31 * result + (sourceTableName != null ? sourceTableName.hashCode() : 0);
         result = 31 * result + (refreshProcedureName != null ? refreshProcedureName.hashCode() : 0);
         result = 31 * result + (refreshFrequency != null ? refreshFrequency.hashCode() : 0);
+        result = 31 * result + (reportType != null ? reportType.hashCode() : 0);
         result = 31 * result + (refreshHourOfDayGmt != null ? refreshHourOfDayGmt.hashCode() : 0);
         return result;
     }

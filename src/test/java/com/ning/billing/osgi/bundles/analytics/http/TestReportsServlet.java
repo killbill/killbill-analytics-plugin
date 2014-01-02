@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.joda.time.LocalDate;
@@ -27,8 +28,11 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
+import com.ning.billing.osgi.bundles.analytics.json.Chart;
+import com.ning.billing.osgi.bundles.analytics.json.DataMarker;
 import com.ning.billing.osgi.bundles.analytics.json.NamedXYTimeSeries;
 import com.ning.billing.osgi.bundles.analytics.json.XY;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +51,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testSimpleSerialization() throws Exception {
-        final List<NamedXYTimeSeries> res = new ArrayList<NamedXYTimeSeries>();
+        final List<DataMarker> res = new ArrayList<DataMarker>();
 
         final List<XY> xys1 = new ArrayList<XY>();
         xys1.add(new XY("2013-01-01", 11));
@@ -69,7 +73,8 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
                             "[{\"name\":\"serie1\",\"values\":[{\"x\":\"2013-01-01\",\"y\":11.0},{\"x\":\"2013-01-02\",\"y\":7.0},{\"x\":\"2013-01-03\",\"y\":34.0}]},{\"name\":\"serie2\",\"values\":[{\"x\":\"2013-01-01\",\"y\":12.0},{\"x\":\"2013-01-02\",\"y\":5.0},{\"x\":\"2013-01-03\",\"y\":3.0}]}]");
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        ReportsServlet.writeTimeSeriesAsCSV(res, out);
+
+        ReportsServlet.writeAsCSV(Collections.singletonList(new Chart(ReportType.TIMELINE, "foo", res)), out);
         Assert.assertEquals(out.toString(),
                             "serie1,2013-01-01,11.0\n" +
                             "serie1,2013-01-02,7.0\n" +

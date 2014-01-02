@@ -16,27 +16,5 @@
 
 package com.ning.billing.osgi.bundles.analytics.json;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class NamedXYTimeSeries implements DataMarker {
-
-    private final String name;
-    private final List<XY> values;
-
-    @JsonCreator
-    public NamedXYTimeSeries(@JsonProperty("name") final String name, @JsonProperty("values") final List<XY> values) {
-        this.name = name;
-        this.values = values;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public List<XY> getValues() {
-        return values;
-    }
+public interface DataMarker {
 }

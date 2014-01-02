@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.AnalyticsReportJob;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 
@@ -67,6 +68,7 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         // Update the first one
         final ReportsConfigurationModelDao updatedReport1 = new ReportsConfigurationModelDao(report1.getReportName(),
                                                                                              report1.getReportPrettyName(),
+                                                                                             ReportType.TIMELINE,
                                                                                              report1.getSourceTableName(),
                                                                                              report1.getRefreshProcedureName(),
                                                                                              Frequency.HOURLY,
@@ -99,6 +101,7 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         final int refreshHourOfDayGmt = 12;
         return new ReportsConfigurationModelDao(reportName,
                                                 reportPrettyName,
+                                                ReportType.TIMELINE,
                                                 sourceTableName,
                                                 refreshProcedureName,
                                                 daily,

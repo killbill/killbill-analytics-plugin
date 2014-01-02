@@ -19,7 +19,7 @@ package com.ning.billing.osgi.bundles.analytics.json;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({"name", "x", "y"})
-public class CSVNamedXYTimeSeries {
+public class CSVNamedXYTimeSeries implements DataMarker {
 
     private final String name;
     private final String x;

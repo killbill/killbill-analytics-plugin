@@ -939,6 +939,7 @@ create table analytics_reports (
   record_id int(11) unsigned not null auto_increment
 , report_name varchar(100) not null
 , report_pretty_name varchar(256) default null
+, report_type varchar(24) default null
 , source_table_name varchar(256) not null
 , refresh_procedure_name varchar(256) default null
 , refresh_frequency enum('HOURLY', 'DAILY') default null

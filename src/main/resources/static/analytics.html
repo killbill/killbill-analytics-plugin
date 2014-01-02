@@ -30,187 +30,245 @@
     <link rel="stylesheet" type="text/css" href="styles/dashboard.css" media="screen"/>
 </head>
 <body>
-    <div id="chartAnchor"></div>
-    <div id="dataWrapper"></div>
+<div id="chartAnchor"></div>
+<div id="dataWrapper"></div>
 
-    <script type="text/javascript">
-        function buildDataTables(reports, dataForAllReports, from, to, smoothFunctions) {
-          for (var idx in dataForAllReports) {
-            for (var jdx in dataForAllReports[idx]) {
-              // Reports position starts at 1
-              var position = parseInt(idx) + 1;
-              buildDataTable(dataForAllReports[idx][jdx], from, to, parseInt(idx) + parseInt(jdx));
-            }
-          }
+<script type="text/javascript">
+function buildDataTables(reports, dataForAllReports, from, to, smoothFunctions) {
+    for (var idx in dataForAllReports) {
+        for (var jdx in dataForAllReports[idx]) {
+            // Reports position starts at 1
+            var position = parseInt(idx) + 1;
+            buildDataTable(dataForAllReports[idx][jdx], from, to, parseInt(idx) + parseInt(jdx));
+        }
+    }
 
-          var linksWrapper = $('<div><h3>Download links</h3></div>');
-          var links = $('<ul></ul>');
-          linksWrapper.append(links);
-          $('#dataWrapper').append(linksWrapper);
-          for (var position in reports) {
-            for (var idx in reports[position]) {
-              var csvURL = "http://" + $VAR_SERVER + ":" + $VAR_PORT + "/plugins/killbill-analytics/reports?format=csv&startDate=" + from + "&endDate=" + to + "&name=" + reports[position][idx];
-              var smoothFunction = smoothFunctions[position];
-              if (smoothFunction) {
+    var linksWrapper = $('<div><h3>Download links</h3></div>');
+    var links = $('<ul></ul>');
+    linksWrapper.append(links);
+    $('#dataWrapper').append(linksWrapper);
+    for (var position in reports) {
+        for (var idx in reports[position]) {
+            var csvURL = "http://" + $VAR_SERVER + ":" + $VAR_PORT + "/plugins/killbill-analytics/reports?format=csv&startDate=" + from + "&endDate=" + to + "&name=" + reports[position][idx];
+            var smoothFunction = smoothFunctions[position];
+            if (smoothFunction) {
                 csvURL = csvURL + "&smooth=" + smoothFunction;
-              }
-
-              links.append('<li>' + reports[position][idx] + ' <a href="' + csvURL + '">csv</a></li>');
             }
-          }
+
+            links.append('<li>' + reports[position][idx] + ' <a href="' + csvURL + '">csv</a></li>');
+        }
+    }
+}
+
+function buildDataTable(data, from, to, id) {
+    var dataTableWrapper = $('<div class="dataTableWrapper" id="dataTableWrapper-' + id + '"><h3>' + data['name'] + '</h3></div>');
+    $('#dataWrapper').append(dataTableWrapper);
+
+    var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display" id="dataTable-' + id + '"></table>');
+    dataTableWrapper.append(dataTable);
+
+    var aaData = [];
+    for (var i in data['values']) {
+        aaData.push([data.values[i]['x'], data.values[i]['y']])
+    }
+
+    dataTable.dataTable({
+        "aaData": aaData,
+        "aoColumns": [
+            { "sTitle": "Date" },
+            { "sTitle": "Value" },
+        ]
+    });
+}
+
+function createLinesGraph(data, graphStructure, canvas, input, canvasHeightGraph, translateX, translateY, translateLabelY) {
+    var canvasGroup = graphStructure.createCanvasGroup(canvas, translateX, translateY);
+    var linesGraph = new killbillGraph.KBLinesGraph(canvasGroup, data, input.canvasWidth, canvasHeightGraph, d3.scale.category20b());
+    linesGraph.drawLines();
+    linesGraph.addLabels("labelsLine", translateLabelY);
+    linesGraph.addMouseOverCircleForValue();
+    return linesGraph;
+}
+
+
+function getMappingType(inputType) {
+    if (inputType == 'TIMELINE') {
+        return 'lines';
+    } else if (inputType == 'COUNTERS') {
+        return 'pie';
+    } else {
+        return 'unknown';
+    }
+}
+
+function drawAll(input) {
+
+    var inputData = input.data;
+
+    var nbGraphs = inputData.length + 1;
+    var canvasHeigthWithMargins = input.topMargin + (nbGraphs * input.canvasHeigth) + ((nbGraphs - 1) * input.betweenGraphMargin) + input.bottomMargin;
+    var canvasHeigthGraph = input.canvasHeigth;
+
+    var translateX = input.leftMargin;
+
+    var graphStructure = new killbillGraph.GraphStructure();
+
+
+    graphStructure.setupDomStructure();
+    var canvas = graphStructure.createCanvas([input.topMargin, input.rightMargin, input.bottomMargin, input.leftMargin],
+            input.canvasWidth, canvasHeigthWithMargins);
+
+
+    var curTranslateY = input.topMargin;
+    var curTranslateLabelY = curTranslateY + (canvasHeigthGraph / 2);
+
+    for (var i = 0; i < inputData.length; i++) {
+
+
+        var curInput = inputData[i];
+        var curType = getMappingType(curInput.type);
+        var curData = curInput.data;
+        var curTitle = curInput.title;
+
+        var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
+        var theGraph;
+        if (curType == 'lines') {
+            theGraph = new killbillGraph.KBLinesGraph(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20b());
+            theGraph.drawLines();
+            theGraph.addLegend();
+        } else if (curType == 'layers') {
+            theGraph = new killbillGraph.KBLayersGraph(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
+            theGraph.drawStackLayers();
+            theGraph.addLegend();
+        } else if (curType == 'pie') {
+            theGraph = new killbillGraph.KBPie(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c(), true);
+            theGraph.drawPie();
+            theGraph.addLegend();
+        } else if (curType == 'histogram') {
+            var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
+            theGraph = new killbillGraph.KBHistogram(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
+            theGraph.drawHistogram();
         }
 
-        function buildDataTable(data, from, to, id) {
-          var dataTableWrapper = $('<div class="dataTableWrapper" id="dataTableWrapper-' + id + '"><h3>' + data['name'] + '</h3></div>');
-          $('#dataWrapper').append(dataTableWrapper);
+        curTranslateLabelY = curTranslateLabelY;
+        curTranslateY = curTranslateY + canvasHeigthGraph;
 
-          var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display" id="dataTable-' + id + '"></table>');
-          dataTableWrapper.append(dataTable);
-
-          var aaData = [];
-          for (var i in data['values']) {
-            aaData.push([data.values[i]['x'], data.values[i]['y']])
-          }
-
-          dataTable.dataTable({
-                                "aaData": aaData,
-                                "aoColumns": [
-                                  { "sTitle": "Date" },
-                                  { "sTitle": "Value" },
-                                ]
-                              });
+        if (curType == 'lines' || curType == 'layers') {
+            var xAxisCanvaGroup = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
+            theGraph.createXAxis(xAxisCanvaGroup, canvasHeigthGraph);
+            theGraph.addMouseOverCircleForValue();
         }
+        curTranslateY = curTranslateY + input.betweenGraphMargin;
+    }
+}
 
-        function createLinesGraph(data, graphStructure, canvas, input, canvasHeightGraph, translateX, translateY, translateLabelY) {
-          var canvasGroup = graphStructure.createCanvasGroup(canvas, translateX, translateY);
-          var linesGraph = new killbillGraph.KBLinesGraph(canvasGroup, data, input.canvasWidth, canvasHeightGraph, d3.scale.category20b());
-          linesGraph.drawLines();
-          linesGraph.addLabels("labelsLine", translateLabelY);
-          linesGraph.addMouseOverCircleForValue();
-          return linesGraph;
-        }
+// Get the data for a set of reports
+function doGetData(position, reports, from, to, smoothFunction, fn) {
+    var request_url = "http://" + $VAR_SERVER + ":" + $VAR_PORT + "/plugins/killbill-analytics/reports?startDate=" + from + "&endDate=" + to + "&name=" + reports.join("&name=");
+    if (smoothFunction) {
+        request_url = request_url + "&smooth=" + smoothFunction;
+    }
 
-        function drawAll(input, dataForAllReports) {
-          var graphStructure = new killbillGraph.GraphStructure();
-          graphStructure.setupDomStructure();
-
-          // Positions
-          var canvasHeightWithMargins = input.canvasHeigth + input.topMargin + input.betweenGraphMargin + input.bottomMargin;
-          var canvas = graphStructure.createCanvas([input.topMargin, input.rightMargin, input.bottomMargin, input.leftMargin], input.canvasWidth, canvasHeightWithMargins);
-          var canvasHeightGraph = input.canvasHeigth / 2;
-          var translateX = input.leftMargin;
-          var translateY = input.topMargin;
-          var translateLabelY = translateY + (canvasHeightGraph / 2);
-
-          for (var idx in dataForAllReports) {
-            var lastGraph = createLinesGraph(dataForAllReports[idx], graphStructure, canvas, input, canvasHeightGraph, translateX, translateY, translateLabelY);
-            translateY = translateY + canvasHeightGraph + input.betweenGraphMargin;
-            translateLabelY = translateLabelY + input.betweenGraphMargin;
-          }
-
-          // Bottom, shared, X axis
-          var xAxisCanvasGroup = graphStructure.createCanvasGroup(canvas, translateX, translateY);
-          lastGraph.createXAxis(xAxisCanvasGroup, dataForAllReports.length * (canvasHeightGraph + input.betweenGraphMargin));
-        }
-
-        // Get the data for a set of reports
-        function doGetData(position, reports, from, to, smoothFunction, fn) {
-          var request_url = "http://" + $VAR_SERVER + ":" + $VAR_PORT + "/plugins/killbill-analytics/reports?startDate=" + from + "&endDate=" + to + "&name=" + reports.join("&name=");
-          if (smoothFunction) {
-            request_url = request_url + "&smooth=" + smoothFunction;
-          }
-
-          return $.ajax({
-            type: "GET",
-            contentType: "application/json",
-            dataType: "json",
-            url: request_url
-          }).done(function(data) { fn(position, reports, data); })
-            .fail(function(jqXHR, textStatus) {
-              try {
-                errors = $.parseJSON(jqXHR.responseText);
-                if (errors['message']) {
-                  alert("Error generating the report:\n" + errors['message']);
-                } else {
-                  alert("Error generating the report:\n" + errors);
+    return $.ajax({
+        type: "GET",
+        contentType: "application/json",
+        dataType: "json",
+        url: request_url
+    }).done(function (data) {
+                fn(position, reports, data);
+            })
+            .fail(function (jqXHR, textStatus) {
+                try {
+                    errors = $.parseJSON(jqXHR.responseText);
+                    if (errors['message']) {
+                        alert("Error generating the report:\n" + errors['message']);
+                    } else {
+                        alert("Error generating the report:\n" + errors);
+                    }
+                } catch (err) {
+                    alert("Error generating the report:\n" + jqXHR.responseText);
                 }
-              } catch(err) {
-                alert("Error generating the report:\n" + jqXHR.responseText);
-              }
             });
+}
+
+// The URL structure is expected to be in the form: analytics.html?report1=new_trials_per_day&report1=cancellations_per_day&report2=conversions_per_day
+$(document).ready(function () {
+    // Set (sane?) default values for from and to if unspecified. This is to make sure all graphs will share the exact same X axis (the server will normalize the data)
+    var now = new Date();
+    var from = $.url().param('startDate');
+    if (!from) {
+        var fromDate = new Date(now.getTime());
+        fromDate.setMonth(now.getMonth() - 3);
+        from = fromDate.getFullYear() + '-' + (fromDate.getMonth() + 1) + '-' + fromDate.getDate();
+    }
+    var to = $.url().param('endDate');
+    if (!to) {
+        var toDate = new Date(now.getTime());
+        //toDate.setMonth(now.getMonth() + 3);
+        to = toDate.getFullYear() + '-' + (toDate.getMonth() + 1) + '-' + toDate.getDate();
+    }
+
+    // Map of position (starting from the top) to an array of reports
+    var reports = {}
+    // Map of position (starting from the top) to a smoothing function
+    var smoothFunctions = {}
+    for (var i = 1; i < 10; i++) {
+        var reportsI = $.url().param('report' + i);
+
+        if (!reportsI) {
+            // No more reports
+            break;
+        } else {
+            reports[i] = [reportsI];
         }
 
-        // The URL structure is expected to be in the form: analytics.html?report1=new_trials_per_day&report1=cancellations_per_day&report2=conversions_per_day
-        $(document).ready(function() {
-          // Set (sane?) default values for from and to if unspecified. This is to make sure all graphs will share the exact same X axis (the server will normalize the data)
-          var now = new Date();
-          var from = $.url().param('startDate');
-          if (!from) {
-            var fromDate = new Date(now.getTime());
-            fromDate.setMonth(now.getMonth() - 3);
-            from = fromDate.getFullYear() + '-' + (fromDate.getMonth() + 1) + '-' + fromDate.getDate();
-          }
-          var to = $.url().param('endDate');
-          if (!to) {
-            var toDate = new Date(now.getTime());
-            //toDate.setMonth(now.getMonth() + 3);
-            to = toDate.getFullYear() + '-' + (toDate.getMonth() + 1) + '-' + toDate.getDate();
-          }
+        smoothFunctions[i] = $.url().param('smooth' + i);
+    }
 
-          // Map of position (starting from the top) to an array of reports
-          var reports = {}
-          // Map of position (starting from the top) to a smoothing function
-          var smoothFunctions = {}
-          for (var i = 1; i < 10; i++) {
-            var reportsI = $.url().param('report' + i);
-            if (!reportsI) {
-              // No more reports
-              break;
-            } else if (reportsI instanceof Array) {
-              reports[i] = reportsI;
+    // Set sane defaults
+    if (!reports[1]) {
+        // Built-in set of reports
+        reports[1] = ["new_trials_per_day", "cancellations_per_day", "conversions_per_day"];
+    }
+
+    // Array of all deferreds
+    var futures = []
+    // Map of position (starting from the top) to the data
+    var futuresData = {}
+    for (var position in reports) {
+        // Fetch the data
+        var future = doGetData(position, reports[position], from, to, smoothFunctions[position], function (zePosition, reports, reportsData) {
+            if (!(reportsData instanceof Array) || reportsData.length == 0) {
+                futuresData[zePosition] = [
+                    { "name": "No data", "values": [] }
+                ];
             } else {
-              reports[i] = [reportsI];
+
+                console.log("report " + zePosition + " data = " + JSON.stringify(reportsData));
+                // TODO (STEPH) Check with Pierre to understand the case for multiple charts returned.
+                futuresData[zePosition] = reportsData[0];
             }
-
-            smoothFunctions[i] = $.url().param('smooth' + i);
-          }
-
-          // Set sane defaults
-          if (!reports[1]) {
-            // Built-in set of reports
-            reports[1] = ["new_trials_per_day", "cancellations_per_day", "conversions_per_day"];
-          }
-
-          // Array of all deferreds
-          var futures = []
-          // Map of position (starting from the top) to the data
-          var futuresData = {}
-          for (var position in reports) {
-            // Fetch the data
-            var future = doGetData(position, reports[position], from, to, smoothFunctions[position], function(zePosition, reports, reportsData) {
-              if (!(reportsData instanceof Array) || reportsData.length == 0) {
-                futuresData[zePosition] = [ { "name": "No data", "values": [] } ];
-              } else {
-                futuresData[zePosition] = reportsData;
-              }
-            });
-            futures.push(future);
-          }
-
-          $.when.apply(null, futures).done(function() {
-            var dataForAllReports = [];
-            for (var position in reports) {
-              // Index starts at zero
-              dataForAllReports[position - 1] = futuresData[position];
-            }
-
-            var input = new killbillGraph.KBInputGraphs(800, 600, 80, 80, 80, 80, 30, dataForAllReports);
-            drawAll(input, dataForAllReports);
-
-            // Build the data tables
-            buildDataTables(reports, dataForAllReports, from, to, smoothFunctions);
-          });
         });
-    </script>
+        futures.push(future);
+    }
+
+    $.when.apply(null, futures).done(function () {
+
+        var dataForAllReports = [];
+        for (var position in reports) {
+            // Index starts at zero
+            dataForAllReports[position - 1] = futuresData[position];
+        }
+
+        var input = new killbillGraph.KBInputGraphs(800, 400, 80, 80, 80, 80, 160, dataForAllReports);
+        drawAll(input);
+
+        // Build the data tables
+        // TODO (STEPH) Check story for data points
+        //buildDataTables(reports, dataForAllReports, from, to, smoothFunctions);
+    });
+});
+
+</script>
 </body>
 </html>

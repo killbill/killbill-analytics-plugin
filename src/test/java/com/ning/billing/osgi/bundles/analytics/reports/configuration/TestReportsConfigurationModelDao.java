@@ -23,6 +23,7 @@ import org.testng.annotations.Test;
 
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
+import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 
 public class TestReportsConfigurationModelDao extends AnalyticsTestSuiteNoDB {
 
@@ -36,6 +37,7 @@ public class TestReportsConfigurationModelDao extends AnalyticsTestSuiteNoDB {
         final int refreshHourOfDayGmt = 12;
         final ReportsConfigurationModelDao reportsConfiguration = new ReportsConfigurationModelDao(reportName,
                                                                                                    reportPrettyName,
+                                                                                                   ReportType.TIMELINE,
                                                                                                    sourceTableName,
                                                                                                    refreshProcedureName,
                                                                                                    daily,

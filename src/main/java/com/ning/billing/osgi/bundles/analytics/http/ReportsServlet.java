@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,6 +34,8 @@ import org.osgi.service.log.LogService;
 
 import com.ning.billing.osgi.bundles.analytics.api.user.AnalyticsUserApi;
 import com.ning.billing.osgi.bundles.analytics.json.CSVNamedXYTimeSeries;
+import com.ning.billing.osgi.bundles.analytics.json.Chart;
+import com.ning.billing.osgi.bundles.analytics.json.DataMarker;
 import com.ning.billing.osgi.bundles.analytics.json.NamedXYTimeSeries;
 import com.ning.billing.osgi.bundles.analytics.json.ReportConfigurationJson;
 import com.ning.billing.osgi.bundles.analytics.json.XY;
@@ -41,8 +44,12 @@ import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.SmootherType;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 // Handle /plugins/killbill-analytics/reports/<reportName>
 public class ReportsServlet extends BaseServlet {
@@ -129,26 +136,33 @@ public class ReportsServlet extends BaseServlet {
         final SmootherType smootherType = Smoother.fromString(Strings.emptyToNull(req.getParameter(REPORTS_SMOOTHER_NAME)));
 
         // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
-        final List<NamedXYTimeSeries> result = reportsUserApi.getTimeSeriesDataForReport(rawReportNames, startDate, endDate, smootherType);
+        final List<Chart> results = reportsUserApi.getDataForReport(rawReportNames, startDate, endDate, smootherType);
 
         final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
         if (CSV_DATA_FORMAT.equals(format)) {
             final OutputStream out = resp.getOutputStream();
-            writeTimeSeriesAsCSV(result, out);
+            writeAsCSV(results, out);
             resp.setContentType("text/csv");
         } else {
-            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(result));
+            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(results));
             resp.setContentType("application/json");
         }
-
         setCrossSiteScriptingHeaders(resp);
     }
 
-    @VisibleForTesting
-    static void writeTimeSeriesAsCSV(final List<NamedXYTimeSeries> result, final OutputStream out) throws IOException {
-        for (final NamedXYTimeSeries namedXYTimeSeries : result) {
-            for (final XY value : namedXYTimeSeries.getValues()) {
-                out.write(csvMapper.writeValueAsBytes(new CSVNamedXYTimeSeries(namedXYTimeSeries.getName(), value)));
+    static void writeAsCSV(final List<Chart> charts, final OutputStream out) throws IOException {
+        for (Chart cur : charts) {
+            switch (cur.getType()) {
+                case TIMELINE:
+                    for (final DataMarker marker : cur.getData()) {
+                        final NamedXYTimeSeries namedXYTimeSeries = (NamedXYTimeSeries) marker;
+                        for (final XY value : namedXYTimeSeries.getValues()) {
+                            out.write(csvMapper.writeValueAsBytes(new CSVNamedXYTimeSeries(namedXYTimeSeries.getName(), value)));
+                        }
+                    }
+                    break;
+                case COUNTERS:
+                    break;
             }
         }
     }

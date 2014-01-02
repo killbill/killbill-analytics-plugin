@@ -213,7 +213,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
 
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
-        Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<String>anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Account>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
