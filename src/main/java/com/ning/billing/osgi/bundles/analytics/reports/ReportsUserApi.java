@@ -55,7 +55,6 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ReportsUserApi {
 
