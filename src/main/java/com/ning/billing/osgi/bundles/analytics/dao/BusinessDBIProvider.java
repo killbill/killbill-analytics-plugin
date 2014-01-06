@@ -57,6 +57,7 @@ import com.ning.billing.osgi.bundles.analytics.dao.model.CurrencyConversionModel
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.base.CharMatcher;
 
 public class BusinessDBIProvider {
 
@@ -119,8 +120,8 @@ public class BusinessDBIProvider {
                 if (binding != null) {
                     final Argument tableNameArgument = binding.forName("tableName");
                     if (tableNameArgument != null) {
-                        // Lame, rely on toString
-                        final String tableName = tableNameArgument.toString();
+                        // Lame, rely on toString (tableNameArgument will be a org.skife.jdbi.v2.StringArgument)
+                        final String tableName = CharMatcher.anyOf("'").removeFrom(tableNameArgument.toString());
                         final String newQueryName = name + CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, tableName);
                         return super.locate(newQueryName, ctx);
                     }

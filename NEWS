@@ -1,3 +1,6 @@
+0.5.6
+    Fix incompatibility with latest jdbi version
+
 0.5.5
     Update to killbill-oss-parent 0.5.13. This fixes an OSGI initialization error
     Update jdbi to 2.53
