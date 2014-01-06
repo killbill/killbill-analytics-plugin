@@ -24,7 +24,7 @@
     </parent>
     <artifactId>killbill-osgi-bundles-analytics</artifactId>
     <name>Kill Bill OSGI Analytics bundle</name>
-    <version>0.5.6</version>
+    <version>0.5.7-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Kill Bill Analytics plugin</description>
     <url>http://github.com/killbill/killbill-analytics-plugin</url>
