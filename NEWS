@@ -1,3 +1,6 @@
+0.5.5
+    Update to killbill-oss-parent 0.5.13. This fixes an OSGI initialization error
+
 0.5.4
     Fix deletion of tags and custom fields
     Performance improvement (audits)
