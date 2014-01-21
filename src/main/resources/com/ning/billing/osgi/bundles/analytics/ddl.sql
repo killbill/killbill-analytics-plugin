@@ -891,6 +891,7 @@ create table analytics_notifications (
 , processing_owner char(50) default null
 , processing_available_date datetime default null
 , processing_state varchar(14) default 'AVAILABLE'
+, error_count int(11) unsigned DEFAULT 0
 , search_key1 int(11) unsigned default null
 , search_key2 int(11) unsigned default null
 , queue_name char(64) not null
@@ -914,6 +915,7 @@ create table analytics_notifications_history (
 , processing_owner char(50) default null
 , processing_available_date datetime default null
 , processing_state varchar(14) default 'AVAILABLE'
+, error_count int(11) unsigned DEFAULT 0
 , search_key1 int(11) unsigned default null
 , search_key2 int(11) unsigned default null
 , queue_name char(64) not null
