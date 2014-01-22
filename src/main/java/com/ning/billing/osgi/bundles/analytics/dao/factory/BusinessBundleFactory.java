@@ -96,11 +96,14 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         final CompletionService<BusinessBundleModelDao> completionService = new ExecutorCompletionService<BusinessBundleModelDao>(executor);
         final Collection<BusinessBundleModelDao> bbss = new LinkedList<BusinessBundleModelDao>();
         for (final BusinessSubscriptionTransitionModelDao bst : bstForBundle.values()) {
+            // Fetch audit logs in the main thread as AccountAuditLogs is not thread safe
+            final AuditLog creationAuditLog = getBundleCreationAuditLog(bst.getBundleId(), accountAuditLogs);
+
             completionService.submit(new Callable<BusinessBundleModelDao>() {
                 @Override
                 public BusinessBundleModelDao call() throws Exception {
                     return buildBBS(account,
-                                    accountAuditLogs,
+                                    creationAuditLog,
                                     accountRecordId,
                                     bundles,
                                     bst,
@@ -147,7 +150,7 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
     }
 
     private BusinessBundleModelDao buildBBS(final Account account,
-                                            final AccountAuditLogs accountAuditLogs,
+                                            final AuditLog creationAuditLog,
                                             final Long accountRecordId,
                                             final Map<UUID, SubscriptionBundle> bundles,
                                             final BusinessSubscriptionTransitionModelDao bst,
@@ -157,7 +160,6 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
                                             final CallContext context) throws AnalyticsRefreshException {
         final SubscriptionBundle bundle = bundles.get(bst.getBundleId());
         final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
-        final AuditLog creationAuditLog = getBundleCreationAuditLog(bundle.getId(), accountAuditLogs);
         final CurrencyConverter currencyConverter = getCurrencyConverter();
         final Boolean latestForBundleExternalKey = getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey(), context).getId().equals(bundle.getId());
 

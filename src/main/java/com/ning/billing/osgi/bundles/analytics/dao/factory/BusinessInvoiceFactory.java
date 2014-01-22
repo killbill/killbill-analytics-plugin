@@ -124,6 +124,9 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         final CompletionService<BusinessInvoiceItemBaseModelDao> completionService = new ExecutorCompletionService<BusinessInvoiceItemBaseModelDao>(executor);
         final Multimap<UUID, BusinessInvoiceItemBaseModelDao> businessInvoiceItemsForInvoiceId = ArrayListMultimap.<UUID, BusinessInvoiceItemBaseModelDao>create();
         for (final InvoiceItem invoiceItem : allInvoiceItems.values()) {
+            // Fetch audit logs in the main thread as AccountAuditLogs is not thread safe
+            final AuditLog creationAuditLog = invoiceItem.getId() != null ? getInvoiceItemCreationAuditLog(invoiceItem.getId(), accountAuditLogs) : null;
+
             completionService.submit(new Callable<BusinessInvoiceItemBaseModelDao>() {
                 @Override
                 public BusinessInvoiceItemBaseModelDao call() throws Exception {
@@ -133,7 +136,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                      account,
                                                      bundles,
                                                      currencyConverter,
-                                                     accountAuditLogs,
+                                                     creationAuditLog,
                                                      accountRecordId,
                                                      tenantRecordId,
                                                      reportGroup,
@@ -182,7 +185,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Account account,
                                                                       final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
-                                                                      final AccountAuditLogs accountAuditLogs,
+                                                                      final AuditLog creationAuditLog,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
                                                                       final ReportGroup reportGroup,
@@ -201,7 +204,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          otherInvoiceItems,
                                          bundles,
                                          currencyConverter,
-                                         accountAuditLogs,
+                                         creationAuditLog,
                                          accountRecordId,
                                          tenantRecordId,
                                          reportGroup,
@@ -235,7 +238,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final Collection<InvoiceItem> otherInvoiceItems,
                                                                       final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
-                                                                      final AccountAuditLogs accountAuditLogs,
+                                                                      final AuditLog creationAuditLog,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
                                                                       @Nullable final ReportGroup reportGroup,
@@ -281,7 +284,6 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         }
 
         final Long invoiceItemRecordId = invoiceItem.getId() != null ? getInvoiceItemRecordId(invoiceItem.getId(), context) : null;
-        final AuditLog creationAuditLog = invoiceItem.getId() != null ? getInvoiceItemCreationAuditLog(invoiceItem.getId(), accountAuditLogs) : null;
 
         return createBusinessInvoiceItem(account,
                                          invoice,
