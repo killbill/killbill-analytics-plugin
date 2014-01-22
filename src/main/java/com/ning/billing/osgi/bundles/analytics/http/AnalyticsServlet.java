@@ -77,6 +77,7 @@ public class AnalyticsServlet extends BaseServlet {
             analyticsUserApi.rebuildAnalyticsForAccount(kbAccountId, context);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } catch (AnalyticsRefreshException e) {
+            logService.log(LogService.LOG_ERROR, "Error refreshing account " + kbAccountId, e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
