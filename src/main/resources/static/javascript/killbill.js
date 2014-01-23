@@ -376,7 +376,7 @@
                 .attr("cy", function (d, i) {
                     return scaleY(d);
                 })
-                .attr("r", 3)
+                .attr("r", 2)
                 .attr("fill", lineColor)
                 .attr("value", function (d, i) {
                     return d;
