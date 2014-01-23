@@ -32,11 +32,12 @@
         // We add some extra value here to make sure we have space to display the legend on the right and also to ensure that latest point in line/layers graph
         // can be displayed; obviously this is a hack, and if user wants to control that exactly, he can set it to 0 and specify the exact rightMargin required.
         this.rightMarginOffset = 200;
+        this.leftMarginOffset = 50;
 
         this.topMargin = topMargin;
         this.rightMargin = rightMargin + this.rightMarginOffset;
         this.bottomMargin = bottomMargin;
-        this.leftMargin = leftMargin;
+        this.leftMargin = leftMargin + this.leftMarginOffset;
 
 
         this.betweenGraphMargin = betweenGraphMargin;
@@ -393,7 +394,8 @@
                 .attr("display", "none")
                 .text(function (d, i) {
                     return "{x = " + myself.formatDate(new Date(dataX[i])) + ", y = " + d + "}";
-                });
+                })
+                .attr("transform", 'translate(-120,0)');
         }
 
         /**
