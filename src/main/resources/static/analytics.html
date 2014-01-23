@@ -130,6 +130,13 @@ function drawAll(input) {
         var curData = curInput.data;
         var curTitle = curInput.title;
 
+        // Add the xAxis tick first for ordering purpose.
+        var nextTranslateY = curTranslateY + canvasHeigthGraph;
+        var xAxisCanvaGroup;
+        if (curType == 'lines' || curType == 'layers') {
+            xAxisCanvaGroup = graphStructure.createCanvasGroup(canvas, translateX, nextTranslateY);
+        }
+
         var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
         var theGraph;
         if (curType == 'lines') {
@@ -151,10 +158,9 @@ function drawAll(input) {
         }
 
         curTranslateLabelY = curTranslateLabelY;
-        curTranslateY = curTranslateY + canvasHeigthGraph;
+        curTranslateY = nextTranslateY;
 
         if (curType == 'lines' || curType == 'layers') {
-            var xAxisCanvaGroup = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
             theGraph.createXAxis(xAxisCanvaGroup, canvasHeigthGraph);
             theGraph.addMouseOverCircleForValue();
         }

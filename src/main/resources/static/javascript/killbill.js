@@ -29,8 +29,12 @@
      */
     killbillGraph.KBInputGraphs = function (canvasWidth, canvasHeigth, topMargin, rightMargin, bottomMargin, leftMargin, betweenGraphMargin, graphData) {
 
+        // We add some extra value here to make sure we have space to display the legend on the right and also to ensure that latest point in line/layers graph
+        // can be displayed; obviously this is a hack, and if user wants to control that exactly, he can set it to 0 and specify the exact rightMargin required.
+        this.rightMarginOffset = 200;
+
         this.topMargin = topMargin;
-        this.rightMargin = rightMargin;
+        this.rightMargin = rightMargin + this.rightMarginOffset;
         this.bottomMargin = bottomMargin;
         this.leftMargin = leftMargin;
 
@@ -142,7 +146,7 @@
 
             this.graphCanvas.append("svg:text")
                 .attr("class", "title")
-                .attr("x", 100)
+                .attr("x", (this.width - this.title.length) / 2)
                 .attr("y", -30)
                 .text(this.title);
         }
@@ -151,8 +155,10 @@
     /**
      * KBPie : A Pie chart
      */
-    killbillGraph.KBPie = function (graphCanvas, title, data, width, heigth, palette, isLegendOnside) {
+    killbillGraph.KBPie = function (graphCanvas, title, data, width, heigth, palette) {
 
+        // If our value is less than that -- compared to total, we don't disply this is too small.
+        this.minDisplayRatio = 0.005;
 
         this.graphCanvas = graphCanvas;
         this.name = name
@@ -162,7 +168,14 @@
         this.radius = (this.width / 4);
         this.palette = palette;
         this.title = title;
-        this.isLegendOnside = isLegendOnside;
+
+        this.totalValue = function() {
+            var result  = 0;
+            for (var i = 0; i < this.data.length; i++) {
+                result = result + this.data[i].value;
+            }
+            return result;
+        }
 
         this.drawPie = function () {
 
@@ -194,20 +207,15 @@
                 })
                 .attr("d", arc);
 
-            if (!isLegendOnside) {
-                this.addLabels(arcs, arc, this.data);
-            }
 
+            this.addValues(arcs, arc, this.data);
         }
 
 
-        this.addLabels = function (arcs, arc, theData) {
+        this.addValues = function (arcs, arc, theData) {
 
-            this.graphCanvas.append("svg:text")
-                .attr("class", "title")
-                .attr("x", 100)
-                .attr("y", -30)
-                .text(this.title);
+            var total = this.totalValue();
+            var minDisplayRatio = this.minDisplayRatio;
 
             arcs.append("svg:text")
                 .attr("transform", function (d) {
@@ -217,20 +225,20 @@
                 })
                 .attr("text-anchor", "middle")
                 .text(function (d, i) {
-                    return theData[i].label;
+                    if (theData[i].value / total > minDisplayRatio) {
+                        return theData[i].value;
+                    } else {
+                        return "";
+                    }
                 });
         }
 
 
         this.addLegend = function () {
 
-            if (!isLegendOnside) {
-                return;
-            }
-
             this.graphCanvas.append("svg:text")
                 .attr("class", "title")
-                .attr("x", 100)
+                .attr("x", (this.width - this.title.length) / 2)
                 .attr("y", -30)
                 .text(this.title);
 
@@ -238,7 +246,7 @@
                 .attr("class", "legend")
                 .attr("height", 100)
                 .attr("width", 200)
-                .attr('transform', 'translate(-180,-60)')
+                .attr('transform', 'translate(-100,0)')
 
 
             var myself = this;
@@ -304,6 +312,10 @@
 
 
         this.formatDate = function (date) {
+
+            // We want to display a UTC date, so before we extract year, month, day info, we add the time difference
+            // between our timezone and UTC
+            date.setHours(date.getHours() + (date.getTimezoneOffset() / 60));
             var date_part = date.getDate();
             var month_part = date.getMonth() + 1
             var year_part = date.getFullYear();
@@ -456,7 +468,7 @@
 
             this.graphCanvas.append("svg:text")
                 .attr("class", "title")
-                .attr("x", 100)
+                .attr("x", (this.width - this.title.length )/ 2)
                 .attr("y", -30)
                 .text(this.title);
 
@@ -464,7 +476,7 @@
                 .attr("class", "legend")
                 .attr("height", 100)
                 .attr("width", 200)
-                .attr('transform', 'translate(-180,-60)')
+                .attr('transform', 'translate(+80,+0)')
 
 
             var myself = this;
