@@ -32,12 +32,11 @@
         // We add some extra value here to make sure we have space to display the legend on the right and also to ensure that latest point in line/layers graph
         // can be displayed; obviously this is a hack, and if user wants to control that exactly, he can set it to 0 and specify the exact rightMargin required.
         this.rightMarginOffset = 200;
-        this.leftMarginOffset = 50;
 
         this.topMargin = topMargin;
         this.rightMargin = rightMargin + this.rightMarginOffset;
         this.bottomMargin = bottomMargin;
-        this.leftMargin = leftMargin + this.leftMarginOffset;
+        this.leftMargin = leftMargin;
 
 
         this.betweenGraphMargin = betweenGraphMargin;
@@ -170,8 +169,8 @@
         this.palette = palette;
         this.title = title;
 
-        this.totalValue = function() {
-            var result  = 0;
+        this.totalValue = function () {
+            var result = 0;
             for (var i = 0; i < this.data.length; i++) {
                 result = result + this.data[i].value;
             }
@@ -358,15 +357,11 @@
          */
         this.addCirclesForGraph = function (circleGroup, lineId, dataX, dataY, scaleX, scaleY, lineColor) {
 
-            var myself = this;
-
-            var node = circleGroup.selectAll("circles")
+            var nodes = circleGroup.selectAll("g")
                 .data(dataY)
-                .enter()
-                .append("svg:g");
+                .enter();
 
-            /* First we add the circle */
-            node.append("svg:circle")
+            nodes.append("svg:circle")
                 .attr("id", function (d, i) {
                     return "circle-" + lineId + "-" + i;
                 })
@@ -376,27 +371,59 @@
                 .attr("cy", function (d, i) {
                     return scaleY(d);
                 })
-                .attr("r", 2.5)
+                .attr("r", 3)
                 .attr("fill", lineColor)
                 .attr("value", function (d, i) {
                     return d;
                 });
+        }
 
-            /* Second we do another pass and add the overlay text for value */
-            node.append("svg:text")
+        this.addOverlayForGraph = function (circleGroup, lineId, dataX, dataY, scaleX, scaleY) {
+
+            var myself = this;
+
+            var nodes = circleGroup.selectAll("g")
+                .data(dataY)
+                .enter()
+                .append("svg:g");
+
+            nodes.append("svg:rect")
+                .attr("id", function (d, i) {
+                    return "rect-" + lineId + "-" + i;
+                })
                 .attr("x", function (d, i) {
                     return scaleX(new Date(dataX[i]));
                 })
                 .attr("y", function (d, i) {
                     return scaleY(d);
                 })
-                .attr("class", "overlay")
+                .attr("width", 180)
+                .attr("height", 50)
+                .attr("display", "none")
+                .style("fill", function (d, i) {
+                    return "#222";
+                })
+                .attr("transform", 'translate(-140,-30)');
+
+
+            nodes.append("svg:text")
+                .attr("id", function (d, i) {
+                    return "text-" + lineId + "-" + i;
+                })
+                .attr("x", function (d, i) {
+                    return scaleX(new Date(dataX[i]));
+                })
+                .attr("y", function (d, i) {
+                    return scaleY(d);
+                })
+                .attr("fill", "#bbb")
                 .attr("display", "none")
                 .text(function (d, i) {
                     return "{x = " + myself.formatDate(new Date(dataX[i])) + ", y = " + d + "}";
                 })
                 .attr("transform", 'translate(-120,0)');
         }
+
 
         /**
          * Extract the 'x' or 'y' from dataLyer format where each entry if of the form:
@@ -441,6 +468,11 @@
                 .attr("id", "circles-" + lineId);
         }
 
+        this.createOverlayGroup = function (canvas, lineId) {
+            return this.graphCanvas.append("svg:g")
+                .attr("id", "overlay-" + lineId);
+        }
+
         /**
          * Given a colorMap, extract the k-ieme color
          *
@@ -470,7 +502,7 @@
 
             this.graphCanvas.append("svg:text")
                 .attr("class", "title")
-                .attr("x", (this.width - this.title.length )/ 2)
+                .attr("x", (this.width - this.title.length ) / 2)
                 .attr("y", -30)
                 .text(this.title);
 
@@ -521,13 +553,23 @@
         this.addMouseOverCircleForValue = function () {
 
             $('circle').each(function (i) {
-                var circleGroup = $(this).parent();
-                var circleText = circleGroup.find('text').first();
+
+                var textId = $(this).attr("id").replace("circle", "text");
+                var rectId = $(this).attr("id").replace("circle", "rect");
+
+                var circleText = $('#'.concat(textId));
+                var circleRect = $('#'.concat(rectId));
 
                 $(this).hover(function () {
+                    circleRect.show();
                     circleText.show();
                 }, function () {
-                    circleText.hide();
+                    setTimeout(
+                        function () {
+                            circleRect.hide();
+                            circleText.hide();
+                        }, 500);
+
                 });
             });
         }
@@ -657,6 +699,22 @@
                 dataY0 = dataY;
             }
 
+
+            dataY0 = null;
+            for (var i = 0; i < this.data.length; i++) {
+                var circleGroup = this.createCircleGroup(this.data[i]['name']);
+                var dataY = this.extractKeyOrValueFromDataLayer(this.data[i], 'y');
+                if (dataY0) {
+                    for (var k = 0; k < dataY.length; k++) {
+                        dataY[k] = dataY[k] + dataY0[k];
+                    }
+                }
+                this.addOverlayForGraph(circleGroup, this.data[i]['name'], dataX, dataY, scaleX, scaleY);
+                dataY0 = dataY;
+            }
+
+
+
             this.createYAxis(scaleY);
         }
 
@@ -719,9 +777,6 @@
                     }))
                 .attr("id", lineId)
                 .style("stroke", lineColor);
-
-            var circleGroup = this.createCircleGroup(lineId);
-            this.addCirclesForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY, lineColor);
         }
 
 
@@ -737,6 +792,24 @@
             for (var k = 0; k < this.data.length; k++) {
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[k], 'y');
                 this.addLine(dataY, scaleX, scaleY, this.getColor(k), this.data[k]['name']);
+            }
+
+            for (var k = 0; k < this.data.length; k++) {
+                var dataX = this.extractKeyOrValueFromDataLayer(this.data[0], 'x');
+                var dataY = this.extractKeyOrValueFromDataLayer(this.data[k], 'y');
+                var lineId = this.data[k]['name']
+                var circleGroup = this.createCircleGroup(lineId);
+                this.addCirclesForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY, this.getColor(k));
+            }
+
+
+            for (var k = 0; k < this.data.length; k++) {
+                var dataX = this.extractKeyOrValueFromDataLayer(this.data[0], 'x');
+                var dataY = this.extractKeyOrValueFromDataLayer(this.data[k], 'y');
+                var lineId = this.data[k]['name']
+                var circleGroup = this.createOverlayGroup(lineId);
+                this.addOverlayForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY);
+
             }
             this.createYAxis(scaleY);
         }
