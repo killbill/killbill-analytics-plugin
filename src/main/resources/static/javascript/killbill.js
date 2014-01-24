@@ -411,7 +411,7 @@
                 .style("fill", function (d, i) {
                     return "#222";
                 })
-                .attr("transform", 'translate(-140,-30)');
+                .attr("transform", 'translate(10,-30)');
 
 
             nodes.append("svg:text")
@@ -429,7 +429,7 @@
                 .text(function (d, i) {
                     return "Date = " + myself.formatDate(new Date(dataX[i]));
                 })
-                .attr("transform", 'translate(-120,-10)');
+                .attr("transform", 'translate(30,-10)');
 
             nodes.append("svg:text")
                 .attr("id", function (d, i) {
@@ -446,7 +446,7 @@
                 .text(function (d, i) {
                     return "Value = " + d;
                 })
-                .attr("transform", 'translate(-120,10)');
+                .attr("transform", 'translate(30, 10)');
         }
 
 
@@ -597,7 +597,7 @@
                             circleRect.hide();
                             circleText1.hide();
                             circleText2.hide();
-                        }, 500);
+                        }, 100);
 
                 });
             });
