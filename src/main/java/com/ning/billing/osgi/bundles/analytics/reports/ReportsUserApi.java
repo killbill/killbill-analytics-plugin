@@ -54,7 +54,6 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -117,7 +116,17 @@ public class ReportsUserApi {
     }
 
     public List<ReportConfigurationJson> getReports() {
-        return Lists.<ReportsConfigurationModelDao, ReportConfigurationJson>transform(ImmutableList.<ReportsConfigurationModelDao>copyOf(reportsConfiguration.getAllReportConfigurations().values()),
+        final List<ReportsConfigurationModelDao> reports = Ordering.natural()
+                                                                   .nullsLast()
+                                                                   .onResultOf(new Function<ReportsConfigurationModelDao, String>() {
+                                                                       @Override
+                                                                       public String apply(final ReportsConfigurationModelDao input) {
+                                                                           return input.getReportPrettyName();
+                                                                       }
+                                                                   })
+                                                                   .immutableSortedCopy(reportsConfiguration.getAllReportConfigurations().values());
+
+        return Lists.<ReportsConfigurationModelDao, ReportConfigurationJson>transform(reports,
                                                                                       new Function<ReportsConfigurationModelDao, ReportConfigurationJson>() {
                                                                                           @Override
                                                                                           public ReportConfigurationJson apply(final ReportsConfigurationModelDao input) {
