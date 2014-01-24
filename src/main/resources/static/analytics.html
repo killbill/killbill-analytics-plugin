@@ -32,6 +32,7 @@
     <script type="text/javascript" src="javascript/bootstrap.min.js"></script>
     <script type="text/javascript" src="javascript/purl.js"></script>
     <script type="text/javascript" src="javascript/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="javascript/moment.min.js"></script>
     <script type="text/javascript" src="javascript/killbill.js"></script>
     <script type="text/javascript" src="javascript/dashboard.js"></script>
 
@@ -64,7 +65,11 @@
         <ul class="nav navbar-nav">
           <li class="active"><a href="#">Analytics</a></li>
           <li><a href="#">System</a></li>
-          <li><a href="#">Custom</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Custom <b class="caret"></b></a>
+            <ul class="dropdown-menu dropdown-menu-form" id="custom-dashboard-builder">
+            </ul>
+          </li>
         </ul>
         <form class="navbar-form navbar-right" role="form">
           <div class="form-group">
@@ -261,12 +266,19 @@ $(document).ready(function () {
         var fromDate = new Date(now.getTime());
         fromDate.setMonth(now.getMonth() - 3);
         from = fromDate.getFullYear() + '-' + (fromDate.getMonth() + 1) + '-' + fromDate.getDate();
+    } else {
+        // Set the datepicker
+        $('#start-date').datepicker('setDate', from);
     }
+
     var to = $.url().param('endDate');
     if (!to) {
         var toDate = new Date(now.getTime());
         //toDate.setMonth(now.getMonth() + 3);
         to = toDate.getFullYear() + '-' + (toDate.getMonth() + 1) + '-' + toDate.getDate();
+    } else {
+        // Set the datepicker
+        $('#end-date').datepicker('setDate', to);
     }
 
     // Map of position (starting from the top) to an array of reports

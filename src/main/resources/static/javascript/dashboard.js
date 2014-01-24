@@ -1,21 +1,61 @@
 $(document).ready(function() {
+  /**
+   * https://github.com/twbs/bootstrap/issues/2097
+   */
+  $('.dropdown-menu').on('click', function(e){
+      if ($(this).hasClass('dropdown-menu-form')){
+          e.stopPropagation();
+      }
+  });
+
+  // Populate the dashboard builder drop down with the available reports
+  var currentUrl = $.url();
+  var reportsUrl = currentUrl.attr('protocol') + '://' + currentUrl.attr('host') + ':' + currentUrl.attr('port') + '/plugins/killbill-analytics/reports'
+  $.get(reportsUrl, function(reports) {
+    $.each(reports, function(i, report) {
+      var input = $('<input>').attr('type', 'checkbox')
+                              .attr('value', report.reportName)
+                              .attr('id', 'report' + i)
+      var label = $('<label>').append(input).append(report.reportPrettyName);
+      var li = $('<li>').attr('class', 'checkbox').append(label);
+      $('#custom-dashboard-builder').append(li);
+    });
+  }, 'json');
+
+  // Configure the start date date picker
   $('#start-date').datepicker({
+      format: "yyyy-mm-dd",
       autoclose: true,
       todayHighlight: true
   });
 
+  // Configure the end date date picker
   $('#end-date').datepicker({
+      format: "yyyy-mm-dd",
       autoclose: true,
       todayHighlight: true
   });
 
-  $("#refresh-graphs").click(function() {
-    var url = $(location).attr('href');
+  // Configure the refresh button callback
+  $('#refresh-graphs').click(function() {
+    var newReports = $('#custom-dashboard-builder input:checked');
+    if (newReports.length > 0) {
+      var currentUrl = $.url();
+      var url = currentUrl.attr('protocol') + '://' + currentUrl.attr('host') + ':' + currentUrl.attr('port') + currentUrl.attr('path') + '?';
+      $.each(newReports, function(i, report) {
+        if (i >= 1) {
+          url += '&';
+        }
+        url += 'report' + (i + 1) + '=' + report.value;
+      });
+    } else {
+      var url = $(location).attr('href');
+    }
 
     var startDatepicker = $('#start-date').data('datepicker');
     if (startDatepicker && startDatepicker.dates.length > 0) {
       var startDate = startDatepicker.getDate();
-      var startDateString = startDate.getFullYear() + '-' + (startDate.getMonth() + 1) + '-' + startDate.getDate();
+      var startDateString = moment(startDate).format('YYYY[-]MM[-]DD');
       url = updateURLParameter(url, 'startDate', startDateString);
     }
 
