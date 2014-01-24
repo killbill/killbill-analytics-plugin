@@ -286,10 +286,11 @@
     /**
      * KBTimeSeriesBase : Base class for both layered and non layered graphs
      */
-    killbillGraph.KBTimeSeriesBase = function (graphCanvas, title, data, width, heigth, palette) {
+    killbillGraph.KBTimeSeriesBase = function (graphCanvas, title, inputData, width, heigth, palette) {
 
         this.graphCanvas = graphCanvas;
-        this.data = data;
+        this.inputData = inputData;
+
         this.width = width;
         this.heigth = heigth;
         this.title = title;
@@ -297,6 +298,13 @@
         // the palette function out of which we create color map
         this.palette = palette;
 
+
+        this.addDataId = function() {
+            for (var i = 0; i < this.inputData.length; i++) {
+                this.inputData[i]['id'] = (Math.random() + 1).toString(36).substring(7);
+            }
+            return this.inputData;
+        }
 
         /**
          * Create the 'x' date scale
@@ -397,7 +405,7 @@
                 .attr("y", function (d, i) {
                     return scaleY(d);
                 })
-                .attr("width", 180)
+                .attr("width", 140)
                 .attr("height", 50)
                 .attr("display", "none")
                 .style("fill", function (d, i) {
@@ -408,7 +416,7 @@
 
             nodes.append("svg:text")
                 .attr("id", function (d, i) {
-                    return "text-" + lineId + "-" + i;
+                    return "text-" + lineId + "-" + i + "-1";
                 })
                 .attr("x", function (d, i) {
                     return scaleX(new Date(dataX[i]));
@@ -419,9 +427,26 @@
                 .attr("fill", "#bbb")
                 .attr("display", "none")
                 .text(function (d, i) {
-                    return "{x = " + myself.formatDate(new Date(dataX[i])) + ", y = " + d + "}";
+                    return "Date = " + myself.formatDate(new Date(dataX[i]));
                 })
-                .attr("transform", 'translate(-120,0)');
+                .attr("transform", 'translate(-120,-10)');
+
+            nodes.append("svg:text")
+                .attr("id", function (d, i) {
+                    return "text-" + lineId + "-" + i + "-2";
+                })
+                .attr("x", function (d, i) {
+                    return scaleX(new Date(dataX[i]));
+                })
+                .attr("y", function (d, i) {
+                    return scaleY(d);
+                })
+                .attr("fill", "#bbb")
+                .attr("display", "none")
+                .text(function (d, i) {
+                    return "Value = " + d;
+                })
+                .attr("transform", 'translate(-120,10)');
         }
 
 
@@ -554,20 +579,24 @@
 
             $('circle').each(function (i) {
 
-                var textId = $(this).attr("id").replace("circle", "text");
+                var textId1 = $(this).attr("id").replace("circle", "text") + "-1";
+                var textId2= $(this).attr("id").replace("circle", "text") + "-2";
                 var rectId = $(this).attr("id").replace("circle", "rect");
 
-                var circleText = $('#'.concat(textId));
+                var circleText1 = $('#'.concat(textId1));
+                var circleText2 = $('#'.concat(textId2));
                 var circleRect = $('#'.concat(rectId));
 
                 $(this).hover(function () {
                     circleRect.show();
-                    circleText.show();
+                    circleText1.show();
+                    circleText2.show();
                 }, function () {
                     setTimeout(
                         function () {
                             circleRect.hide();
-                            circleText.hide();
+                            circleText1.hide();
+                            circleText2.hide();
                         }, 500);
 
                 });
@@ -576,6 +605,8 @@
 
         /* Build and save colorMap */
         this.colorMap = this.createColorMap();
+
+        this.data = this.addDataId();
     }
 
     /**
@@ -661,7 +692,7 @@
                     return area(d.values);
                 })
                 .attr("id", function (d) {
-                    return d.name;
+                    return d.id;
                 });
         }
 
@@ -688,28 +719,28 @@
             var dataY0 = null;
             for (var i = 0; i < this.data.length; i++) {
 
-                var circleGroup = this.createCircleGroup(this.data[i]['name']);
+                var circleGroup = this.createCircleGroup(this.data[i]['id']);
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[i], 'y');
                 if (dataY0) {
                     for (var k = 0; k < dataY.length; k++) {
                         dataY[k] = dataY[k] + dataY0[k];
                     }
                 }
-                this.addCirclesForGraph(circleGroup, this.data[i]['name'], dataX, dataY, scaleX, scaleY, this.getColor(i));
+                this.addCirclesForGraph(circleGroup, this.data[i]['id'], dataX, dataY, scaleX, scaleY, this.getColor(i));
                 dataY0 = dataY;
             }
 
 
             dataY0 = null;
             for (var i = 0; i < this.data.length; i++) {
-                var circleGroup = this.createCircleGroup(this.data[i]['name']);
+                var circleGroup = this.createCircleGroup(this.data[i]['id']);
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[i], 'y');
                 if (dataY0) {
                     for (var k = 0; k < dataY.length; k++) {
                         dataY[k] = dataY[k] + dataY0[k];
                     }
                 }
-                this.addOverlayForGraph(circleGroup, this.data[i]['name'], dataX, dataY, scaleX, scaleY);
+                this.addOverlayForGraph(circleGroup, this.data[i]['id'], dataX, dataY, scaleX, scaleY);
                 dataY0 = dataY;
             }
 
@@ -791,13 +822,13 @@
 
             for (var k = 0; k < this.data.length; k++) {
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[k], 'y');
-                this.addLine(dataY, scaleX, scaleY, this.getColor(k), this.data[k]['name']);
+                this.addLine(dataY, scaleX, scaleY, this.getColor(k), this.data[k]['id']);
             }
 
             for (var k = 0; k < this.data.length; k++) {
                 var dataX = this.extractKeyOrValueFromDataLayer(this.data[0], 'x');
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[k], 'y');
-                var lineId = this.data[k]['name']
+                var lineId = this.data[k]['id']
                 var circleGroup = this.createCircleGroup(lineId);
                 this.addCirclesForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY, this.getColor(k));
             }
@@ -806,7 +837,7 @@
             for (var k = 0; k < this.data.length; k++) {
                 var dataX = this.extractKeyOrValueFromDataLayer(this.data[0], 'x');
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[k], 'y');
-                var lineId = this.data[k]['name']
+                var lineId = this.data[k]['id']
                 var circleGroup = this.createOverlayGroup(lineId);
                 this.addOverlayForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY);
 
