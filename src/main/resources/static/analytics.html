@@ -18,20 +18,80 @@
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="shortcut icon" href="/favicon.ico">
+
     <title>Kill Bill analytics dashboards</title>
 
     <script type="text/javascript" src="javascript/d3.js"></script>
     <script type="text/javascript" src="javascript/jquery-1.9.0.min.js"></script>
     <script type="text/javascript" src="javascript/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="javascript/bootstrap.min.js"></script>
     <script type="text/javascript" src="javascript/purl.js"></script>
+    <script type="text/javascript" src="javascript/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="javascript/moment.min.js"></script>
     <script type="text/javascript" src="javascript/killbill.js"></script>
+    <script type="text/javascript" src="javascript/dashboard.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css" media="screen"/>
+    <link rel="stylesheet" type="text/css" href="styles/bootstrap-theme.min.css" media="screen"/>
     <link rel="stylesheet" type="text/css" href="styles/jquery.dataTables.css" media="screen"/>
+    <link rel="stylesheet" type="text/css" href="styles/datepicker3.css" media="screen"/>
     <link rel="stylesheet" type="text/css" href="styles/dashboard.css" media="screen"/>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
 </head>
 <body>
-<div id="chartAnchor"></div>
-<div id="dataWrapper"></div>
+  <div class="container">
+    <!-- Static navbar -->
+    <div class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">Kill Bill dashboards</a>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="#">Analytics</a></li>
+          <li><a href="#">System</a></li>
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Custom <b class="caret"></b></a>
+            <ul class="dropdown-menu dropdown-menu-form" id="custom-dashboard-builder">
+            </ul>
+          </li>
+        </ul>
+        <form class="navbar-form navbar-right" role="form">
+          <div class="form-group">
+            <input id="start-date" type="text" placeholder="Start date" class="form-control input-sm" data-provide="datepicker">
+          </div>
+          <div class="form-group">
+            <input id="end-date" type="text" placeholder="End date" class="form-control input-sm" data-provide="datepicker">
+          </div>
+          <button type="button" class="btn btn-default btn-sm" id="refresh-graphs">
+            <span class="glyphicon glyphicon-refresh"></span>
+          </button>
+        </form>
+      </div><!--/.nav-collapse -->
+    </div>
+
+    <div class="row">
+      <div class="col-lg-4">
+        <div id="chartAnchor"></div>
+        <div id="dataWrapper"></div>
+      </div>
+    </div>
+  <end>
 
 <script type="text/javascript">
 function buildDataTables(reports, dataForAllReports, from, to, smoothFunctions) {
@@ -206,12 +266,19 @@ $(document).ready(function () {
         var fromDate = new Date(now.getTime());
         fromDate.setMonth(now.getMonth() - 3);
         from = fromDate.getFullYear() + '-' + (fromDate.getMonth() + 1) + '-' + fromDate.getDate();
+    } else {
+        // Set the datepicker
+        $('#start-date').datepicker('setDate', from);
     }
+
     var to = $.url().param('endDate');
     if (!to) {
         var toDate = new Date(now.getTime());
         //toDate.setMonth(now.getMonth() + 3);
         to = toDate.getFullYear() + '-' + (toDate.getMonth() + 1) + '-' + toDate.getDate();
+    } else {
+        // Set the datepicker
+        $('#end-date').datepicker('setDate', to);
     }
 
     // Map of position (starting from the top) to an array of reports

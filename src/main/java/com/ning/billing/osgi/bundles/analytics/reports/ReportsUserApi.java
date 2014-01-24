@@ -52,8 +52,11 @@ import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConf
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 
 public class ReportsUserApi {
@@ -111,6 +114,16 @@ public class ReportsUserApi {
     public void refreshReport(final String reportName) {
         final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
         jobsScheduler.scheduleNow(reportsConfigurationModelDao);
+    }
+
+    public List<ReportConfigurationJson> getReports() {
+        return Lists.<ReportsConfigurationModelDao, ReportConfigurationJson>transform(ImmutableList.<ReportsConfigurationModelDao>copyOf(reportsConfiguration.getAllReportConfigurations().values()),
+                                                                                      new Function<ReportsConfigurationModelDao, ReportConfigurationJson>() {
+                                                                                          @Override
+                                                                                          public ReportConfigurationJson apply(final ReportsConfigurationModelDao input) {
+                                                                                              return new ReportConfigurationJson(input);
+                                                                                          }
+                                                                                      });
     }
 
     public List<Chart> getDataForReport(final String[] rawReportNames,
