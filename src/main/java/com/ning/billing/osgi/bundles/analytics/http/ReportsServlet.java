@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,12 +43,8 @@ import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother;
 import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.SmootherType;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 // Handle /plugins/killbill-analytics/reports/<reportName>
 public class ReportsServlet extends BaseServlet {
@@ -126,7 +121,7 @@ public class ReportsServlet extends BaseServlet {
     private void doHandleReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         final String[] rawReportNames = req.getParameterValues(REPORTS_QUERY_NAME);
         if (rawReportNames == null || rawReportNames.length == 0) {
-            resp.sendError(404);
+            listReports(req, resp);
             return;
         }
 
@@ -148,6 +143,12 @@ public class ReportsServlet extends BaseServlet {
             resp.setContentType("application/json");
         }
         setCrossSiteScriptingHeaders(resp);
+    }
+
+    private void listReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        final List<ReportConfigurationJson> reports = reportsUserApi.getReports();
+        resp.getOutputStream().write(jsonMapper.writeValueAsBytes(reports));
+        resp.setContentType("application/json");
     }
 
     static void writeAsCSV(final List<Chart> charts, final OutputStream out) throws IOException {
