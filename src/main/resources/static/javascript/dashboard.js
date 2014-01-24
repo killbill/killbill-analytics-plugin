@@ -1,78 +1,112 @@
 $(document).ready(function() {
-  /**
-   * https://github.com/twbs/bootstrap/issues/2097
-   */
-  $('.dropdown-menu').on('click', function(e){
-      if ($(this).hasClass('dropdown-menu-form')){
-          e.stopPropagation();
-      }
-  });
-
-  // Populate the dashboard builder drop down with the available reports
-  var currentUrl = $.url();
-  var reportsUrl = currentUrl.attr('protocol') + '://' + currentUrl.attr('host') + ':' + currentUrl.attr('port') + '/plugins/killbill-analytics/reports'
-  $.get(reportsUrl, function(reports) {
-    $.each(reports, function(i, report) {
-      var input = $('<input>').attr('type', 'checkbox')
-                              .attr('value', report.reportName)
-                              .attr('id', 'report' + i)
-      var label = $('<label>').append(input).append(report.reportPrettyName);
-      var li = $('<li>').attr('class', 'checkbox').append(label);
-      $('#custom-dashboard-builder').append(li);
-    });
-  }, 'json');
-
-  // Configure the start date date picker
-  $('#start-date').datepicker({
-      format: "yyyy-mm-dd",
-      autoclose: true,
-      todayHighlight: true
-  });
-
-  // Configure the end date date picker
-  $('#end-date').datepicker({
-      format: "yyyy-mm-dd",
-      autoclose: true,
-      todayHighlight: true
-  });
-
-  // Configure the refresh button callback
-  $('#refresh-graphs').click(function() {
-    var newReports = $('#custom-dashboard-builder input:checked');
-    if (newReports.length > 0) {
-      var currentUrl = $.url();
-      var url = currentUrl.attr('protocol') + '://' + currentUrl.attr('host') + ':' + currentUrl.attr('port') + currentUrl.attr('path') + '?';
-      $.each(newReports, function(i, report) {
-        if (i >= 1) {
-          url += '&';
+    // https://github.com/twbs/bootstrap/issues/2097
+    $('.dropdown-menu').on('click', function(e){
+        if ($(this).hasClass('dropdown-menu-form')){
+            e.stopPropagation();
         }
-        url += 'report' + (i + 1) + '=' + report.value;
+    });
+
+    // Configure the start and end date picker
+    $('#start-date, #end-date').datepicker({
+        format: "yyyy-mm-dd",
+        autoclose: true,
+        todayHighlight: true
+    });
+
+    // Figure out the reports about to be displayed
+    var reports = extractReportsFromURL();
+
+    // Populate the dashboard builder drop down with the available reports
+    var currentUrl = $.url();
+    //var reportsUrl = currentUrl.attr('protocol') + '://' + currentUrl.attr('host') + ':' + currentUrl.attr('port') + '/plugins/killbill-analytics/reports'
+    var reportsUrl = 'http://127.0.0.1:8080/plugins/killbill-analytics/reports';
+    $.get(reportsUrl, function(allReports) {
+        $.each(allReports, function(i, report) {
+            var input = $('<input>').attr('type', 'checkbox')
+                                    .attr('value', report.reportName)
+                                    .attr('id', 'report' + i);
+
+            // Currently displayed?
+            if (report.reportName in reports) {
+                input.attr('checked','checked');
+            }
+
+            var label = $('<label>').append(input).append(report.reportPrettyName);
+            var li = $('<li>').attr('class', 'checkbox').append(label);
+            $('#custom-dashboard-builder').append(li);
+        });
+    }, 'json');
+
+    // Configure the refresh button callback
+    $('#refresh-graphs').click(function() {
+      var newReports = {}
+      $.map($('#custom-dashboard-builder input:checked'), function(newReport, idx) {
+          newReports[newReport.value] = idx + 1;
       });
-    } else {
-      var url = $(location).attr('href');
-    }
 
-    var startDatepicker = $('#start-date').data('datepicker');
-    if (startDatepicker && startDatepicker.dates.length > 0) {
-      var startDate = startDatepicker.getDate();
-      var startDateString = moment(startDate).format('YYYY[-]MM[-]DD');
-      url = updateURLParameter(url, 'startDate', startDateString);
-    }
+      if ($.isEmptyObject(newReports)) {
+          // No change in reports - we make sure to keep the ordering too
+          newReports = reports;
+      }
 
-    var endDatepicker = $('#end-date').data('datepicker');
-    if (endDatepicker && endDatepicker.dates.length > 0) {
-      var endDate = endDatepicker.getDate();
-      var endDateString = endDate.getFullYear() + '-' + (endDate.getMonth() + 1) + '-' + endDate.getDate();
-      url = updateURLParameter(url, 'endDate', endDateString);
-    }
-
-    $(location).attr('href', url);
-  });
+      var url = buildURL(newReports);
+      $(location).attr('href', url);
+    });
 });
 
-/**
- * http://stackoverflow.com/a/10997390/11236
- */
+function extractReportsFromURL() {
+    var reports = {};
+    var idx = 1;
+    var url = $.url();
+    var params = url.param();
+    for (var key in params) {
+        if (key.startsWith('report')) {
+            reports[params[key]] = idx;
+            idx += 1;
+        }
+    }
+    return reports;
+}
+
+function buildURL(newReports) {
+    var currentUrl = $.url();
+    var url = currentUrl.attr('protocol') + '://' + currentUrl.attr('host') + ':' + currentUrl.attr('port') + currentUrl.attr('path') + '?';
+
+    var i = 0;
+    for (var reportName in newReports) {
+      if (i >= 1) {
+        url += '&';
+      }
+      i += 1;
+
+      url += 'report' + newReports[reportName] + '=' + reportName;
+    }
+
+    url = updateURLWithDatepickerDates(url);
+
+    return url;
+}
+
+function updateURLWithDatepickerDates(url) {
+    var startDatepicker = $('#start-date').data('datepicker');
+    url = updateURLWithDatepickerDate(url, startDatepicker, 'startDate');
+
+    var endDatepicker = $('#end-date').data('datepicker');
+    url = updateURLWithDatepickerDate(url, endDatepicker, 'endDate');
+
+    return url;
+}
+
+function updateURLWithDatepickerDate(url, datepicker, parameter) {
+    if (datepicker && datepicker.dates.length > 0) {
+      var date = datepicker.getDate();
+      var dateString = moment(date).format('YYYY[-]MM[-]DD');
+      url = updateURLParameter(url, parameter, dateString);
+    }
+    return url;
+}
+
+// http://stackoverflow.com/a/10997390/11236
 function updateURLParameter(url, param, paramVal) {
     var TheAnchor = null;
     var newAdditionalURL = "";
@@ -114,4 +148,11 @@ function updateURLParameter(url, param, paramVal) {
 
     var rows_txt = temp + "" + param + "=" + paramVal;
     return baseURL + "?" + newAdditionalURL + rows_txt;
+}
+
+// http://stackoverflow.com/questions/646628/javascript-startswith
+if (typeof String.prototype.startsWith != 'function') {
+    String.prototype.startsWith = function (str){
+        return this.slice(0, str.length) == str;
+    };
 }
