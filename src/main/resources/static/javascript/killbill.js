@@ -157,8 +157,8 @@
      */
     killbillGraph.KBPie = function (graphCanvas, title, data, width, heigth, palette) {
 
-        // If our value is less than that -- compared to total, we don't disply this is too small.
-        this.minDisplayRatio = 0.005;
+        // If our value is less than that -- compared to total, we don't display this is too small.
+        this.minDisplayRatio = 0.01;
 
         this.graphCanvas = graphCanvas;
         this.name = name
@@ -299,7 +299,7 @@
         this.palette = palette;
 
 
-        this.addDataId = function() {
+        this.addDataId = function () {
             for (var i = 0; i < this.inputData.length; i++) {
                 this.inputData[i]['id'] = (Math.random() + 1).toString(36).substring(7);
             }
@@ -379,7 +379,7 @@
                 .attr("cy", function (d, i) {
                     return scaleY(d);
                 })
-                .attr("r", 3)
+                .attr("r", 3.5)
                 .attr("fill", lineColor)
                 .attr("value", function (d, i) {
                     return d;
@@ -407,6 +407,8 @@
                 })
                 .attr("width", 140)
                 .attr("height", 50)
+                .attr("rx", 5)
+                .attr("ry", 5)
                 .attr("display", "none")
                 .style("fill", function (d, i) {
                     return "#222";
@@ -477,7 +479,7 @@
                 .append("text")
                 .attr("font-size", "15")
                 .append("svg:textPath")
-                .attr("xlink:href", "#" + lineId)
+                .attr("xlink:href", "#path-" + lineId)
                 .attr("startOffset", positionPercent)
                 .text(function (d) {
                     return lineId;
@@ -543,6 +545,9 @@
                 .data(this.data)
                 .enter()
                 .append("rect")
+                .attr("id", function (d, i) {
+                    return "legend-" + myself.data[i]['id'];
+                })
                 .attr("x", this.width - 65)
                 .attr("y", function (d, i) {
                     return i * 20;
@@ -570,6 +575,11 @@
                 });
         }
 
+        this.addOnMouseHandlers = function() {
+            this.addMouseOverCircleForValue();
+            this.addMouseLegend();
+        }
+
         /**
          * Attach handlers to all circles so as to display value
          *
@@ -580,7 +590,7 @@
             $('circle').each(function (i) {
 
                 var textId1 = $(this).attr("id").replace("circle", "text") + "-1";
-                var textId2= $(this).attr("id").replace("circle", "text") + "-2";
+                var textId2 = $(this).attr("id").replace("circle", "text") + "-2";
                 var rectId = $(this).attr("id").replace("circle", "rect");
 
                 var circleText1 = $('#'.concat(textId1));
@@ -598,6 +608,41 @@
                             circleText1.hide();
                             circleText2.hide();
                         }, 100);
+
+                });
+            });
+        }
+
+        this.addMouseLegend = function () {
+
+            $('rect').each(function (i) {
+
+
+                var curLegendId = $(this).attr("id");
+                if (curLegendId === undefined || curLegendId.substring(0, 7) != "legend-") {
+                    return;
+                }
+
+                console.log("Found" + $(this).attr("id"));
+
+                var pathId = $(this).attr("id").replace("legend", "path");
+                var path = $("#" + pathId);
+
+                var myself = $(this);
+                $(this).hover(function () {
+                    path.attr("stroke-width", 3);
+                    myself.attr("width", 15)
+                        .attr("height", 15)
+                        .attr('transform', 'translate(-3,-3)');
+                }, function () {
+                    setTimeout(
+                        function () {
+                            path.attr("stroke-width", 1.5);
+                            myself.attr("width", 11)
+                                .attr("height", 11)
+                                .attr('transform', 'translate(0,0)');
+                        }, 100);
+
 
                 });
             });
@@ -745,7 +790,6 @@
             }
 
 
-
             this.createYAxis(scaleY);
         }
 
@@ -799,6 +843,7 @@
                 .data([dataY])
                 .enter()
                 .append("svg:path")
+                .attr("stroke-width", 1.5)
                 .attr("d", d3.svg.line()
                     .x(function (d, i) {
                         return scaleX(new Date(dataX[i]));
@@ -806,10 +851,9 @@
                     .y(function (d) {
                         return scaleY(d);
                     }))
-                .attr("id", lineId)
+                .attr("id", "path-" + lineId)
                 .style("stroke", lineColor);
         }
-
 
         /**
          * Draw all lines
