@@ -222,8 +222,8 @@ function drawAll(input) {
 
         if (curType == 'lines' || curType == 'layers') {
             theGraph.createXAxis(xAxisCanvaGroup, canvasHeigthGraph);
-            theGraph.addOnMouseHandlers();
         }
+        theGraph.addOnMouseHandlers();
         curTranslateY = curTranslateY + input.betweenGraphMargin;
     }
 }
