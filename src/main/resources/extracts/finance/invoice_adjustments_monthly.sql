@@ -5,7 +5,7 @@ select
 , date_format(ia.created_date, '%m/%d/%Y') as "Adjustment Date"
 , date_format(ia.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , date_format(ia.invoice_date, '%m/%d/%Y') as "Target Date"
-, date_format(ia.created_date, '%m/%d/%Y') as "Creation Date", -- Adjustment date?
+, date_format(ia.created_date, '%m/%d/%Y') as "Creation Date" -- Adjustment date?
 , ia.currency as "Currency"
 , ia.invoice_original_amount_charged as "Invoice Amount"
 , ia.invoice_balance as "Invoice Balance"

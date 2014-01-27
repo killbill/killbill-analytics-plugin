@@ -2,14 +2,14 @@ select
   iia.invoice_number as "Invoice Number"
 , iia.account_name as "Customer Name"
 , iia.account_external_key as "Account Number"
-, date_format(iia.created_date, '%m/%d/%Y') as "Creation Date", -- Adjustment date?
+, date_format(iia.created_date, '%m/%d/%Y') as "Creation Date" -- Adjustment date?
 , date_format(iia.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , date_format(iia.invoice_date, '%m/%d/%Y') as "Target Date"
 , iia.bundle_external_key as "App ID"
 , iia.product_name as "Product"
 , iia.slug as "Slug"
-, -- date_format(iia.start_date, '%m/%d/%Y') as "Service Start Date"
-, -- date_format(iia.end_date, '%m/%d/%Y') as "Service End Date"
+ -- , date_format(iia.start_date, '%m/%d/%Y') as "Service Start Date"
+ -- , date_format(iia.end_date, '%m/%d/%Y') as "Service End Date"
 , date_format(ii.start_date, '%m/%d/%Y') as "Service Start Date"
 , date_format(ii.end_date, '%m/%d/%Y') as "Service End Date"
 , iia.currency as "Currency"
@@ -32,5 +32,5 @@ where 1=1
   and iia.created_date < date_format(sysdate(),'%Y-%m-01')
   and iia.report_group = 'default'
 order by
-  invoice_number
+  iia.invoice_number
 , iia.invoice_item_record_id; -- just for well defined ordering

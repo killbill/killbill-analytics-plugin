@@ -9,8 +9,9 @@ select
 , pmt.plugin_name as "Payment Gateway"
 , pmt.plugin_pm_type as "Payment Method"
 , pmt.plugin_pm_cc_type as "Payment Card Type"
-, pmt.plugin_first_reference_id as "Primary Payment Reference ID"
-, pmt.plugin_second_reference_id as "Secondary Payment Reference ID"
+, case when plugin_name = 'killbill-litle' and plugin_pm_cc_type != 'AmericanExpress' then pmt.plugin_second_reference_id else null end as "Litle Payment Reference ID"
+, case when plugin_name = 'killbill-litle' and plugin_pm_cc_type = 'AmericanExpress' then upper(pmt.plugin_first_reference_id) else null end as "AmericanExpress Payment Reference ID"
+, case when plugin_name = 'killbill-paypal-express' then pmt.plugin_first_reference_id else null end as "PayPal Payment Reference ID"
 , date_format(pmt.created_date, '%m/%d/%Y') as "Payment Date"
 , pmt.currency as "Payment Currency"
 , pmt.amount as "Payment Amount"
@@ -26,3 +27,6 @@ where 1=1
 order by
   account_name
 , pmt.invoice_payment_record_id; -- just for well defined ordering
+
+
+
