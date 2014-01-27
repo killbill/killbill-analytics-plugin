@@ -58,11 +58,18 @@ $(document).ready(function() {
         $(location).attr('href', reports.buildRefreshURL({}));
     });
     $('#standard-analytics-dashboards').click(function() {
-        $(location).attr('href', reports.buildRefreshURL(reports.ANALYTICS_REPORTS.reports));
+        $(location).attr('href', reports.buildRefreshURL(reports.ANALYTICS_REPORTS.reports) + '&__preset=ANALYTICS');
     });
     $('#standard-system-dashboards').click(function() {
-        $(location).attr('href', reports.buildRefreshURL(reports.SYSTEM_REPORTS.reports));
+        $(location).attr('href', reports.buildRefreshURL(reports.SYSTEM_REPORTS.reports) + '&__preset=SYSTEM');
     });
+    // Highlight the menu links
+    var preset = $.url().param('__preset');
+    if (preset == 'ANALYTICS') {
+        $('#standard-analytics-dashboards-wrapper').addClass('active');
+    } else if (preset == 'SYSTEM') {
+        $('#standard-system-dashboards-wrapper').addClass('active');
+    }
 
     // Display the loading indicator
     var spinOptions = {
