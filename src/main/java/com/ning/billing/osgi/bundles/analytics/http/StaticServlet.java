@@ -61,20 +61,9 @@ public class StaticServlet extends BaseServlet {
             }
             Resources.copy(resourceUrl, resp.getOutputStream());
         } else {
-            final String out = rewriteStaticResource(resourceUrl);
-            resp.getOutputStream().write(out.getBytes());
+            Resources.copy(resourceUrl, resp.getOutputStream());
             resp.setContentType("text/html");
         }
         resp.setStatus(HttpServletResponse.SC_OK);
-    }
-
-    @VisibleForTesting
-    static String rewriteStaticResource(final URL resourceUrl) throws IOException {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Resources.copy(resourceUrl, out);
-        final String inputHtml = new String(out.toByteArray());
-
-        final String tmp1 = inputHtml.replace("$VAR_SERVER", "\"" + SERVER_IP + "\"");
-        return tmp1.replace("$VAR_PORT", "\"" + SERVER_PORT + "\"");
     }
 }
