@@ -54,7 +54,7 @@ public abstract class BaseServlet extends HttpServlet {
     }
 
     protected void setCrossSiteScriptingHeaders(final HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", String.format("http://%s:%s", SERVER_IP, SERVER_PORT));
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Request-Method", "GET");
         resp.setHeader("Access-Control-Allow-Headers", "accept, origin, content-type");
     }

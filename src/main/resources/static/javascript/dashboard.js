@@ -40,7 +40,8 @@ $(document).ready(function() {
     $('#refresh-graphs').click(function() {
       var newReports = {}
       $.map($('#custom-dashboard-builder input:checked'), function(newReport, idx) {
-          newReports[idx + 1] = newReport.value;
+          // For now, we support only one graph per position via the builder
+          newReports[idx + 1] = [newReport.value];
       });
 
       var startDatepicker = $('#start-date').data('datepicker');
@@ -52,20 +53,65 @@ $(document).ready(function() {
       $(location).attr('href', reports.buildRefreshURL(newReports, newStartDate, newEndDate));
     });
 
+    // Configure the default graphs
+    $('#reset-dashboards').click(function() {
+        $(location).attr('href', reports.buildRefreshURL({}));
+    });
+    $('#standard-analytics-dashboards').click(function() {
+        $(location).attr('href', reports.buildRefreshURL(reports.ANALYTICS_REPORTS.reports));
+    });
+    $('#standard-system-dashboards').click(function() {
+        $(location).attr('href', reports.buildRefreshURL(reports.SYSTEM_REPORTS.reports));
+    });
+
+    // Display the loading indicator
+    var spinOptions = {
+        top: '150px',
+        lines: 10,
+        length: 8,
+        width: 4,
+        radius: 8,
+        speed: 1
+    }
+    $('#loading-spinner').spin(spinOptions);
+
     // Finally, draw the graphs
     reports.getDataForReports(function(dataForAllReports) {
-        var input = new killbillGraph.KBInputGraphs(800, 400, 80, 80, 80, 80, 160, dataForAllReports);
-        drawAll(input);
+        // As a hint the AJAX requests are done, accelerate the spinner
+        spinOptions['speed'] = 4;
+        $('#loading-spinner').spin(spinOptions);
 
-        // Build the data tables
-        // TODO (STEPH) Check story for data points
-        //buildDataTables(reports, dataForAllReports, from, to, smoothFunctions);
+        if (dataForAllReports.length == 0) {
+            displayInfo("Use the menu to select reports");
+        } else {
+            var input = new killbillGraph.KBInputGraphs(800, 400, 80, 80, 80, 80, 160, dataForAllReports);
+            drawAll(input);
+
+            // Build the data tables
+            // TODO (STEPH) Check story for data points
+            //buildDataTables(reports, dataForAllReports, from, to, smoothFunctions);
+        }
+
+        // Hide the loading indicator
+        $('#loading-spinner').spin(false);
     });
 });
 
 //
 // Utils
 //
+
+function dateFromDatepicker(datepicker) {
+    if (datepicker && datepicker.dates.length > 0) {
+        var date = datepicker.getDate();
+        return moment(date).format('YYYY[-]MM[-]DD');
+    }
+}
+
+function displayInfo(msg) {
+    $('#alert-info').html(msg);
+    $('#alert-info').show();
+}
 
 function displayError(msg) {
     $('#alert-error').html(msg);

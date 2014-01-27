@@ -149,6 +149,7 @@ public class ReportsServlet extends BaseServlet {
         final List<ReportConfigurationJson> reports = reportsUserApi.getReports();
         resp.getOutputStream().write(jsonMapper.writeValueAsBytes(reports));
         resp.setContentType("application/json");
+        setCrossSiteScriptingHeaders(resp);
     }
 
     static void writeAsCSV(final List<Chart> charts, final OutputStream out) throws IOException {

@@ -10,14 +10,40 @@ function Reports() {
     this.reports = {};
     // Map position -> smoothing function
     this.smoothingFunctions = {};
+
+    // Standard sets of reports
+    this.ANALYTICS_REPORTS = {
+        reports: {
+            1: ['trial_starts_daily'],
+            2: ['cancellations_per_day'],
+            3: ['active_by_product_term_monthly'],
+            4: ['daily_invoice_balance']
+        }
+    };
+    this.SYSTEM_REPORTS = {
+        reports: {
+            1: ['system_report_payments_per_day'],
+            2: ['system_report_notifications_per_queue_name'],
+            3: ['system_report_notifications_per_queue_name_late'],
+            4: ['system_report_payments'],
+            5: ['system_report_control_tag_no_test']
+        }
+    };
+
+    // Debugging
+    this.loadFromFilePath = false;
 }
 
 Reports.prototype.init = function() {
     var url = $.url();
-    if (url.attr('host') && url.attr('port')) {
+    // Infer Kill Bill's address by looking at the current address,
+    // except if we're loading the file directly (file:///).
+    if (url.attr('protocol') != 'file') {
         this.protocol = url.attr('protocol');
         this.host = url.attr('host');
         this.port = url.attr('port');
+    } else {
+        this.loadFromFilePath = true;
     }
     this.basePath = url.attr('path');
 
@@ -58,12 +84,12 @@ Reports.prototype.hasReport = function(val) {
 }
 
 Reports.prototype.availableReports = function(callback) {
-    var url = this.protocol + '://' + this.host + ':' + this.port + '/plugins/killbill-analytics/reports';
+    var url = this.buildBaseURL('/plugins/killbill-analytics/reports');
     $.get(url, function(allReports) { callback(allReports); }, 'json');
 }
 
 Reports.prototype.getDataForReport = function(position, callback) {
-    var url = this.protocol + '://' + this.host + ':' + this.port + '/plugins/killbill-analytics/reports';
+    var url = this.buildBaseURL('/plugins/killbill-analytics/reports');
     url += '?startDate=' + this.startDate;
     url += '&endDate=' + this.endDate;
     url += '&name=' + this.reports[position].join('&name=');
@@ -75,17 +101,7 @@ Reports.prototype.getDataForReport = function(position, callback) {
         type: 'GET',
         contentType: 'application/json',
         dataType: 'json',
-        url: url,
-        beforeSend: function(jqXHR, settings) {
-            // Display the loading indicator
-            $('#loading-spinner').spin({
-                top: '150px',
-                lines: 10,
-                length: 8,
-                width: 4,
-                radius: 8
-            });
-        }
+        url: url
     }).done(function(data) {
                 callback(position, data);
             })
@@ -108,9 +124,6 @@ Reports.prototype.getDataForReport = function(position, callback) {
                         displayError('Error generating report nb. ' + position + ':\n' + textStatus + ' (status '+ jqXHR.status + ')');
                     }
                 }
-    }).always(function(jqXHR, textStatus, errorThrown) {
-        // Hide the loading indicator
-        $('#loading-spinner').spin(false);
     });
 }
 
@@ -138,24 +151,32 @@ Reports.prototype.getDataForReports = function(callback) {
 }
 
 Reports.prototype.buildRefreshURL = function(newReports, newStartDate, newEndDate) {
-    if ($.isEmptyObject(newReports)) {
-        // No change in reports - we make sure to keep the ordering though
+    // Make sure to respect the current ordering if there is no change in reports
+    var currentReportsSet = [];
+    $.each(this.reports, function(position, reportName) {
+        currentReportsSet = currentReportsSet.concat(reportName);
+    });
+    var newReportsSet = [];
+    $.each(newReports, function(position, reportName) {
+        newReportsSet = newReportsSet.concat(reportName);
+    });
+
+    if ($(currentReportsSet).not(newReportsSet).length == 0 && $(newReportsSet).not(currentReportsSet).length == 0) {
+        // Same set of reports
         newReports = this.reports;
     }
 
-    var url = this.protocol + '://' + this.host + ':' + this.port + this.basePath;
+    var url = !this.loadFromFilePath ? this.buildBaseURL(this.basePath) : this.basePath;
     url += '?startDate=' + (newStartDate ? newStartDate : this.startDate);
     url += '&endDate=' + (newEndDate ? newEndDate : this.endDate);
 
-    var i = 0;
     for (var position in newReports) {
-      if (i >= 1) {
-        url += '&';
-      }
-      i += 1;
-
-      url += 'report' + position + '=' + newReports[reportName];
+      url += '&report' + position + '=' + newReports[position];
     }
 
     return url;
 };
+
+Reports.prototype.buildBaseURL = function(path) {
+    return this.protocol + '://' + this.host + ':' + this.port + path;
+}
