@@ -167,7 +167,8 @@ Reports.prototype.buildRefreshURL = function(newReports, newStartDate, newEndDat
     url += '&endDate=' + (newEndDate ? newEndDate : this.endDate);
 
     for (var position in newReports) {
-      url += '&report' + position + '=' + newReports[position];
+        var joinKey = '&report' + position + '=';
+        url += joinKey + newReports[position].join(joinKey);
     }
 
     return url;
