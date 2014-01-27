@@ -130,6 +130,11 @@ ReportsGraphs.prototype.addSubtitle = function(input, data, i, yOffset, curType)
         // Add smoothing links
         var firstLink = true;
         var smooth = $.url().param('smooth' + position);
+        if (smooth) {
+            firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
+            firstLink = false;
+            subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position)).text('Raw data'));
+        }
         if (smooth != 'AVERAGE_WEEKLY') {
             firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
             firstLink = false;
