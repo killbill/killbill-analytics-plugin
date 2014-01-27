@@ -29,9 +29,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 
 public abstract class BaseServlet extends HttpServlet {
 
-    protected static final String SERVER_IP = System.getProperty("com.ning.core.server.ip", "127.0.0.1");
-    protected static final String SERVER_PORT = System.getProperty("com.ning.core.server.port", "8080");
-
     protected static final String STRING_PATTERN = "[\\w-]+";
     protected static final String UUID_PATTERN = "\\w+-\\w+-\\w+-\\w+-\\w+";
     protected static final String ANYTHING_PATTERN = ".*";
@@ -54,7 +51,7 @@ public abstract class BaseServlet extends HttpServlet {
     }
 
     protected void setCrossSiteScriptingHeaders(final HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", String.format("http://%s:%s", SERVER_IP, SERVER_PORT));
+        resp.setHeader("Access-Control-Allow-Origin", "*");
         resp.setHeader("Access-Control-Request-Method", "GET");
         resp.setHeader("Access-Control-Allow-Headers", "accept, origin, content-type");
     }

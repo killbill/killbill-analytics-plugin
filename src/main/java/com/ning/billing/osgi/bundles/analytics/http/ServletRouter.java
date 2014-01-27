@@ -58,21 +58,25 @@ public class ServletRouter extends BaseServlet {
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doPut(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doDelete(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
