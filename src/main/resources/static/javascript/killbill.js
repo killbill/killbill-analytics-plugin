@@ -215,28 +215,33 @@
                     return  "arc-" + myself.data[i]['id'];
                 })
                 .attr("d", arc);
-            this.addValues(arcs, arc, this.data);
+            this.addValues(arcs, arc);
         }
 
-
-        this.addValues = function (arcs, arc, theData) {
-
+        this.getDisplayValue = function (value) {
             var total = this.totalValue();
             var minDisplayRatio = this.minDisplayRatio;
+            return (value / total > minDisplayRatio) ? "inline" : "none";
+        }
 
+        this.addValues = function (arcs, arc) {
+
+            var myself = this;
             arcs.append("svg:text")
                 .attr("transform", function (d) {
                     d.innerRadius = 0;
                     d.outerRadius = this.radius;
                     return "translate(" + arc.centroid(d) + ")";
                 })
+                .attr("id", function (d, i) {
+                    return  "arc-value-" + myself.data[i]['id'];
+                })
                 .attr("text-anchor", "middle")
                 .text(function (d, i) {
-                    if (theData[i].value / total > minDisplayRatio) {
-                        return theData[i].value;
-                    } else {
-                        return "";
-                    }
+                    return myself.data[i].value;
+                })
+                .attr("display", function (d, i) {
+                   return  myself.getDisplayValue(myself.data[i].value);
                 });
         }
 
@@ -297,8 +302,7 @@
 
         this.addMouseLegend = function () {
 
-            var theData = this.data;
-
+            var myself = this;
             $('rect').each(function (i) {
 
 
@@ -308,36 +312,43 @@
                 }
 
                 var arcId = $(this).attr("id").replace("pie-legend", "arc");
-                var arc = $("#" + arcId);
+                var arcValueId = $(this).attr("id").replace("pie-legend", "arc-value");
+                var arcValue = $("#" + arcValueId);
 
                 var otherArcs = new Array();
-                for (var i = 0; i < theData.length; i++) {
+                var otherArcValues = new Array();
+                for (var i = 0; i < myself.data.length; i++) {
 
-                    var curId = "arc-" + theData[i]['id'];
-                    if (curId != arcId) {
-
-                        var obj = $("#" + curId);
-                        console.dir("adding id = " + curId + ", obj = " + obj + ", objId = " + obj['id']);
-                        otherArcs.push(obj);
+                    var curArcId = "arc-" + myself.data[i]['id'];
+                    var curArcValueId = "arc-value-" + myself.data[i]['id'];
+                    if (curArcId != arcId) {
+                        var curArc = $("#" + curArcId);
+                        otherArcs.push(curArc);
+                        var curArcValue = $("#" + curArcValueId);
+                        otherArcValues.push(curArcValue);
                     }
                 }
 
-                var myself = $(this);
+                var myPieLegendRect = $(this);
                 $(this).hover(function () {
-
                     for (var i = 0; i < otherArcs.length; i++) {
                         otherArcs[i].attr("opacity", 0.1);
+                        otherArcValues[i].attr("display", "none");
                     }
 
-                    myself.attr("width", 15)
+                    console.log("arcValue id = " + arcValue.attr("id") + ", value = " + arcValue.text());
+                    arcValue.attr("display", "inline");
+                    myPieLegendRect.attr("width", 15)
                         .attr("height", 15)
                         .attr('transform', 'translate(-3,-3)');
                 }, function () {
                     for (var i = 0; i < otherArcs.length; i++) {
                         otherArcs[i].attr("opacity", 1.0);
+                        otherArcValues[i].attr("display", myself.getDisplayValue(parseInt(otherArcValues[i].text())));
                     }
+                    arcValue.attr("display", myself.getDisplayValue(parseInt(arcValue.text())));
 
-                    myself.attr("width", 11)
+                    myPieLegendRect.attr("width", 11)
                         .attr("height", 11)
                         .attr('transform', 'translate(0,0)');
                 });
@@ -1001,4 +1012,6 @@
         }
     };
 
-}(window.killbillGraph = window.killbillGraph || {}, jQuery));
+}(window.killbillGraph = window.killbillGraph || {}, jQuery)
+    )
+;
