@@ -51,21 +51,15 @@ ReportsGraphs.prototype.doDrawAll = function(input) {
         var theGraph;
         if (curType == 'lines') {
             theGraph = new killbillGraph.KBLinesGraph(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20b());
-            theGraph.drawLines();
-            theGraph.addLegend();
         } else if (curType == 'layers') {
             theGraph = new killbillGraph.KBLayersGraph(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
-            theGraph.drawStackLayers();
-            theGraph.addLegend();
         } else if (curType == 'pie') {
             theGraph = new killbillGraph.KBPie(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c(), true);
-            theGraph.drawPie();
-            theGraph.addLegend();
         } else if (curType == 'histogram') {
             var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
             theGraph = new killbillGraph.KBHistogram(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
-            theGraph.drawHistogram();
         }
+        theGraph.draw();
 
         curTranslateLabelY = curTranslateLabelY;
         curTranslateY = nextTranslateY;
@@ -73,7 +67,6 @@ ReportsGraphs.prototype.doDrawAll = function(input) {
         if (curType == 'lines' || curType == 'layers') {
             theGraph.createXAxis(xAxisCanvaGroup, canvasHeigthGraph);
         }
-        theGraph.addOnMouseHandlers();
         curTranslateY = curTranslateY + input.betweenGraphMargin;
     }
 }

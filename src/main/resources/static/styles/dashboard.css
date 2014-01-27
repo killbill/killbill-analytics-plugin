@@ -81,7 +81,13 @@ path {
 .x.axis path {
   display: none;
 }
-.y.axis line, .y.axis path {
+
+.y.axis line {
+  fill: none;
+  stroke: lightgrey;
+}
+
+.y.axis path {
   fill: none;
   stroke: #000;
 }
