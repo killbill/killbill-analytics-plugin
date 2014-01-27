@@ -150,19 +150,24 @@
                 .attr("y", -30)
                 .text(this.title);
         }
+
+        this.addOnMouseHandlers = function () {
+            // Not implemented
+        }
+
     }
 
     /**
      * KBPie : A Pie chart
      */
-    killbillGraph.KBPie = function (graphCanvas, title, data, width, heigth, palette) {
+    killbillGraph.KBPie = function (graphCanvas, title, inputData, width, heigth, palette) {
 
         // If our value is less than that -- compared to total, we don't display this is too small.
         this.minDisplayRatio = 0.01;
 
         this.graphCanvas = graphCanvas;
         this.name = name
-        this.data = data;
+        this.inputData = inputData;
         this.width = width;
         this.heigth = heigth;
         this.radius = (this.width / 4);
@@ -201,13 +206,15 @@
                 .append("svg:g")
                 .attr("class", "slice");
 
+            var myself = this;
             arcs.append("svg:path")
                 .style("fill", function (d, i) {
                     return palette(i);
                 })
+                .attr("id", function (d, i) {
+                    return  "arc-" + myself.data[i]['id'];
+                })
                 .attr("d", arc);
-
-
             this.addValues(arcs, arc, this.data);
         }
 
@@ -258,6 +265,9 @@
                 .attr("y", function (d, i) {
                     return i * 20;
                 })
+                .attr("id", function (d, i) {
+                    return "pie-legend-" + myself.data[i]['id'];
+                })
                 .attr("width", 11)
                 .attr("height", 11)
                 .attr("rx", 3)
@@ -280,6 +290,68 @@
                     return text;
                 });
         }
+
+        this.addOnMouseHandlers = function () {
+            this.addMouseLegend();
+        }
+
+        this.addMouseLegend = function () {
+
+            var theData = this.data;
+
+            $('rect').each(function (i) {
+
+
+                var curLegendId = $(this).attr("id");
+                if (curLegendId === undefined || curLegendId.substring(0, 11) != "pie-legend-") {
+                    return;
+                }
+
+                var arcId = $(this).attr("id").replace("pie-legend", "arc");
+                var arc = $("#" + arcId);
+
+                var otherArcs = new Array();
+                for (var i = 0; i < theData.length; i++) {
+
+                    var curId = "arc-" + theData[i]['id'];
+                    if (curId != arcId) {
+
+                        var obj = $("#" + curId);
+                        console.dir("adding id = " + curId + ", obj = " + obj + ", objId = " + obj['id']);
+                        otherArcs.push(obj);
+                    }
+                }
+
+                var myself = $(this);
+                $(this).hover(function () {
+
+                    for (var i = 0; i < otherArcs.length; i++) {
+                        otherArcs[i].attr("opacity", 0.1);
+                    }
+
+                    myself.attr("width", 15)
+                        .attr("height", 15)
+                        .attr('transform', 'translate(-3,-3)');
+                }, function () {
+                    for (var i = 0; i < otherArcs.length; i++) {
+                        otherArcs[i].attr("opacity", 1.0);
+                    }
+
+                    myself.attr("width", 11)
+                        .attr("height", 11)
+                        .attr('transform', 'translate(0,0)');
+                });
+            });
+        }
+
+        this.addDataId = function () {
+            for (var i = 0; i < this.inputData.length; i++) {
+                this.inputData[i]['id'] = (Math.random() + 1).toString(36).substring(7);
+            }
+            return this.inputData;
+        }
+
+        this.data = this.addDataId();
 
     }
 
@@ -327,7 +399,7 @@
             var date_part = date.getDate();
             var month_part = date.getMonth() + 1
             var year_part = date.getFullYear();
-            return year_part + "-" + month_part + "-" + date_part;
+            return month_part + "/" + date_part + "/" + year_part;
         }
 
         /**
@@ -546,7 +618,7 @@
                 .enter()
                 .append("rect")
                 .attr("id", function (d, i) {
-                    return "legend-" + myself.data[i]['id'];
+                    return "ts-legend-" + myself.data[i]['id'];
                 })
                 .attr("x", this.width - 65)
                 .attr("y", function (d, i) {
@@ -575,7 +647,7 @@
                 });
         }
 
-        this.addOnMouseHandlers = function() {
+        this.addOnMouseHandlers = function () {
             this.addMouseOverCircleForValue();
             this.addMouseLegend();
         }
@@ -617,15 +689,12 @@
 
             $('rect').each(function (i) {
 
-
                 var curLegendId = $(this).attr("id");
-                if (curLegendId === undefined || curLegendId.substring(0, 7) != "legend-") {
+                if (curLegendId === undefined || curLegendId.substring(0, 10) != "ts-legend-") {
                     return;
                 }
 
-                console.log("Found" + $(this).attr("id"));
-
-                var pathId = $(this).attr("id").replace("legend", "path");
+                var pathId = $(this).attr("id").replace("ts-legend", "path");
                 var path = $("#" + pathId);
 
                 var myself = $(this);
