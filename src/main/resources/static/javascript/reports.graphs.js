@@ -98,22 +98,31 @@ ReportsGraphs.prototype.addSubtitle = function(input, data, i, yOffset, curType)
     subtitle.append("&nbsp;/&nbsp;");
 
     // Add DataTables link
-    var dataTablesWrapper = $('<div/>').attr('id', 'dataTablesWrapper-' + i)
-                                       .css('display', 'none')
-                                       .css('width', input.canvasWidth + 'px')
-                                       .css('background-color', 'white');
+    var modalBody = $('<div/>').attr('class', 'modal-body');
     for (var jdx in data) {
         if (!data[jdx].values || data[jdx].values.length == 0) {
             continue;
         }
-        this.reportsDataTables.build(data[jdx], i + parseInt(jdx), dataTablesWrapper);
+        this.reportsDataTables.build(data[jdx], i + parseInt(jdx), modalBody);
     }
+
+    var modal = $('<div/>').attr('class', 'modal fade')
+                           .attr('id', 'dataTablesModalWrapper-' + i)
+                           .attr('tabindex', '-1')
+                           .attr('role', 'dialog')
+                           .attr('aria-labelledby', 'RawData')
+                           .attr('aria-hidden', 'true')
+                           .append($('<div/>').attr('class', 'modal-dialog')
+                                              .append($('<div/>').attr('class', 'modal-content')
+                                                                 .append(modalBody)));
+    subtitle.append(modal);
+    $('#dataTablesModalWrapper-' + i).modal();
+
     var dataTablesLink = $('<a/>').text('View data').css('cursor', 'pointer');
     dataTablesLink.click(function() {
-        dataTablesWrapper.toggle();
+        $('#dataTablesModalWrapper-' + i).modal('toggle');
     });
     subtitle.append(dataTablesLink);
-    subtitle.append(dataTablesWrapper);
 
     if (curType == 'lines' || curType == 'layers') {
         subtitle.append("&nbsp;|&nbsp;");
