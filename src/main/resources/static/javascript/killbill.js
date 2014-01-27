@@ -163,7 +163,7 @@
     killbillGraph.KBPie = function (graphCanvas, title, inputData, width, heigth, palette) {
 
         // If our value is less than that -- compared to total, we don't display this is too small.
-        this.minDisplayRatio = 0.01;
+        this.minDisplayRatio = 0.05;
 
         this.graphCanvas = graphCanvas;
         this.name = name
@@ -336,7 +336,6 @@
                         otherArcValues[i].attr("display", "none");
                     }
 
-                    console.log("arcValue id = " + arcValue.attr("id") + ", value = " + arcValue.text());
                     arcValue.attr("display", "inline");
                     myPieLegendRect.attr("width", 15)
                         .attr("height", 15)
@@ -410,7 +409,8 @@
             var date_part = date.getDate();
             var month_part = date.getMonth() + 1
             var year_part = date.getFullYear();
-            return month_part + "/" + date_part + "/" + year_part;
+
+            return moment(date).format('MM[/]DD[/]YYYY')
         }
 
         /**
@@ -529,11 +529,17 @@
                 .attr("fill", "#bbb")
                 .attr("display", "none")
                 .text(function (d, i) {
-                    return "Value = " + d;
+                    return "Value = " + myself.numberWithCommas(d);
                 })
                 .attr("transform", 'translate(30, 10)');
         }
 
+
+        this.numberWithCommas = function(x) {
+            var parts = x.toString().split(".");
+            parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return parts.join(".");
+        }
 
         /**
          * Extract the 'x' or 'y' from dataLyer format where each entry if of the form:
