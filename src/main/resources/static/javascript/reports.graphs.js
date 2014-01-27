@@ -1,4 +1,6 @@
-function ReportsGraphs() {
+function ReportsGraphs(reports) {
+    // To build the data tables
+    this.reportsDataTables = new ReportsDataTables(reports);
 }
 
 ReportsGraphs.prototype.getMappingType = function(inputType) {
@@ -74,8 +76,49 @@ ReportsGraphs.prototype.doDrawAll = function(input) {
             theGraph.createXAxis(xAxisCanvaGroup, canvasHeigthGraph);
         }
         theGraph.addOnMouseHandlers();
+
+        // Add subtitle
+        this.addSubtitle(input, curData, i, curTranslateY + 20);
+
         curTranslateY = curTranslateY + input.betweenGraphMargin;
     }
+}
+
+ReportsGraphs.prototype.addSubtitle = function(input, data, i, yOffset) {
+    var subtitle = $('<div/>').attr('id', 'subtitle-' + i)
+                              .css('position', 'absolute')
+                              .css('top', yOffset + 'px');
+
+    // Reports position starts at 1
+    var position = i + 1;
+
+    // Add CSV link
+    var csvURL = this.reportsDataTables.buildCSVURL(position);
+    var csvLink = $('<a/>').attr('href', csvURL).text('Download data (CSV)');
+    subtitle.append(csvLink);
+
+    subtitle.append("&nbsp;/&nbsp;");
+
+    // Add DataTables link
+    var dataTablesWrapper = $('<div/>').attr('id', 'dataTablesWrapper-' + i)
+                                       .css('display', 'none')
+                                       .css('width', input.canvasWidth + 'px')
+                                       .css('background-color', 'white');
+    for (var jdx in data) {
+        if (!data[jdx].values || data[jdx].values.length == 0) {
+            continue;
+        }
+        this.reportsDataTables.build(data[jdx], i + parseInt(jdx), dataTablesWrapper);
+    }
+    var dataTablesLink = $('<a/>').text('View data').css('cursor', 'pointer');
+    dataTablesLink.click(function() {
+        dataTablesWrapper.toggle();
+    });
+    subtitle.append(dataTablesLink);
+    subtitle.append(dataTablesWrapper);
+
+    subtitle.css('left', (input.canvasWidth / 2 - subtitle.width() / 2) + 'px')
+    $('#charts').append(subtitle);
 }
 
 ReportsGraphs.prototype.drawAll = function(dataForAllReports) {

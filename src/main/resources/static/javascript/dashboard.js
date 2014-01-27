@@ -91,12 +91,8 @@ $(document).ready(function() {
         if (dataForAllReports.length == 0) {
             displayInfo("Use the menu to select reports");
         } else {
-            var reportsGraphs = new ReportsGraphs();
+            var reportsGraphs = new ReportsGraphs(reports);
             reportsGraphs.drawAll(dataForAllReports);
-
-            // Build the data tables
-            var reportsDataTables = new ReportsDataTables(reports);
-            reportsDataTables.buildAll(dataForAllReports);
         }
 
         // Hide the loading indicator
