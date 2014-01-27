@@ -84,12 +84,12 @@ $(document).ready(function() {
         if (dataForAllReports.length == 0) {
             displayInfo("Use the menu to select reports");
         } else {
-            var input = new killbillGraph.KBInputGraphs(800, 400, 80, 80, 80, 80, 160, dataForAllReports);
-            drawAll(input);
+            var reportsGraphs = new ReportsGraphs();
+            reportsGraphs.drawAll(dataForAllReports);
 
             // Build the data tables
-            // TODO (STEPH) Check story for data points
-            //buildDataTables(reports, dataForAllReports, from, to, smoothFunctions);
+            var reportsDataTables = new ReportsDataTables(reports);
+            reportsDataTables.buildAll(dataForAllReports);
         }
 
         // Hide the loading indicator

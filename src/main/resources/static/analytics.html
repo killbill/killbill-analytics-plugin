@@ -28,8 +28,12 @@
 
     <script type="text/javascript" src="javascript/log4javascript.js"></script>
     <script type="text/javascript">
+        var consoleAppender = new log4javascript.BrowserConsoleAppender();
+        consoleAppender.setThreshold(log4javascript.Level.INFO);
+        var layout = new log4javascript.PatternLayout("%d [%-5p] %m{5}");
+        consoleAppender.setLayout(layout);
         window.log = log4javascript.getLogger();
-        window.log.addAppender(new log4javascript.BrowserConsoleAppender);
+        window.log.addAppender(consoleAppender);
     </script>
 
     <script type="text/javascript" src="javascript/d3.js"></script>
@@ -43,6 +47,8 @@
     <script type="text/javascript" src="javascript/jquery.spin.js"></script>
     <script type="text/javascript" src="javascript/killbill.js"></script>
     <script type="text/javascript" src="javascript/reports.js"></script>
+    <script type="text/javascript" src="javascript/reports.dataTables.js"></script>
+    <script type="text/javascript" src="javascript/reports.graphs.js"></script>
     <script type="text/javascript" src="javascript/dashboard.js"></script>
 
     <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css" media="screen"/>
@@ -98,148 +104,9 @@
       <div id="alert-info" class="alert alert-info" style="display: none;"></div>
       <div id="alert-error" class="alert alert-danger" style="display: none;"></div>
       <div id='loading-spinner'></div>
-
-      <div class="col-lg-4">
-        <div id="chartAnchor"></div>
-        <div id="dataWrapper"></div>
-      </div>
+      <div id="chartAnchor"></div>
+      <div id="dataWrapper"></div>
     </div>
   <end>
-
-<script type="text/javascript">
-function buildDataTables(reports, dataForAllReports, from, to, smoothFunctions) {
-    for (var idx in dataForAllReports) {
-        for (var jdx in dataForAllReports[idx]) {
-            // Reports position starts at 1
-            var position = parseInt(idx) + 1;
-            buildDataTable(dataForAllReports[idx][jdx], from, to, parseInt(idx) + parseInt(jdx));
-        }
-    }
-
-    var linksWrapper = $('<div><h3>Download links</h3></div>');
-    var links = $('<ul></ul>');
-    linksWrapper.append(links);
-    $('#dataWrapper').append(linksWrapper);
-    for (var position in reports) {
-        for (var idx in reports[position]) {
-            var csvURL = "http://" + '127.0.0.1' + ":" + '8080' + "/plugins/killbill-analytics/reports?format=csv&startDate=" + from + "&endDate=" + to + "&name=" + reports[position][idx];
-            var smoothFunction = smoothFunctions[position];
-            if (smoothFunction) {
-                csvURL = csvURL + "&smooth=" + smoothFunction;
-            }
-
-            links.append('<li>' + reports[position][idx] + ' <a href="' + csvURL + '">csv</a></li>');
-        }
-    }
-}
-
-function buildDataTable(data, from, to, id) {
-    var dataTableWrapper = $('<div class="dataTableWrapper" id="dataTableWrapper-' + id + '"><h3>' + data['name'] + '</h3></div>');
-    $('#dataWrapper').append(dataTableWrapper);
-
-    var dataTable = $('<table cellpadding="0" cellspacing="0" border="0" class="display" id="dataTable-' + id + '"></table>');
-    dataTableWrapper.append(dataTable);
-
-    var aaData = [];
-    for (var i in data['values']) {
-        aaData.push([data.values[i]['x'], data.values[i]['y']])
-    }
-
-    dataTable.dataTable({
-        "aaData": aaData,
-        "aoColumns": [
-            { "sTitle": "Date" },
-            { "sTitle": "Value" },
-        ]
-    });
-}
-
-function createLinesGraph(data, graphStructure, canvas, input, canvasHeightGraph, translateX, translateY, translateLabelY) {
-    var canvasGroup = graphStructure.createCanvasGroup(canvas, translateX, translateY);
-    var linesGraph = new killbillGraph.KBLinesGraph(canvasGroup, data, input.canvasWidth, canvasHeightGraph, d3.scale.category20b());
-    linesGraph.drawLines();
-    linesGraph.addLabels("labelsLine", translateLabelY);
-    linesGraph.addMouseOverCircleForValue();
-    return linesGraph;
-}
-
-
-function getMappingType(inputType) {
-    if (inputType == 'TIMELINE') {
-        return 'lines';
-    } else if (inputType == 'COUNTERS') {
-        return 'pie';
-    } else {
-        return 'unknown';
-    }
-}
-
-function drawAll(input) {
-
-    var inputData = input.data;
-
-    var nbGraphs = inputData.length + 1;
-    var canvasHeigthWithMargins = input.topMargin + (nbGraphs * input.canvasHeigth) + ((nbGraphs - 1) * input.betweenGraphMargin) + input.bottomMargin;
-    var canvasHeigthGraph = input.canvasHeigth;
-
-    var translateX = input.leftMargin;
-
-    var graphStructure = new killbillGraph.GraphStructure();
-
-
-    graphStructure.setupDomStructure();
-    var canvas = graphStructure.createCanvas([input.topMargin, input.rightMargin, input.bottomMargin, input.leftMargin],
-            input.canvasWidth, canvasHeigthWithMargins);
-
-
-    var curTranslateY = input.topMargin;
-    var curTranslateLabelY = curTranslateY + (canvasHeigthGraph / 2);
-
-    for (var i = 0; i < inputData.length; i++) {
-
-
-        var curInput = inputData[i];
-        var curType = getMappingType(curInput.type);
-        var curData = curInput.data;
-        var curTitle = curInput.title;
-
-        // Add the xAxis tick first for ordering purpose.
-        var nextTranslateY = curTranslateY + canvasHeigthGraph;
-        var xAxisCanvaGroup;
-        if (curType == 'lines' || curType == 'layers') {
-            xAxisCanvaGroup = graphStructure.createCanvasGroup(canvas, translateX, nextTranslateY);
-        }
-
-        var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
-        var theGraph;
-        if (curType == 'lines') {
-            theGraph = new killbillGraph.KBLinesGraph(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20b());
-            theGraph.drawLines();
-            theGraph.addLegend();
-        } else if (curType == 'layers') {
-            theGraph = new killbillGraph.KBLayersGraph(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
-            theGraph.drawStackLayers();
-            theGraph.addLegend();
-        } else if (curType == 'pie') {
-            theGraph = new killbillGraph.KBPie(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c(), true);
-            theGraph.drawPie();
-            theGraph.addLegend();
-        } else if (curType == 'histogram') {
-            var canvasGrp = graphStructure.createCanvasGroup(canvas, translateX, curTranslateY);
-            theGraph = new killbillGraph.KBHistogram(canvasGrp, curTitle, curData, input.canvasWidth, canvasHeigthGraph, d3.scale.category20c());
-            theGraph.drawHistogram();
-        }
-
-        curTranslateLabelY = curTranslateLabelY;
-        curTranslateY = nextTranslateY;
-
-        if (curType == 'lines' || curType == 'layers') {
-            theGraph.createXAxis(xAxisCanvaGroup, canvasHeigthGraph);
-        }
-        theGraph.addOnMouseHandlers();
-        curTranslateY = curTranslateY + input.betweenGraphMargin;
-    }
-}
-</script>
 </body>
 </html>

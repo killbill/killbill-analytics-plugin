@@ -89,13 +89,7 @@ Reports.prototype.availableReports = function(callback) {
 }
 
 Reports.prototype.getDataForReport = function(position, callback) {
-    var url = this.buildBaseURL('/plugins/killbill-analytics/reports');
-    url += '?startDate=' + this.startDate;
-    url += '&endDate=' + this.endDate;
-    url += '&name=' + this.reports[position].join('&name=');
-    if (this.smoothingFunctions[position]) {
-        url += '&smooth=' + this.smoothingFunctions[position]
-    }
+    var url = this.buildDataURL(position);
 
     return $.ajax({
         type: 'GET',
@@ -136,9 +130,11 @@ Reports.prototype.getDataForReports = function(callback) {
     for (var position in this.reports) {
         // Fetch the data
         var future = this.getDataForReport(position, function(zePosition, reportsData) {
-            if (!(reportsData instanceof Array) || reportsData.length == 0) {
-                futuresData[zePosition - 1] = { "name": "No data", "values": [] };
+            if (!(reportsData instanceof Array) || reportsData.length == 0 || reportsData[0].data.length == 0) {
+                log.debug('Report at position ' + (zePosition - 1) + ' has not data')
+                // Skip, to avoid confusing the graphing library
             } else {
+                log.debug('Got data for report at position ' + (zePosition - 1));
                 log.trace(reportsData);
                 futuresData[zePosition - 1] = reportsData[0];
             }
@@ -146,8 +142,8 @@ Reports.prototype.getDataForReports = function(callback) {
         futures.push(future);
     }
 
-    // Apply callback on join
-    $.when.apply(null, futures).done(function() { callback(futuresData); });
+    // Apply callback on join (and remove skipped reports, with no data)
+    $.when.apply(null, futures).done(function() { callback($.grep(futuresData, function(e) { return e; })); });
 }
 
 Reports.prototype.buildRefreshURL = function(newReports, newStartDate, newEndDate) {
@@ -176,6 +172,19 @@ Reports.prototype.buildRefreshURL = function(newReports, newStartDate, newEndDat
 
     return url;
 };
+
+Reports.prototype.buildDataURL = function(position, format) {
+    var url = this.buildBaseURL('/plugins/killbill-analytics/reports');
+    url += '?format=' + (format ? format : 'json')
+    url += '&startDate=' + this.startDate;
+    url += '&endDate=' + this.endDate;
+    url += '&name=' + this.reports[position].join('&name=');
+    if (this.smoothingFunctions[position]) {
+        url += '&smooth=' + this.smoothingFunctions[position]
+    }
+
+    return url;
+}
 
 Reports.prototype.buildBaseURL = function(path) {
     return this.protocol + '://' + this.host + ':' + this.port + path;

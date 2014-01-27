@@ -142,14 +142,12 @@ public class ReportsServlet extends BaseServlet {
             resp.getOutputStream().write(jsonMapper.writeValueAsBytes(results));
             resp.setContentType("application/json");
         }
-        setCrossSiteScriptingHeaders(resp);
     }
 
     private void listReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         final List<ReportConfigurationJson> reports = reportsUserApi.getReports();
         resp.getOutputStream().write(jsonMapper.writeValueAsBytes(reports));
         resp.setContentType("application/json");
-        setCrossSiteScriptingHeaders(resp);
     }
 
     static void writeAsCSV(final List<Chart> charts, final OutputStream out) throws IOException {
