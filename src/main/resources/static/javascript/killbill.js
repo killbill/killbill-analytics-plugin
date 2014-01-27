@@ -83,7 +83,8 @@
             this.maxValue = max + 2;
         }
 
-        this.drawHistogram = function () {
+
+        this.draw = function () {
 
             this.computeMinMax();
 
@@ -182,6 +183,12 @@
             return result;
         }
 
+        this.draw = function () {
+            this.addLegend();
+            this.drawPie();
+            this.addOnMouseHandlers();
+        }
+
         this.drawPie = function () {
 
             var vis = this.graphCanvas
@@ -241,7 +248,7 @@
                     return myself.data[i].value;
                 })
                 .attr("display", function (d, i) {
-                   return  myself.getDisplayValue(myself.data[i].value);
+                    return  myself.getDisplayValue(myself.data[i].value);
                 });
         }
 
@@ -418,16 +425,27 @@
          * - scaleY is the d3 scale built based on height and y point range
          */
         this.createYAxis = function (scaleY) {
-            var yAxisLeft = d3.svg.axis().scale(scaleY).ticks(4).orient("left");
+            var yAxisLeft = d3.svg.axis().scale(scaleY).ticks(6).tickSize([-(this.width + 25)]).orient("left");
+
             this.graphCanvas.append("svg:g")
                 .attr("class", "y axis")
+                .attr("id", "yaxis-" + this['id'])
                 .attr("transform", "translate(-25,0)")
                 .call(yAxisLeft);
+
+            /*
+            $("#yaxis-" + this['id']).children().each(function (i) {
+               if ($(this).attr('class') == 'domain') {
+                   //$(this).attr("display", "none");
+               }
+                console.log("Got element " + $(this).attr('class'));
+            });
+            */
         }
 
         /**
          * Create the 'X' axis in a new svg group
-         * - dataLayer : the data for the layer forma
+         * - dataLayer : the data for the layer format
          * - xAxisGraphGroup the group where this axis will be attached to
          * - xAxisHeightTick the height of the ticks
          */
@@ -535,7 +553,7 @@
         }
 
 
-        this.numberWithCommas = function(x) {
+        this.numberWithCommas = function (x) {
             var parts = x.toString().split(".");
             parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
             return parts.join(".");
@@ -579,12 +597,12 @@
         /**
          * Create a new group for the circles-- no translations needed
          */
-        this.createCircleGroup = function (canvas, lineId) {
+        this.createCircleGroup = function (lineId) {
             return this.graphCanvas.append("svg:g")
                 .attr("id", "circles-" + lineId);
         }
 
-        this.createOverlayGroup = function (canvas, lineId) {
+        this.createOverlayGroup = function (lineId) {
             return this.graphCanvas.append("svg:g")
                 .attr("id", "overlay-" + lineId);
         }
@@ -702,42 +720,16 @@
             });
         }
 
-        this.addMouseLegend = function () {
 
-            $('rect').each(function (i) {
-
-                var curLegendId = $(this).attr("id");
-                if (curLegendId === undefined || curLegendId.substring(0, 10) != "ts-legend-") {
-                    return;
-                }
-
-                var pathId = $(this).attr("id").replace("ts-legend", "path");
-                var path = $("#" + pathId);
-
-                var myself = $(this);
-                $(this).hover(function () {
-                    path.attr("stroke-width", 3);
-                    myself.attr("width", 15)
-                        .attr("height", 15)
-                        .attr('transform', 'translate(-3,-3)');
-                }, function () {
-                    setTimeout(
-                        function () {
-                            path.attr("stroke-width", 1.5);
-                            myself.attr("width", 11)
-                                .attr("height", 11)
-                                .attr('transform', 'translate(0,0)');
-                        }, 100);
-
-
-                });
-            });
+        this.performActionOnMouseHoverLegend = function () {
         }
 
         /* Build and save colorMap */
         this.colorMap = this.createColorMap();
 
         this.data = this.addDataId();
+        this.id = (Math.random() + 1).toString(36).substring(7);
+
     }
 
     /**
@@ -823,8 +815,14 @@
                     return area(d.values);
                 })
                 .attr("id", function (d) {
-                    return d.id;
+                    return "path-" + d.id;
                 });
+        }
+
+        this.draw = function () {
+            this.addLegend();
+            this.drawStackLayers();
+            this.addOnMouseHandlers();
         }
 
         /**
@@ -864,7 +862,7 @@
 
             dataY0 = null;
             for (var i = 0; i < this.data.length; i++) {
-                var circleGroup = this.createCircleGroup(this.data[i]['id']);
+                var circleGroup = this.createOverlayGroup(this.data[i]['id']);
                 var dataY = this.extractKeyOrValueFromDataLayer(this.data[i], 'y');
                 if (dataY0) {
                     for (var k = 0; k < dataY.length; k++) {
@@ -875,10 +873,59 @@
                 dataY0 = dataY;
             }
 
-
             this.createYAxis(scaleY);
         }
 
+        this.addMouseLegend = function () {
+
+            var myself = this;
+            $('rect').each(function (i) {
+
+                var curLegendId = $(this).attr("id");
+                if (curLegendId === undefined || curLegendId.substring(0, 10) != "ts-legend-") {
+                    return;
+                }
+
+                var pathId = $(this).attr("id").replace("ts-legend", "path");
+                var path = $("#" + pathId);
+
+                var otherPaths = new Array();
+                var otherCircles = new Array();
+                for (var i = 0; i < myself.data.length; i++) {
+                    if ("path-" + myself.data[i]['id'] != pathId) {
+                        var curPath = $("#path-" + myself.data[i]['id']);
+                        otherPaths.push(curPath);
+
+                        var curCircle = $("#circles-" + myself.data[i]['id']);
+                        otherCircles.push(curCircle);
+                    }
+                }
+
+                var myLegendRect = $(this);
+                $(this).hover(function () {
+                    for (var i = 0; i < otherPaths.length; i++) {
+                        otherPaths[i].attr("opacity", 0.1);
+                        otherCircles[i].attr("opacity", 0);
+                    }
+
+                    myLegendRect.attr("width", 15)
+                        .attr("height", 15)
+                        .attr('transform', 'translate(-3,-3)');
+                }, function () {
+                    setTimeout(
+                        function () {
+
+                            for (var i = 0; i < otherPaths.length; i++) {
+                                otherPaths[i].attr("opacity", 1.0);
+                                otherCircles[i].attr("opacity", 1.0);
+                            }
+                            myLegendRect.attr("width", 11)
+                                .attr("height", 11)
+                                .attr('transform', 'translate(0,0)');
+                        }, 100);
+                });
+            });
+        }
     }
     killbillGraph.KBLayersGraph.prototype = Object.create(killbillGraph.KBTimeSeriesBase.prototype);
 
@@ -941,6 +988,12 @@
                 .style("stroke", lineColor);
         }
 
+        this.draw = function () {
+            this.addLegend();
+            this.drawLines();
+            this.addOnMouseHandlers();
+        }
+
         /**
          * Draw all lines
          * It will create its Y axis
@@ -975,7 +1028,37 @@
             this.createYAxis(scaleY);
         }
 
+        this.addMouseLegend = function () {
+
+            $('rect').each(function (i) {
+
+                var curLegendId = $(this).attr("id");
+                if (curLegendId === undefined || curLegendId.substring(0, 10) != "ts-legend-") {
+                    return;
+                }
+
+                var pathId = $(this).attr("id").replace("ts-legend", "path");
+                var path = $("#" + pathId);
+
+                var myLegendRect = $(this);
+                $(this).hover(function () {
+                    path.attr("stroke-width", 3);
+                    myLegendRect.attr("width", 15)
+                        .attr("height", 15)
+                        .attr('transform', 'translate(-3,-3)');
+                }, function () {
+                    setTimeout(
+                        function () {
+                            path.attr("stroke-width", 1.5);
+                            myLegendRect.attr("width", 11)
+                                .attr("height", 11)
+                                .attr('transform', 'translate(0,0)');
+                        }, 100);
+                });
+            });
+        }
     }
+
     killbillGraph.KBLinesGraph.prototype = Object.create(killbillGraph.KBTimeSeriesBase.prototype);
 
 
