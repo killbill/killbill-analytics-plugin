@@ -33,13 +33,20 @@ ReportsDataTables.prototype.buildAll = function(dataForAllReports) {
     $('#dataWrapper').append(linksWrapper);
 
     for (var idx in dataForAllReports) {
+        var hasAtLeastOneTable = false;
         for (var jdx in dataForAllReports[idx].data) {
-            // Reports position starts at 1
-            var position = parseInt(idx) + 1;
+            if (!dataForAllReports[idx].data[jdx].values || dataForAllReports[idx].data[jdx].values.length == 0) {
+                continue;
+            }
             this.build(dataForAllReports[idx].data[jdx], parseInt(idx) + parseInt(jdx));
+            hasAtLeastOneTable = true;
         }
 
-        var csvURL = this.reports.buildDataURL(position, 'csv');
-        links.append('<li>' + this.reports.reports[position] + ' <a href="' + csvURL + '">csv</a></li>');
+        if (hasAtLeastOneTable) {
+            // Reports position starts at 1
+            var position = parseInt(idx) + 1;
+            var csvURL = this.reports.buildDataURL(position, 'csv');
+            links.append('<li>' + this.reports.reports[position] + ' <a href="' + csvURL + '">csv</a></li>');
+        }
     }
 }
