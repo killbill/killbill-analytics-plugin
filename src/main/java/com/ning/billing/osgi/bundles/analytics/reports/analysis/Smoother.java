@@ -93,7 +93,7 @@ public abstract class Smoother {
                               new Function<XY, LocalDate>() {
                                   @Override
                                   public LocalDate apply(final XY input) {
-                                      return input.getxDate().toLocalDate().withDayOfWeek(DateTimeConstants.MONDAY);
+                                      return input.getxDate().withDayOfWeek(DateTimeConstants.MONDAY);
                                   }
                               });
             case MONTHLY:
@@ -101,7 +101,7 @@ public abstract class Smoother {
                               new Function<XY, LocalDate>() {
                                   @Override
                                   public LocalDate apply(final XY input) {
-                                      return input.getxDate().toLocalDate().withDayOfMonth(1);
+                                      return input.getxDate().withDayOfMonth(1);
                                   }
                               });
             default:

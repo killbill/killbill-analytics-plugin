@@ -16,8 +16,6 @@
 
 package com.ning.billing.osgi.bundles.analytics.json;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -29,27 +27,23 @@ public class XY {
     private final String x;
     private final Float y;
 
-    private final DateTime xDate;
+    private final LocalDate xDate;
 
     @JsonCreator
     public XY(@JsonProperty("x") final String x, @JsonProperty("y") final Float y) {
         this.x = x;
         this.y = y;
-        this.xDate = new DateTime(x, DateTimeZone.UTC);
+        this.xDate = new LocalDate(x);
     }
 
     public XY(final String x, final Integer y) {
         this(x, new Float(y.doubleValue()));
     }
 
-    public XY(final DateTime xDate, final Float y) {
-        this.x = xDate.toString();
+    public XY(final LocalDate xDate, final Float y) {
         this.y = y;
         this.xDate = xDate;
-    }
-
-    public XY(final LocalDate xDate, final Float y) {
-        this(xDate.toDateTimeAtStartOfDay(DateTimeZone.UTC), y);
+        this.x = xDate.toString();
     }
 
     public String getX() {
@@ -57,7 +51,7 @@ public class XY {
     }
 
     @JsonIgnore
-    public DateTime getxDate() {
+    public LocalDate getxDate() {
         return xDate;
     }
 

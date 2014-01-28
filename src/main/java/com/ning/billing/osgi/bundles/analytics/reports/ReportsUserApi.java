@@ -224,14 +224,14 @@ public class ReportsUserApi {
 
     // TODO PIERRE Naive implementation
     private void normalizeAndSortXValues(final Map<String, Map<String, List<XY>>> dataForReports, @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
-        DateTime minDate = null;
+        LocalDate minDate = null;
         if (startDate != null) {
-            minDate = startDate.toDateTimeAtStartOfDay(DateTimeZone.UTC);
+            minDate = startDate;
         }
 
-        DateTime maxDate = null;
+        LocalDate maxDate = null;
         if (endDate != null) {
-            maxDate = endDate.toDateTimeAtStartOfDay(DateTimeZone.UTC);
+            maxDate = endDate;
         }
 
         // If no min and/or max was specified, infer them from the data
@@ -255,8 +255,8 @@ public class ReportsUserApi {
         }
 
         // Add 0 for missing days
-        DateTime curDate = minDate;
-        while (maxDate.isAfter(curDate)) {
+        LocalDate curDate = minDate;
+        while (!curDate.isAfter(maxDate)) {
             for (final Map<String, List<XY>> dataForReport : dataForReports.values()) {
                 for (final List<XY> dataForPivot : dataForReport.values()) {
                     addMissingValueForDateIfNeeded(curDate, dataForPivot);
@@ -279,7 +279,7 @@ public class ReportsUserApi {
         }
     }
 
-    private void addMissingValueForDateIfNeeded(final DateTime curDate, final List<XY> dataForPivot) {
+    private void addMissingValueForDateIfNeeded(final LocalDate curDate, final List<XY> dataForPivot) {
         final XY valueForCurrentDate = Iterables.tryFind(dataForPivot, new Predicate<XY>() {
             @Override
             public boolean apply(final XY xy) {
