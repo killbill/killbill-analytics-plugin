@@ -146,7 +146,17 @@ Reports.prototype.getDataForReports = function(callback) {
     $.when.apply(null, futures).done(function() { callback($.grep(futuresData, function(e) { return e; })); });
 }
 
+Reports.prototype.buildRefreshURLForNewSmooth = function(position, newSmooth) {
+    var newReports = $.extend(true, {}, this);
+    newReports.smoothingFunctions[position] = newSmooth;
+    return newReports.buildRefreshURL();
+}
+
 Reports.prototype.buildRefreshURL = function(newReports, newStartDate, newEndDate) {
+    if (!newReports) {
+        newReports = this.reports;
+    }
+
     // Make sure to respect the current ordering if there is no change in reports
     var currentReportsSet = [];
     $.each(this.reports, function(position, reportName) {
@@ -169,6 +179,9 @@ Reports.prototype.buildRefreshURL = function(newReports, newStartDate, newEndDat
     for (var position in newReports) {
         var joinKey = '&report' + position + '=';
         url += joinKey + newReports[position].join(joinKey);
+        if (this.smoothingFunctions[position]) {
+            url += '&smooth' + position + '=' + this.smoothingFunctions[position];
+        }
     }
 
     return url;

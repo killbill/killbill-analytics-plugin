@@ -88,15 +88,17 @@ $(document).ready(function() {
         spinOptions['speed'] = 4;
         $('#loading-spinner').spin(spinOptions);
 
-        if (dataForAllReports.length == 0) {
-            displayInfo("Use the menu to select reports");
-        } else {
-            var reportsGraphs = new ReportsGraphs(reports);
-            reportsGraphs.drawAll(dataForAllReports);
+        try {
+            if (dataForAllReports.length == 0) {
+                displayInfo("Use the menu to select reports");
+            } else {
+                var reportsGraphs = new ReportsGraphs(reports);
+                reportsGraphs.drawAll(dataForAllReports);
+            }
+        } finally {
+            // Hide the loading indicator
+            $('#loading-spinner').spin(false);
         }
-
-        // Hide the loading indicator
-        $('#loading-spinner').spin(false);
     });
 });
 
