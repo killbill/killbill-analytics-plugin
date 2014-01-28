@@ -859,6 +859,7 @@
                 dataY0 = dataY;
             }
 
+            this.createYAxis(scaleY);
 
             dataY0 = null;
             for (var i = 0; i < this.data.length; i++) {
@@ -873,7 +874,6 @@
                 dataY0 = dataY;
             }
 
-            this.createYAxis(scaleY);
         }
 
         this.addMouseLegend = function () {
@@ -1016,6 +1016,7 @@
                 this.addCirclesForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY, this.getColor(k));
             }
 
+            this.createYAxis(scaleY);
 
             for (var k = 0; k < this.data.length; k++) {
                 var dataX = this.extractKeyOrValueFromDataLayer(this.data[0], 'x');
@@ -1025,7 +1026,6 @@
                 this.addOverlayForGraph(circleGroup, lineId, dataX, dataY, scaleX, scaleY);
 
             }
-            this.createYAxis(scaleY);
         }
 
         this.addMouseLegend = function () {
