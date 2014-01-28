@@ -83,6 +83,10 @@ ReportsGraphs.prototype.doDrawAll = function(input) {
 }
 
 ReportsGraphs.prototype.addSubtitle = function(input, data, i, yOffset, curType) {
+    if (curType != 'lines' && curType != 'layers') {
+        return;
+    }
+
     var subtitle = $('<div/>').attr('id', 'subtitle-' + i)
                               .css('position', 'absolute')
                               .css('top', yOffset + 'px');
@@ -124,46 +128,44 @@ ReportsGraphs.prototype.addSubtitle = function(input, data, i, yOffset, curType)
     });
     subtitle.append(dataTablesLink);
 
-    if (curType == 'lines' || curType == 'layers') {
-        subtitle.append("&nbsp;|&nbsp;");
+    subtitle.append("&nbsp;|&nbsp;");
 
-        // Add style link
-        var layersOrLines = $.url().param('__layersOrLines' + position);
-        if (!layersOrLines || layersOrLines != 'layers') {
-            var layersOrLinesLink = $('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURL() + '&__layersOrLines' + position + '=layers').text('Switch to layers');
-        } else {
-            var layersOrLinesLink = $('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURL() + '&__layersOrLines' + position + '=lines').text('Switch to lines');
-        }
-        subtitle.append(layersOrLinesLink);
+    // Add style link
+    var layersOrLines = $.url().param('__layersOrLines' + position);
+    if (!layersOrLines || layersOrLines != 'layers') {
+        var layersOrLinesLink = $('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURL() + '&__layersOrLines' + position + '=layers').text('Switch to layers');
+    } else {
+        var layersOrLinesLink = $('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURL() + '&__layersOrLines' + position + '=lines').text('Switch to lines');
+    }
+    subtitle.append(layersOrLinesLink);
 
-        // Add smoothing links
-        var firstLink = true;
-        var smooth = $.url().param('smooth' + position);
-        if (smooth) {
-            firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
-            firstLink = false;
-            subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position)).text('Raw data'));
-        }
-        if (smooth != 'AVERAGE_WEEKLY') {
-            firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
-            firstLink = false;
-            subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'AVERAGE_WEEKLY')).text('Weekly average'));
-        }
-        if (smooth != 'AVERAGE_MONTHLY') {
-            firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
-            firstLink = false;
-            subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'AVERAGE_MONTHLY')).text('Monthly average'));
-        }
-        if (smooth != 'SUM_WEEKLY') {
-            firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
-            firstLink = false;
-            subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'SUM_WEEKLY')).text('Weekly sum'));
-        }
-        if (smooth != 'SUM_MONTHLY') {
-            firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
-            firstLink = false;
-            subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'SUM_MONTHLY')).text('Monthly sum'));
-        }
+    // Add smoothing links
+    var firstLink = true;
+    var smooth = $.url().param('smooth' + position);
+    if (smooth) {
+        firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
+        firstLink = false;
+        subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position)).text('Raw data'));
+    }
+    if (smooth != 'AVERAGE_WEEKLY') {
+        firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
+        firstLink = false;
+        subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'AVERAGE_WEEKLY')).text('Weekly average'));
+    }
+    if (smooth != 'AVERAGE_MONTHLY') {
+        firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
+        firstLink = false;
+        subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'AVERAGE_MONTHLY')).text('Monthly average'));
+    }
+    if (smooth != 'SUM_WEEKLY') {
+        firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
+        firstLink = false;
+        subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'SUM_WEEKLY')).text('Weekly sum'));
+    }
+    if (smooth != 'SUM_MONTHLY') {
+        firstLink ? subtitle.append("&nbsp;|&nbsp;") : subtitle.append("&nbsp;/&nbsp;");
+        firstLink = false;
+        subtitle.append($('<a/>').attr('href', this.reportsDataTables.reports.buildRefreshURLForNewSmooth(position, 'SUM_MONTHLY')).text('Monthly sum'));
     }
 
     $('#charts').append(subtitle);
