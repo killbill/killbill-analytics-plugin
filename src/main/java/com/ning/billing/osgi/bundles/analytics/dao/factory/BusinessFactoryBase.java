@@ -445,7 +445,16 @@ public abstract class BusinessFactoryBase {
         final PaymentApi paymentApi = getPaymentUserApi();
 
         try {
+            // Try to get the refund information, with plugin information
             return paymentApi.getRefund(refundId, true, context);
+        } catch (PaymentApiException e) {
+            logService.log(LogService.LOG_WARNING, "Error retrieving refund for id " + refundId, e);
+        }
+
+        try {
+            // If we come here, it is possible that the plugin couldn't answer about the refund, maybe
+            // because it was deleted in the gateway. Try to return the Kill Bill specific info only
+            return paymentApi.getRefund(refundId, false, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving refund for id " + refundId, e);
             throw new AnalyticsRefreshException(e);

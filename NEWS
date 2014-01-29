@@ -1,3 +1,6 @@
+0.5.10
+    Make refreshes more robust in case of plugin failures
+
 0.5.9
     Dashboard improvements
 
