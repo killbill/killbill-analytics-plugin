@@ -59,7 +59,21 @@ public class ReportsConfiguration {
     }
 
     public void updateReportConfiguration(final ReportsConfigurationModelDao report) {
-        sqlDao.updateReportConfiguration(report);
+        sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
+            @Override
+            public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
+                transactional.updateReportConfiguration(report);
+
+                if (report.getRefreshFrequency() != null && report.getRefreshProcedureName() != null) {
+                    // Re-read the record to optimize the schedule creation path
+                    final ReportsConfigurationModelDao reportWithRecordId = transactional.getReportConfigurationForReport(report.getReportName());
+                    scheduler.unSchedule(reportWithRecordId, transactional);
+                    scheduler.schedule(reportWithRecordId, transactional);
+                }
+
+                return null;
+            }
+        });
     }
 
     public void deleteReportConfiguration(final String reportName) {
