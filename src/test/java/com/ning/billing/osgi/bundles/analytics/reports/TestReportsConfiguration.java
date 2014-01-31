@@ -80,7 +80,8 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(updatedReport1));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName()).equalsNoRecordId(report2));
         Assert.assertEquals(jobsScheduler.schedules().size(), 2);
-        Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
+        Assert.assertEquals(jobsScheduler.schedules().get(0).getReportName(), report1.getReportName());
+        Assert.assertEquals(jobsScheduler.schedules().get(0).getRefreshFrequency(), Frequency.HOURLY);
         Assert.assertEquals(jobsScheduler.schedules().get(1), reportJob2);
 
         // Delete the second one
@@ -89,7 +90,7 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(updatedReport1));
         Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(updatedReport1));
         Assert.assertEquals(jobsScheduler.schedules().size(), 1);
-        Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
+        Assert.assertEquals(jobsScheduler.schedules().get(0).getReportName(), report1.getReportName());
     }
 
     private ReportsConfigurationModelDao createReportConfiguration() {

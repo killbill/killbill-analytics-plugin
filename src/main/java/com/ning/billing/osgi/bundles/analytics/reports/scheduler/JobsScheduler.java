@@ -114,31 +114,39 @@ public class JobsScheduler {
 
     public void unSchedule(final ReportsConfigurationModelDao report, final Transmogrifier transmogrifier) {
         final AnalyticsReportJob eventJson = new AnalyticsReportJob(report);
-        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotificationsForReportJob(eventJson)) {
+        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotificationsForReportJob(eventJson, transmogrifier)) {
             jobQueue.removeNotificationFromTransaction(transmogrifier, notification.getRecordId());
         }
     }
 
     public List<AnalyticsReportJob> schedules() {
         final List<AnalyticsReportJob> schedules = new LinkedList<AnalyticsReportJob>();
-        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotifications()) {
+        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotifications(null)) {
             schedules.add(notification.getEvent());
         }
         return schedules;
     }
 
-    private List<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications() {
-        return jobQueue.getFutureNotificationForSearchKey2(AnalyticsReportJob.class, JOBS_SCHEDULER_VERSION);
+    private List<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable Transmogrifier transmogrifier) {
+        if (transmogrifier == null) {
+            return jobQueue.getFutureNotificationForSearchKey2(AnalyticsReportJob.class, JOBS_SCHEDULER_VERSION);
+        } else {
+            return jobQueue.getFutureNotificationFromTransactionForSearchKey2(AnalyticsReportJob.class, JOBS_SCHEDULER_VERSION, transmogrifier);
+        }
     }
 
-    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob) {
+    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob, @Nullable Transmogrifier transmogrifier) {
         final Integer eventJsonRecordId = reportJob.getRecordId();
         if (eventJsonRecordId != null) {
             // Fast search path
-            return jobQueue.getFutureNotificationForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJsonRecordId));
+            if (transmogrifier == null) {
+                return jobQueue.getFutureNotificationForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJsonRecordId));
+            } else {
+                return jobQueue.getFutureNotificationFromTransactionForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJsonRecordId), transmogrifier);
+            }
         } else {
             // Slow search path
-            return Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>filter(getFutureNotifications(),
+            return Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>filter(getFutureNotifications(transmogrifier),
                                                                                        new Predicate<NotificationEventWithMetadata<AnalyticsReportJob>>() {
                                                                                            @Override
                                                                                            public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> existingJob) {
@@ -150,7 +158,7 @@ public class JobsScheduler {
 
     private void schedule(final AnalyticsReportJob eventJson, @Nullable final Transmogrifier transmogrifier) {
         // Verify we don't already have a job for that report
-        if (getFutureNotificationsForReportJob(eventJson).iterator().hasNext()) {
+        if (getFutureNotificationsForReportJob(eventJson, transmogrifier).iterator().hasNext()) {
             logService.log(LogService.LOG_DEBUG, "Skipping already present job for report " + eventJson.toString());
             return;
         }
