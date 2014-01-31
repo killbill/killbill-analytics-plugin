@@ -36,7 +36,7 @@ public class ServletRouter extends BaseServlet {
     private static final String REPORTS_RESOURCES = "reports";
 
     private final Pattern STATIC_PATTERN = Pattern.compile("/" + STATIC_RESOURCES + "/(" + ANYTHING_PATTERN + ")");
-    private final Pattern REPORTS_PATTERN = Pattern.compile("/" + REPORTS_RESOURCES + "(/(" + STRING_PATTERN + "))?");
+    private final Pattern REPORTS_PATTERN = Pattern.compile("/" + REPORTS_RESOURCES + "(/(" + STRING_PATTERN + "))?" + "(/refresh)?");
     private final Pattern ANALYTICS_PATTERN = Pattern.compile("/(" + UUID_PATTERN + ")");
 
     private final StaticServlet staticServlet;
@@ -97,13 +97,13 @@ public class ServletRouter extends BaseServlet {
         if (matcher.matches()) {
             // matcher.group(1) is /reportName
             req.setAttribute(REPORT_NAME_ATTRIBUTE, matcher.group(2));
+            req.setAttribute(SHOULD_REFRESH, matcher.groupCount() > 2 && "/refresh".equals(matcher.group(3)));
             reportsServlet.service(req, resp);
             return;
         }
 
         matcher = ANALYTICS_PATTERN.matcher(pathInfo);
         if (matcher.matches()) {
-
             final String kbAccountIdString = matcher.group(1);
 
             final UUID kbAccountId;

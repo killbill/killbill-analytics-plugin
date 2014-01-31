@@ -35,6 +35,7 @@ public abstract class BaseServlet extends HttpServlet {
 
     protected static final String RESOURCE_NAME_ATTRIBUTE = "resourceName";
     protected static final String REPORT_NAME_ATTRIBUTE = "reportName";
+    protected static final String SHOULD_REFRESH = "shouldRefresh";
     protected static final String KB_ACCOUNT_ID_ATTRIBUTE = "kbAccountId";
 
     protected static final ObjectMapper jsonMapper = ObjectMapperProvider.getJsonMapper();

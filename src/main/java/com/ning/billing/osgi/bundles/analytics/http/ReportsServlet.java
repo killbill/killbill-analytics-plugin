@@ -19,7 +19,6 @@ package com.ning.billing.osgi.bundles.analytics.http;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
@@ -98,10 +97,8 @@ public class ReportsServlet extends BaseServlet {
             return;
         }
 
-        final Matcher matcher = REPORT_REFRESH_PATTERN.matcher(reportName);
-        if (matcher.matches()) {
-            // reportName was actually reportName/refresh
-            reportsUserApi.refreshReport(matcher.group(1));
+        if ((Boolean) req.getAttribute(SHOULD_REFRESH)) {
+            reportsUserApi.refreshReport(reportName);
         } else {
             final ReportConfigurationJson reportConfigurationJson = jsonMapper.readValue(req.getInputStream(), ReportConfigurationJson.class);
             reportsUserApi.updateReport(reportName, reportConfigurationJson);
