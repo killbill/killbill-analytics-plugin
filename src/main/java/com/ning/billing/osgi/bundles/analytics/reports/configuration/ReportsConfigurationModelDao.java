@@ -60,12 +60,12 @@ public class ReportsConfigurationModelDao {
     public ReportsConfigurationModelDao(final ReportConfigurationJson reportConfigurationJson, final ReportsConfigurationModelDao currentReportsConfigurationModelDao) {
         this(currentReportsConfigurationModelDao.getRecordId(), // Never override
              currentReportsConfigurationModelDao.getReportName(), // Never override
-             Objects.firstNonNull(reportConfigurationJson.getReportPrettyName(), currentReportsConfigurationModelDao.getReportPrettyName()),
+             reportConfigurationJson.getReportPrettyName() != null ? reportConfigurationJson.getReportPrettyName() : currentReportsConfigurationModelDao.getReportPrettyName(),
              currentReportsConfigurationModelDao.getReportType(),
              Objects.firstNonNull(reportConfigurationJson.getSourceTableName(), currentReportsConfigurationModelDao.getSourceTableName()),
-             Objects.firstNonNull(reportConfigurationJson.getRefreshProcedureName(), currentReportsConfigurationModelDao.getRefreshProcedureName()),
-             Objects.firstNonNull(reportConfigurationJson.getRefreshFrequency(), currentReportsConfigurationModelDao.getRefreshFrequency()),
-             Objects.firstNonNull(reportConfigurationJson.getRefreshHourOfDayGmt(), currentReportsConfigurationModelDao.getRefreshHourOfDayGmt()));
+             reportConfigurationJson.getRefreshProcedureName() != null ? reportConfigurationJson.getRefreshProcedureName() : currentReportsConfigurationModelDao.getRefreshProcedureName(),
+             reportConfigurationJson.getRefreshFrequency() != null ? reportConfigurationJson.getRefreshFrequency() : currentReportsConfigurationModelDao.getRefreshFrequency(),
+             reportConfigurationJson.getRefreshHourOfDayGmt() != null ? reportConfigurationJson.getRefreshHourOfDayGmt() : currentReportsConfigurationModelDao.getRefreshHourOfDayGmt());
     }
 
     public ReportsConfigurationModelDao(final String reportName, final String reportPrettyName, final ReportType type, final String sourceTableName,
@@ -113,7 +113,9 @@ public class ReportsConfigurationModelDao {
         return refreshHourOfDayGmt;
     }
 
-    public ReportType getReportType() { return reportType; }
+    public ReportType getReportType() {
+        return reportType;
+    }
 
     @Override
     public String toString() {
