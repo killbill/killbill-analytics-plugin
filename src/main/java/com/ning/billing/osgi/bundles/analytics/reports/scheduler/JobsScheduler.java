@@ -204,7 +204,7 @@ public class JobsScheduler {
         Handle handle = null;
         try {
             handle = dbi.open();
-            final Call call = handle.createCall(storedProcedureName);
+            final Call call = handle.createCall("call " + storedProcedureName);
             call.invoke();
         } finally {
             if (handle != null) {
