@@ -21,31 +21,49 @@ import org.testng.annotations.Test;
 
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 
+import com.google.common.collect.ImmutableList;
+
 public class TestReportSpecification extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testParserInclusions() throws Exception {
-        final String rawReportName = "payments_per_day|currency=AUD|currency=EUR";
+        final String rawReportName = "payments_per_day;filter:currency=AUD;filter:currency=EUR;dimension:currency;dimension:state;metric:amount;metric:fee";
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
         Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");
 
-        Assert.assertFalse(reportSpecification.isFiltered("currency", "AUD"));
-        Assert.assertFalse(reportSpecification.isFiltered("currency", "EUR"));
-        Assert.assertTrue(reportSpecification.isFiltered("currency", "FOO"));
+        Assert.assertEquals(reportSpecification.getDimensions(), ImmutableList.<String>of("currency", "state"));
+        Assert.assertEquals(reportSpecification.getMetrics(), ImmutableList.<String>of("amount", "fee"));
 
-        Assert.assertFalse(reportSpecification.isFiltered("pivot", "AUD"));
+        Assert.assertEquals(reportSpecification.getFilterExpression().toString(), "(currency=AUD | currency=EUR)");
     }
 
     @Test(groups = "fast")
     public void testParserExclusions() throws Exception {
-        final String rawReportName = "payments_per_day|currency!=AUD|currency!=EUR";
+        final String rawReportName = "payments_per_day;filter:currency!=AUD;filter:currency!=EUR";
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
         Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");
 
-        Assert.assertTrue(reportSpecification.isFiltered("currency", "AUD"));
-        Assert.assertTrue(reportSpecification.isFiltered("currency", "EUR"));
-        Assert.assertFalse(reportSpecification.isFiltered("currency", "FOO"));
+        Assert.assertTrue(reportSpecification.getDimensions().isEmpty());
+        Assert.assertTrue(reportSpecification.getMetrics().isEmpty());
 
-        Assert.assertFalse(reportSpecification.isFiltered("pivot", "AUD"));
+        Assert.assertEquals(reportSpecification.getFilterExpression().toString(), "(currency!=AUD | currency!=EUR)");
+    }
+
+    @Test(groups = "fast")
+    public void testParserComplexFilter() throws Exception {
+        final String rawReportName = "payments_per_day;" +
+                                     "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED);" +
+                                     "filter:name~'John Doe'&age>=35|name!~Fred&age<24";
+        final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
+        Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");
+
+        Assert.assertTrue(reportSpecification.getDimensions().isEmpty());
+        Assert.assertTrue(reportSpecification.getMetrics().isEmpty());
+
+        Assert.assertEquals(reportSpecification.getFilterExpression().toString(), "(" +
+                                                                                  "((age<24 & name!~Fred) | (age>=35 & name~'John Doe')) " +
+                                                                                  "| " +
+                                                                                  "((currency=EUR & state=PROCESSED) | (currency=USD & state!=ERRORED))" +
+                                                                                  ")");
     }
 }

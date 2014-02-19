@@ -30,8 +30,6 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
@@ -135,11 +133,27 @@ public class ReportsUserApi {
                                                                                       });
     }
 
+    // Useful for testing
+    public List<String> getSQLForReport(final String[] rawReportNames,
+                                        @Nullable final LocalDate startDate,
+                                        @Nullable final LocalDate endDate) {
+        final List<String> sqlQueries = new LinkedList<String>();
+        for (final String rawReportName : rawReportNames) {
+            final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
+            final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfiguration.getReportConfigurationForReport(reportSpecification.getReportName()).getSourceTableName(),
+                                                                                             reportSpecification,
+                                                                                             startDate,
+                                                                                             endDate);
+            sqlQueries.add(sqlReportDataExtractor.toString());
+        }
+
+        return sqlQueries;
+    }
+
     public List<Chart> getDataForReport(final String[] rawReportNames,
                                         @Nullable final LocalDate startDate,
                                         @Nullable final LocalDate endDate,
                                         @Nullable final SmootherType smootherType) {
-
         final List<Chart> result = new LinkedList<Chart>();
         final Map<String, Map<String, List<XY>>> timeSeriesData = new ConcurrentHashMap<String, Map<String, List<XY>>>();
 
@@ -154,7 +168,6 @@ public class ReportsUserApi {
 
         final List<Future> jobs = new LinkedList<Future>();
         for (final ReportSpecification reportSpecification : reportSpecifications) {
-
             final String reportName = reportSpecification.getReportName();
             final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
             final String tableName = reportConfiguration.getSourceTableName();
@@ -199,7 +212,6 @@ public class ReportsUserApi {
 
 
     private List<Chart> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
-
         final List<Chart> results = new LinkedList<Chart>();
         final List<DataMarker> timeSeries = new LinkedList<DataMarker>();
         for (final String reportName : dataForReports.keySet()) {
@@ -293,11 +305,9 @@ public class ReportsUserApi {
     }
 
     private List<DataMarker> getCountersData(final String tableName) {
-
         return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
             @Override
             public List<DataMarker> withHandle(final Handle handle) throws Exception {
-
                 final List<Map<String, Object>> results = handle.select("select * from " + tableName);
                 if (results.size() == 0) {
                     return Collections.emptyList();
@@ -326,11 +336,14 @@ public class ReportsUserApi {
                                                     final ReportSpecification reportSpecification,
                                                     @Nullable final LocalDate startDate,
                                                     @Nullable final LocalDate endDate) {
-
+        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName,
+                                                                                         reportSpecification,
+                                                                                         startDate,
+                                                                                         endDate);
         return dbi.withHandle(new HandleCallback<Map<String, List<XY>>>() {
             @Override
             public Map<String, List<XY>> withHandle(final Handle handle) throws Exception {
-                final List<Map<String, Object>> results = handle.select("select * from " + tableName);
+                final List<Map<String, Object>> results = handle.select(sqlReportDataExtractor.toString());
                 if (results.size() == 0) {
                     Collections.emptyMap();
                 }
@@ -338,67 +351,48 @@ public class ReportsUserApi {
                 final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
                 for (final Map<String, Object> row : results) {
                     final Object dateObject = row.get(DAY_COLUMN_NAME);
-                    final Object countObject = row.get(COUNT_COLUMN_NAME);
-                    if (dateObject == null || countObject == null) {
+                    if (dateObject == null) {
                         continue;
                     }
-
                     final String date = dateObject.toString();
-                    final Float value = Float.valueOf(countObject.toString());
 
-                    if (shouldFilterRow(date, row, reportSpecification, startDate, endDate)) {
-                        continue;
-                    }
+                    final String baseSeriesName = createBaseNameForSeries(row, reportSpecification);
+                    for (final String column : row.keySet()) {
+                        if (reportSpecification.getMetrics().contains(column)) {
+                            // Create a unique name for that result set
+                            final String seriesName = baseSeriesName + " :: " + column;
+                            if (timeSeries.get(seriesName) == null) {
+                                timeSeries.put(seriesName, new LinkedList<XY>());
+                            }
 
-                    // Create a unique name for that result set
-                    final String pivot = createNameForSeries(row);
-                    if (timeSeries.get(pivot) == null) {
-                        timeSeries.put(pivot, new LinkedList<XY>());
+                            final Float value = Float.valueOf(row.get(column).toString());
+                            timeSeries.get(seriesName).add(new XY(date, value));
+                        }
                     }
-                    timeSeries.get(pivot).add(new XY(date, value));
                 }
+
                 return timeSeries;
             }
         });
     }
 
-    private String createNameForSeries(final Map<String, Object> row) {
+    private String createBaseNameForSeries(final Map<String, Object> row, final ReportSpecification reportSpecification) {
         int i = 0;
-        final StringBuilder pivotBuilder = new StringBuilder();
+        final StringBuilder seriesNameBuilder = new StringBuilder();
         for (final String column : row.keySet()) {
-            if (DAY_COLUMN_NAME.equals(column) || COUNT_COLUMN_NAME.equals(column)) {
-                continue;
-            } else {
+            if (reportSpecification.getDimensions().contains(column)) {
                 if (i > 0) {
-                    pivotBuilder.append(" :: ");
+                    seriesNameBuilder.append(" :: ");
                 }
-                pivotBuilder.append(row.get(column) == null ? "NULL" : row.get(column).toString());
+                seriesNameBuilder.append(row.get(column) == null ? "NULL" : row.get(column).toString());
                 i++;
             }
         }
         if (i == 0) {
             return NO_PIVOT;
         } else {
-            return pivotBuilder.toString();
+            return seriesNameBuilder.toString();
         }
-    }
-
-    private boolean shouldFilterRow(final String date, final Map<String, Object> row, final ReportSpecification reportSpecification,
-                                    @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
-        // Handle the dates filter
-        final LocalDate localDate = new DateTime(date, DateTimeZone.UTC).toLocalDate();
-        if (startDate != null && localDate.isBefore(startDate) || endDate != null && localDate.isAfter(endDate)) {
-            return true;
-        }
-
-        for (final String column : row.keySet()) {
-            if (row.get(column) == null) {
-                continue;
-            } else if (reportSpecification.isFiltered(column, row.get(column).toString())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private ReportsConfigurationModelDao getReportConfiguration(final String reportName, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {

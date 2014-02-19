@@ -18,8 +18,8 @@ package com.ning.billing.osgi.bundles.analytics.http;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -48,8 +48,6 @@ import com.google.common.base.Strings;
 // Handle /plugins/killbill-analytics/reports/<reportName>
 public class ReportsServlet extends BaseServlet {
 
-    private final Pattern REPORT_REFRESH_PATTERN = Pattern.compile("(" + STRING_PATTERN + ")/refresh");
-
     private static final String CSV_DATA_FORMAT = "csv";
     private static final String JSON_DATA_FORMAT = "json";
 
@@ -61,6 +59,7 @@ public class ReportsServlet extends BaseServlet {
     private static final String REPORTS_QUERY_END_DATE = "endDate";
     private static final String REPORTS_SMOOTHER_NAME = "smooth";
     private static final String REPORTS_DATA_FORMAT = "format";
+    private static final String REPORT_QUERY_SQL_ONLY = "sqlOnly";
 
     public ReportsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
         super(analyticsUserApi, reportsUserApi, logService);
@@ -125,19 +124,28 @@ public class ReportsServlet extends BaseServlet {
         final LocalDate startDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_START_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_START_DATE)) : null;
         final LocalDate endDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_END_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_END_DATE)) : null;
 
-        final SmootherType smootherType = Smoother.fromString(Strings.emptyToNull(req.getParameter(REPORTS_SMOOTHER_NAME)));
+        final boolean sqlOnly = req.getParameter(REPORT_QUERY_SQL_ONLY) != null;
 
-        // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
-        final List<Chart> results = reportsUserApi.getDataForReport(rawReportNames, startDate, endDate, smootherType);
-
-        final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
-        if (CSV_DATA_FORMAT.equals(format)) {
-            final OutputStream out = resp.getOutputStream();
-            writeAsCSV(results, out);
-            resp.setContentType("text/csv");
+        if (sqlOnly) {
+            for (final String sql : reportsUserApi.getSQLForReport(rawReportNames, startDate, endDate)) {
+                resp.getOutputStream().write(("\n" + sql + "\n").getBytes(Charset.forName("UTF-8")));
+            }
+            resp.setContentType("text/plain");
         } else {
-            resp.getOutputStream().write(jsonMapper.writeValueAsBytes(results));
-            resp.setContentType("application/json");
+            final SmootherType smootherType = Smoother.fromString(Strings.emptyToNull(req.getParameter(REPORTS_SMOOTHER_NAME)));
+
+            // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
+            final List<Chart> results = reportsUserApi.getDataForReport(rawReportNames, startDate, endDate, smootherType);
+
+            final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
+            if (CSV_DATA_FORMAT.equals(format)) {
+                final OutputStream out = resp.getOutputStream();
+                writeAsCSV(results, out);
+                resp.setContentType("text/csv");
+            } else {
+                resp.getOutputStream().write(jsonMapper.writeValueAsBytes(results));
+                resp.setContentType("application/json");
+            }
         }
     }
 

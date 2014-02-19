@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Ning, Inc.
+ * Copyright 2010-2014 Ning, Inc.
  *
  * Ning licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,30 +17,36 @@
 package com.ning.billing.osgi.bundles.analytics.reports;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import com.bpodgursky.jbool_expressions.Expression;
+import com.bpodgursky.jbool_expressions.Or;
 import com.google.common.base.Splitter;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Multimap;
 
 /**
  * Interprets the report filters specified by the user
  */
 public class ReportSpecification {
 
-    private static final Splitter REPORT_FILTERS_SPLITTER = Splitter.on(Pattern.compile("\\|"))
-                                                                    .trimResults()
-                                                                    .omitEmptyStrings();
-    private static final Splitter FILTER_EXCLUDE_SPLITTER = Splitter.on(Pattern.compile("\\!\\="))
-                                                                    .trimResults()
-                                                                    .omitEmptyStrings();
-    private static final Splitter FILTER_INCLUDE_SPLITTER = Splitter.on(Pattern.compile("\\="))
-                                                                    .trimResults()
-                                                                    .omitEmptyStrings();
-    private final Multimap<String, String> exclusions = HashMultimap.create();
-    private final Multimap<String, String> inclusions = HashMultimap.create();
+    private static final Splitter REPORT_SPECIFICATIONS_SPLITTER = Splitter.on(Pattern.compile("\\;"))
+                                                                           .trimResults()
+                                                                           .omitEmptyStrings();
+    private static final Splitter REPORT_SPECIFICATION_SPLITTER = Splitter.on(Pattern.compile("\\:"))
+                                                                          .trimResults()
+                                                                          .omitEmptyStrings();
+
+    private final List<String> dimensions = new LinkedList<String>();
+    private final List<String> metrics = new LinkedList<String>();
+    private Expression<String> filterExpression = null;
+
+    private enum ValidKeywords {
+        DIMENSION,
+        METRIC,
+        FILTER
+    }
 
     private final String rawReportName;
 
@@ -55,50 +61,68 @@ public class ReportSpecification {
         return reportName;
     }
 
-    // return true if the value should not be graphed
-    public boolean isFiltered(final String column, final String value) {
-        return isExcluded(column, value) || !isIncluded(column, value);
+    public List<String> getDimensions() {
+        return dimensions;
     }
 
-    private boolean isExcluded(final String column, final String value) {
-        return exclusions.get(column).contains(value);
+    public List<String> getMetrics() {
+        return metrics;
     }
 
-    private boolean isIncluded(final String column, final String value) {
-        // Return true if no inclusion
-        return inclusions.get(column).size() == 0 || inclusions.get(column).contains(value);
+    public Expression<String> getFilterExpression() {
+        return filterExpression;
     }
 
     private void parseRawReportName() {
-        // rawReportName is in the form payments_per_day|currency=AUD|currency=EUR or payments_per_day|currency!=AUD|currency!=EUR
-        final Iterator<String> reportIterator = REPORT_FILTERS_SPLITTER.split(rawReportName).iterator();
+        // rawReportName is in the form: payments_per_day;filter:currency=AUD;filter:currency=EUR;dimension:currency;dimension:state;metric:amount;metric:fee
+        final Iterator<String> reportIterator = REPORT_SPECIFICATIONS_SPLITTER.split(rawReportName).iterator();
 
         boolean isFirst = true;
         while (reportIterator.hasNext()) {
-            final String piece = reportIterator.next();
+            // rawSpecification is in the form: dimension:currency
+            final String rawSpecification = reportIterator.next();
 
+            // The report name should be the first token
             if (isFirst) {
-                reportName = piece;
-            } else {
-                final List<String> exclusion = ImmutableList.<String>copyOf(FILTER_EXCLUDE_SPLITTER.split(piece).iterator());
-                final List<String> inclusion = ImmutableList.<String>copyOf(FILTER_INCLUDE_SPLITTER.split(piece).iterator());
-
-                // Exclusions first
-                if (exclusion.size() == 2) {
-                    final String columnName = exclusion.get(0);
-                    final String value = exclusion.get(1);
-                    exclusions.put(columnName, value);
-                } else if (inclusion.size() == 2) {
-                    final String columnName = inclusion.get(0);
-                    final String value = inclusion.get(1);
-                    inclusions.put(columnName, value);
-                } else if (exclusions.size() != 0 || inclusions.size() != 0) {
-                    // Be lenient?
-                    //throw new IllegalArgumentException();
-                }
+                isFirst = false;
+                reportName = rawSpecification;
+                continue;
             }
 
-            isFirst = false;
+            final List<String> specification = ImmutableList.<String>copyOf(REPORT_SPECIFICATION_SPLITTER.split(rawSpecification).iterator());
+            if (specification.size() != 2) {
+                // Be lenient
+                continue;
+            }
+            final String keywordString = specification.get(0);
+            final String value = specification.get(1);
+
+            final ValidKeywords keyword;
+            try {
+                keyword = ValidKeywords.valueOf(keywordString.toUpperCase());
+            } catch (final IllegalArgumentException e) {
+                // Be lenient
+                continue;
+            }
+
+            switch (keyword) {
+                case DIMENSION:
+                    dimensions.add(value.toLowerCase());
+                    break;
+                case METRIC:
+                    metrics.add(value.toLowerCase());
+                    break;
+                case FILTER:
+                    // value is something like: (currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)
+                    final Expression<String> thisFilterExpression = FilterExpressionParser.parse(value);
+                    if (filterExpression == null) {
+                        filterExpression = thisFilterExpression;
+                    } else {
+                        // Multiple filter expressions are OR'ed by default
+                        filterExpression = Or.of(filterExpression, thisFilterExpression);
+                    }
+                    break;
+            }
         }
     }
 }
