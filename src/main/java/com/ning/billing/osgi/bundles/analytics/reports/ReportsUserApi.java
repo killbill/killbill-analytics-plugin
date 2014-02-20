@@ -358,15 +358,16 @@ public class ReportsUserApi {
 
                     final String baseSeriesName = createBaseNameForSeries(row, reportSpecification);
                     for (final String column : row.keySet()) {
-                        if (reportSpecification.getMetrics().contains(column)) {
+                        if (isMetric(column, reportSpecification)) {
                             // Create a unique name for that result set
                             final String seriesName = baseSeriesName + " :: " + column;
                             if (timeSeries.get(seriesName) == null) {
                                 timeSeries.put(seriesName, new LinkedList<XY>());
                             }
 
-                            final Float value = Float.valueOf(row.get(column).toString());
-                            timeSeries.get(seriesName).add(new XY(date, value));
+                            final Object value = row.get(column);
+                            final Float valueAsFloat = value == null ? 0f : Float.valueOf(value.toString());
+                            timeSeries.get(seriesName).add(new XY(date, valueAsFloat));
                         }
                     }
                 }
@@ -380,7 +381,7 @@ public class ReportsUserApi {
         int i = 0;
         final StringBuilder seriesNameBuilder = new StringBuilder();
         for (final String column : row.keySet()) {
-            if (reportSpecification.getDimensions().contains(column)) {
+            if (shouldUseColumnAsDimensionMultiplexer(column, reportSpecification)) {
                 if (i > 0) {
                     seriesNameBuilder.append(" :: ");
                 }
@@ -392,6 +393,39 @@ public class ReportsUserApi {
             return NO_PIVOT;
         } else {
             return seriesNameBuilder.toString();
+        }
+    }
+
+    private boolean shouldUseColumnAsDimensionMultiplexer(final String column, final ReportSpecification reportSpecification) {
+        // Don't multiplex the day column
+        if (DAY_COLUMN_NAME.equals(column)) {
+            return false;
+        }
+
+        if (reportSpecification.getDimensions().isEmpty()) {
+            if (reportSpecification.getMetrics().isEmpty()) {
+                // If no dimension and metric are specified, assume all columns are dimensions except the "count" one
+                return !COUNT_COLUMN_NAME.equals(column);
+            } else {
+                // Otherwise, all non-metric columns are dimensions
+                return !reportSpecification.getMetrics().contains(column);
+            }
+        } else {
+            return reportSpecification.getDimensions().contains(column);
+        }
+    }
+
+    private boolean isMetric(final String column, final ReportSpecification reportSpecification) {
+        if (reportSpecification.getMetrics().isEmpty()) {
+            if (reportSpecification.getDimensions().isEmpty()) {
+                // If no dimension and metric are specified, assume the only metric is the "count" one
+                return COUNT_COLUMN_NAME.equals(column);
+            } else {
+                // Otherwise, all non-dimension columns are metrics
+                return !DAY_COLUMN_NAME.equals(column) && !reportSpecification.getDimensions().contains(column);
+            }
+        } else {
+            return reportSpecification.getMetrics().contains(column);
         }
     }
 
