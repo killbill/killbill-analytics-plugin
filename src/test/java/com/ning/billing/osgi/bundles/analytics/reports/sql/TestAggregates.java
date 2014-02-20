@@ -19,7 +19,9 @@ package com.ning.billing.osgi.bundles.analytics.reports.sql;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class TestAggregates {
+import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
+
+public class TestAggregates extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testCheckRegexp() throws Exception {

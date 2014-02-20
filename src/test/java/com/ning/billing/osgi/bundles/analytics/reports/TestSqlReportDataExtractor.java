@@ -22,7 +22,9 @@ import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class TestSqlReportDataExtractor {
+import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
+
+public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testSimple() throws Exception {

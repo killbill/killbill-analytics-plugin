@@ -19,11 +19,12 @@ package com.ning.billing.osgi.bundles.analytics.reports.sql;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
 import com.ning.billing.osgi.bundles.analytics.reports.ReportSpecification;
 
 import com.bpodgursky.jbool_expressions.Variable;
 
-public class TestFilters {
+public class TestFilters extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConditionFromVariableBuilder() throws Exception {
