@@ -22,35 +22,7 @@ import org.joda.time.LocalDate;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.bpodgursky.jbool_expressions.Variable;
-
 public class TestSqlReportDataExtractor {
-
-    @Test(groups = "fast")
-    public void testConditionFromVariableBuilder() throws Exception {
-        Assert.assertEquals(SqlReportDataExtractor.buildConditionFromVariable(Variable.of("currency=USD")).toString(), "\"currency\" = 'USD'");
-        Assert.assertEquals(SqlReportDataExtractor.buildConditionFromVariable(Variable.of("status=state=PROCESSED")).toString(), "\"status\" = 'state=PROCESSED'");
-        Assert.assertEquals(SqlReportDataExtractor.buildConditionFromVariable(Variable.of("status!=state=PROCESSED")).toString(), "\"status\" <> 'state=PROCESSED'");
-    }
-
-    @Test(groups = "fast")
-    public void testConditionFromExpressionBuilder() throws Exception {
-        final ReportSpecification reportSpecification1 = new ReportSpecification("payments_per_day;filter:currency=AUD;filter:currency=EUR");
-        Assert.assertEquals(SqlReportDataExtractor.buildConditionFromExpression(reportSpecification1.getFilterExpression()).toString(), "(\"currency\" = 'AUD' or \"currency\" = 'EUR')");
-
-        final ReportSpecification reportSpecification2 = new ReportSpecification("payments_per_day;filter:currency!=AUD;filter:currency!=EUR");
-        Assert.assertEquals(SqlReportDataExtractor.buildConditionFromExpression(reportSpecification2.getFilterExpression()).toString(), "(\"currency\" <> 'AUD' or \"currency\" <> 'EUR')");
-
-        final ReportSpecification reportSpecification3 = new ReportSpecification("payments_per_day;" +
-                                                                                 "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED);" +
-                                                                                 "filter:name~'John Doe'&age>=35|name!~Fred&age<24");
-        Assert.assertEquals(SqlReportDataExtractor.buildConditionFromExpression(reportSpecification3.getFilterExpression()).toString(), "(" +
-                                                                                                                                        "(\"age\" < '24' and \"name\" not like 'Fred') " +
-                                                                                                                                        "or (\"age\" >= '35' and \"name\" like 'John Doe') " +
-                                                                                                                                        "or (\"currency\" = 'EUR' and \"state\" = 'PROCESSED') " +
-                                                                                                                                        "or (\"currency\" = 'USD' and \"state\" <> 'ERRORED')" +
-                                                                                                                                        ")");
-    }
 
     @Test(groups = "fast")
     public void testSimple() throws Exception {
@@ -126,6 +98,33 @@ public class TestSqlReportDataExtractor {
     }
 
     @Test(groups = "fast")
+    public void testAggregate() throws Exception {
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;dimension:currency;dimension:state;metric:avg(amount);metric:sum(fee);metric:count(distinct amount)");
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
+                                                               "  `day`, \n" +
+                                                               "  `currency`, \n" +
+                                                               "  `state`, \n" +
+                                                               "  avg(`amount`), \n" +
+                                                               "  sum(`fee`), \n" +
+                                                               "  count(distinct `amount`)\n" +
+                                                               "from payments_per_day\n" +
+                                                               "group by \n" +
+                                                               "  `day`, \n" +
+                                                               "  `currency`, \n" +
+                                                               "  `state`");
+    }
+
+    @Test(groups = "fast")
+    public void testAggregateNoDimension() throws Exception {
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;metric:avg(amount)");
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
+                                                               "  `day`, \n" +
+                                                               "  avg(`amount`)\n" +
+                                                               "from payments_per_day\n" +
+                                                               "group by `day`");
+    }
+
+    @Test(groups = "fast")
     public void testStartDate() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", new LocalDate(2012, 11, 10), null);
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
@@ -177,15 +176,15 @@ public class TestSqlReportDataExtractor {
 
     @Test(groups = "fast")
     public void testFullThingWithComplicatedWhereClause() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does');dimension:currency;dimension:state;metric:amount;metric:fee",
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does');dimension:currency;dimension:state;metric:avg(amount);metric:avg(fee)",
                                                                                           new LocalDate(2012, 11, 10),
                                                                                           new LocalDate(2013, 11, 10));
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
                                                                "  `state`, \n" +
-                                                               "  `amount`, \n" +
-                                                               "  `fee`\n" +
+                                                               "  avg(`amount`), \n" +
+                                                               "  avg(`fee`)\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
                                                                "  (\n" +
@@ -204,7 +203,11 @@ public class TestSqlReportDataExtractor {
                                                                "  )\n" +
                                                                "  and `day` >= '2012-11-10'\n" +
                                                                "  and `day` <= '2013-11-10'\n" +
-                                                               ")");
+                                                               ")\n" +
+                                                               "group by \n" +
+                                                               "  `day`, \n" +
+                                                               "  `currency`, \n" +
+                                                               "  `state`");
     }
 
     private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName) {
