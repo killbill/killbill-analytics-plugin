@@ -25,7 +25,7 @@ import org.jooq.Field;
 import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 
-public class Aggregates {
+public abstract class Aggregates {
 
     private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-z]+)\\(\\s*(distinct)?\\s*([a-z0-9]+)\\s*\\)");
 

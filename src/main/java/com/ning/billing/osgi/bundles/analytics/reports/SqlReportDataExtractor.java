@@ -35,6 +35,7 @@ import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
 
 import com.ning.billing.osgi.bundles.analytics.reports.sql.Aggregates;
+import com.ning.billing.osgi.bundles.analytics.reports.sql.Cases;
 import com.ning.billing.osgi.bundles.analytics.reports.sql.Filters;
 
 import com.bpodgursky.jbool_expressions.And;
@@ -120,12 +121,15 @@ public class SqlReportDataExtractor {
     }
 
     private void setupDimensions() {
-        final List<String> allDimensions = new LinkedList<String>();
-        // Add the special "day" column
-        allDimensions.add(DAY_COLUMN_NAME);
-        allDimensions.addAll(reportSpecification.getDimensions());
+        dimensions = new LinkedList<Field<Object>>();
 
-        dimensions = stringsToFields(allDimensions);
+        // Add the special "day" column
+        dimensions.add(stringToField(DAY_COLUMN_NAME));
+
+        // Add all other dimensions, potential building case statements as we go
+        for (final String dimensionWithGrouping : reportSpecification.getDimensions()) {
+            dimensions.add(Cases.of(dimensionWithGrouping));
+        }
     }
 
     private void setupMetrics() {
@@ -151,12 +155,12 @@ public class SqlReportDataExtractor {
                                       new Function<String, Field<Object>>() {
                                           @Override
                                           public Field<Object> apply(final String columnName) {
-                                              return columnToField(columnName);
+                                              return stringToField(columnName);
                                           }
                                       });
     }
 
-    private Field<Object> columnToField(final String columnName) {
+    private Field<Object> stringToField(final String columnName) {
         final AggregateFunction<?> candidateField = Aggregates.of(columnName);
         if (candidateField != null) {
             shouldGroupBy = true;

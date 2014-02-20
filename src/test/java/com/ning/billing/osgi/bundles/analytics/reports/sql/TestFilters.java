@@ -24,6 +24,7 @@ import com.ning.billing.osgi.bundles.analytics.reports.ReportSpecification;
 import com.bpodgursky.jbool_expressions.Variable;
 
 public class TestFilters {
+
     @Test(groups = "fast")
     public void testConditionFromVariableBuilder() throws Exception {
         Assert.assertEquals(Filters.of(Variable.of("currency=USD")).toString(), "\"currency\" = 'USD'");

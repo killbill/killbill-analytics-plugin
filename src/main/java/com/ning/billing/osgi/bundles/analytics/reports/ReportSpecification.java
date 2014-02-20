@@ -107,10 +107,10 @@ public class ReportSpecification {
 
             switch (keyword) {
                 case DIMENSION:
-                    dimensions.add(value.toLowerCase());
+                    dimensions.add(value);
                     break;
                 case METRIC:
-                    metrics.add(value.toLowerCase());
+                    metrics.add(value);
                     break;
                 case FILTER:
                     // value is something like: (currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)
