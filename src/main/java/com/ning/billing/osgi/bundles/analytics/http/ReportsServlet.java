@@ -19,6 +19,7 @@ package com.ning.billing.osgi.bundles.analytics.http;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.sql.SQLException;
 import java.util.List;
 
 import javax.servlet.ServletException;
@@ -69,7 +70,14 @@ public class ReportsServlet extends BaseServlet {
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         final String reportName = (String) req.getAttribute(REPORT_NAME_ATTRIBUTE);
         if (reportName != null) {
-            final ReportConfigurationJson reportConfigurationJson = reportsUserApi.getReportConfiguration(reportName);
+            final ReportConfigurationJson reportConfigurationJson;
+            try {
+                reportConfigurationJson = reportsUserApi.getReportConfiguration(reportName);
+            } catch (SQLException e) {
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+                return;
+            }
+
             if (reportConfigurationJson == null) {
                 resp.sendError(404, reportName + "");
             }

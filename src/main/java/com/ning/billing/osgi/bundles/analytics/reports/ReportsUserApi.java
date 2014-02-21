@@ -16,6 +16,7 @@
 
 package com.ning.billing.osgi.bundles.analytics.reports;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -48,6 +49,7 @@ import com.ning.billing.osgi.bundles.analytics.reports.analysis.Smoother.Smoothe
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
+import com.ning.billing.osgi.bundles.analytics.reports.sql.Metadata;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 
 import com.google.common.base.Function;
@@ -71,6 +73,7 @@ public class ReportsUserApi {
     private final IDBI dbi;
     private final ReportsConfiguration reportsConfiguration;
     private final JobsScheduler jobsScheduler;
+    private final Metadata sqlMetadata;
 
     public ReportsUserApi(final OSGIKillbillDataSource osgiKillbillDataSource,
                           final ReportsConfiguration reportsConfiguration,
@@ -78,16 +81,17 @@ public class ReportsUserApi {
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+        this.sqlMetadata = new Metadata(osgiKillbillDataSource.getDataSource());
     }
 
     public void shutdownNow() {
         dbiThreadsExecutor.shutdownNow();
     }
 
-    public ReportConfigurationJson getReportConfiguration(final String reportName) {
+    public ReportConfigurationJson getReportConfiguration(final String reportName) throws SQLException {
         final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
         if (reportsConfigurationModelDao != null) {
-            return new ReportConfigurationJson(reportsConfigurationModelDao);
+            return new ReportConfigurationJson(reportsConfigurationModelDao, sqlMetadata.getTable(reportsConfigurationModelDao.getSourceTableName()));
         } else {
             return null;
         }
@@ -128,7 +132,11 @@ public class ReportsUserApi {
                                                                                       new Function<ReportsConfigurationModelDao, ReportConfigurationJson>() {
                                                                                           @Override
                                                                                           public ReportConfigurationJson apply(final ReportsConfigurationModelDao input) {
-                                                                                              return new ReportConfigurationJson(input);
+                                                                                              try {
+                                                                                                  return new ReportConfigurationJson(input, sqlMetadata.getTable(input.getSourceTableName()));
+                                                                                              } catch (SQLException e) {
+                                                                                                  throw new RuntimeException(e);
+                                                                                              }
                                                                                           }
                                                                                       });
     }

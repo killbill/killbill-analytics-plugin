@@ -164,7 +164,7 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>3.2.3</version>
+            <version>3.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
@@ -258,7 +258,17 @@
                         <Private-Package>com.ning.billing.osgi.bundles.analytics.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
                         <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
-                        <Import-Package>*;com.ning.billing.osgi.api;sun.misc;javax.management;resolution:=optional</Import-Package>
+                        <Import-Package>
+                            org.xml.sax.helpers;
+                            org.xml.sax;
+                            org.w3c.dom;
+                            org.w3c.dom.ls;
+                            com.ning.billing.osgi.api;
+                            sun.misc;
+                            javax.management;
+                            javax.xml.parsers;
+                            *;resolution:=optional
+                        </Import-Package>
                     </instructions>
                 </configuration>
                 <executions>

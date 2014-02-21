@@ -22,11 +22,10 @@ import java.util.Map;
 import org.joda.time.LocalDate;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.tweak.HandleCallback;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteWithEmbeddedDB;
-
-import junit.framework.Assert;
 
 public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmbeddedDB {
 

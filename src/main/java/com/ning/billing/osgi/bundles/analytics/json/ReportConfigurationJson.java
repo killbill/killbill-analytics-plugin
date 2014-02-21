@@ -16,6 +16,10 @@
 
 package com.ning.billing.osgi.bundles.analytics.json;
 
+import javax.annotation.Nullable;
+
+import org.jooq.Table;
+
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
@@ -32,8 +36,9 @@ public class ReportConfigurationJson {
     private final String refreshProcedureName;
     private final Frequency refreshFrequency;
     private final Integer refreshHourOfDayGmt;
+    private final SchemaJson schema;
 
-    public ReportConfigurationJson(final ReportsConfigurationModelDao reportsConfigurationModelDao) {
+    public ReportConfigurationJson(final ReportsConfigurationModelDao reportsConfigurationModelDao, @Nullable final Table table) {
         this(reportsConfigurationModelDao.getRecordId(),
              reportsConfigurationModelDao.getReportName(),
              reportsConfigurationModelDao.getReportPrettyName(),
@@ -41,7 +46,8 @@ public class ReportConfigurationJson {
              reportsConfigurationModelDao.getSourceTableName(),
              reportsConfigurationModelDao.getRefreshProcedureName(),
              reportsConfigurationModelDao.getRefreshFrequency(),
-             reportsConfigurationModelDao.getRefreshHourOfDayGmt());
+             reportsConfigurationModelDao.getRefreshHourOfDayGmt(),
+             new SchemaJson(table));
     }
 
     public ReportConfigurationJson(@JsonProperty("recordId") final Integer recordId,
@@ -51,7 +57,8 @@ public class ReportConfigurationJson {
                                    @JsonProperty("sourceTableName") final String sourceTableName,
                                    @JsonProperty("refreshProcedureName") final String refreshProcedureName,
                                    @JsonProperty("refreshFrequency") final Frequency refreshFrequency,
-                                   @JsonProperty("refreshHourOfDayGmt") final Integer refreshHourOfDayGmt) {
+                                   @JsonProperty("refreshHourOfDayGmt") final Integer refreshHourOfDayGmt,
+                                   @JsonProperty("schema") final SchemaJson schema) {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
@@ -60,6 +67,7 @@ public class ReportConfigurationJson {
         this.refreshProcedureName = refreshProcedureName;
         this.refreshFrequency = refreshFrequency;
         this.refreshHourOfDayGmt = refreshHourOfDayGmt;
+        this.schema = schema;
     }
 
     public Integer getRecordId() {
@@ -90,11 +98,17 @@ public class ReportConfigurationJson {
         return refreshHourOfDayGmt;
     }
 
-    public ReportType getReportType() { return reportType; }
+    public ReportType getReportType() {
+        return reportType;
+    }
+
+    public SchemaJson getSchema() {
+        return schema;
+    }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("AnalyticsReportJob{");
+        final StringBuilder sb = new StringBuilder("ReportConfigurationJson{");
         sb.append("recordId=").append(recordId);
         sb.append(", reportName='").append(reportName).append('\'');
         sb.append(", reportPrettyName='").append(reportPrettyName).append('\'');
@@ -103,12 +117,13 @@ public class ReportConfigurationJson {
         sb.append(", refreshProcedureName='").append(refreshProcedureName).append('\'');
         sb.append(", refreshFrequency=").append(refreshFrequency);
         sb.append(", refreshHourOfDayGmt=").append(refreshHourOfDayGmt);
+        sb.append(", schema=").append(schema);
         sb.append('}');
         return sb.toString();
     }
 
     @Override
-    public boolean equals(final Object o) {
+    public boolean equals(Object o) {
         if (this == o) {
             return true;
         }
@@ -116,15 +131,12 @@ public class ReportConfigurationJson {
             return false;
         }
 
-        final ReportConfigurationJson that = (ReportConfigurationJson) o;
+        ReportConfigurationJson that = (ReportConfigurationJson) o;
 
         if (recordId != null ? !recordId.equals(that.recordId) : that.recordId != null) {
             return false;
         }
         if (refreshFrequency != that.refreshFrequency) {
-            return false;
-        }
-        if (reportType != that.reportType) {
             return false;
         }
         if (refreshHourOfDayGmt != null ? !refreshHourOfDayGmt.equals(that.refreshHourOfDayGmt) : that.refreshHourOfDayGmt != null) {
@@ -139,6 +151,12 @@ public class ReportConfigurationJson {
         if (reportPrettyName != null ? !reportPrettyName.equals(that.reportPrettyName) : that.reportPrettyName != null) {
             return false;
         }
+        if (reportType != that.reportType) {
+            return false;
+        }
+        if (schema != null ? !schema.equals(that.schema) : that.schema != null) {
+            return false;
+        }
         if (sourceTableName != null ? !sourceTableName.equals(that.sourceTableName) : that.sourceTableName != null) {
             return false;
         }
@@ -151,11 +169,12 @@ public class ReportConfigurationJson {
         int result = recordId != null ? recordId.hashCode() : 0;
         result = 31 * result + (reportName != null ? reportName.hashCode() : 0);
         result = 31 * result + (reportPrettyName != null ? reportPrettyName.hashCode() : 0);
+        result = 31 * result + (reportType != null ? reportType.hashCode() : 0);
         result = 31 * result + (sourceTableName != null ? sourceTableName.hashCode() : 0);
         result = 31 * result + (refreshProcedureName != null ? refreshProcedureName.hashCode() : 0);
         result = 31 * result + (refreshFrequency != null ? refreshFrequency.hashCode() : 0);
-        result = 31 * result + (reportType != null ? reportType.hashCode() : 0);
         result = 31 * result + (refreshHourOfDayGmt != null ? refreshHourOfDayGmt.hashCode() : 0);
+        result = 31 * result + (schema != null ? schema.hashCode() : 0);
         return result;
     }
 }
