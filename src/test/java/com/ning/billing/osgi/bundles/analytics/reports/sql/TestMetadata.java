@@ -29,7 +29,7 @@ public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
         final String tableName = "payments_per_day";
         embeddedDB.executeScript(String.format("create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int);", tableName));
 
-        final Metadata metadata = new Metadata(embeddedDB.getDataSource());
+        final Metadata metadata = new Metadata(embeddedDB.getDataSource(), logService);
         final Table table = metadata.getTable(tableName);
 
         Assert.assertEquals(table.fields().length, 6);

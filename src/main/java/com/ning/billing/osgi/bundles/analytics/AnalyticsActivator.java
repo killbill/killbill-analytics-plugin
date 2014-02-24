@@ -76,7 +76,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, executor, clock);
-        reportsUserApi = new ReportsUserApi(dataSource, reportsConfiguration, jobsScheduler);
+        reportsUserApi = new ReportsUserApi(logService, dataSource, reportsConfiguration, jobsScheduler);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);

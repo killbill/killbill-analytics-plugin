@@ -51,6 +51,7 @@ import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConf
 import com.ning.billing.osgi.bundles.analytics.reports.scheduler.JobsScheduler;
 import com.ning.billing.osgi.bundles.analytics.reports.sql.Metadata;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -75,13 +76,14 @@ public class ReportsUserApi {
     private final JobsScheduler jobsScheduler;
     private final Metadata sqlMetadata;
 
-    public ReportsUserApi(final OSGIKillbillDataSource osgiKillbillDataSource,
+    public ReportsUserApi(final OSGIKillbillLogService logService,
+                          final OSGIKillbillDataSource osgiKillbillDataSource,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler) {
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
-        this.sqlMetadata = new Metadata(osgiKillbillDataSource.getDataSource());
+        this.sqlMetadata = new Metadata(osgiKillbillDataSource.getDataSource(), logService);
     }
 
     public void shutdownNow() {

@@ -34,22 +34,28 @@ import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
+import org.osgi.service.log.LogService;
+
+import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class Metadata {
 
     private final KludgeDataSourceConnectionProvider connectionProvider;
     private final DSLContext context;
+    private final OSGIKillbillLogService logService;
 
     private String schemaName = null;
     private final Map<String, Table> tablesCache = new ConcurrentHashMap<String, Table>();
 
-    public Metadata(final DataSource dataSource) {
-        this(dataSource, SQLDialect.MYSQL);
+    public Metadata(final DataSource dataSource, final OSGIKillbillLogService logService) {
+        this(dataSource, SQLDialect.MYSQL, logService);
     }
 
-    public Metadata(final DataSource dataSource, final SQLDialect sqlDialect) {
+    public Metadata(final DataSource dataSource, final SQLDialect sqlDialect, final OSGIKillbillLogService logService) {
         this.connectionProvider = new KludgeDataSourceConnectionProvider(dataSource);
         this.context = DSL.using(connectionProvider, sqlDialect);
+        this.logService = logService;
+        primeCaches();
     }
 
     public synchronized void clearCaches() {
@@ -135,5 +141,28 @@ public class Metadata {
                 }
             }
         }
+    }
+
+    private void primeCaches() {
+        final Thread t = new Thread() {
+            @Override
+            public void run() {
+                final long startTime = System.currentTimeMillis();
+
+                logService.log(LogService.LOG_INFO, "Started priming caches...");
+                try {
+                    // Retrieving one table will load the full catalog
+                    getTable("DoesNotMatter");
+
+                    final long secondsToStart = (System.currentTimeMillis() - startTime) / 1000;
+                    logService.log(LogService.LOG_INFO, String.format("Primed caches in %d:%02d", secondsToStart / 60, secondsToStart % 60));
+                } catch (final SQLException e) {
+                    // Ignored
+                    logService.log(LogService.LOG_WARNING, "Error while priming caches", e);
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.run();
     }
 }
