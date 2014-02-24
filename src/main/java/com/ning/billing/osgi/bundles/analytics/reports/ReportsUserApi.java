@@ -88,6 +88,10 @@ public class ReportsUserApi {
         dbiThreadsExecutor.shutdownNow();
     }
 
+    public void clearCaches() {
+        sqlMetadata.clearCaches();
+    }
+
     public ReportConfigurationJson getReportConfiguration(final String reportName) throws SQLException {
         final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
         if (reportsConfigurationModelDao != null) {
@@ -217,7 +221,6 @@ public class ReportsUserApi {
 
         return result;
     }
-
 
     private List<Chart> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
         final List<Chart> results = new LinkedList<Chart>();

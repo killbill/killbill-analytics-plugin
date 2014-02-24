@@ -18,11 +18,11 @@ package com.ning.billing.osgi.bundles.analytics.reports.sql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
@@ -41,7 +41,7 @@ public class Metadata {
     private final DSLContext context;
 
     private String schemaName = null;
-    private final Map<String, Table> tablesCache = new HashMap<String, Table>();
+    private final Map<String, Table> tablesCache = new ConcurrentHashMap<String, Table>();
 
     public Metadata(final DataSource dataSource) {
         this(dataSource, SQLDialect.MYSQL);
@@ -50,6 +50,10 @@ public class Metadata {
     public Metadata(final DataSource dataSource, final SQLDialect sqlDialect) {
         this.connectionProvider = new KludgeDataSourceConnectionProvider(dataSource);
         this.context = DSL.using(connectionProvider, sqlDialect);
+    }
+
+    public synchronized void clearCaches() {
+        tablesCache.clear();
     }
 
     public synchronized Table getTable(final String tableName) throws SQLException {

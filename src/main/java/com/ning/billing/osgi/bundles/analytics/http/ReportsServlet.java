@@ -116,10 +116,10 @@ public class ReportsServlet extends BaseServlet {
     protected void doDelete(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
         final String reportName = (String) req.getAttribute(REPORT_NAME_ATTRIBUTE);
         if (reportName == null) {
-            return;
+            reportsUserApi.clearCaches();
+        } else {
+            reportsUserApi.deleteReport(reportName);
         }
-
-        reportsUserApi.deleteReport(reportName);
     }
 
     private void doHandleReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
