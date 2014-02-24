@@ -21,7 +21,8 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.jooq.Field;
-import org.jooq.Table;
+
+import com.ning.billing.osgi.bundles.analytics.reports.sql.TableMetadata;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Function;
@@ -32,13 +33,13 @@ public class SchemaJson {
 
     private final List<FieldJson> fields;
 
-    public SchemaJson(@Nullable final Table table) {
+    public SchemaJson(@Nullable final TableMetadata table) {
         this(table == null ? ImmutableList.<FieldJson>of()
-                           : ImmutableList.<FieldJson>copyOf(Iterables.<Field<?>, FieldJson>transform(ImmutableList.<Field<?>>copyOf(table.recordType().fields()),
+                           : ImmutableList.<FieldJson>copyOf(Iterables.<Field<?>, FieldJson>transform(ImmutableList.<Field<?>>copyOf(table.getTable().recordType().fields()),
                                                                                                       new Function<Field<?>, FieldJson>() {
                                                                                                           @Override
                                                                                                           public FieldJson apply(final Field<?> input) {
-                                                                                                              return new FieldJson(input);
+                                                                                                              return new FieldJson(input, table.getDistinctValues() == null ? null : table.getDistinctValues().get(input.getName()));
                                                                                                           }
                                                                                                       })));
     }

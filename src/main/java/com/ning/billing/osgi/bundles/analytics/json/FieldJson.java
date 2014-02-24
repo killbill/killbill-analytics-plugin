@@ -16,6 +16,10 @@
 
 package com.ning.billing.osgi.bundles.analytics.json;
 
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.jooq.Field;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,15 +28,18 @@ public class FieldJson {
 
     private final String name;
     private final String dataType;
+    private final List<Object> distinctValues;
 
-    public FieldJson(final Field<?> field) {
-        this(field.getName(), field.getDataType() == null ? null : field.getDataType().getTypeName());
+    public FieldJson(final Field<?> field, @Nullable final List<Object> distinctValues) {
+        this(field.getName(), field.getDataType() == null ? null : field.getDataType().getTypeName(), distinctValues);
     }
 
     public FieldJson(@JsonProperty("name") final String name,
-                     @JsonProperty("dataType") final String dataType) {
+                     @JsonProperty("dataType") final String dataType,
+                     @JsonProperty("distinctValues") final List<Object> distinctValues) {
         this.name = name;
         this.dataType = dataType;
+        this.distinctValues = distinctValues;
     }
 
     public String getName() {
@@ -43,11 +50,16 @@ public class FieldJson {
         return dataType;
     }
 
+    public List<Object> getDistinctValues() {
+        return distinctValues;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("FieldJson{");
         sb.append("name='").append(name).append('\'');
         sb.append(", dataType='").append(dataType).append('\'');
+        sb.append(", distinctValues=").append(distinctValues);
         sb.append('}');
         return sb.toString();
     }
@@ -66,6 +78,9 @@ public class FieldJson {
         if (dataType != null ? !dataType.equals(fieldJson.dataType) : fieldJson.dataType != null) {
             return false;
         }
+        if (distinctValues != null ? !distinctValues.equals(fieldJson.distinctValues) : fieldJson.distinctValues != null) {
+            return false;
+        }
         if (name != null ? !name.equals(fieldJson.name) : fieldJson.name != null) {
             return false;
         }
@@ -77,6 +92,7 @@ public class FieldJson {
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (dataType != null ? dataType.hashCode() : 0);
+        result = 31 * result + (distinctValues != null ? distinctValues.hashCode() : 0);
         return result;
     }
 }

@@ -58,6 +58,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 
 public class ReportsUserApi {
 
@@ -65,9 +66,9 @@ public class ReportsUserApi {
     private static final String NO_PIVOT = "____NO_PIVOT____";
 
     // Part of the public API
-    private static final String DAY_COLUMN_NAME = "day";
-    private static final String LABEL = "label";
-    private static final String COUNT_COLUMN_NAME = "count";
+    public static final String DAY_COLUMN_NAME = "day";
+    public static final String LABEL = "label";
+    public static final String COUNT_COLUMN_NAME = "count";
 
     private final ExecutorService dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(NB_THREADS, "osgi-analytics-dashboard");
 
@@ -83,7 +84,15 @@ public class ReportsUserApi {
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
-        this.sqlMetadata = new Metadata(osgiKillbillDataSource.getDataSource(), logService);
+        this.sqlMetadata = new Metadata(Sets.<String>newHashSet(Iterables.transform(reportsConfiguration.getAllReportConfigurations().values(),
+                                                                                    new Function<ReportsConfigurationModelDao, String>() {
+                                                                                        @Override
+                                                                                        public String apply(final ReportsConfigurationModelDao reportConfiguration) {
+                                                                                            return reportConfiguration.getSourceTableName();
+                                                                                        }
+                                                                                    })),
+                                        osgiKillbillDataSource.getDataSource(),
+                                        logService);
     }
 
     public void shutdownNow() {

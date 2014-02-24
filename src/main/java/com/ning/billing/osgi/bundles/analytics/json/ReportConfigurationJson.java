@@ -18,11 +18,10 @@ package com.ning.billing.osgi.bundles.analytics.json;
 
 import javax.annotation.Nullable;
 
-import org.jooq.Table;
-
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
 import com.ning.billing.osgi.bundles.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
+import com.ning.billing.osgi.bundles.analytics.reports.sql.TableMetadata;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -38,7 +37,7 @@ public class ReportConfigurationJson {
     private final Integer refreshHourOfDayGmt;
     private final SchemaJson schema;
 
-    public ReportConfigurationJson(final ReportsConfigurationModelDao reportsConfigurationModelDao, @Nullable final Table table) {
+    public ReportConfigurationJson(final ReportsConfigurationModelDao reportsConfigurationModelDao, @Nullable final TableMetadata table) {
         this(reportsConfigurationModelDao.getRecordId(),
              reportsConfigurationModelDao.getReportName(),
              reportsConfigurationModelDao.getReportPrettyName(),

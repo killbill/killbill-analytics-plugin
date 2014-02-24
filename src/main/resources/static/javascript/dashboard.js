@@ -36,6 +36,7 @@ $(document).ready(function() {
             var modalBody = $('<div/>').attr('class', 'modal-body');
             var fields = $('<form/>').attr('class', 'form-horizontal').attr('role', 'form');
             $.each(report.schema.fields, function(j, field) {
+                // Add dimension/metric selector
                 var dimension = $('<input/>').attr('type', 'radio')
                                              .attr('name', field.name)
                                              .attr('id', 'dimension-' + i + '-' + j)
@@ -48,8 +49,21 @@ $(document).ready(function() {
                                         .append($('<label/>').attr('class', 'radio-inline').append(dimension).append('Dimension'))
                                         .append($('<label/>').attr('class', 'radio-inline').append(metric).append('Metric'));
                 var group = $('<div/>').attr('class', 'form-group')
-                                       .append(radios)
-                                       .append($('<label/>').attr('class', 'control-label').append(field.name + ' (' + field.dataType + ')'));
+                                       .append(radios);
+
+                // Add distinct values, if we have them
+                if (field.distinctValues) {
+                    var select = $('<select multiple/>').attr('class', 'form-control')
+                                                        .attr('id', 'values-' + i + '-' + field.name);
+                    $.each(field.distinctValues, function(k, value) {
+                        select.append($('<option/>').append(value));
+                    });
+                    group.append($('<div/>').attr('class', 'col-sm-4 controls').append(select));
+                }
+
+                // Finally, add the label
+                group.append($('<label/>').attr('class', 'control-label').append(field.name + ' (' + field.dataType + ')'));
+
                 fields.append(group);
             });
             fields.append($('<div/>').attr('class', 'form-group')
@@ -76,14 +90,14 @@ $(document).ready(function() {
             label.append('&nbsp;').append(detailsLink);
 
             // Configure the url builder callback
-            $('#availableReportsDetailsModalWrapper-' + i + ' input:radio').change(function() {
+            $('#availableReportsDetailsModalWrapper-' + i).change(function() {
                 var reportsUrl = new ReportsUrls(report.reportName);
                 $('#availableReportsDetailsModalWrapper-' + i + ' input:radio:checked').each(function() {
                     var dimensionOrMetric = $(this).val();
                     var column = $(this).attr('name');
 
                     if (dimensionOrMetric == 'dimension') {
-                        reportsUrl.addDimension(column);
+                        reportsUrl.addDimension(column, $('#values-' + i + '-' + column).val());
                     } else if (dimensionOrMetric == 'metric') {
                         reportsUrl.addMetric(column);
                     }
