@@ -31,6 +31,66 @@ $(document).ready(function() {
             }
 
             var label = $('<label>').append(input).append(report.reportPrettyName);
+
+            // Add describe link
+            var modalBody = $('<div/>').attr('class', 'modal-body');
+            var fields = $('<form/>').attr('class', 'form-horizontal').attr('role', 'form');
+            $.each(report.schema.fields, function(j, field) {
+                var dimension = $('<input/>').attr('type', 'radio')
+                                             .attr('name', field.name)
+                                             .attr('id', 'dimension-' + i + '-' + j)
+                                             .attr('value', 'dimension');
+                var metric = $('<input/>').attr('type', 'radio')
+                                          .attr('name', field.name)
+                                          .attr('id', 'metric-' + i + '-' + j)
+                                          .attr('value', 'metric');
+                var radios = $('<div/>').attr('class', 'col-sm-4 controls')
+                                        .append($('<label/>').attr('class', 'radio-inline').append(dimension).append('Dimension'))
+                                        .append($('<label/>').attr('class', 'radio-inline').append(metric).append('Metric'));
+                var group = $('<div/>').attr('class', 'form-group')
+                                       .append(radios)
+                                       .append($('<label/>').attr('class', 'control-label').append(field.name + ' (' + field.dataType + ')'));
+                fields.append(group);
+            });
+            fields.append($('<div/>').attr('class', 'form-group')
+                                     .append($('<div/>').attr('class', 'col-sm-8 controls')
+                                                        .append($('<textarea/>').attr('rows', '3')
+                                                                                .attr('style', 'width: 100%')
+                                                                                .attr('id', 'custom-dashboard-builder-url-' + i))));
+            modalBody.append($('<h3/>').append(report.reportPrettyName))
+                                       .append(fields);
+            var modal = $('<div/>').attr('class', 'modal fade')
+                                   .attr('id', 'availableReportsDetailsModalWrapper-' + i)
+                                   .attr('tabindex', '-1')
+                                   .attr('role', 'dialog')
+                                   .attr('aria-labelledby', 'Details')
+                                   .attr('aria-hidden', 'true')
+                                   .append($('<div/>').attr('class', 'modal-dialog')
+                                                      .append($('<div/>').attr('class', 'modal-content')
+                                                                         .append(modalBody)));
+            modal.appendTo("body");
+            var detailsLink = $('<a/>').text('(details)').css('cursor', 'pointer');
+            detailsLink.click(function() {
+                $('#availableReportsDetailsModalWrapper-' + i).modal('toggle');
+            });
+            label.append('&nbsp;').append(detailsLink);
+
+            // Configure the url builder callback
+            $('#availableReportsDetailsModalWrapper-' + i + ' input:radio').change(function() {
+                var reportsUrl = new ReportsUrls(report.reportName);
+                $('#availableReportsDetailsModalWrapper-' + i + ' input:radio:checked').each(function() {
+                    var dimensionOrMetric = $(this).val();
+                    var column = $(this).attr('name');
+
+                    if (dimensionOrMetric == 'dimension') {
+                        reportsUrl.addDimension(column);
+                    } else if (dimensionOrMetric == 'metric') {
+                        reportsUrl.addMetric(column);
+                    }
+                });
+                $('#custom-dashboard-builder-url-' + i).val(reportsUrl.url);
+            });
+
             var li = $('<li>').attr('class', 'checkbox').append(label);
             $('#custom-dashboard-builder').append(li);
         });
