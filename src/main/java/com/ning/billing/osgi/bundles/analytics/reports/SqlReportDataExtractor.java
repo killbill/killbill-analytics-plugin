@@ -127,7 +127,7 @@ public class SqlReportDataExtractor {
         dimensions.add(stringToField(DAY_COLUMN_NAME));
 
         // Add all other dimensions, potential building case statements as we go
-        for (final String dimensionWithGrouping : reportSpecification.getDimensions()) {
+        for (final String dimensionWithGrouping : reportSpecification.getDimensionsWithGrouping()) {
             dimensions.add(Cases.of(dimensionWithGrouping));
         }
     }

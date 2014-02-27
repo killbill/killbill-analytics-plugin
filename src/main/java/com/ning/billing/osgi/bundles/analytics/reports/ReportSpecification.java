@@ -37,8 +37,12 @@ public class ReportSpecification {
     private static final Splitter REPORT_SPECIFICATION_SPLITTER = Splitter.on(Pattern.compile("\\:"))
                                                                           .trimResults()
                                                                           .omitEmptyStrings();
+    private static final Splitter REPORT_GROUPING_SPECIFICATION_SPLITTER = Splitter.on(Pattern.compile("\\("))
+                                                                                   .trimResults()
+                                                                                   .omitEmptyStrings();
 
     private final List<String> dimensions = new LinkedList<String>();
+    private final List<String> dimensionsWithGrouping = new LinkedList<String>();
     private final List<String> metrics = new LinkedList<String>();
     private Expression<String> filterExpression = null;
 
@@ -63,6 +67,10 @@ public class ReportSpecification {
 
     public List<String> getDimensions() {
         return dimensions;
+    }
+
+    public List<String> getDimensionsWithGrouping() {
+        return dimensionsWithGrouping;
     }
 
     public List<String> getMetrics() {
@@ -107,7 +115,9 @@ public class ReportSpecification {
 
             switch (keyword) {
                 case DIMENSION:
-                    dimensions.add(value);
+                    dimensions.add(REPORT_GROUPING_SPECIFICATION_SPLITTER.split(value).iterator().next());
+                    // value is something like: currency(USD|EUR)
+                    dimensionsWithGrouping.add(value);
                     break;
                 case METRIC:
                     metrics.add(value);
