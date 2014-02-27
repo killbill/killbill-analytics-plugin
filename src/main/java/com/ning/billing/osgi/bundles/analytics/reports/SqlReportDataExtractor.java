@@ -123,8 +123,10 @@ public class SqlReportDataExtractor {
     private void setupDimensions() {
         dimensions = new LinkedList<Field<Object>>();
 
-        // Add the special "day" column
-        dimensions.add(stringToField(DAY_COLUMN_NAME));
+        // Add the special "day" column if needed
+        if (!reportSpecification.getDimensions().contains(DAY_COLUMN_NAME)) {
+            dimensions.add(stringToField(DAY_COLUMN_NAME));
+        }
 
         // Add all other dimensions, potential building case statements as we go
         for (final String dimensionWithGrouping : reportSpecification.getDimensionsWithGrouping()) {
