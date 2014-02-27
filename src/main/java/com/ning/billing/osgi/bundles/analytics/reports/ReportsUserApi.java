@@ -163,11 +163,14 @@ public class ReportsUserApi {
         final List<String> sqlQueries = new LinkedList<String>();
         for (final String rawReportName : rawReportNames) {
             final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
-            final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfiguration.getReportConfigurationForReport(reportSpecification.getReportName()).getSourceTableName(),
-                                                                                             reportSpecification,
-                                                                                             startDate,
-                                                                                             endDate);
-            sqlQueries.add(sqlReportDataExtractor.toString());
+            final ReportsConfigurationModelDao reportConfigurationForReport = reportsConfiguration.getReportConfigurationForReport(reportSpecification.getReportName());
+            if (reportConfigurationForReport != null) {
+                final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportConfigurationForReport.getSourceTableName(),
+                                                                                                 reportSpecification,
+                                                                                                 startDate,
+                                                                                                 endDate);
+                sqlQueries.add(sqlReportDataExtractor.toString());
+            }
         }
 
         return sqlQueries;
