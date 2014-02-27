@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class ReportSpecification {
 
-    private static final Splitter REPORT_SPECIFICATIONS_SPLITTER = Splitter.on(Pattern.compile("\\;"))
+    private static final Splitter REPORT_SPECIFICATIONS_SPLITTER = Splitter.on(Pattern.compile("\\^"))
                                                                            .trimResults()
                                                                            .omitEmptyStrings();
     private static final Splitter REPORT_SPECIFICATION_SPLITTER = Splitter.on(Pattern.compile("\\:"))
@@ -74,7 +74,7 @@ public class ReportSpecification {
     }
 
     private void parseRawReportName() {
-        // rawReportName is in the form: payments_per_day;filter:currency=AUD;filter:currency=EUR;dimension:currency;dimension:state;metric:amount;metric:fee
+        // rawReportName is in the form: payments_per_day^filter:currency=AUD^filter:currency=EUR^dimension:currency^dimension:state^metric:amount^metric:fee
         final Iterator<String> reportIterator = REPORT_SPECIFICATIONS_SPLITTER.split(rawReportName).iterator();
 
         boolean isFirst = true;

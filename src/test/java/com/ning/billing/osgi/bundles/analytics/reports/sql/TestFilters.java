@@ -35,14 +35,14 @@ public class TestFilters extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConditionFromExpressionBuilder() throws Exception {
-        final ReportSpecification reportSpecification1 = new ReportSpecification("payments_per_day;filter:currency=AUD;filter:currency=EUR");
+        final ReportSpecification reportSpecification1 = new ReportSpecification("payments_per_day^filter:currency=AUD^filter:currency=EUR");
         Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification1.getFilterExpression()).toString(), "(\"currency\" = 'AUD' or \"currency\" = 'EUR')");
 
-        final ReportSpecification reportSpecification2 = new ReportSpecification("payments_per_day;filter:currency!=AUD;filter:currency!=EUR");
+        final ReportSpecification reportSpecification2 = new ReportSpecification("payments_per_day^filter:currency!=AUD^filter:currency!=EUR");
         Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification2.getFilterExpression()).toString(), "(\"currency\" <> 'AUD' or \"currency\" <> 'EUR')");
 
-        final ReportSpecification reportSpecification3 = new ReportSpecification("payments_per_day;" +
-                                                                                 "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED);" +
+        final ReportSpecification reportSpecification3 = new ReportSpecification("payments_per_day^" +
+                                                                                 "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED)^" +
                                                                                  "filter:name~'John Doe'&age>=35|name!~Fred&age<24");
         Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification3.getFilterExpression()).toString(), "(" +
                                                                                                                          "(\"age\" < '24' and \"name\" not like 'Fred') " +

@@ -35,7 +35,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testDimensions() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;dimension:currency;dimension:state");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
@@ -45,7 +45,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testMetrics() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;metric:amount;metric:fee");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^metric:amount^metric:fee");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `amount`, \n" +
@@ -55,7 +55,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testDimensionsAndMetrics() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;dimension:currency;dimension:state;metric:amount;metric:fee");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state^metric:amount^metric:fee");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
@@ -67,7 +67,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testCaseStatement() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;dimension:currency(USD|BRL,GBP,EUR,MXN,AUD);dimension:state;metric:amount;metric:fee");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency(USD|BRL,GBP,EUR,MXN,AUD)^dimension:state^metric:amount^metric:fee");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  case when `currency` = 'USD' then 'USD'\n" +
@@ -86,7 +86,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testFilterEqual() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:currency=EUR;filter:currency=BTC");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency=EUR^filter:currency=BTC");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -97,7 +97,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testFilterNotEqual() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:currency!=EUR;filter:currency!=BTC");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency!=EUR^filter:currency!=BTC");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -108,7 +108,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testFilters() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:currency!=EUR;filter:state=PROCESSED;filter:state=PROCESSING");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency!=EUR^filter:state=PROCESSED^filter:state=PROCESSING");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -120,7 +120,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testAggregate() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;dimension:currency;dimension:state;metric:avg(amount);metric:sum(fee);metric:count(distinct amount)");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state^metric:avg(amount)^metric:sum(fee)^metric:count(distinct amount)");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
@@ -137,7 +137,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testAggregateNoDimension() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;metric:avg(amount)");
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^metric:avg(amount)");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  avg(`amount`)\n" +
@@ -174,7 +174,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testFullThing() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:currency!=EUR;filter:state=PROCESSED;filter:state=PROCESSING;dimension:currency;dimension:state;metric:amount;metric:fee",
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency!=EUR^filter:state=PROCESSED^filter:state=PROCESSING^dimension:currency^dimension:state^metric:amount^metric:fee",
                                                                                           new LocalDate(2012, 11, 10),
                                                                                           new LocalDate(2013, 11, 10));
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
@@ -197,7 +197,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testFullThingWithComplicatedWhereClause() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day;filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does');dimension:currency;dimension:state;metric:avg(amount);metric:avg(fee)",
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does')^dimension:currency^dimension:state^metric:avg(amount)^metric:avg(fee)",
                                                                                           new LocalDate(2012, 11, 10),
                                                                                           new LocalDate(2013, 11, 10));
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +

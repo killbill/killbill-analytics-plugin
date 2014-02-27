@@ -27,7 +27,7 @@ public class TestReportSpecification extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testParserInclusions() throws Exception {
-        final String rawReportName = "payments_per_day;filter:currency=AUD;filter:currency=EUR;dimension:currency;dimension:state;metric:amount;metric:fee";
+        final String rawReportName = "payments_per_day^filter:currency=AUD^filter:currency=EUR^dimension:currency^dimension:state^metric:amount^metric:fee";
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
         Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");
 
@@ -39,7 +39,7 @@ public class TestReportSpecification extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testParserExclusions() throws Exception {
-        final String rawReportName = "payments_per_day;filter:currency!=AUD;filter:currency!=EUR";
+        final String rawReportName = "payments_per_day^filter:currency!=AUD^filter:currency!=EUR";
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
         Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");
 
@@ -51,8 +51,8 @@ public class TestReportSpecification extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testParserComplexFilter() throws Exception {
-        final String rawReportName = "payments_per_day;" +
-                                     "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED);" +
+        final String rawReportName = "payments_per_day^" +
+                                     "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED)^" +
                                      "filter:name~'John Doe'&age>=35|name!~Fred&age<24";
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
         Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");

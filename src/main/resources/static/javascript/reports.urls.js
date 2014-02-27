@@ -2,7 +2,7 @@ function ReportsUrls(reportName) {
     this.url = reportName;
 
     // See com.ning.billing.osgi.bundles.analytics.reports.ReportSpecification
-    this.reportSpecificationsSeparator = ';';
+    this.reportSpecificationsSeparator = '^';
     this.reportSpecificationSeparator = ':';
 
     // See com.ning.billing.osgi.bundles.analytics.reports.sql.Cases
