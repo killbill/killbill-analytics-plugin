@@ -54,7 +54,7 @@ public abstract class Cases {
             return column;
         } else {
             final Iterable<String> columnGroups = GROUPS_SPLITTER.split(grouping);
-            return buildCaseStatementForColumn(column, columnGroups);
+            return buildCaseStatementForColumn(column, columnGroups).as(column.getName());
         }
     }
 

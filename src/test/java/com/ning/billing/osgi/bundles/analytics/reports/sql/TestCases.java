@@ -16,6 +16,7 @@
 
 package com.ning.billing.osgi.bundles.analytics.reports.sql;
 
+import org.jooq.impl.DSL;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -25,8 +26,13 @@ public class TestCases extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testCheckRegexp() throws Exception {
-        Assert.assertEquals(Cases.of("currency").toString(), "\"currency\"");
-        Assert.assertEquals(Cases.of("currency(USD)").toString(), "case when \"currency\" = 'USD' then 'USD' else 'Other' end");
-        Assert.assertEquals(Cases.of("currency(USD|BRL,GBP,EUR,MXN,AUD)").toString(), "case when \"currency\" = 'USD' then 'USD' when \"currency\" = 'BRL' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'GBP' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'EUR' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'MXN' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'AUD' then 'BRL,GBP,EUR,MXN,AUD' else 'Other' end");
+        Assert.assertEquals(getSQL("currency"), "select \"currency\" from dual");
+        Assert.assertEquals(getSQL("currency(USD)"), "select case when \"currency\" = 'USD' then 'USD' else 'Other' end \"currency\" from dual");
+        Assert.assertEquals(getSQL("currency(USD|BRL,GBP,EUR,MXN,AUD)"), "select case when \"currency\" = 'USD' then 'USD' when \"currency\" = 'BRL' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'GBP' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'EUR' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'MXN' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'AUD' then 'BRL,GBP,EUR,MXN,AUD' else 'Other' end \"currency\" from dual");
+        Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD' when \"currency_with_underscore\" = 'EUR' then 'EUR' else 'Other' end \"currency_with_underscore\" from dual");
+    }
+
+    private String getSQL(final String input) {
+        return DSL.select(Cases.of(input)).toString();
     }
 }

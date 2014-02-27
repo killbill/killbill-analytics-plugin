@@ -77,7 +77,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "       when `currency` = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
                                                                "       when `currency` = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
                                                                "       else 'Other'\n" +
-                                                               "  end, \n" +
+                                                               "  end as `currency`, \n" +
                                                                "  `state`, \n" +
                                                                "  `amount`, \n" +
                                                                "  `fee`\n" +
