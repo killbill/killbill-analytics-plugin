@@ -1,4 +1,6 @@
 0.5.12
+    New revenue model reports
+    New SQL report API, see http://docs.kill-bill.org/userguide.html#_dashboard_api
     Update to killbill-oss-parent 0.5.25
 
 0.5.11
