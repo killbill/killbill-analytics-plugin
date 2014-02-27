@@ -29,7 +29,7 @@ import com.google.common.base.Splitter;
 
 public abstract class Cases {
 
-    private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-zA-Z0-9]+)(\\(\\s*([a-zA-Z0-9,|]+)\\s*\\))?");
+    private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-zA-Z0-9_]+)(\\(\\s*([a-zA-Z0-9,|_]+)\\s*\\))?");
 
     private static final Splitter GROUPS_SPLITTER = Splitter.on(Pattern.compile("\\|"))
                                                             .trimResults()
