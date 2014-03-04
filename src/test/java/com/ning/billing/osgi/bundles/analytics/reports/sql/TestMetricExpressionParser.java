@@ -19,17 +19,12 @@ package com.ning.billing.osgi.bundles.analytics.reports.sql;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.ning.billing.osgi.bundles.analytics.AnalyticsTestSuiteNoDB;
-
-public class TestAggregates extends AnalyticsTestSuiteNoDB {
+public class TestMetricExpressionParser {
 
     @Test(groups = "fast")
-    public void testCheckRegexp() throws Exception {
-        Assert.assertNull(Aggregates.of("foo"));
-        Assert.assertEquals(Aggregates.of("sum(fee)").toString(), "sum(\"fee\")");
-        Assert.assertEquals(Aggregates.of("avg(fee)").toString(), "avg(\"fee\")");
-        Assert.assertEquals(Aggregates.of("count(fee)").toString(), "count(\"fee\")");
-        Assert.assertEquals(Aggregates.of("count(distinct fee)").toString(), "count(distinct \"fee\")");
-        Assert.assertEquals(Aggregates.of("sum(fee_with_underscores)").toString(), "sum(\"fee_with_underscores\")");
+    public void testCheckTree() throws Exception {
+        Assert.assertEquals(MetricExpressionParser.parse("((1 + 2) + (5 - 3) / 2) % 10").toString(), "mod((1 + 2 + ((5 - 3) / 2)), 10)");
+        Assert.assertEquals(MetricExpressionParser.parse("((1 + 2) * (5 - 3) / 2) % 10").toString(), "mod((((1 + 2) * (5 - 3)) / 2), 10)");
+        Assert.assertEquals(MetricExpressionParser.parse("payment_failures / (payment_failures + payment_successes) * 100").toString(), "((\"payment_failures\" / (\"payment_failures\" + \"payment_successes\")) * 100)");
     }
 }

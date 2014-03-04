@@ -197,7 +197,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testFullThingWithComplicatedWhereClause() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does')^dimension:currency^dimension:state^metric:avg(amount)^metric:avg(fee)",
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does')^dimension:currency^dimension:state^metric:avg(amount)^metric:avg(fee)^metric:100*sum(fee)/amount",
                                                                                           new LocalDate(2012, 11, 10),
                                                                                           new LocalDate(2013, 11, 10));
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
@@ -205,7 +205,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `currency`, \n" +
                                                                "  `state`, \n" +
                                                                "  avg(`amount`), \n" +
-                                                               "  avg(`fee`)\n" +
+                                                               "  avg(`fee`), \n" +
+                                                               "  ((100 * sum(`fee`)) / `amount`)\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
                                                                "  (\n" +

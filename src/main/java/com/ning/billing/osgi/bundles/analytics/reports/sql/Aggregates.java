@@ -27,7 +27,7 @@ import org.jooq.impl.SQLDataType;
 
 public abstract class Aggregates {
 
-    private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-z]+)\\(\\s*(distinct)?\\s*([a-z0-9]+)\\s*\\)");
+    private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-z]+)\\(\\s*(distinct)?\\s*([a-zA-Z0-9_]+)\\s*\\)");
 
     public static AggregateFunction<?> of(final String input) {
         final Matcher matcher = MAGIC_REGEXP.matcher(input.toLowerCase());

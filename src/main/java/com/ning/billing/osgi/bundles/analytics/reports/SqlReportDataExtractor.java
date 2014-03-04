@@ -18,12 +18,10 @@ package com.ning.billing.osgi.bundles.analytics.reports;
 
 import java.util.Collection;
 import java.util.LinkedList;
-import java.util.List;
 
 import javax.annotation.Nullable;
 
 import org.joda.time.LocalDate;
-import org.jooq.AggregateFunction;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -34,15 +32,13 @@ import org.jooq.conf.Settings;
 import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
 
-import com.ning.billing.osgi.bundles.analytics.reports.sql.Aggregates;
 import com.ning.billing.osgi.bundles.analytics.reports.sql.Cases;
 import com.ning.billing.osgi.bundles.analytics.reports.sql.Filters;
+import com.ning.billing.osgi.bundles.analytics.reports.sql.MetricExpressionParser;
 
 import com.bpodgursky.jbool_expressions.And;
 import com.bpodgursky.jbool_expressions.Expression;
 import com.bpodgursky.jbool_expressions.Variable;
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 
 public class SqlReportDataExtractor {
@@ -125,7 +121,7 @@ public class SqlReportDataExtractor {
 
         // Add the special "day" column if needed
         if (!reportSpecification.getDimensions().contains(DAY_COLUMN_NAME)) {
-            dimensions.add(stringToField(DAY_COLUMN_NAME));
+            dimensions.add(DSL.fieldByName(DAY_COLUMN_NAME));
         }
 
         // Add all other dimensions, potential building case statements as we go
@@ -135,7 +131,12 @@ public class SqlReportDataExtractor {
     }
 
     private void setupMetrics() {
-        metrics = stringsToFields(reportSpecification.getMetrics());
+        metrics = new LinkedList<Field<Object>>();
+        for (final String metric : reportSpecification.getMetrics()) {
+            final MetricExpressionParser.FieldWithMetadata fieldWithMetadata = MetricExpressionParser.parse(metric);
+            metrics.add(fieldWithMetadata.getField());
+            shouldGroupBy = shouldGroupBy || fieldWithMetadata.hasAggregateFunction();
+        }
     }
 
     private void setupFilters() {
@@ -149,26 +150,6 @@ public class SqlReportDataExtractor {
         if (endDate != null) {
             final Variable<String> dateCheck = Variable.of(String.format("%s<=%s", DAY_COLUMN_NAME, endDate));
             filters = filters == null ? dateCheck : And.of(filters, dateCheck);
-        }
-    }
-
-    private Collection<Field<Object>> stringsToFields(final List<String> columns) {
-        return Collections2.transform(columns,
-                                      new Function<String, Field<Object>>() {
-                                          @Override
-                                          public Field<Object> apply(final String columnName) {
-                                              return stringToField(columnName);
-                                          }
-                                      });
-    }
-
-    private Field<Object> stringToField(final String columnName) {
-        final AggregateFunction<?> candidateField = Aggregates.of(columnName);
-        if (candidateField != null) {
-            shouldGroupBy = true;
-            return (Field<Object>) candidateField;
-        } else {
-            return DSL.fieldByName(columnName);
         }
     }
 }

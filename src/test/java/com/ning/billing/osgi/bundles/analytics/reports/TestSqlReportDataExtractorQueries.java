@@ -40,7 +40,8 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
                              "dimension:currency(USD|BRL,GBP,EUR,MXN,AUD);" +
                              "dimension:state;" +
                              "metric:avg(amount);" +
-                             "metric:avg(fee)";
+                             "metric:avg(fee);" +
+                             "metric:100*sum(fee)/amount";
         final ReportSpecification reportSpecification = new ReportSpecification(query);
         final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName, reportSpecification, new LocalDate(2012, 10, 10), new LocalDate(2014, 11, 11));
 
