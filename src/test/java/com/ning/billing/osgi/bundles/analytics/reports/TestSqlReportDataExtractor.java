@@ -85,6 +85,24 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     }
 
     @Test(groups = "fast")
+    public void testCaseStatementNoOther() throws Exception {
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency(USD|BRL,GBP,EUR,MXN,AUD|-)^dimension:state^metric:amount^metric:fee");
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
+                                                               "  `day`, \n" +
+                                                               "  case when `currency` = 'USD' then 'USD'\n" +
+                                                               "       when `currency` = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "       when `currency` = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "       when `currency` = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "       when `currency` = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "       when `currency` = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "  end as `currency`, \n" +
+                                                               "  `state`, \n" +
+                                                               "  `amount`, \n" +
+                                                               "  `fee`\n" +
+                                                               "from payments_per_day");
+    }
+
+    @Test(groups = "fast")
     public void testFilterEqual() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency=EUR^filter:currency=BTC");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +

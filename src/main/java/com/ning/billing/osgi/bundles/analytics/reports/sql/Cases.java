@@ -16,6 +16,7 @@
 
 package com.ning.billing.osgi.bundles.analytics.reports.sql;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,10 +27,11 @@ import org.jooq.Field;
 import org.jooq.impl.DSL;
 
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 
 public abstract class Cases {
 
-    private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-zA-Z0-9_]+)(\\(\\s*([a-zA-Z0-9,|_]+)\\s*\\))?");
+    private static final Pattern MAGIC_REGEXP = Pattern.compile("([a-zA-Z0-9_]+)(\\(\\s*([a-zA-Z0-9,|_-]+)\\s*\\))?");
 
     private static final Splitter GROUPS_SPLITTER = Splitter.on(Pattern.compile("\\|"))
                                                             .trimResults()
@@ -37,6 +39,7 @@ public abstract class Cases {
     private static final Splitter VALUES_IN_GROUP_SPLITTER = Splitter.on(Pattern.compile("\\,"))
                                                                      .trimResults()
                                                                      .omitEmptyStrings();
+    private static final String SKIP_OTHER_TOKEN = "-";
     private static final String OTHER = "Other";
 
     // For grouping, input is in the form: currency(USD|BRL,GBP,EUR,MXN,AUD)
@@ -59,16 +62,25 @@ public abstract class Cases {
     }
 
     private static Field<Object> buildCaseStatementForColumn(final Field<Object> column, final Iterable<String> columnGroups) {
+        boolean withOther = true;
+
         Case decode = DSL.decode();
         CaseConditionStep caseConditionStep = null;
         for (final String columnGroup : columnGroups) {
-            for (final String columnValue : VALUES_IN_GROUP_SPLITTER.split(columnGroup)) {
+            final List<String> columnValues = ImmutableList.<String>copyOf(VALUES_IN_GROUP_SPLITTER.split(columnGroup));
+            // Append '-' as a sign to skip the Other group: currency(USD|BRL,GBP,EUR,MXN,AUD|-)
+            if (columnValues.size() == 1 && SKIP_OTHER_TOKEN.equals(columnValues.get(0))) {
+                withOther = false;
+                continue;
+            }
+
+            for (final String columnValue : columnValues) {
                 final Condition condition = column.eq(columnValue);
                 caseConditionStep = caseConditionStep == null ? decode.when(condition, columnGroup)
                                                               : caseConditionStep.when(condition, columnGroup);
             }
         }
 
-        return caseConditionStep.otherwise(OTHER);
+        return withOther ? caseConditionStep.otherwise(OTHER) : caseConditionStep;
     }
 }

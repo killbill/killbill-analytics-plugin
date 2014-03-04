@@ -30,6 +30,7 @@ public class TestCases extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(getSQL("currency(USD)"), "select case when \"currency\" = 'USD' then 'USD' else 'Other' end \"currency\" from dual");
         Assert.assertEquals(getSQL("currency(USD|BRL,GBP,EUR,MXN,AUD)"), "select case when \"currency\" = 'USD' then 'USD' when \"currency\" = 'BRL' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'GBP' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'EUR' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'MXN' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'AUD' then 'BRL,GBP,EUR,MXN,AUD' else 'Other' end \"currency\" from dual");
         Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD' when \"currency_with_underscore\" = 'EUR' then 'EUR' else 'Other' end \"currency_with_underscore\" from dual");
+        Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR|-)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD' when \"currency_with_underscore\" = 'EUR' then 'EUR' end \"currency_with_underscore\" from dual");
     }
 
     private String getSQL(final String input) {
