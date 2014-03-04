@@ -29,11 +29,12 @@ public class TestCases extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(getSQL("currency"), "select \"currency\" from dual");
         Assert.assertEquals(getSQL("currency(USD)"), "select case when \"currency\" = 'USD' then 'USD' else 'Other' end \"currency\" from dual");
         Assert.assertEquals(getSQL("currency(USD|BRL,GBP,EUR,MXN,AUD)"), "select case when \"currency\" = 'USD' then 'USD' when \"currency\" = 'BRL' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'GBP' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'EUR' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'MXN' then 'BRL,GBP,EUR,MXN,AUD' when \"currency\" = 'AUD' then 'BRL,GBP,EUR,MXN,AUD' else 'Other' end \"currency\" from dual");
+        Assert.assertEquals(getSQL("currency(USD=Group 1|BRL,GBP,EUR,MXN,AUD=Group 2, with Europe)"), "select case when \"currency\" = 'USD' then 'Group 1' when \"currency\" = 'BRL' then 'Group 2, with Europe' when \"currency\" = 'GBP' then 'Group 2, with Europe' when \"currency\" = 'EUR' then 'Group 2, with Europe' when \"currency\" = 'MXN' then 'Group 2, with Europe' when \"currency\" = 'AUD' then 'Group 2, with Europe' else 'Other' end \"currency\" from dual");
         Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD' when \"currency_with_underscore\" = 'EUR' then 'EUR' else 'Other' end \"currency_with_underscore\" from dual");
         Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR|-)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD' when \"currency_with_underscore\" = 'EUR' then 'EUR' end \"currency_with_underscore\" from dual");
     }
 
     private String getSQL(final String input) {
-        return DSL.select(Cases.of(input)).toString();
+        return DSL.select(Cases.of(input).getField()).toString();
     }
 }

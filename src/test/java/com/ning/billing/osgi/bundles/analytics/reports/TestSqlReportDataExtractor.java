@@ -99,7 +99,10 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `state`, \n" +
                                                                "  `amount`, \n" +
                                                                "  `fee`\n" +
-                                                               "from payments_per_day");
+                                                               "from payments_per_day\n" +
+                                                               "where currency in (\n" +
+                                                               "  'USD', 'BRL', 'GBP', 'EUR', 'MXN', 'AUD'\n" +
+                                                               ")");
     }
 
     @Test(groups = "fast")

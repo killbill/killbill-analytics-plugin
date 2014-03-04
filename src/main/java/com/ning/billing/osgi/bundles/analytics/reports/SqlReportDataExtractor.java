@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import javax.annotation.Nullable;
 
 import org.joda.time.LocalDate;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Record;
@@ -55,6 +56,7 @@ public class SqlReportDataExtractor {
     private Collection<Field<Object>> dimensions = ImmutableList.<Field<Object>>of();
     private Collection<Field<Object>> metrics = ImmutableList.<Field<Object>>of();
     private Expression<String> filters = null;
+    private Condition condition = null;
     private boolean shouldGroupBy = false;
 
     public SqlReportDataExtractor(final String tableName,
@@ -101,6 +103,9 @@ public class SqlReportDataExtractor {
         if (filters != null) {
             statement = statement.and(Filters.of(filters));
         }
+        if (condition != null) {
+            statement = statement.and(condition);
+        }
 
         if (shouldGroupBy) {
             return statement.groupBy(dimensions)
@@ -126,7 +131,12 @@ public class SqlReportDataExtractor {
 
         // Add all other dimensions, potential building case statements as we go
         for (final String dimensionWithGrouping : reportSpecification.getDimensionsWithGrouping()) {
-            dimensions.add(Cases.of(dimensionWithGrouping));
+            final Cases.FieldWithMetadata fieldWithMetadata = Cases.of(dimensionWithGrouping);
+            dimensions.add(fieldWithMetadata.getField());
+
+            if (fieldWithMetadata.getCondition() != null) {
+                condition = condition == null ? fieldWithMetadata.getCondition() : condition.and(fieldWithMetadata.getCondition());
+            }
         }
     }
 

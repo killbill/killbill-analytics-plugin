@@ -37,7 +37,7 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
         final String query = "payments_per_day;" +
                              "filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does');" +
                              "filter:currency=BTC;" +
-                             "dimension:currency(USD|BRL,GBP,EUR,MXN,AUD);" +
+                             "dimension:currency(USD=Group 1|BRL,GBP,EUR,MXN,AUD=Group 2, with Europe);" +
                              "dimension:state;" +
                              "metric:avg(amount);" +
                              "metric:avg(fee);" +
