@@ -19,17 +19,21 @@ package com.ning.billing.osgi.bundles.analytics.reports;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bpodgursky.jbool_expressions.Expression;
 import com.bpodgursky.jbool_expressions.Or;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 /**
  * Interprets the report filters specified by the user
  */
 public class ReportSpecification {
+
+    private static final Pattern LEGEND_PATTERN = Pattern.compile("([a-zA-Z0-9=\\s,|_-~\\?!@#$%^&*\\+\\[\\]\\\\;:‘\"<>,./]+)(\\(\\s*([a-zA-Z0-9=\\s,|_-~\\?!@#$%^&*\\+\\[\\]\\\\;:‘\"<>,./]+)\\s*\\))?");
 
     private static final Splitter REPORT_SPECIFICATIONS_SPLITTER = Splitter.on(Pattern.compile("\\^"))
                                                                            .trimResults()
@@ -55,6 +59,7 @@ public class ReportSpecification {
     private final String rawReportName;
 
     private String reportName;
+    private String legend;
 
     public ReportSpecification(final String rawReportName) {
         this.rawReportName = rawReportName;
@@ -63,6 +68,10 @@ public class ReportSpecification {
 
     public String getReportName() {
         return reportName;
+    }
+
+    public String getLegend() {
+        return legend;
     }
 
     public List<String> getDimensions() {
@@ -82,7 +91,7 @@ public class ReportSpecification {
     }
 
     private void parseRawReportName() {
-        // rawReportName is in the form: payments_per_day^filter:currency=AUD^filter:currency=EUR^dimension:currency^dimension:state^metric:amount^metric:fee
+        // rawReportName is in the form: payments_per_day(Currency report)^filter:currency=AUD^filter:currency=EUR^dimension:currency^dimension:state^metric:amount^metric:fee
         final Iterator<String> reportIterator = REPORT_SPECIFICATIONS_SPLITTER.split(rawReportName).iterator();
 
         boolean isFirst = true;
@@ -93,7 +102,17 @@ public class ReportSpecification {
             // The report name should be the first token
             if (isFirst) {
                 isFirst = false;
-                reportName = rawSpecification;
+
+                // Extract the alias, if present: payments_per_day(Currency report)
+                final Matcher matcher = LEGEND_PATTERN.matcher(rawSpecification);
+                if (!matcher.find()) {
+                    reportName = rawSpecification;
+                    legend = null;
+                } else {
+                    reportName = matcher.group(1);
+                    legend = Strings.emptyToNull(matcher.group(3));
+                }
+
                 continue;
             }
 

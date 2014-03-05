@@ -54,6 +54,7 @@ import com.ning.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import com.ning.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -63,7 +64,6 @@ import com.google.common.collect.Sets;
 public class ReportsUserApi {
 
     private static final Integer NB_THREADS = Integer.valueOf(System.getProperty("com.ning.billing.osgi.bundles.analytics.dashboard.nb_threads", "10"));
-    private static final String NO_PIVOT = "____NO_PIVOT____";
 
     // Part of the public API
     public static final String DAY_COLUMN_NAME = "day";
@@ -210,7 +210,7 @@ public class ReportsUserApi {
                             break;
 
                         case TIMELINE:
-                            final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, startDate, endDate);
+                            final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, reportConfiguration, startDate, endDate);
                             timeSeriesData.put(reportName, data);
                             break;
                         default:
@@ -243,15 +243,8 @@ public class ReportsUserApi {
             final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
 
             // Sort the pivots by name for a consistent display in the dashboard
-            for (final String pivotName : Ordering.natural().sortedCopy(dataForReports.get(reportName).keySet())) {
-                final String timeSeriesName;
-                if (NO_PIVOT.equals(pivotName)) {
-                    timeSeriesName = reportConfiguration.getReportPrettyName();
-                } else {
-                    timeSeriesName = String.format("%s (%s)", reportConfiguration.getReportPrettyName(), pivotName);
-                }
-
-                final List<XY> dataForReport = dataForReports.get(reportName).get(pivotName);
+            for (final String timeSeriesName : Ordering.natural().sortedCopy(dataForReports.get(reportName).keySet())) {
+                final List<XY> dataForReport = dataForReports.get(reportName).get(timeSeriesName);
                 timeSeries.add(new NamedXYTimeSeries(timeSeriesName, dataForReport));
             }
             results.add(new Chart(ReportType.TIMELINE, reportConfiguration.getReportPrettyName(), timeSeries));
@@ -359,6 +352,7 @@ public class ReportsUserApi {
 
     private Map<String, List<XY>> getTimeSeriesData(final String tableName,
                                                     final ReportSpecification reportSpecification,
+                                                    final ReportsConfigurationModelDao reportsConfiguration,
                                                     @Nullable final LocalDate startDate,
                                                     @Nullable final LocalDate endDate) {
         final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName,
@@ -381,11 +375,11 @@ public class ReportsUserApi {
                     }
                     final String date = dateObject.toString();
 
-                    final String baseSeriesName = createBaseNameForSeries(row, reportSpecification);
+                    final String legendWithDimensions = createLegendWithDimensionsForSeries(row, reportSpecification);
                     for (final String column : row.keySet()) {
                         if (isMetric(column, reportSpecification)) {
                             // Create a unique name for that result set
-                            final String seriesName = baseSeriesName + " :: " + column;
+                            final String seriesName = Objects.firstNonNull(reportSpecification.getLegend(), column) + (legendWithDimensions == null ? "" : (": " + legendWithDimensions));
                             if (timeSeries.get(seriesName) == null) {
                                 timeSeries.put(seriesName, new LinkedList<XY>());
                             }
@@ -402,7 +396,7 @@ public class ReportsUserApi {
         });
     }
 
-    private String createBaseNameForSeries(final Map<String, Object> row, final ReportSpecification reportSpecification) {
+    private String createLegendWithDimensionsForSeries(final Map<String, Object> row, final ReportSpecification reportSpecification) {
         int i = 0;
         final StringBuilder seriesNameBuilder = new StringBuilder();
         for (final String column : row.keySet()) {
@@ -414,8 +408,9 @@ public class ReportsUserApi {
                 i++;
             }
         }
+
         if (i == 0) {
-            return NO_PIVOT;
+            return null;
         } else {
             return seriesNameBuilder.toString();
         }
