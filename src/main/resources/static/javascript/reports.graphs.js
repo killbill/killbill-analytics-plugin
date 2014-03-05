@@ -3,6 +3,15 @@ function ReportsGraphs(reports) {
     this.reportsDataTables = new ReportsDataTables(reports);
 }
 
+ReportsGraphs.prototype.getTitle = function(defaultTitle, position) {
+    var overridenTitle = $.url().param('title' + position);
+    if (!overridenTitle) {
+        return defaultTitle;
+    } else {
+        return overridenTitle;
+    }
+}
+
 ReportsGraphs.prototype.getMappingType = function(inputType, position) {
     if (inputType == 'TIMELINE') {
         var layersOrLines = $.url().param('__layersOrLines' + position);
@@ -42,7 +51,7 @@ ReportsGraphs.prototype.doDrawAll = function(input) {
         var curInput = inputData[i];
         var curType = this.getMappingType(curInput.type, i + 1);
         var curData = curInput.data;
-        var curTitle = curInput.title;
+        var curTitle = this.getTitle(curInput.title, i + 1);
 
         log.debug("Drawing '" + curTitle + "'");
         log.trace(curData);
