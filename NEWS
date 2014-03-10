@@ -1,3 +1,6 @@
+0.5.13
+    Improvements to the new SQL report API
+
 0.5.12
     New revenue model reports
     New SQL report API, see http://docs.kill-bill.org/userguide.html#_dashboard_api
