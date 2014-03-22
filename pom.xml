@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2010-2013 Ning, Inc.
+  ~ Copyright 2010-2014 Ning, Inc.
+  ~ Copyright 2014 The Billing Project, LLC
   ~
   ~ Ning licenses this file to you under the Apache License, version 2.0
   ~ (the "License"); you may not use this file except in compliance with the
@@ -19,12 +20,13 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
-        <groupId>com.ning.billing</groupId>
-        <version>0.5.25</version>
+        <groupId>org.kill-bill.billing</groupId>
+        <version>0.5.29</version>
     </parent>
-    <artifactId>killbill-osgi-bundles-analytics</artifactId>
+    <groupId>org.kill-bill.billing.plugin.java</groupId>
+    <artifactId>analytics-plugin</artifactId>
     <name>Kill Bill OSGI Analytics bundle</name>
-    <version>0.5.14-SNAPSHOT</version>
+    <version>0.6.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>Kill Bill Analytics plugin</description>
     <url>http://github.com/killbill/killbill-analytics-plugin</url>
@@ -82,47 +84,47 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
+            <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-api</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.plugin</groupId>
+            <groupId>org.kill-bill.billing.plugin</groupId>
             <artifactId>killbill-plugin-api-notification</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
+            <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-osgi-bundles-lib-killbill</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing</groupId>
+            <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-osgi-bundles-lib-slf4j-osgi</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.commons</groupId>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-clock</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.commons</groupId>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-clock</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.commons</groupId>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-concurrent</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.commons</groupId>
-            <artifactId>killbill-embeddeddb</artifactId>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-embeddeddb-mysql</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.commons</groupId>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-jdbi</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ning.billing.commons</groupId>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-queue</artifactId>
         </dependency>
         <dependency>
@@ -253,9 +255,9 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Bundle-Activator>com.ning.billing.osgi.bundles.analytics.AnalyticsActivator</Bundle-Activator>
+                        <Bundle-Activator>org.killbill.billing.plugin.analytics.AnalyticsActivator</Bundle-Activator>
                         <Export-Package />
-                        <Private-Package>com.ning.billing.osgi.bundles.analytics.*</Private-Package>
+                        <Private-Package>org.killbill.billing.plugin.analytics.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
                         <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
                         <Import-Package>
@@ -263,7 +265,7 @@
                             org.xml.sax;
                             org.w3c.dom;
                             org.w3c.dom.ls;
-                            com.ning.billing.osgi.api;
+                            org.killbill.billing.osgi.api;
                             sun.misc;
                             javax.management;
                             javax.xml.parsers;

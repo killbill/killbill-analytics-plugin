@@ -1,3 +1,8 @@
+0.6.0
+    Change base package name to org.killbill.billing.plugin.analytics
+    Change Maven coordinates to org.kill-bill.billing.plugin.java:analytics-plugin
+    Update to killbill-oss-parent 0.5.29
+
 0.5.13
     Improvements to the new SQL report API
 
