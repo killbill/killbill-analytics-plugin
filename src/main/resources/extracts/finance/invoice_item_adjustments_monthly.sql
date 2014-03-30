@@ -30,7 +30,7 @@ from
 where 1=1
   and iia.created_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
   and iia.created_date < date_format(sysdate(),'%Y-%m-01')
-  and iia.report_group = 'default'
+  and iia.report_group != 'test'
 order by
   iia.invoice_number
 , iia.invoice_item_record_id; -- just for well defined ordering

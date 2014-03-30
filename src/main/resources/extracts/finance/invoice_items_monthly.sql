@@ -23,7 +23,7 @@ from
 where 1=1
   and ii.invoice_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
   and ii.invoice_date < date_format(sysdate(),'%Y-%m-01')
-  and ii.report_group = 'default'
+  and ii.report_group != 'test'
 order by
   invoice_number
 , ii.invoice_item_record_id; -- just for well defined ordering
