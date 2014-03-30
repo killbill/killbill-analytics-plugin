@@ -33,5 +33,5 @@ from
 where 1=1
   and rfnd.created_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
   and rfnd.created_date < date_format(sysdate(),'%Y-%m-01')
-  and rfnd.report_group = 'default'
+  and rfnd.report_group != 'test'
 order by 1,rfnd.invoice_payment_record_id; -- just for well defined ordering
