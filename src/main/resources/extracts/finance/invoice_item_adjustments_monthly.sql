@@ -5,7 +5,7 @@ select
 , date_format(iia.created_date, '%m/%d/%Y') as "Creation Date" -- Adjustment date?
 , date_format(iia.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , date_format(iia.invoice_date, '%m/%d/%Y') as "Target Date"
-, iia.bundle_external_key as "App ID"
+, iia.bundle_external_key as "Bundle External Key"
 , iia.product_name as "Product"
 , iia.slug as "Slug"
  -- , date_format(iia.start_date, '%m/%d/%Y') as "Service Start Date"

@@ -5,7 +5,7 @@ select
 , date_format(ic.created_date, '%m/%d/%Y') as "Creation Date"
 , date_format(ic.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , date_format(ic.invoice_date, '%m/%d/%Y') as "Target Date"
-, ic.bundle_external_key as "App ID"
+, ic.bundle_external_key as "Bundle External Key"
 , ic.product_name as "Product"
 , ic.slug as "Slug"
 , date_format(ic.start_date, '%m/%d/%Y') as "Service Start Date"
