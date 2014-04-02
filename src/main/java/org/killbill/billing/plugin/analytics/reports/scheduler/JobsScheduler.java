@@ -18,12 +18,14 @@
 package org.killbill.billing.plugin.analytics.reports.scheduler;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.Ordering;
 import org.joda.time.DateTime;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
@@ -55,6 +57,13 @@ public class JobsScheduler {
     // Current version of the jobs in the notification queue
     // This is useful to retrieve all currently scheduled ones
     private static final Long JOBS_SCHEDULER_VERSION = 1L;
+
+    private static final Ordering<AnalyticsReportJob> ANALYTICS_REPORT_JOB_ORDERING = Ordering.from(new Comparator<AnalyticsReportJob>() {
+        @Override
+        public int compare(AnalyticsReportJob o1, AnalyticsReportJob o2) {
+            return o1.getRecordId().compareTo(o2.getRecordId());
+        }
+    });
 
     private final OSGIKillbillLogService logService;
     private final IDBI dbi;
@@ -124,7 +133,7 @@ public class JobsScheduler {
         for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotifications(null)) {
             schedules.add(notification.getEvent());
         }
-        return schedules;
+        return ANALYTICS_REPORT_JOB_ORDERING.immutableSortedCopy(schedules);
     }
 
     private List<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable Transmogrifier transmogrifier) {
