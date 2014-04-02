@@ -10,7 +10,6 @@ from
 where 1=1
   and event in ('START_ENTITLEMENT_BASE','CHANGE_BASE','SYSTEM_CHANGE_BASE')
   and next_service = 'entitlement-service'
-  and cal.d > '2013-01-01' 
   and cal.d < sysdate()
   and next_mrr >0
   and report_group = 'default'

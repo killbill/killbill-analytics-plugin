@@ -9,7 +9,6 @@ from
 where 1=1 
   and aat.report_group='default'
   and aat.service='overdue-service'
-  and cal.d >= '2013-01-01'
   and cal.d <= now()
 group by 1,2 
 order by 1,2

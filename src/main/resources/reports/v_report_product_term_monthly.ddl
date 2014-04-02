@@ -12,7 +12,6 @@ where 1=1
   and ast.event in ('START_ENTITLEMENT_BASE', 'CHANGE_BASE', 'SYSTEM_CHANGE_BASE', 'RESUME_ENTITLEMENT_BASE')
   and ast.next_service='entitlement-service'
   and ast.next_product_category='BASE'
-  and cal.d > '2013-01-01'
   and cal.d < sysdate()
   and ast.next_mrr > 0
   and ast.report_group='default'
