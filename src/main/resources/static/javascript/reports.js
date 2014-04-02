@@ -14,10 +14,10 @@ function Reports() {
     // Standard sets of reports
     this.ANALYTICS_REPORTS = {
         reports: {
-            1: ['trial_starts_daily'],
-            2: ['cancellations_per_day'],
+            1: ['trial_starts_count_daily'],
+            2: ['cancellations_count_daily'],
             3: ['active_by_product_term_monthly'],
-            4: ['daily_invoice_balance']
+            4: ['invoices_balance_daily']
         }
     };
     this.SYSTEM_REPORTS = {
