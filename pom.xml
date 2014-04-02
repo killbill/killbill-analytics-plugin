@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.5.30-SNAPSHOT</version>
+        <version>0.5.30</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -132,6 +132,7 @@
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-api</artifactId>
+            <version>0.8.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
