@@ -16,7 +16,7 @@ from
 where 1=1
   and inv.invoice_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
   and inv.invoice_date < date_format(sysdate(),'%Y-%m-01')
-  and inv.report_group = 'default'
+  and inv.report_group != 'test'
 order by
   invoice_number
 , inv.invoice_record_id;  -- just for well defined ordering

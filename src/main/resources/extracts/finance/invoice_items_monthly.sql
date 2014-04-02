@@ -5,7 +5,7 @@ select
 , date_format(ii.created_date, '%m/%d/%Y') as "Creation Date"
 , date_format(ii.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , date_format(ii.invoice_date, '%m/%d/%Y') as "Target Date"
-, ii.bundle_external_key as "App ID"
+, ii.bundle_external_key as "Bundle External Key"
 , ii.product_name as "Product"
 , ii.slug as "Slug"
 , date_format(ii.start_date, '%m/%d/%Y') as "Service Start Date"
@@ -23,7 +23,7 @@ from
 where 1=1
   and ii.invoice_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
   and ii.invoice_date < date_format(sysdate(),'%Y-%m-01')
-  and ii.report_group = 'default'
+  and ii.report_group != 'test'
 order by
   invoice_number
 , ii.invoice_item_record_id; -- just for well defined ordering

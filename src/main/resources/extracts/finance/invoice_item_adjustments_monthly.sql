@@ -5,7 +5,7 @@ select
 , date_format(iia.created_date, '%m/%d/%Y') as "Creation Date" -- Adjustment date?
 , date_format(iia.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , date_format(iia.invoice_date, '%m/%d/%Y') as "Target Date"
-, iia.bundle_external_key as "App ID"
+, iia.bundle_external_key as "Bundle External Key"
 , iia.product_name as "Product"
 , iia.slug as "Slug"
  -- , date_format(iia.start_date, '%m/%d/%Y') as "Service Start Date"
@@ -30,7 +30,7 @@ from
 where 1=1
   and iia.created_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
   and iia.created_date < date_format(sysdate(),'%Y-%m-01')
-  and iia.report_group = 'default'
+  and iia.report_group != 'test'
 order by
   iia.invoice_number
 , iia.invoice_item_record_id; -- just for well defined ordering
