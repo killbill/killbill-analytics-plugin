@@ -35,4 +35,3 @@ BEGIN
 END;
 //
 DELIMITER ;
-grant execute on procedure refresh_report_conversions_total_dollar_monthly to irs_xno;

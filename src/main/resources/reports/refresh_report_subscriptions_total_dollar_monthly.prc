@@ -35,4 +35,3 @@ BEGIN
 END;
 //
 DELIMITER ;
-grant execute on procedure to refresh_report_subscriptions_total_dollar_monthly irs_xno;
