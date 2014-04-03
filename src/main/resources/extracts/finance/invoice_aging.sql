@@ -17,7 +17,7 @@ select
 , case when invoice_creation_date < '2014-01-01' - interval 150 day then round(cc.reference_rate * invoice_original_amount_charged,4) else 0 end as "Balance due 150+ Days USD"
 , cc.reference_rate * invoice_original_amount_charged as "Total Balance Due USD"
 , invoice_number "Invoice Number"
-, bundle_external_key "App ID"
+, bundle_external_key "Bundle External Key"
 , slug "Slug"
 , service_start_date "Service Start Date"
 , service_end_date "Service End Date"
