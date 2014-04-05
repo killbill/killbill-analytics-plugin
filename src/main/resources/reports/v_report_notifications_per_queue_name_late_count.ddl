@@ -1,4 +1,4 @@
-create or replace view v_report_notifications_per_queue_name_late as
+create or replace view v_report_notifications_per_queue_name_late_count as
 select
   notifications.queue_name as label
 , count(0) as count 
