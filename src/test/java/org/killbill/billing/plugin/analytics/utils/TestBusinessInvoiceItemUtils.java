@@ -26,6 +26,7 @@ import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.PhaseType;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
+import org.killbill.billing.catalog.api.Recurring;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionBundleTimeline;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
@@ -49,9 +50,12 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
 
         // Start with a trial
         final PlanPhase phase1 = Mockito.mock(PlanPhase.class);
+        Recurring recurring1  = Mockito.mock(Recurring.class);
+        Mockito.when(recurring1.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
+
         Mockito.when(phase1.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(phase1.getPlan()).thenReturn(plan1);
-        Mockito.when(phase1.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
+        Mockito.when(phase1.getRecurring()).thenReturn(recurring1);
         Mockito.when(phase1.getPhaseType()).thenReturn(PhaseType.TRIAL);
 
         final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
@@ -62,9 +66,12 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
 
         // Simulate a plan change during the trial
         final PlanPhase phase2 = Mockito.mock(PlanPhase.class);
+        Recurring recurring2  = Mockito.mock(Recurring.class);
+        Mockito.when(recurring2.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
+
         Mockito.when(phase2.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(phase2.getPlan()).thenReturn(plan2);
-        Mockito.when(phase2.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
+        Mockito.when(phase2.getRecurring()).thenReturn(recurring2);
         Mockito.when(phase2.getPhaseType()).thenReturn(PhaseType.TRIAL);
 
         final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
@@ -75,9 +82,12 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
 
         // Evergreen phase
         final PlanPhase phase3 = Mockito.mock(PlanPhase.class);
+        Recurring recurring3  = Mockito.mock(Recurring.class);
+        Mockito.when(recurring3.getBillingPeriod()).thenReturn(BillingPeriod.MONTHLY);
+
         Mockito.when(phase3.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(phase3.getPlan()).thenReturn(plan2);
-        Mockito.when(phase3.getBillingPeriod()).thenReturn(BillingPeriod.MONTHLY);
+        Mockito.when(phase3.getRecurring()).thenReturn(recurring3);
         Mockito.when(phase3.getPhaseType()).thenReturn(PhaseType.EVERGREEN);
 
         final SubscriptionEvent event3 = Mockito.mock(SubscriptionEvent.class);

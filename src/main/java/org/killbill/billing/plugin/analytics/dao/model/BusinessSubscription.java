@@ -94,23 +94,23 @@ public class BusinessSubscription {
                 phase = null;
             }
 
-            if (currentPhase.getBillingPeriod() != null) {
-                billingPeriod = currentPhase.getBillingPeriod().toString();
+            if (currentPhase.getRecurring() != null && currentPhase.getRecurring().getBillingPeriod() != null) {
+                billingPeriod = currentPhase.getRecurring().getBillingPeriod().toString();
             } else {
                 billingPeriod = null;
             }
 
-            if (currentPhase.getRecurringPrice() != null && currency != null) {
+            if (currentPhase.getRecurring().getRecurringPrice() != null && currency != null) {
                 BigDecimal tmpPrice;
                 try {
-                    tmpPrice = currentPhase.getRecurringPrice().getPrice(currency);
+                    tmpPrice = currentPhase.getRecurring().getRecurringPrice().getPrice(currency);
                 } catch (CatalogApiException e) {
                     tmpPrice = null;
                 }
 
                 price = tmpPrice;
                 if (tmpPrice != null) {
-                    mrr = getMrrFromBillingPeriod(currentPhase.getBillingPeriod(), price);
+                    mrr = getMrrFromBillingPeriod(currentPhase.getRecurring().getBillingPeriod(), price);
                 } else {
                     mrr = null;
                 }

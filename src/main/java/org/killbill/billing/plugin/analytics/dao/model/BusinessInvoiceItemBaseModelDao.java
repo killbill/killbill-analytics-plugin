@@ -327,7 +327,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              (plan != null && plan.getProduct().getCategory() != null) ? plan.getProduct().getCategory().toString() : null,
              planPhase != null ? planPhase.getName() : null,
              (planPhase != null && planPhase.getPhaseType() != null) ? planPhase.getPhaseType().toString() : null,
-             (planPhase != null && planPhase.getBillingPeriod() != null) ? planPhase.getBillingPeriod().toString() : null,
+             (planPhase != null && planPhase.getRecurring() != null && planPhase.getRecurring().getBillingPeriod() != null) ? planPhase.getRecurring().getBillingPeriod().toString() : null,
              invoiceItem.getStartDate(),
              /* Populate end date for fixed items for convenience (null in invoice_items table) */
              BusinessInvoiceItemUtils.computeServicePeriodEndDate(invoiceItem, planPhase, bundle),
