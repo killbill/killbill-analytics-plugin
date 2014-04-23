@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.5.30</version>
+        <version>0.6.34</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -112,12 +112,12 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.felix</groupId>
+            <groupId>org.osgi</groupId>
             <artifactId>org.osgi.compendium</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.felix</groupId>
-            <artifactId>org.osgi.core</artifactId>
+            <artifactId>org.apache.felix.framework</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jdbi</groupId>
@@ -232,7 +232,7 @@
                             org.xml.sax.helpers;
                             org.xml.sax;
                             org.w3c.dom;
-                            org.w3c.dom.ls;
+                            org.w3c.dom.ls,
                             org.killbill.billing.osgi.api;
                             sun.misc;
                             javax.management;
