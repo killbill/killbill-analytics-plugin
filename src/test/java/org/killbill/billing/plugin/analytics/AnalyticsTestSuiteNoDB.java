@@ -38,6 +38,7 @@ import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.PriceList;
 import org.killbill.billing.catalog.api.Product;
 import org.killbill.billing.catalog.api.ProductCategory;
+import org.killbill.billing.catalog.api.Recurring;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
@@ -262,19 +263,21 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(plan.getProduct()).thenReturn(product);
         Mockito.when(plan.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(plan.isRetired()).thenReturn(true);
-        Mockito.when(plan.getBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
+        Mockito.when(plan.getRecurringBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
         Mockito.when(plan.getEffectiveDateForExistingSubscriptons()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 59, DateTimeZone.UTC).toDate());
         final String planName = plan.getName();
 
         phase = Mockito.mock(PlanPhase.class);
-        Mockito.when(phase.getBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
+        Recurring recurring  = Mockito.mock(Recurring.class);
+        Mockito.when(recurring.getBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
+        Mockito.when(phase.getRecurring()).thenReturn(recurring);
         Mockito.when(phase.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(phase.getPlan()).thenReturn(plan);
         Mockito.when(phase.getPhaseType()).thenReturn(PhaseType.DISCOUNT);
 
         final InternationalPrice internationalPrice = Mockito.mock(InternationalPrice.class);
+        Mockito.when(recurring.getRecurringPrice()).thenReturn(internationalPrice);
         Mockito.when(internationalPrice.getPrice(Mockito.<Currency>any())).thenReturn(BigDecimal.TEN);
-        Mockito.when(phase.getRecurringPrice()).thenReturn(internationalPrice);
         final String phaseName = phase.getName();
 
         priceList = Mockito.mock(PriceList.class);

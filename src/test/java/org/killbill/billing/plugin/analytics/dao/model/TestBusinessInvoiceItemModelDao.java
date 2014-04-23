@@ -74,7 +74,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceItemModelDao.getProductCategory(), plan.getProduct().getCategory().toString());
         Assert.assertEquals(invoiceItemModelDao.getSlug(), phase.getName());
         Assert.assertEquals(invoiceItemModelDao.getPhase(), phase.getPhaseType().toString());
-        Assert.assertEquals(invoiceItemModelDao.getBillingPeriod(), phase.getBillingPeriod().toString());
+        Assert.assertEquals(invoiceItemModelDao.getBillingPeriod(), phase.getRecurring().getBillingPeriod().toString());
     }
 
     private void verifyInvoiceItemFields(final BusinessInvoiceItemModelDao invoiceItemModelDao) {
