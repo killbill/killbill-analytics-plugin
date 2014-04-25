@@ -49,7 +49,9 @@ from (
     where 1=1
       and ii.invoice_date < date_format(sysdate(),'%Y-%m-01')
       and ii.report_group != 'test'
-      and ii.invoice_balance > 0
+      and ii.amount > 0
+      and ii.invoice_amount_paid=0
+      and ii.invoice_amount_charged=ii.invoice_original_amount_charged
 ) a
 join analytics_currency_conversion cc on a.created_date >= cc.start_date and a.created_date <= cc.end_date and cc.currency =a.currency
 order by

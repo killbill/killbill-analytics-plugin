@@ -1,6 +1,6 @@
-drop procedure if exists updMonthAnalyticsCurrConv;
+drop procedure if exists updateAnalyticsCurrConvMonth;
 DELIMITER //
-CREATE PROCEDURE updMonthAnalyticsCurrConv(p_month int, p_year int, p_aud_rate decimal(10,4), p_brl_rate decimal(10,4), p_eur_rate decimal(10,4), p_gbp_rate decimal(10,4), p_mxn_rate decimal(10,4))
+CREATE PROCEDURE updateAnalyticsCurrConvMonth(p_month int, p_year int, p_aud_rate decimal(10,4), p_brl_rate decimal(10,4), p_eur_rate decimal(10,4), p_gbp_rate decimal(10,4), p_mxn_rate decimal(10,4))
 BEGIN
 
     /***********************
