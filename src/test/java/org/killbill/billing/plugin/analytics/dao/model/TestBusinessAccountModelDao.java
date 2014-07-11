@@ -59,7 +59,7 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
                                                                                     invoice,
-                                                                                    payment,
+                                                                                    paymentTransaction,
                                                                                     3,
                                                                                     currencyConverter,
                                                                                     auditLog,
@@ -75,8 +75,8 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(accountModelDao.getLastInvoiceCurrency(), invoice.getCurrency().toString());
         Assert.assertEquals(accountModelDao.getLastInvoiceDate().compareTo(invoice.getInvoiceDate()), 0);
         Assert.assertEquals(accountModelDao.getLastInvoiceId(), invoice.getId());
-        Assert.assertEquals(accountModelDao.getLastPaymentDate(), payment.getEffectiveDate());
-        Assert.assertEquals(accountModelDao.getLastPaymentStatus(), payment.getPaymentStatus().toString());
+        Assert.assertEquals(accountModelDao.getLastPaymentDate(), paymentTransaction.getEffectiveDate());
+        Assert.assertEquals(accountModelDao.getLastPaymentStatus(), paymentTransaction.getTransactionStatus().toString());
     }
 
     private void verifyAccountFields(final BusinessAccountModelDao accountModelDao) {

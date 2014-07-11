@@ -33,7 +33,7 @@ public class TestBusinessAccount extends AnalyticsTestSuiteNoDB {
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
                                                                                     invoice,
-                                                                                    payment,
+                                                                                    paymentTransaction,
                                                                                     3,
                                                                                     currencyConverter,
                                                                                     auditLog,

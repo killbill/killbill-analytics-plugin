@@ -46,6 +46,7 @@ import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
 import org.killbill.billing.payment.api.PaymentApiException;
 import org.killbill.billing.payment.api.PaymentMethod;
+import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.payment.api.Refund;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
@@ -72,6 +73,7 @@ import org.osgi.service.log.LogService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 /**
@@ -83,6 +85,7 @@ import com.google.common.collect.Iterables;
 public abstract class BusinessFactoryBase {
 
     private static final String REFERENCE_CURRENCY = System.getProperty("org.killbill.billing.plugin.analytics.referenceCurrency", "USD");
+    private static final Iterable<PluginProperty> PLUGIN_PROPERTIES = ImmutableList.<PluginProperty>of();
 
     protected final OSGIKillbillLogService logService;
     protected final OSGIKillbillAPI osgiKillbillAPI;
@@ -416,7 +419,7 @@ public abstract class BusinessFactoryBase {
     protected Collection<Payment> getPaymentsByAccountId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
-            return paymentApi.getAccountPayments(accountId, context);
+            return paymentApi.getAccountPayments(accountId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving payments for account id " + accountId, e);
             throw new AnalyticsRefreshException(e);
@@ -428,7 +431,7 @@ public abstract class BusinessFactoryBase {
 
         try {
             // Try to get the payment information, with plugin information
-            return paymentApi.getPayment(paymentId, true, context);
+            return paymentApi.getPayment(paymentId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_INFO, "Error retrieving payment with plugin info for id " + paymentId, e);
         }
@@ -436,29 +439,9 @@ public abstract class BusinessFactoryBase {
         try {
             // If we come here, it is possible that the plugin couldn't answer about the payment, maybe
             // because it was deleted in the gateway. Try to return the Kill Bill specific info only
-            return paymentApi.getPayment(paymentId, false, context);
+            return paymentApi.getPayment(paymentId, false, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving payment for id " + paymentId, e);
-            throw new AnalyticsRefreshException(e);
-        }
-    }
-
-    protected Refund getRefundWithPluginInfo(final UUID refundId, final TenantContext context) throws AnalyticsRefreshException {
-        final PaymentApi paymentApi = getPaymentUserApi();
-
-        try {
-            // Try to get the refund information, with plugin information
-            return paymentApi.getRefund(refundId, true, context);
-        } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving refund for id " + refundId, e);
-        }
-
-        try {
-            // If we come here, it is possible that the plugin couldn't answer about the refund, maybe
-            // because it was deleted in the gateway. Try to return the Kill Bill specific info only
-            return paymentApi.getRefund(refundId, false, context);
-        } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving refund for id " + refundId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -468,7 +451,7 @@ public abstract class BusinessFactoryBase {
 
         try {
             // Try to get all payment methods, including deleted ones, with plugin information
-            return paymentApi.getPaymentMethodById(paymentMethodId, true, true, context);
+            return paymentApi.getPaymentMethodById(paymentMethodId, true, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_INFO, "Error retrieving payment method for id " + paymentMethodId + ": " + e.getMessage());
         }
@@ -476,7 +459,7 @@ public abstract class BusinessFactoryBase {
         try {
             // If we come here, it is possible that the plugin couldn't answer about the payment method, maybe
             // because it was deleted in the gateway. Try to return the Kill Bill specific info only
-            return paymentApi.getPaymentMethodById(paymentMethodId, true, false, context);
+            return paymentApi.getPaymentMethodById(paymentMethodId, true, false, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_INFO, "Error retrieving payment method for id " + paymentMethodId, e);
             return null;

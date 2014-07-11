@@ -24,7 +24,6 @@ import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
-import org.killbill.billing.payment.api.Refund;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
@@ -38,7 +37,6 @@ public class BusinessInvoicePaymentChargebackModelDao extends BusinessInvoicePay
                                                     final InvoicePayment invoicePayment,
                                                     final Long invoicePaymentRecordId,
                                                     final Payment payment,
-                                                    final Refund refund,
                                                     @Nullable final PaymentMethod paymentMethod,
                                                     final CurrencyConverter currencyConverter,
                                                     @Nullable final AuditLog creationAuditLog,
@@ -50,7 +48,6 @@ public class BusinessInvoicePaymentChargebackModelDao extends BusinessInvoicePay
               invoicePayment,
               invoicePaymentRecordId,
               payment,
-              refund,
               paymentMethod,
               currencyConverter,
               creationAuditLog,

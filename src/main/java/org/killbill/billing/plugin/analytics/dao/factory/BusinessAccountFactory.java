@@ -29,10 +29,13 @@ import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.payment.api.Payment;
+import org.killbill.billing.payment.api.PaymentTransaction;
+import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
+import org.killbill.billing.plugin.analytics.utils.PaymentUtils;
 import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
 import org.killbill.billing.util.callcontext.CallContext;
@@ -81,13 +84,8 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
         }
 
         // Retrieve payments information
-        Payment lastPayment = null;
         final Collection<Payment> payments = getPaymentsByAccountId(account.getId(), context);
-        for (final Payment payment : payments) {
-            if (lastPayment == null || payment.getEffectiveDate().isAfter(lastPayment.getEffectiveDate())) {
-                lastPayment = payment;
-            }
-        }
+        final PaymentTransaction lastCaptureOrPurchaseTransaction = PaymentUtils.findLastPaymentTransaction(payments, TransactionType.CAPTURE, TransactionType.PURCHASE);
 
         final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
 
@@ -118,7 +116,7 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
                                            accountBalance,
                                            oldestUnpaidInvoice,
                                            lastInvoice,
-                                           lastPayment,
+                                           lastCaptureOrPurchaseTransaction,
                                            nbActiveBundles,
                                            converter,
                                            creationAuditLog,

@@ -26,7 +26,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.invoice.api.Invoice;
-import org.killbill.billing.payment.api.Payment;
+import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
@@ -166,7 +166,7 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
                                    final BigDecimal balance,
                                    @Nullable final Invoice oldestUnpaidInvoice,
                                    @Nullable final Invoice lastInvoice,
-                                   @Nullable final Payment lastPayment,
+                                   @Nullable final PaymentTransaction lastCaptureOrPurchaseTransaction,
                                    final Integer nbActiveBundles,
                                    final CurrencyConverter currencyConverter,
                                    @Nullable final AuditLog creationAuditLog,
@@ -202,8 +202,8 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
              lastInvoice == null ? null : lastInvoice.getCurrency().toString(),
              currencyConverter.getConvertedValue(lastInvoice),
              lastInvoice == null ? null : lastInvoice.getId(),
-             lastPayment == null ? null : lastPayment.getEffectiveDate(),
-             lastPayment == null ? null : lastPayment.getPaymentStatus().toString(),
+             lastCaptureOrPurchaseTransaction == null ? null : lastCaptureOrPurchaseTransaction.getEffectiveDate(),
+             lastCaptureOrPurchaseTransaction == null ? null : lastCaptureOrPurchaseTransaction.getTransactionStatus().toString(),
              nbActiveBundles,
              currencyConverter.getConvertedCurrency(),
              account.getCreatedDate(),

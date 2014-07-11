@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.6.34</version>
+        <version>0.7.15-SNAPSHOT</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -136,11 +136,15 @@
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
-            <artifactId>killbill-osgi-bundles-lib-killbill</artifactId>
+            <artifactId>killbill-platform-osgi-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
-            <artifactId>killbill-osgi-bundles-lib-slf4j-osgi</artifactId>
+            <artifactId>killbill-platform-osgi-bundles-lib-killbill</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.billing</groupId>
+            <artifactId>killbill-platform-osgi-bundles-lib-slf4j-osgi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing.plugin</groupId>

@@ -102,10 +102,6 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
         final Long invoicePaymentRecordId = getInvoicePaymentRecordId(invoicePayment.getId(), context);
 
         final Payment payment = getPaymentWithPluginInfo(invoicePayment.getPaymentId(), context);
-        Refund refund = null;
-        if (invoicePayment.getPaymentCookieId() != null) {
-            refund = getRefundWithPluginInfo(invoicePayment.getPaymentCookieId(), context);
-        }
 
         final Invoice invoice = invoices.get(invoicePayment.getInvoiceId());
         final PaymentMethod paymentMethod = getPaymentMethod(payment.getPaymentMethodId(), context);
@@ -117,7 +113,6 @@ public class BusinessInvoicePaymentFactory extends BusinessFactoryBase {
                                                          invoicePayment,
                                                          invoicePaymentRecordId,
                                                          payment,
-                                                         refund,
                                                          paymentMethod,
                                                          currencyConverter,
                                                          creationAuditLog,

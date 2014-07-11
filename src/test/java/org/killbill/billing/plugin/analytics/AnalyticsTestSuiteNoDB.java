@@ -49,11 +49,11 @@ import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.invoice.api.InvoicePaymentType;
 import org.killbill.billing.payment.api.Payment;
-import org.killbill.billing.payment.api.PaymentAttempt;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentMethodPlugin;
-import org.killbill.billing.payment.api.PaymentStatus;
-import org.killbill.billing.payment.api.Refund;
+import org.killbill.billing.payment.api.PaymentTransaction;
+import org.killbill.billing.payment.api.TransactionStatus;
+import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.plugin.analytics.api.BusinessEntityBase;
 import org.killbill.billing.plugin.analytics.dao.TestCallContext;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.BusinessInvoiceItemType;
@@ -126,10 +126,11 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected Invoice invoice;
     protected InvoiceItem invoiceItem;
     protected InvoicePayment invoicePayment;
-    protected PaymentAttempt paymentAttempt;
     protected PaymentMethod paymentMethod;
     protected Payment payment;
-    protected Refund refund;
+    protected Payment paymentNoRefund;
+    protected PaymentTransaction paymentTransaction;
+    protected PaymentTransaction refundTransaction;
     protected CustomField customField;
     protected Tag tag;
     protected TagDefinition tagDefinition;
@@ -268,7 +269,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         final String planName = plan.getName();
 
         phase = Mockito.mock(PlanPhase.class);
-        Recurring recurring  = Mockito.mock(Recurring.class);
+        Recurring recurring = Mockito.mock(Recurring.class);
         Mockito.when(recurring.getBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
         Mockito.when(phase.getRecurring()).thenReturn(recurring);
         Mockito.when(phase.getName()).thenReturn(UUID.randomUUID().toString());
@@ -328,7 +329,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoicePayment.getAmount()).thenReturn(BigDecimal.ONE);
         Mockito.when(invoicePayment.getCurrency()).thenReturn(Currency.MXN);
         Mockito.when(invoicePayment.getLinkedInvoicePaymentId()).thenReturn(UUID.randomUUID());
-        Mockito.when(invoicePayment.getPaymentCookieId()).thenReturn(UUID.randomUUID());
+        Mockito.when(invoicePayment.getPaymentCookieId()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(invoicePayment.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);
         final UUID invoicePaymentId = invoicePayment.getId();
 
@@ -352,14 +353,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoice.isMigrationInvoice()).thenReturn(false);
         Mockito.when(invoice.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);
 
-        paymentAttempt = Mockito.mock(PaymentAttempt.class);
-        Mockito.when(paymentAttempt.getId()).thenReturn(UUID.randomUUID());
-        Mockito.when(paymentAttempt.getEffectiveDate()).thenReturn(new DateTime(2019, 12, 30, 10, 10, 10, DateTimeZone.UTC));
-        Mockito.when(paymentAttempt.getGatewayErrorCode()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(paymentAttempt.getGatewayErrorMsg()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(paymentAttempt.getPaymentStatus()).thenReturn(PaymentStatus.SUCCESS);
-        Mockito.when(paymentAttempt.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 54, DateTimeZone.UTC));
-
         final PaymentMethodPlugin paymentMethodPlugin = Mockito.mock(PaymentMethodPlugin.class);
         Mockito.when(paymentMethodPlugin.getExternalPaymentMethodId()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(paymentMethodPlugin.isDefaultPaymentMethod()).thenReturn(true);
@@ -373,27 +366,44 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(paymentMethod.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 55, DateTimeZone.UTC));
         final UUID paymentMethodId = paymentMethod.getId();
 
+        paymentTransaction = Mockito.mock(PaymentTransaction.class);
+        Mockito.when(paymentTransaction.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(paymentTransaction.getTransactionType()).thenReturn(TransactionType.CAPTURE);
+        Mockito.when(paymentTransaction.getAmount()).thenReturn(new BigDecimal("199999"));
+        Mockito.when(paymentTransaction.getCurrency()).thenReturn(Currency.USD);
+        Mockito.when(paymentTransaction.getEffectiveDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 56, DateTimeZone.UTC));
+        Mockito.when(paymentTransaction.getExternalKey()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(paymentTransaction.getTransactionStatus()).thenReturn(TransactionStatus.SUCCESS);
+
+        refundTransaction = Mockito.mock(PaymentTransaction.class);
+        Mockito.when(refundTransaction.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(refundTransaction.getTransactionType()).thenReturn(TransactionType.REFUND);
+        Mockito.when(refundTransaction.getAmount()).thenReturn(new BigDecimal("199998"));
+        Mockito.when(refundTransaction.getCurrency()).thenReturn(Currency.USD);
+        Mockito.when(refundTransaction.getEffectiveDate()).thenReturn(new DateTime(2016, 1, 23, 10, 56, 56, DateTimeZone.UTC));
+        Mockito.when(refundTransaction.getExternalKey()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(refundTransaction.getTransactionStatus()).thenReturn(TransactionStatus.PENDING);
+
         payment = Mockito.mock(Payment.class);
         Mockito.when(payment.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(payment.getAccountId()).thenReturn(accountId);
-        Mockito.when(payment.getInvoiceId()).thenReturn(invoiceId);
         Mockito.when(payment.getPaymentMethodId()).thenReturn(paymentMethodId);
         Mockito.when(payment.getPaymentNumber()).thenReturn(1);
-        Mockito.when(payment.getAmount()).thenReturn(new BigDecimal("199999"));
-        Mockito.when(payment.getPaidAmount()).thenReturn(new BigDecimal("199998"));
-        Mockito.when(payment.getEffectiveDate()).thenReturn(new DateTime(2019, 2, 3, 12, 12, 12, DateTimeZone.UTC));
+        Mockito.when(payment.getCapturedAmount()).thenReturn(new BigDecimal("199999"));
+        Mockito.when(payment.getRefundedAmount()).thenReturn(new BigDecimal("199998"));
         Mockito.when(payment.getCurrency()).thenReturn(Currency.USD);
-        Mockito.when(payment.getPaymentStatus()).thenReturn(PaymentStatus.AUTO_PAY_OFF);
-        Mockito.when(payment.getAttempts()).thenReturn(ImmutableList.<PaymentAttempt>of(paymentAttempt));
+        Mockito.when(payment.getTransactions()).thenReturn(ImmutableList.<PaymentTransaction>of(paymentTransaction, refundTransaction));
         Mockito.when(payment.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 56, DateTimeZone.UTC));
 
-        refund = Mockito.mock(Refund.class);
-        Mockito.when(refund.getId()).thenReturn(UUID.randomUUID());
-        Mockito.when(refund.getPaymentId()).thenReturn(UUID.randomUUID());
-        Mockito.when(refund.isAdjusted()).thenReturn(true);
-        Mockito.when(refund.getRefundAmount()).thenReturn(BigDecimal.TEN);
-        Mockito.when(refund.getCurrency()).thenReturn(Currency.BRL);
-        Mockito.when(refund.getEffectiveDate()).thenReturn(new DateTime(2015, 2, 2, 10, 56, 5, DateTimeZone.UTC));
+        paymentNoRefund = Mockito.mock(Payment.class);
+        Mockito.when(paymentNoRefund.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(paymentNoRefund.getAccountId()).thenReturn(accountId);
+        Mockito.when(paymentNoRefund.getPaymentMethodId()).thenReturn(paymentMethodId);
+        Mockito.when(paymentNoRefund.getPaymentNumber()).thenReturn(1);
+        Mockito.when(paymentNoRefund.getCapturedAmount()).thenReturn(new BigDecimal("199999"));
+        Mockito.when(paymentNoRefund.getCurrency()).thenReturn(Currency.USD);
+        Mockito.when(paymentNoRefund.getTransactions()).thenReturn(ImmutableList.<PaymentTransaction>of(paymentTransaction));
+        Mockito.when(paymentNoRefund.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 56, DateTimeZone.UTC));
 
         customField = Mockito.mock(CustomField.class);
         Mockito.when(customField.getId()).thenReturn(UUID.randomUUID());
@@ -438,8 +448,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(accountAuditLogs.getAuditLogsForInvoiceItem(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
         Mockito.when(accountAuditLogs.getAuditLogsForInvoicePayment(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
         Mockito.when(accountAuditLogs.getAuditLogsForPayment(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
-        Mockito.when(accountAuditLogs.getAuditLogsForRefund(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
-        Mockito.when(accountAuditLogs.getAuditLogsForChargeback(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
         Mockito.when(accountAuditLogs.getAuditLogsForTag(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
         Mockito.when(accountAuditLogs.getAuditLogsForCustomField(Mockito.<UUID>any())).thenReturn(ImmutableList.<AuditLog>of(auditLog));
         final AccountAuditLogsForObjectType accountAuditLogsForObjectType = Mockito.mock(AccountAuditLogsForObjectType.class);

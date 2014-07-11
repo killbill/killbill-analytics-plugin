@@ -37,7 +37,7 @@ public class TestAnalyticsDao extends AnalyticsTestSuiteWithEmbeddedDB {
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
                                                                                     invoice,
-                                                                                    payment,
+                                                                                    paymentTransaction,
                                                                                     3,
                                                                                     currencyConverter,
                                                                                     auditLog,
