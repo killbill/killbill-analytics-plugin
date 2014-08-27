@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014 Groupon, Inc
  * Copyright 2014 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -27,7 +28,6 @@ import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoicePayment;
-import org.killbill.billing.invoice.api.InvoicePaymentType;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentTransaction;
@@ -38,16 +38,19 @@ import org.killbill.billing.util.audit.AuditLog;
 
 import com.google.common.annotations.VisibleForTesting;
 
-public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDaoBase {
+public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
 
     @VisibleForTesting
     static final String DEFAULT_PLUGIN_NAME = "__UNKNOWN__";
 
-    protected static final String INVOICE_PAYMENTS_TABLE_NAME = "analytics_payments";
-    protected static final String INVOICE_PAYMENT_REFUNDS_TABLE_NAME = "analytics_refunds";
-    protected static final String INVOICE_PAYMENT_CHARGEBACKS_TABLE_NAME = "analytics_chargebacks";
+    protected static final String AUTHS_TABLE_NAME = "analytics_payment_auths";
+    protected static final String CAPTURES_TABLE_NAME = "analytics_payment_captures";
+    protected static final String PURCHASES_TABLE_NAME = "analytics_payment_purchases";
+    protected static final String REFUNDS_TABLE_NAME = "analytics_payment_refunds";
+    protected static final String CREDITS_TABLE_NAME = "analytics_payment_credits";
+    protected static final String CHARGEBACKS_TABLE_NAME = "analytics_payment_chargebacks";
 
-    public static final String[] ALL_INVOICE_PAYMENTS_TABLE_NAMES = new String[]{INVOICE_PAYMENTS_TABLE_NAME, INVOICE_PAYMENT_REFUNDS_TABLE_NAME, INVOICE_PAYMENT_CHARGEBACKS_TABLE_NAME};
+    public static final String[] ALL_PAYMENTS_TABLE_NAMES = new String[]{AUTHS_TABLE_NAME, CAPTURES_TABLE_NAME, PURCHASES_TABLE_NAME, REFUNDS_TABLE_NAME, CREDITS_TABLE_NAME, CHARGEBACKS_TABLE_NAME};
 
     private Long invoicePaymentRecordId;
     private UUID invoicePaymentId;
@@ -101,119 +104,167 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
     private String pluginPmCountry;
     private String convertedCurrency;
 
-    public static BusinessInvoicePaymentBaseModelDao create(final Account account,
-                                                            final Long accountRecordId,
-                                                            final Invoice invoice,
-                                                            final InvoicePayment invoicePayment,
-                                                            final Long invoicePaymentRecordId,
-                                                            final Payment payment,
-                                                            @Nullable final PaymentMethod paymentMethod,
-                                                            final CurrencyConverter currencyConverter,
-                                                            @Nullable final AuditLog creationAuditLog,
-                                                            final Long tenantRecordId,
-                                                            @Nullable final ReportGroup reportGroup) {
-        if (invoicePayment.getType().equals(InvoicePaymentType.REFUND)) {
-            return new BusinessInvoicePaymentRefundModelDao(account,
-                                                            accountRecordId,
-                                                            invoice,
-                                                            invoicePayment,
-                                                            invoicePaymentRecordId,
-                                                            payment,
-                                                            paymentMethod,
-                                                            currencyConverter,
-                                                            creationAuditLog,
-                                                            tenantRecordId,
-                                                            reportGroup);
-        } else if (invoicePayment.getType().equals(InvoicePaymentType.CHARGED_BACK)) {
-            return new BusinessInvoicePaymentChargebackModelDao(account,
-                                                                accountRecordId,
-                                                                invoice,
-                                                                invoicePayment,
-                                                                invoicePaymentRecordId,
-                                                                payment,
-                                                                paymentMethod,
-                                                                currencyConverter,
-                                                                creationAuditLog,
-                                                                tenantRecordId,
-                                                                reportGroup);
-        } else {
-            return new BusinessInvoicePaymentModelDao(account,
+    public static BusinessPaymentBaseModelDao create(final Account account,
+                                                     final Long accountRecordId,
+                                                     @Nullable final Invoice invoice,
+                                                     @Nullable final InvoicePayment invoicePayment,
+                                                     @Nullable final Long invoicePaymentRecordId,
+                                                     final Payment payment,
+                                                     final PaymentTransaction paymentTransaction,
+                                                     @Nullable final PaymentMethod paymentMethod,
+                                                     final CurrencyConverter currencyConverter,
+                                                     @Nullable final AuditLog creationAuditLog,
+                                                     final Long tenantRecordId,
+                                                     @Nullable final ReportGroup reportGroup) {
+        if (paymentTransaction.getTransactionType().equals(TransactionType.AUTHORIZE)) {
+            return new BusinessPaymentAuthModelDao(account,
+                                                   accountRecordId,
+                                                   invoice,
+                                                   invoicePayment,
+                                                   invoicePaymentRecordId,
+                                                   payment,
+                                                   paymentTransaction,
+                                                   paymentMethod,
+                                                   currencyConverter,
+                                                   creationAuditLog,
+                                                   tenantRecordId,
+                                                   reportGroup);
+        } else if (paymentTransaction.getTransactionType().equals(TransactionType.CAPTURE)) {
+            return new BusinessPaymentCaptureModelDao(account,
                                                       accountRecordId,
                                                       invoice,
                                                       invoicePayment,
                                                       invoicePaymentRecordId,
                                                       payment,
+                                                      paymentTransaction,
                                                       paymentMethod,
                                                       currencyConverter,
                                                       creationAuditLog,
                                                       tenantRecordId,
                                                       reportGroup);
+        } else if (paymentTransaction.getTransactionType().equals(TransactionType.CHARGEBACK)) {
+            return new BusinessPaymentChargebackModelDao(account,
+                                                         accountRecordId,
+                                                         invoice,
+                                                         invoicePayment,
+                                                         invoicePaymentRecordId,
+                                                         payment,
+                                                         paymentTransaction,
+                                                         paymentMethod,
+                                                         currencyConverter,
+                                                         creationAuditLog,
+                                                         tenantRecordId,
+                                                         reportGroup);
+        } else if (paymentTransaction.getTransactionType().equals(TransactionType.CREDIT)) {
+            return new BusinessPaymentCreditModelDao(account,
+                                                     accountRecordId,
+                                                     invoice,
+                                                     invoicePayment,
+                                                     invoicePaymentRecordId,
+                                                     payment,
+                                                     paymentTransaction,
+                                                     paymentMethod,
+                                                     currencyConverter,
+                                                     creationAuditLog,
+                                                     tenantRecordId,
+                                                     reportGroup);
+        } else if (paymentTransaction.getTransactionType().equals(TransactionType.PURCHASE)) {
+            return new BusinessPaymentPurchaseModelDao(account,
+                                                       accountRecordId,
+                                                       invoice,
+                                                       invoicePayment,
+                                                       invoicePaymentRecordId,
+                                                       payment,
+                                                       paymentTransaction,
+                                                       paymentMethod,
+                                                       currencyConverter,
+                                                       creationAuditLog,
+                                                       tenantRecordId,
+                                                       reportGroup);
+        } else if (paymentTransaction.getTransactionType().equals(TransactionType.REFUND)) {
+            return new BusinessPaymentRefundModelDao(account,
+                                                     accountRecordId,
+                                                     invoice,
+                                                     invoicePayment,
+                                                     invoicePaymentRecordId,
+                                                     payment,
+                                                     paymentTransaction,
+                                                     paymentMethod,
+                                                     currencyConverter,
+                                                     creationAuditLog,
+                                                     tenantRecordId,
+                                                     reportGroup);
+        } else if (paymentTransaction.getTransactionType().equals(TransactionType.VOID)) {
+            // TODO
+            return null;
+        } else {
+            throw new IllegalStateException("Unexpected transaction type: " + paymentTransaction.getTransactionType());
         }
     }
 
-    public BusinessInvoicePaymentBaseModelDao() { /* When reading from the database */ }
+    public BusinessPaymentBaseModelDao() { /* When reading from the database */ }
 
-    public BusinessInvoicePaymentBaseModelDao(final Long invoicePaymentRecordId,
-                                              final UUID invoicePaymentId,
-                                              final UUID invoiceId,
-                                              final Integer invoiceNumber,
-                                              final DateTime invoiceCreatedDate,
-                                              final LocalDate invoiceDate,
-                                              final LocalDate invoiceTargetDate,
-                                              final String invoiceCurrency,
-                                              final String invoicePaymentType,
-                                              final UUID paymentId,
-                                              final UUID refundId,
-                                              final Long paymentNumber,
-                                              final UUID linkedInvoicePaymentId,
-                                              final BigDecimal amount,
-                                              final BigDecimal convertedAmount,
-                                              final String currency,
-                                              final BigDecimal invoiceBalance,
-                                              final BigDecimal convertedInvoiceBalance,
-                                              final BigDecimal invoiceAmountPaid,
-                                              final BigDecimal convertedInvoiceAmountPaid,
-                                              final BigDecimal invoiceAmountCharged,
-                                              final BigDecimal convertedInvoiceAmountCharged,
-                                              final BigDecimal invoiceOriginalAmountCharged,
-                                              final BigDecimal convertedInvoiceOriginalAmountCharged,
-                                              final BigDecimal invoiceAmountCredited,
-                                              final BigDecimal convertedInvoiceAmountCredited,
-                                              final BigDecimal invoiceAmountRefunded,
-                                              final BigDecimal convertedInvoiceAmountRefunded,
-                                              final String pluginName,
-                                              final DateTime pluginCreatedDate,
-                                              final DateTime pluginEffectiveDate,
-                                              final String pluginStatus,
-                                              final String pluginGatewayError,
-                                              final String pluginGatewayErrorCode,
-                                              final String pluginFirstReferenceId,
-                                              final String pluginSecondReferenceId,
-                                              final String pluginPmId,
-                                              final Boolean pluginPmIsDefault,
-                                              final String pluginPmType,
-                                              final String pluginPmCcName,
-                                              final String pluginPmCcType,
-                                              final String pluginPmCcExpirationMonth,
-                                              final String pluginPmCcExpirationYear,
-                                              final String pluginPmCcLast4,
-                                              final String pluginPmAddress1,
-                                              final String pluginPmAddress2,
-                                              final String pluginPmCity,
-                                              final String pluginPmState,
-                                              final String pluginPmZip,
-                                              final String pluginPmCountry,
-                                              final String convertedCurrency,
-                                              final DateTime createdDate,
-                                              final String createdBy,
-                                              final String createdReasonCode,
-                                              final String createdComments,
-                                              final UUID accountId,
-                                              final String accountName,
-                                              final String accountExternalKey,
-                                              final Long accountRecordId,
-                                              final Long tenantRecordId,
-                                              @Nullable final ReportGroup reportGroup) {
+    public BusinessPaymentBaseModelDao(final Long invoicePaymentRecordId,
+                                       final UUID invoicePaymentId,
+                                       final UUID invoiceId,
+                                       final Integer invoiceNumber,
+                                       final DateTime invoiceCreatedDate,
+                                       final LocalDate invoiceDate,
+                                       final LocalDate invoiceTargetDate,
+                                       final String invoiceCurrency,
+                                       final String invoicePaymentType,
+                                       final UUID paymentId,
+                                       final UUID refundId,
+                                       final Long paymentNumber,
+                                       final UUID linkedInvoicePaymentId,
+                                       final BigDecimal amount,
+                                       final BigDecimal convertedAmount,
+                                       final String currency,
+                                       final BigDecimal invoiceBalance,
+                                       final BigDecimal convertedInvoiceBalance,
+                                       final BigDecimal invoiceAmountPaid,
+                                       final BigDecimal convertedInvoiceAmountPaid,
+                                       final BigDecimal invoiceAmountCharged,
+                                       final BigDecimal convertedInvoiceAmountCharged,
+                                       final BigDecimal invoiceOriginalAmountCharged,
+                                       final BigDecimal convertedInvoiceOriginalAmountCharged,
+                                       final BigDecimal invoiceAmountCredited,
+                                       final BigDecimal convertedInvoiceAmountCredited,
+                                       final BigDecimal invoiceAmountRefunded,
+                                       final BigDecimal convertedInvoiceAmountRefunded,
+                                       final String pluginName,
+                                       final DateTime pluginCreatedDate,
+                                       final DateTime pluginEffectiveDate,
+                                       final String pluginStatus,
+                                       final String pluginGatewayError,
+                                       final String pluginGatewayErrorCode,
+                                       final String pluginFirstReferenceId,
+                                       final String pluginSecondReferenceId,
+                                       final String pluginPmId,
+                                       final Boolean pluginPmIsDefault,
+                                       final String pluginPmType,
+                                       final String pluginPmCcName,
+                                       final String pluginPmCcType,
+                                       final String pluginPmCcExpirationMonth,
+                                       final String pluginPmCcExpirationYear,
+                                       final String pluginPmCcLast4,
+                                       final String pluginPmAddress1,
+                                       final String pluginPmAddress2,
+                                       final String pluginPmCity,
+                                       final String pluginPmState,
+                                       final String pluginPmZip,
+                                       final String pluginPmCountry,
+                                       final String convertedCurrency,
+                                       final DateTime createdDate,
+                                       final String createdBy,
+                                       final String createdReasonCode,
+                                       final String createdComments,
+                                       final UUID accountId,
+                                       final String accountName,
+                                       final String accountExternalKey,
+                                       final Long accountRecordId,
+                                       final Long tenantRecordId,
+                                       @Nullable final ReportGroup reportGroup) {
         super(createdDate,
               createdBy,
               createdReasonCode,
@@ -246,7 +297,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         this.convertedInvoiceAmountRefunded = convertedInvoiceAmountRefunded;
         this.invoicePaymentType = invoicePaymentType;
         this.paymentId = paymentId;
-        this.refundId = refundId;
+        this.refundId = null; // TODO refundId;
         this.paymentNumber = paymentNumber;
         this.linkedInvoicePaymentId = linkedInvoicePaymentId;
         this.amount = amount;
@@ -277,23 +328,25 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
         this.convertedCurrency = convertedCurrency;
     }
 
-    protected BusinessInvoicePaymentBaseModelDao(final Account account,
-                                                 final Long accountRecordId,
-                                                 final Invoice invoice,
-                                                 final InvoicePayment invoicePayment,
-                                                 final Long invoicePaymentRecordId,
-                                                 final Payment payment,
-                                                 @Nullable final PaymentMethod paymentMethod,
-                                                 final CurrencyConverter currencyConverter,
-                                                 @Nullable final AuditLog creationAuditLog,
-                                                 final Long tenantRecordId,
-                                                 @Nullable final ReportGroup reportGroup) {
+    protected BusinessPaymentBaseModelDao(final Account account,
+                                          final Long accountRecordId,
+                                          @Nullable final Invoice invoice,
+                                          @Nullable final InvoicePayment invoicePayment,
+                                          @Nullable final Long invoicePaymentRecordId,
+                                          final Payment payment,
+                                          final PaymentTransaction paymentTransaction,
+                                          @Nullable final PaymentMethod paymentMethod,
+                                          final CurrencyConverter currencyConverter,
+                                          @Nullable final AuditLog creationAuditLog,
+                                          final Long tenantRecordId,
+                                          @Nullable final ReportGroup reportGroup) {
         this(account,
              accountRecordId,
              invoice,
              invoicePayment,
              invoicePaymentRecordId,
              payment,
+             paymentTransaction,
              PaymentUtils.findLastPaymentTransaction(payment, TransactionType.CAPTURE, TransactionType.PURCHASE),
              PaymentUtils.findLastPaymentTransaction(payment, TransactionType.REFUND),
              paymentMethod,
@@ -303,47 +356,48 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
              reportGroup);
     }
 
-    private BusinessInvoicePaymentBaseModelDao(final Account account,
-                                               final Long accountRecordId,
-                                               final Invoice invoice,
-                                               final InvoicePayment invoicePayment,
-                                               final Long invoicePaymentRecordId,
-                                               final Payment payment,
-                                               @Nullable final PaymentTransaction lastCaptureOrPurchase,
-                                               @Nullable final PaymentTransaction lastRefund,
-                                               @Nullable final PaymentMethod paymentMethod,
-                                               final CurrencyConverter currencyConverter,
-                                               @Nullable final AuditLog creationAuditLog,
-                                               final Long tenantRecordId,
-                                               @Nullable final ReportGroup reportGroup) {
+    private BusinessPaymentBaseModelDao(final Account account,
+                                        final Long accountRecordId,
+                                        @Nullable final Invoice invoice,
+                                        @Nullable final InvoicePayment invoicePayment,
+                                        @Nullable final Long invoicePaymentRecordId,
+                                        final Payment payment,
+                                        final PaymentTransaction paymentTransaction,
+                                        @Nullable final PaymentTransaction lastCaptureOrPurchase,
+                                        @Nullable final PaymentTransaction lastRefund,
+                                        @Nullable final PaymentMethod paymentMethod,
+                                        final CurrencyConverter currencyConverter,
+                                        @Nullable final AuditLog creationAuditLog,
+                                        final Long tenantRecordId,
+                                        @Nullable final ReportGroup reportGroup) {
         this(invoicePaymentRecordId,
-             invoicePayment.getId(),
-             invoice.getId(),
-             invoice.getInvoiceNumber(),
-             invoice.getCreatedDate(),
-             invoice.getInvoiceDate(),
-             invoice.getTargetDate(),
-             invoice.getCurrency() == null ? null : invoice.getCurrency().toString(),
-             invoicePayment.getType() == null ? null : invoicePayment.getType().toString(),
+             invoicePayment == null ? null : invoicePayment.getId(),
+             invoice == null ? null : invoice.getId(),
+             invoice == null ? null : invoice.getInvoiceNumber(),
+             invoice == null ? null : invoice.getCreatedDate(),
+             invoice == null ? null : invoice.getInvoiceDate(),
+             invoice == null ? null : invoice.getTargetDate(),
+             invoice == null || invoice.getCurrency() == null ? null : invoice.getCurrency().toString(),
+             invoicePayment == null || invoicePayment.getType() == null ? null : invoicePayment.getType().toString(),
              payment.getId(),
              lastRefund != null ? lastRefund.getId() : null,
              payment.getPaymentNumber() == null ? null : payment.getPaymentNumber().longValue(),
-             invoicePayment.getLinkedInvoicePaymentId(),
-             invoicePayment.getAmount(),
+             invoicePayment == null ? null : invoicePayment.getLinkedInvoicePaymentId(),
+             invoicePayment == null ? null : invoicePayment.getAmount(),
              currencyConverter.getConvertedValue(invoicePayment, invoice),
-             invoicePayment.getCurrency() == null ? null : invoicePayment.getCurrency().toString(),
-             invoice.getBalance(),
-             currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
-             invoice.getPaidAmount(),
-             currencyConverter.getConvertedValue(invoice.getPaidAmount(), invoice),
-             invoice.getChargedAmount(),
-             currencyConverter.getConvertedValue(invoice.getChargedAmount(), invoice),
-             invoice.getOriginalChargedAmount(),
-             currencyConverter.getConvertedValue(invoice.getOriginalChargedAmount(), invoice),
-             invoice.getCreditedAmount(),
-             currencyConverter.getConvertedValue(invoice.getCreditedAmount(), invoice),
-             invoice.getRefundedAmount(),
-             currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
+             invoicePayment == null || invoicePayment.getCurrency() == null ? null : invoicePayment.getCurrency().toString(),
+             invoice == null ? null : invoice.getBalance(),
+             invoice == null ? null : currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
+             invoice == null ? null : invoice.getPaidAmount(),
+             invoice == null ? null : currencyConverter.getConvertedValue(invoice.getPaidAmount(), invoice),
+             invoice == null ? null : invoice.getChargedAmount(),
+             invoice == null ? null : currencyConverter.getConvertedValue(invoice.getChargedAmount(), invoice),
+             invoice == null ? null : invoice.getOriginalChargedAmount(),
+             invoice == null ? null : currencyConverter.getConvertedValue(invoice.getOriginalChargedAmount(), invoice),
+             invoice == null ? null : invoice.getCreditedAmount(),
+             invoice == null ? null : currencyConverter.getConvertedValue(invoice.getCreditedAmount(), invoice),
+             invoice == null ? null : invoice.getRefundedAmount(),
+             invoice == null ? null : currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
              paymentMethod != null ? paymentMethod.getPluginName() : DEFAULT_PLUGIN_NAME,
              lastRefund != null ? (lastRefund.getPaymentInfoPlugin() != null ? lastRefund.getPaymentInfoPlugin().getCreatedDate() : null) : (lastCaptureOrPurchase != null && lastCaptureOrPurchase.getPaymentInfoPlugin() != null ? lastCaptureOrPurchase.getPaymentInfoPlugin().getCreatedDate() : null),
              lastRefund != null ? (lastRefund.getPaymentInfoPlugin() != null ? lastRefund.getPaymentInfoPlugin().getEffectiveDate() : null) : (lastCaptureOrPurchase != null && lastCaptureOrPurchase.getPaymentInfoPlugin() != null ? lastCaptureOrPurchase.getPaymentInfoPlugin().getEffectiveDate() : null),
@@ -368,7 +422,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "zip") : null) : null,
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "country") : null) : null,
              currencyConverter.getConvertedCurrency(),
-             invoicePayment.getCreatedDate(),
+             invoicePayment == null ? null : invoicePayment.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
              creationAuditLog != null ? creationAuditLog.getComment() : null,
@@ -654,7 +708,7 @@ public abstract class BusinessInvoicePaymentBaseModelDao extends BusinessModelDa
             return false;
         }
 
-        final BusinessInvoicePaymentBaseModelDao that = (BusinessInvoicePaymentBaseModelDao) o;
+        final BusinessPaymentBaseModelDao that = (BusinessPaymentBaseModelDao) o;
 
         if (amount != null ? !(amount.compareTo(that.amount) == 0) : that.amount != null) {
             return false;

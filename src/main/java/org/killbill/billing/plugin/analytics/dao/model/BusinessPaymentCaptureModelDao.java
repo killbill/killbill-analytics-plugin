@@ -1,8 +1,8 @@
 /*
- * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014 Groupon, Inc
  * Copyright 2014 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -24,19 +24,21 @@ import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
+import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
-public class BusinessInvoicePaymentModelDao extends BusinessInvoicePaymentBaseModelDao {
+public class BusinessPaymentCaptureModelDao extends BusinessPaymentBaseModelDao {
 
-    public BusinessInvoicePaymentModelDao() { /* When reading from the database */ }
+    public BusinessPaymentCaptureModelDao() { /* When reading from the database */ }
 
-    public BusinessInvoicePaymentModelDao(final Account account,
+    public BusinessPaymentCaptureModelDao(final Account account,
                                           final Long accountRecordId,
-                                          final Invoice invoice,
-                                          final InvoicePayment invoicePayment,
-                                          final Long invoicePaymentRecordId,
+                                          @Nullable final Invoice invoice,
+                                          @Nullable final InvoicePayment invoicePayment,
+                                          @Nullable final Long invoicePaymentRecordId,
                                           final Payment payment,
+                                          final PaymentTransaction paymentTransaction,
                                           @Nullable final PaymentMethod paymentMethod,
                                           final CurrencyConverter currencyConverter,
                                           @Nullable final AuditLog creationAuditLog,
@@ -48,6 +50,7 @@ public class BusinessInvoicePaymentModelDao extends BusinessInvoicePaymentBaseMo
               invoicePayment,
               invoicePaymentRecordId,
               payment,
+              paymentTransaction,
               paymentMethod,
               currencyConverter,
               creationAuditLog,
@@ -57,6 +60,6 @@ public class BusinessInvoicePaymentModelDao extends BusinessInvoicePaymentBaseMo
 
     @Override
     public String getTableName() {
-        return INVOICE_PAYMENTS_TABLE_NAME;
+        return CAPTURES_TABLE_NAME;
     }
 }

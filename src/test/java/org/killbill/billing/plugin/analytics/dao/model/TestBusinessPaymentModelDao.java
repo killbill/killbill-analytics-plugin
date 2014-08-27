@@ -21,23 +21,24 @@ import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class TestBusinessInvoicePaymentModelDao extends AnalyticsTestSuiteNoDB {
+public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithNullPaymentMethod() throws Exception {
-        final BusinessInvoicePaymentModelDao invoicePaymentModelDao = new BusinessInvoicePaymentModelDao(account,
-                                                                                                         accountRecordId,
-                                                                                                         invoice,
-                                                                                                         invoicePayment,
-                                                                                                         invoicePaymentRecordId,
-                                                                                                         payment,
-                                                                                                         null,
-                                                                                                         currencyConverter,
-                                                                                                         auditLog,
-                                                                                                         tenantRecordId,
-                                                                                                         reportGroup);
+        final BusinessPaymentPurchaseModelDao invoicePaymentModelDao = new BusinessPaymentPurchaseModelDao(account,
+                                                                                                           accountRecordId,
+                                                                                                           invoice,
+                                                                                                           invoicePayment,
+                                                                                                           invoicePaymentRecordId,
+                                                                                                           payment,
+                                                                                                           paymentTransaction,
+                                                                                                           null,
+                                                                                                           currencyConverter,
+                                                                                                           auditLog,
+                                                                                                           tenantRecordId,
+                                                                                                           reportGroup);
         verifyCommonFields(invoicePaymentModelDao);
-        Assert.assertEquals(invoicePaymentModelDao.getPluginName(), BusinessInvoicePaymentBaseModelDao.DEFAULT_PLUGIN_NAME);
+        Assert.assertEquals(invoicePaymentModelDao.getPluginName(), BusinessPaymentBaseModelDao.DEFAULT_PLUGIN_NAME);
         Assert.assertNull(invoicePaymentModelDao.getPluginCreatedDate());
         Assert.assertNull(invoicePaymentModelDao.getPluginEffectiveDate());
         Assert.assertNull(invoicePaymentModelDao.getPluginStatus());
@@ -63,37 +64,39 @@ public class TestBusinessInvoicePaymentModelDao extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithNullRefund() throws Exception {
-        final BusinessInvoicePaymentModelDao invoicePaymentModelDao = new BusinessInvoicePaymentModelDao(account,
-                                                                                                         accountRecordId,
-                                                                                                         invoice,
-                                                                                                         invoicePayment,
-                                                                                                         invoicePaymentRecordId,
-                                                                                                         paymentNoRefund,
-                                                                                                         paymentMethod,
-                                                                                                         currencyConverter,
-                                                                                                         auditLog,
-                                                                                                         tenantRecordId,
-                                                                                                         reportGroup);
+        final BusinessPaymentPurchaseModelDao invoicePaymentModelDao = new BusinessPaymentPurchaseModelDao(account,
+                                                                                                           accountRecordId,
+                                                                                                           invoice,
+                                                                                                           invoicePayment,
+                                                                                                           invoicePaymentRecordId,
+                                                                                                           paymentNoRefund,
+                                                                                                           paymentTransaction,
+                                                                                                           paymentMethod,
+                                                                                                           currencyConverter,
+                                                                                                           auditLog,
+                                                                                                           tenantRecordId,
+                                                                                                           reportGroup);
         verifyCommonFields(invoicePaymentModelDao);
     }
 
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
-        final BusinessInvoicePaymentModelDao invoicePaymentModelDao = new BusinessInvoicePaymentModelDao(account,
-                                                                                                         accountRecordId,
-                                                                                                         invoice,
-                                                                                                         invoicePayment,
-                                                                                                         invoicePaymentRecordId,
-                                                                                                         payment,
-                                                                                                         paymentMethod,
-                                                                                                         currencyConverter,
-                                                                                                         auditLog,
-                                                                                                         tenantRecordId,
-                                                                                                         reportGroup);
+        final BusinessPaymentPurchaseModelDao invoicePaymentModelDao = new BusinessPaymentPurchaseModelDao(account,
+                                                                                                           accountRecordId,
+                                                                                                           invoice,
+                                                                                                           invoicePayment,
+                                                                                                           invoicePaymentRecordId,
+                                                                                                           payment,
+                                                                                                           paymentTransaction,
+                                                                                                           paymentMethod,
+                                                                                                           currencyConverter,
+                                                                                                           auditLog,
+                                                                                                           tenantRecordId,
+                                                                                                           reportGroup);
         verifyCommonFields(invoicePaymentModelDao);
     }
 
-    private void verifyCommonFields(final BusinessInvoicePaymentModelDao invoicePaymentModelDao) {
+    private void verifyCommonFields(final BusinessPaymentPurchaseModelDao invoicePaymentModelDao) {
         verifyBusinessModelDaoBase(invoicePaymentModelDao, accountRecordId, tenantRecordId);
         Assert.assertEquals(invoicePaymentModelDao.getCreatedDate(), invoicePayment.getCreatedDate());
         Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentRecordId(), invoicePaymentRecordId);

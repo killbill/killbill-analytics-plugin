@@ -33,7 +33,7 @@ public class AllBusinessObjectsDao {
 
     private final LogService logService;
     private final BusinessSubscriptionTransitionDao bstDao;
-    private final BusinessInvoiceAndInvoicePaymentDao binAndBipDao;
+    private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
     private final BusinessTagDao bTagDao;
@@ -47,7 +47,7 @@ public class AllBusinessObjectsDao {
 
         final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
-        this.binAndBipDao = new BusinessInvoiceAndInvoicePaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
         this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         this.bTagDao = new BusinessTagDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);

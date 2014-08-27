@@ -130,6 +130,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected Payment payment;
     protected Payment paymentNoRefund;
     protected PaymentTransaction paymentTransaction;
+    protected PaymentTransaction purchaseTransaction;
     protected PaymentTransaction refundTransaction;
     protected CustomField customField;
     protected Tag tag;
@@ -374,6 +375,15 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(paymentTransaction.getEffectiveDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 56, DateTimeZone.UTC));
         Mockito.when(paymentTransaction.getExternalKey()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(paymentTransaction.getTransactionStatus()).thenReturn(TransactionStatus.SUCCESS);
+
+        purchaseTransaction = Mockito.mock(PaymentTransaction.class);
+        Mockito.when(purchaseTransaction.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(purchaseTransaction.getTransactionType()).thenReturn(TransactionType.PURCHASE);
+        Mockito.when(purchaseTransaction.getAmount()).thenReturn(new BigDecimal("199999"));
+        Mockito.when(purchaseTransaction.getCurrency()).thenReturn(Currency.USD);
+        Mockito.when(purchaseTransaction.getEffectiveDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 56, DateTimeZone.UTC));
+        Mockito.when(purchaseTransaction.getExternalKey()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(purchaseTransaction.getTransactionStatus()).thenReturn(TransactionStatus.SUCCESS);
 
         refundTransaction = Mockito.mock(PaymentTransaction.class);
         Mockito.when(refundTransaction.getId()).thenReturn(UUID.randomUUID());

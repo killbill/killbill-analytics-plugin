@@ -31,7 +31,7 @@ import org.killbill.billing.plugin.analytics.api.BusinessAccountTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessBundle;
 import org.killbill.billing.plugin.analytics.api.BusinessField;
 import org.killbill.billing.plugin.analytics.api.BusinessInvoice;
-import org.killbill.billing.plugin.analytics.api.BusinessInvoicePayment;
+import org.killbill.billing.plugin.analytics.api.BusinessPayment;
 import org.killbill.billing.plugin.analytics.api.BusinessSubscriptionTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessTag;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
@@ -40,7 +40,7 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessTagModelDao;
 import org.killbill.billing.util.api.RecordIdApi;
@@ -143,19 +143,22 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         });
     }
 
-    public Collection<BusinessInvoicePayment> getInvoicePaymentsForAccount(final UUID accountId, final TenantContext context) {
+    public Collection<BusinessPayment> getInvoicePaymentsForAccount(final UUID accountId, final TenantContext context) {
         final Long accountRecordId = getAccountRecordId(accountId, context);
         final Long tenantRecordId = getTenantRecordId(context);
 
-        final List<BusinessInvoicePaymentBaseModelDao> businessInvoicePaymentModelDaos = new ArrayList<BusinessInvoicePaymentBaseModelDao>();
-        businessInvoicePaymentModelDaos.addAll(sqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, context));
-        businessInvoicePaymentModelDaos.addAll(sqlDao.getInvoicePaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, context));
-        businessInvoicePaymentModelDaos.addAll(sqlDao.getInvoicePaymentChargebacksByAccountRecordId(accountRecordId, tenantRecordId, context));
+        final List<BusinessPaymentBaseModelDao> businessInvoicePaymentModelDaos = new ArrayList<BusinessPaymentBaseModelDao>();
+        businessInvoicePaymentModelDaos.addAll(sqlDao.getPaymentAuthsByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessInvoicePaymentModelDaos.addAll(sqlDao.getPaymentCapturesByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessInvoicePaymentModelDaos.addAll(sqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessInvoicePaymentModelDaos.addAll(sqlDao.getPaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessInvoicePaymentModelDaos.addAll(sqlDao.getPaymentCreditsByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessInvoicePaymentModelDaos.addAll(sqlDao.getPaymentChargebacksByAccountRecordId(accountRecordId, tenantRecordId, context));
 
-        return Lists.transform(businessInvoicePaymentModelDaos, new Function<BusinessInvoicePaymentBaseModelDao, BusinessInvoicePayment>() {
+        return Lists.transform(businessInvoicePaymentModelDaos, new Function<BusinessPaymentBaseModelDao, BusinessPayment>() {
             @Override
-            public BusinessInvoicePayment apply(final BusinessInvoicePaymentBaseModelDao input) {
-                return new BusinessInvoicePayment(input);
+            public BusinessPayment apply(final BusinessPaymentBaseModelDao input) {
+                return new BusinessPayment(input);
             }
         });
     }

@@ -34,11 +34,11 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentFieldModelDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentTagModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceTagModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentPurchaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscription;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionEvent;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
@@ -228,56 +228,58 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
     }
 
     @Test(groups = "slow")
-    public void testSqlDaoForInvoicePayment() throws Exception {
-        final BusinessInvoicePaymentBaseModelDao businessInvoicePaymentModelDao = BusinessInvoicePaymentModelDao.create(account,
+    public void testSqlDaoForPayment() throws Exception {
+        final BusinessPaymentBaseModelDao businessInvoicePaymentModelDao = BusinessPaymentPurchaseModelDao.create(account,
+                                                                                                                  accountRecordId,
+                                                                                                                  invoice,
+                                                                                                                  invoicePayment,
+                                                                                                                  invoicePaymentRecordId,
+                                                                                                                  paymentNoRefund,
+                                                                                                                  purchaseTransaction,
+                                                                                                                  paymentMethod,
+                                                                                                                  currencyConverter,
+                                                                                                                  auditLog,
+                                                                                                                  tenantRecordId,
+                                                                                                                  reportGroup);
+        // Check the record doesn't exist yet
+        Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
+
+        // Create and check we can retrieve it
+        analyticsSqlDao.create(businessInvoicePaymentModelDao.getTableName(), businessInvoicePaymentModelDao, callContext);
+        Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 1);
+        Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0), businessInvoicePaymentModelDao);
+
+        // Delete and verify it doesn't exist anymore
+        analyticsSqlDao.deleteByAccountRecordId(businessInvoicePaymentModelDao.getTableName(), accountRecordId, tenantRecordId, callContext);
+        Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
+    }
+
+    @Test(groups = "slow")
+    public void testSqlDaoForPaymentRefund() throws Exception {
+        Mockito.when(invoicePayment.getType()).thenReturn(InvoicePaymentType.REFUND);
+        final BusinessPaymentBaseModelDao businessInvoicePaymentRefundModelDao = BusinessPaymentPurchaseModelDao.create(account,
                                                                                                                         accountRecordId,
                                                                                                                         invoice,
                                                                                                                         invoicePayment,
                                                                                                                         invoicePaymentRecordId,
-                                                                                                                        paymentNoRefund,
+                                                                                                                        payment,
+                                                                                                                        refundTransaction,
                                                                                                                         paymentMethod,
                                                                                                                         currencyConverter,
                                                                                                                         auditLog,
                                                                                                                         tenantRecordId,
                                                                                                                         reportGroup);
         // Check the record doesn't exist yet
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
-
-        // Create and check we can retrieve it
-        analyticsSqlDao.create(businessInvoicePaymentModelDao.getTableName(), businessInvoicePaymentModelDao, callContext);
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 1);
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0), businessInvoicePaymentModelDao);
-
-        // Delete and verify it doesn't exist anymore
-        analyticsSqlDao.deleteByAccountRecordId(businessInvoicePaymentModelDao.getTableName(), accountRecordId, tenantRecordId, callContext);
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
-    }
-
-    @Test(groups = "slow")
-    public void testSqlDaoForInvoicePaymentRefund() throws Exception {
-        Mockito.when(invoicePayment.getType()).thenReturn(InvoicePaymentType.REFUND);
-        final BusinessInvoicePaymentBaseModelDao businessInvoicePaymentRefundModelDao = BusinessInvoicePaymentModelDao.create(account,
-                                                                                                                              accountRecordId,
-                                                                                                                              invoice,
-                                                                                                                              invoicePayment,
-                                                                                                                              invoicePaymentRecordId,
-                                                                                                                              payment,
-                                                                                                                              paymentMethod,
-                                                                                                                              currencyConverter,
-                                                                                                                              auditLog,
-                                                                                                                              tenantRecordId,
-                                                                                                                              reportGroup);
-        // Check the record doesn't exist yet
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Create and check we can retrieve it
         analyticsSqlDao.create(businessInvoicePaymentRefundModelDao.getTableName(), businessInvoicePaymentRefundModelDao, callContext);
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 1);
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0), businessInvoicePaymentRefundModelDao);
+        Assert.assertEquals(analyticsSqlDao.getPaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 1);
+        Assert.assertEquals(analyticsSqlDao.getPaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0), businessInvoicePaymentRefundModelDao);
 
         // Delete and verify it doesn't exist anymore
         analyticsSqlDao.deleteByAccountRecordId(businessInvoicePaymentRefundModelDao.getTableName(), accountRecordId, tenantRecordId, callContext);
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getPaymentRefundsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
     }
 
     @Test(groups = "slow")
@@ -295,7 +297,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
                                                                                                                           tenantRecordId,
                                                                                                                           reportGroup);
         // Check the record doesn't exist yet
-        Assert.assertEquals(analyticsSqlDao.getInvoicePaymentsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
+        Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Create and check we can retrieve it
         analyticsSqlDao.create(businessAccountTransitionModelDao.getTableName(), businessAccountTransitionModelDao, callContext);

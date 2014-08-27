@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014 Groupon, Inc
  * Copyright 2014 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -22,9 +23,9 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
 
-public class BusinessInvoicePayment extends BusinessEntityBase {
+public class BusinessPayment extends BusinessEntityBase {
 
     private final UUID invoicePaymentId;
     private final UUID invoiceId;
@@ -77,65 +78,65 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
     private final String pluginPmCountry;
     private final String convertedCurrency;
 
-    public BusinessInvoicePayment(final BusinessInvoicePaymentBaseModelDao businessInvoicePaymentBaseModelDao) {
-        super(businessInvoicePaymentBaseModelDao.getCreatedDate(),
-              businessInvoicePaymentBaseModelDao.getCreatedBy(),
-              businessInvoicePaymentBaseModelDao.getCreatedReasonCode(),
-              businessInvoicePaymentBaseModelDao.getCreatedComments(),
-              businessInvoicePaymentBaseModelDao.getAccountId(),
-              businessInvoicePaymentBaseModelDao.getAccountName(),
-              businessInvoicePaymentBaseModelDao.getAccountExternalKey(),
-              businessInvoicePaymentBaseModelDao.getReportGroup());
-        this.invoicePaymentId = businessInvoicePaymentBaseModelDao.getInvoicePaymentId();
-        this.invoiceId = businessInvoicePaymentBaseModelDao.getInvoiceId();
-        this.invoiceNumber = businessInvoicePaymentBaseModelDao.getInvoiceNumber();
-        this.invoiceCreatedDate = businessInvoicePaymentBaseModelDao.getInvoiceCreatedDate();
-        this.invoiceDate = businessInvoicePaymentBaseModelDao.getInvoiceDate();
-        this.invoiceTargetDate = businessInvoicePaymentBaseModelDao.getInvoiceTargetDate();
-        this.invoiceCurrency = businessInvoicePaymentBaseModelDao.getInvoiceCurrency();
-        this.invoiceBalance = businessInvoicePaymentBaseModelDao.getInvoiceBalance();
-        this.convertedInvoiceBalance = businessInvoicePaymentBaseModelDao.getConvertedInvoiceBalance();
-        this.invoiceAmountPaid = businessInvoicePaymentBaseModelDao.getInvoiceAmountPaid();
-        this.convertedInvoiceAmountPaid = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountPaid();
-        this.invoiceAmountCharged = businessInvoicePaymentBaseModelDao.getInvoiceAmountCharged();
-        this.convertedInvoiceAmountCharged = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountCharged();
-        this.invoiceOriginalAmountCharged = businessInvoicePaymentBaseModelDao.getInvoiceOriginalAmountCharged();
-        this.convertedInvoiceOriginalAmountCharged = businessInvoicePaymentBaseModelDao.getConvertedInvoiceOriginalAmountCharged();
-        this.invoiceAmountCredited = businessInvoicePaymentBaseModelDao.getInvoiceAmountCredited();
-        this.convertedInvoiceAmountCredited = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountCredited();
-        this.invoiceAmountRefunded = businessInvoicePaymentBaseModelDao.getInvoiceAmountRefunded();
-        this.convertedInvoiceAmountRefunded = businessInvoicePaymentBaseModelDao.getConvertedInvoiceAmountRefunded();
-        this.invoicePaymentType = businessInvoicePaymentBaseModelDao.getInvoicePaymentType();
-        this.paymentId = businessInvoicePaymentBaseModelDao.getPaymentId();
-        this.refundId = businessInvoicePaymentBaseModelDao.getRefundId();
-        this.paymentNumber = businessInvoicePaymentBaseModelDao.getPaymentNumber();
-        this.linkedInvoicePaymentId = businessInvoicePaymentBaseModelDao.getLinkedInvoicePaymentId();
-        this.amount = businessInvoicePaymentBaseModelDao.getAmount();
-        this.convertedAmount = businessInvoicePaymentBaseModelDao.getConvertedAmount();
-        this.currency = businessInvoicePaymentBaseModelDao.getCurrency();
-        this.pluginName = businessInvoicePaymentBaseModelDao.getPluginName();
-        this.pluginCreatedDate = businessInvoicePaymentBaseModelDao.getPluginCreatedDate();
-        this.pluginEffectiveDate = businessInvoicePaymentBaseModelDao.getPluginEffectiveDate();
-        this.pluginStatus = businessInvoicePaymentBaseModelDao.getPluginStatus();
-        this.pluginGatewayError = businessInvoicePaymentBaseModelDao.getPluginGatewayError();
-        this.pluginGatewayErrorCode = businessInvoicePaymentBaseModelDao.getPluginGatewayErrorCode();
-        this.pluginFirstReferenceId = businessInvoicePaymentBaseModelDao.getPluginFirstReferenceId();
-        this.pluginSecondReferenceId = businessInvoicePaymentBaseModelDao.getPluginSecondReferenceId();
-        this.pluginPmId = businessInvoicePaymentBaseModelDao.getPluginPmId();
-        this.pluginPmIsDefault = businessInvoicePaymentBaseModelDao.getPluginPmIsDefault();
-        this.pluginPmType = businessInvoicePaymentBaseModelDao.getPluginPmType();
-        this.pluginPmCcName = businessInvoicePaymentBaseModelDao.getPluginPmCcName();
-        this.pluginPmCcType = businessInvoicePaymentBaseModelDao.getPluginPmCcType();
-        this.pluginPmCcExpirationMonth = businessInvoicePaymentBaseModelDao.getPluginPmCcExpirationMonth();
-        this.pluginPmCcExpirationYear = businessInvoicePaymentBaseModelDao.getPluginPmCcExpirationYear();
-        this.pluginPmCcLast4 = businessInvoicePaymentBaseModelDao.getPluginPmCcLast4();
-        this.pluginPmAddress1 = businessInvoicePaymentBaseModelDao.getPluginPmAddress1();
-        this.pluginPmAddress2 = businessInvoicePaymentBaseModelDao.getPluginPmAddress2();
-        this.pluginPmCity = businessInvoicePaymentBaseModelDao.getPluginPmCity();
-        this.pluginPmState = businessInvoicePaymentBaseModelDao.getPluginPmState();
-        this.pluginPmZip = businessInvoicePaymentBaseModelDao.getPluginPmZip();
-        this.pluginPmCountry = businessInvoicePaymentBaseModelDao.getPluginPmCountry();
-        this.convertedCurrency = businessInvoicePaymentBaseModelDao.getConvertedCurrency();
+    public BusinessPayment(final BusinessPaymentBaseModelDao businessPaymentBaseModelDao) {
+        super(businessPaymentBaseModelDao.getCreatedDate(),
+              businessPaymentBaseModelDao.getCreatedBy(),
+              businessPaymentBaseModelDao.getCreatedReasonCode(),
+              businessPaymentBaseModelDao.getCreatedComments(),
+              businessPaymentBaseModelDao.getAccountId(),
+              businessPaymentBaseModelDao.getAccountName(),
+              businessPaymentBaseModelDao.getAccountExternalKey(),
+              businessPaymentBaseModelDao.getReportGroup());
+        this.invoicePaymentId = businessPaymentBaseModelDao.getInvoicePaymentId();
+        this.invoiceId = businessPaymentBaseModelDao.getInvoiceId();
+        this.invoiceNumber = businessPaymentBaseModelDao.getInvoiceNumber();
+        this.invoiceCreatedDate = businessPaymentBaseModelDao.getInvoiceCreatedDate();
+        this.invoiceDate = businessPaymentBaseModelDao.getInvoiceDate();
+        this.invoiceTargetDate = businessPaymentBaseModelDao.getInvoiceTargetDate();
+        this.invoiceCurrency = businessPaymentBaseModelDao.getInvoiceCurrency();
+        this.invoiceBalance = businessPaymentBaseModelDao.getInvoiceBalance();
+        this.convertedInvoiceBalance = businessPaymentBaseModelDao.getConvertedInvoiceBalance();
+        this.invoiceAmountPaid = businessPaymentBaseModelDao.getInvoiceAmountPaid();
+        this.convertedInvoiceAmountPaid = businessPaymentBaseModelDao.getConvertedInvoiceAmountPaid();
+        this.invoiceAmountCharged = businessPaymentBaseModelDao.getInvoiceAmountCharged();
+        this.convertedInvoiceAmountCharged = businessPaymentBaseModelDao.getConvertedInvoiceAmountCharged();
+        this.invoiceOriginalAmountCharged = businessPaymentBaseModelDao.getInvoiceOriginalAmountCharged();
+        this.convertedInvoiceOriginalAmountCharged = businessPaymentBaseModelDao.getConvertedInvoiceOriginalAmountCharged();
+        this.invoiceAmountCredited = businessPaymentBaseModelDao.getInvoiceAmountCredited();
+        this.convertedInvoiceAmountCredited = businessPaymentBaseModelDao.getConvertedInvoiceAmountCredited();
+        this.invoiceAmountRefunded = businessPaymentBaseModelDao.getInvoiceAmountRefunded();
+        this.convertedInvoiceAmountRefunded = businessPaymentBaseModelDao.getConvertedInvoiceAmountRefunded();
+        this.invoicePaymentType = businessPaymentBaseModelDao.getInvoicePaymentType();
+        this.paymentId = businessPaymentBaseModelDao.getPaymentId();
+        this.refundId = businessPaymentBaseModelDao.getRefundId();
+        this.paymentNumber = businessPaymentBaseModelDao.getPaymentNumber();
+        this.linkedInvoicePaymentId = businessPaymentBaseModelDao.getLinkedInvoicePaymentId();
+        this.amount = businessPaymentBaseModelDao.getAmount();
+        this.convertedAmount = businessPaymentBaseModelDao.getConvertedAmount();
+        this.currency = businessPaymentBaseModelDao.getCurrency();
+        this.pluginName = businessPaymentBaseModelDao.getPluginName();
+        this.pluginCreatedDate = businessPaymentBaseModelDao.getPluginCreatedDate();
+        this.pluginEffectiveDate = businessPaymentBaseModelDao.getPluginEffectiveDate();
+        this.pluginStatus = businessPaymentBaseModelDao.getPluginStatus();
+        this.pluginGatewayError = businessPaymentBaseModelDao.getPluginGatewayError();
+        this.pluginGatewayErrorCode = businessPaymentBaseModelDao.getPluginGatewayErrorCode();
+        this.pluginFirstReferenceId = businessPaymentBaseModelDao.getPluginFirstReferenceId();
+        this.pluginSecondReferenceId = businessPaymentBaseModelDao.getPluginSecondReferenceId();
+        this.pluginPmId = businessPaymentBaseModelDao.getPluginPmId();
+        this.pluginPmIsDefault = businessPaymentBaseModelDao.getPluginPmIsDefault();
+        this.pluginPmType = businessPaymentBaseModelDao.getPluginPmType();
+        this.pluginPmCcName = businessPaymentBaseModelDao.getPluginPmCcName();
+        this.pluginPmCcType = businessPaymentBaseModelDao.getPluginPmCcType();
+        this.pluginPmCcExpirationMonth = businessPaymentBaseModelDao.getPluginPmCcExpirationMonth();
+        this.pluginPmCcExpirationYear = businessPaymentBaseModelDao.getPluginPmCcExpirationYear();
+        this.pluginPmCcLast4 = businessPaymentBaseModelDao.getPluginPmCcLast4();
+        this.pluginPmAddress1 = businessPaymentBaseModelDao.getPluginPmAddress1();
+        this.pluginPmAddress2 = businessPaymentBaseModelDao.getPluginPmAddress2();
+        this.pluginPmCity = businessPaymentBaseModelDao.getPluginPmCity();
+        this.pluginPmState = businessPaymentBaseModelDao.getPluginPmState();
+        this.pluginPmZip = businessPaymentBaseModelDao.getPluginPmZip();
+        this.pluginPmCountry = businessPaymentBaseModelDao.getPluginPmCountry();
+        this.convertedCurrency = businessPaymentBaseModelDao.getConvertedCurrency();
     }
 
     public UUID getInvoicePaymentId() {
@@ -407,7 +408,7 @@ public class BusinessInvoicePayment extends BusinessEntityBase {
             return false;
         }
 
-        final BusinessInvoicePayment that = (BusinessInvoicePayment) o;
+        final BusinessPayment that = (BusinessPayment) o;
 
         if (amount != null ? !(amount.compareTo(that.amount) == 0) : that.amount != null) {
             return false;

@@ -29,8 +29,8 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountTransition
 import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentPurchaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscription;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionEvent;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
@@ -96,18 +96,19 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                     ImmutableList.<BusinessInvoiceItemBaseModelDao>of(invoiceItemBaseModelDao));
 
         // Invoice payment
-        final BusinessInvoicePaymentBaseModelDao invoicePaymentBaseModelDao = BusinessInvoicePaymentModelDao.create(account,
-                                                                                                                    accountRecordId,
-                                                                                                                    invoice,
-                                                                                                                    invoicePayment,
-                                                                                                                    invoicePaymentRecordId,
-                                                                                                                    payment,
-                                                                                                                    paymentMethod,
-                                                                                                                    currencyConverter,
-                                                                                                                    auditLog,
-                                                                                                                    tenantRecordId,
-                                                                                                                    reportGroup);
-        final BusinessInvoicePayment businessInvoicePayment = new BusinessInvoicePayment(invoicePaymentBaseModelDao);
+        final BusinessPaymentBaseModelDao invoicePaymentBaseModelDao = BusinessPaymentPurchaseModelDao.create(account,
+                                                                                                              accountRecordId,
+                                                                                                              invoice,
+                                                                                                              invoicePayment,
+                                                                                                              invoicePaymentRecordId,
+                                                                                                              payment,
+                                                                                                              paymentTransaction,
+                                                                                                              paymentMethod,
+                                                                                                              currencyConverter,
+                                                                                                              auditLog,
+                                                                                                              tenantRecordId,
+                                                                                                              reportGroup);
+        final BusinessPayment businessPayment = new BusinessPayment(invoicePaymentBaseModelDao);
 
         // Overdue
         final LocalDate startDate = new LocalDate(2005, 2, 5);
@@ -172,7 +173,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                        ImmutableList.<BusinessBundle>of(businessBundle),
                                                                        ImmutableList.<BusinessSubscriptionTransition>of(businessSubscriptionTransition),
                                                                        ImmutableList.<BusinessInvoice>of(businessInvoice),
-                                                                       ImmutableList.<BusinessInvoicePayment>of(businessInvoicePayment),
+                                                                       ImmutableList.<BusinessPayment>of(businessPayment),
                                                                        ImmutableList.<BusinessAccountTransition>of(businessAccountTransition),
                                                                        ImmutableList.<BusinessTag>of(businessTag),
                                                                        ImmutableList.<BusinessField>of(businessField));
@@ -183,8 +184,8 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSnapshot.getBusinessSubscriptionTransitions().iterator().next(), businessSubscriptionTransition);
         Assert.assertEquals(businessSnapshot.getBusinessInvoices().size(), 1);
         Assert.assertEquals(businessSnapshot.getBusinessInvoices().iterator().next(), businessInvoice);
-        Assert.assertEquals(businessSnapshot.getBusinessInvoicePayments().size(), 1);
-        Assert.assertEquals(businessSnapshot.getBusinessInvoicePayments().iterator().next(), businessInvoicePayment);
+        Assert.assertEquals(businessSnapshot.getBusinessPayments().size(), 1);
+        Assert.assertEquals(businessSnapshot.getBusinessPayments().iterator().next(), businessPayment);
         Assert.assertEquals(businessSnapshot.getBusinessAccountTransitions().size(), 1);
         Assert.assertEquals(businessSnapshot.getBusinessAccountTransitions().iterator().next(), businessAccountTransition);
         Assert.assertEquals(businessSnapshot.getBusinessTags().size(), 1);

@@ -26,11 +26,11 @@ import java.util.concurrent.Executor;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessInvoiceFactory;
-import org.killbill.billing.plugin.analytics.dao.factory.BusinessInvoicePaymentFactory;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessPaymentFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentBaseModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
 import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.clock.Clock;
@@ -47,33 +47,33 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
 /**
- * Wrapper around BusinessInvoiceDao and BusinessInvoicePaymentDao.
+ * Wrapper around BusinessInvoiceDao and BusinessPaymentDao.
  * <p/>
  * These two should always be updated together as invoice and payment information is denormalized across
  * bot sets of tables.
  */
-public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBase {
+public class BusinessInvoiceAndPaymentDao extends BusinessAnalyticsDaoBase {
 
     private final BusinessAccountDao businessAccountDao;
     private final BusinessInvoiceDao businessInvoiceDao;
-    private final BusinessInvoicePaymentDao businessInvoicePaymentDao;
+    private final BusinessPaymentDao businessPaymentDao;
     private final BusinessAccountFactory bacFactory;
     private final BusinessInvoiceFactory binFactory;
-    private final BusinessInvoicePaymentFactory bipFactory;
+    private final BusinessPaymentFactory bipFactory;
 
-    public BusinessInvoiceAndInvoicePaymentDao(final OSGIKillbillLogService logService,
-                                               final OSGIKillbillAPI osgiKillbillAPI,
-                                               final OSGIKillbillDataSource osgiKillbillDataSource,
-                                               final BusinessAccountDao businessAccountDao,
-                                               final Executor executor,
-                                               final Clock clock) {
+    public BusinessInvoiceAndPaymentDao(final OSGIKillbillLogService logService,
+                                        final OSGIKillbillAPI osgiKillbillAPI,
+                                        final OSGIKillbillDataSource osgiKillbillDataSource,
+                                        final BusinessAccountDao businessAccountDao,
+                                        final Executor executor,
+                                        final Clock clock) {
         super(logService, osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
         this.businessInvoiceDao = new BusinessInvoiceDao(logService, osgiKillbillDataSource);
-        this.businessInvoicePaymentDao = new BusinessInvoicePaymentDao(logService, osgiKillbillDataSource);
+        this.businessPaymentDao = new BusinessPaymentDao(logService, osgiKillbillDataSource);
         bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
         binFactory = new BusinessInvoiceFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
-        bipFactory = new BusinessInvoicePaymentFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bipFactory = new BusinessPaymentFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
     }
 
     public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
@@ -85,7 +85,7 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
         // Recompute invoice, invoice items and invoice payments records
         final Map<UUID, BusinessInvoiceModelDao> invoices = new HashMap<UUID, BusinessInvoiceModelDao>();
         final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems = ArrayListMultimap.<UUID, BusinessInvoiceItemBaseModelDao>create();
-        final Multimap<UUID, BusinessInvoicePaymentBaseModelDao> invoicePayments = ArrayListMultimap.<UUID, BusinessInvoicePaymentBaseModelDao>create();
+        final Multimap<UUID, BusinessPaymentBaseModelDao> invoicePayments = ArrayListMultimap.<UUID, BusinessPaymentBaseModelDao>create();
         createBusinessPojos(accountId, accountAuditLogs, invoices, invoiceItems, invoicePayments, context);
 
         // Delete and recreate all items in the transaction
@@ -105,20 +105,20 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
                              final AccountAuditLogs accountAuditLogs,
                              final Map<UUID, BusinessInvoiceModelDao> invoices,
                              final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems,
-                             final Multimap<UUID, BusinessInvoicePaymentBaseModelDao> invoicePayments,
+                             final Multimap<UUID, BusinessPaymentBaseModelDao> invoicePayments,
                              final CallContext context) throws AnalyticsRefreshException {
         // Recompute all invoices and invoice items
         final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessInvoices = binFactory.createBusinessInvoicesAndInvoiceItems(accountId, accountAuditLogs, context);
 
-        // Recompute all invoice payments
-        final Collection<BusinessInvoicePaymentBaseModelDao> businessInvoicePayments = bipFactory.createBusinessInvoicePayments(accountId, accountAuditLogs, context);
+        // Recompute all payments
+        final Collection<BusinessPaymentBaseModelDao> businessInvoicePayments = bipFactory.createBusinessPayments(accountId, accountAuditLogs, context);
 
         // Transform the results
         for (final BusinessInvoiceModelDao businessInvoice : businessInvoices.keySet()) {
             invoices.put(businessInvoice.getInvoiceId(), businessInvoice);
             invoiceItems.get(businessInvoice.getInvoiceId()).addAll(businessInvoices.get(businessInvoice));
         }
-        for (final BusinessInvoicePaymentBaseModelDao businessInvoicePayment : businessInvoicePayments) {
+        for (final BusinessPaymentBaseModelDao businessInvoicePayment : businessInvoicePayments) {
             invoicePayments.get(businessInvoicePayment.getInvoiceId()).add(businessInvoicePayment);
         }
     }
@@ -136,14 +136,14 @@ public class BusinessInvoiceAndInvoicePaymentDao extends BusinessAnalyticsDaoBas
     private void updateInTransaction(final BusinessAccountModelDao bac,
                                      final Map<UUID, BusinessInvoiceModelDao> invoices,
                                      final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems,
-                                     final Multimap<UUID, BusinessInvoicePaymentBaseModelDao> invoicePayments,
+                                     final Multimap<UUID, BusinessPaymentBaseModelDao> invoicePayments,
                                      final BusinessAnalyticsSqlDao transactional,
                                      final CallContext context) {
         // Update invoice and invoice items tables
         businessInvoiceDao.updateInTransaction(bac, invoices, invoiceItems, transactional, context);
 
-        // Update invoice payment tables
-        businessInvoicePaymentDao.updateInTransaction(bac, Iterables.<BusinessInvoicePaymentBaseModelDao>concat(invoicePayments.values()), transactional, context);
+        // Update payment tables
+        businessPaymentDao.updateInTransaction(bac, Iterables.<BusinessPaymentBaseModelDao>concat(invoicePayments.values()), transactional, context);
 
         // Update denormalized invoice and payment details in BAC
         businessAccountDao.updateInTransaction(bac, transactional, context);

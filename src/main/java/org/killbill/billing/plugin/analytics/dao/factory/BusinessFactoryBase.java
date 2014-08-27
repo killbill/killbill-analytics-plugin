@@ -19,8 +19,9 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import org.joda.time.LocalDate;
@@ -47,7 +48,6 @@ import org.killbill.billing.payment.api.PaymentApi;
 import org.killbill.billing.payment.api.PaymentApiException;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PluginProperty;
-import org.killbill.billing.payment.api.Refund;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
@@ -382,17 +382,16 @@ public abstract class BusinessFactoryBase {
     // INVOICE PAYMENT
     //
 
-    protected Collection<InvoicePayment> getAccountInvoicePayments(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+    protected Map<UUID, List<InvoicePayment>> getAccountInvoicePayments(final Iterable<Payment> payments, final TenantContext context) throws AnalyticsRefreshException {
         final InvoicePaymentApi invoicePaymentApi = getInvoicePaymentUserApi();
-        final Collection<Payment> payments = getPaymentsByAccountId(accountId, context);
 
-        final Collection<InvoicePayment> allInvoicePayments = new LinkedList<InvoicePayment>();
+        final Map<UUID, List<InvoicePayment>> allInvoicePaymentsByPaymentId = new HashMap<UUID, List<InvoicePayment>>();
         for (final Payment payment : payments) {
             // Retrieve all invoice payment types (including refunds and chargebacks) for that payment
-            allInvoicePayments.addAll(invoicePaymentApi.getInvoicePayments(payment.getId(), context));
+            allInvoicePaymentsByPaymentId.put(payment.getId(), invoicePaymentApi.getInvoicePayments(payment.getId(), context));
         }
 
-        return allInvoicePayments;
+        return allInvoicePaymentsByPaymentId;
     }
 
     protected AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {

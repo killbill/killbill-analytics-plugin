@@ -750,8 +750,8 @@ insert into analytics_invoice_credits (
 );
 >>
 
-createAnalyticsPayments() ::= <<
-insert into analytics_payments (
+createAnalyticsPaymentAuths() ::= <<
+insert into analytics_payment_auths (
   invoice_payment_record_id
 , invoice_payment_id
 , invoice_id
@@ -876,8 +876,8 @@ insert into analytics_payments (
 );
 >>
 
-createAnalyticsRefunds() ::= <<
-insert into analytics_refunds (
+createAnalyticsPaymentCaptures() ::= <<
+insert into analytics_payment_captures (
   invoice_payment_record_id
 , invoice_payment_id
 , invoice_id
@@ -900,7 +900,6 @@ insert into analytics_refunds (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
-, refund_id
 , payment_number
 , linked_invoice_payment_id
 , amount
@@ -962,7 +961,6 @@ insert into analytics_refunds (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
-, :refundId
 , :paymentNumber
 , :linkedInvoicePaymentId
 , :amount
@@ -1004,8 +1002,386 @@ insert into analytics_refunds (
 );
 >>
 
-createAnalyticsChargebacks() ::= <<
-insert into analytics_chargebacks (
+createAnalyticsPaymentPurchases() ::= <<
+insert into analytics_payment_purchases (
+  invoice_payment_record_id
+, invoice_payment_id
+, invoice_id
+, invoice_number
+, invoice_created_date
+, invoice_date
+, invoice_target_date
+, invoice_currency
+, invoice_balance
+, converted_invoice_balance
+, invoice_amount_paid
+, converted_invoice_amount_paid
+, invoice_amount_charged
+, converted_invoice_amount_charged
+, invoice_original_amount_charged
+, converted_invoice_original_amount_charged
+, invoice_amount_credited
+, converted_invoice_amount_credited
+, invoice_amount_refunded
+, converted_invoice_amount_refunded
+, invoice_payment_type
+, payment_id
+, payment_number
+, linked_invoice_payment_id
+, amount
+, converted_amount
+, currency
+, plugin_name
+, plugin_created_date
+, plugin_effective_date
+, plugin_status
+, plugin_gateway_error
+, plugin_gateway_error_code
+, plugin_first_reference_id
+, plugin_second_reference_id
+, plugin_pm_id
+, plugin_pm_is_default
+, plugin_pm_type
+, plugin_pm_cc_name
+, plugin_pm_cc_type
+, plugin_pm_cc_expiration_month
+, plugin_pm_cc_expiration_year
+, plugin_pm_cc_last_4
+, plugin_pm_address1
+, plugin_pm_address2
+, plugin_pm_city
+, plugin_pm_state
+, plugin_pm_zip
+, plugin_pm_country
+, converted_currency
+, created_date
+, created_by
+, created_reason_code
+, created_comments
+, account_id
+, account_name
+, account_external_key
+, account_record_id
+, tenant_record_id
+, report_group
+) values (
+  :invoicePaymentRecordId
+, :invoicePaymentId
+, :invoiceId
+, :invoiceNumber
+, :invoiceCreatedDate
+, :invoiceDate
+, :invoiceTargetDate
+, :invoiceCurrency
+, :invoiceBalance
+, :convertedInvoiceBalance
+, :invoiceAmountPaid
+, :convertedInvoiceAmountPaid
+, :invoiceAmountCharged
+, :convertedInvoiceAmountCharged
+, :invoiceOriginalAmountCharged
+, :convertedInvoiceOriginalAmountCharged
+, :invoiceAmountCredited
+, :convertedInvoiceAmountCredited
+, :invoiceAmountRefunded
+, :convertedInvoiceAmountRefunded
+, :invoicePaymentType
+, :paymentId
+, :paymentNumber
+, :linkedInvoicePaymentId
+, :amount
+, :convertedAmount
+, :currency
+, :pluginName
+, :pluginCreatedDate
+, :pluginEffectiveDate
+, :pluginStatus
+, :pluginGatewayError
+, :pluginGatewayErrorCode
+, :pluginFirstReferenceId
+, :pluginSecondReferenceId
+, :pluginPmId
+, :pluginPmIsDefault
+, :pluginPmType
+, :pluginPmCcName
+, :pluginPmCcType
+, :pluginPmCcExpirationMonth
+, :pluginPmCcExpirationYear
+, :pluginPmCcLast4
+, :pluginPmAddress1
+, :pluginPmAddress2
+, :pluginPmCity
+, :pluginPmState
+, :pluginPmZip
+, :pluginPmCountry
+, :convertedCurrency
+, :createdDate
+, :createdBy
+, :createdReasonCode
+, :createdComments
+, :accountId
+, :accountName
+, :accountExternalKey
+, :accountRecordId
+, :tenantRecordId
+, :reportGroup
+);
+>>
+
+createAnalyticsPaymentRefunds() ::= <<
+insert into analytics_payment_refunds (
+  invoice_payment_record_id
+, invoice_payment_id
+, invoice_id
+, invoice_number
+, invoice_created_date
+, invoice_date
+, invoice_target_date
+, invoice_currency
+, invoice_balance
+, converted_invoice_balance
+, invoice_amount_paid
+, converted_invoice_amount_paid
+, invoice_amount_charged
+, converted_invoice_amount_charged
+, invoice_original_amount_charged
+, converted_invoice_original_amount_charged
+, invoice_amount_credited
+, converted_invoice_amount_credited
+, invoice_amount_refunded
+, converted_invoice_amount_refunded
+, invoice_payment_type
+, payment_id
+, payment_number
+, linked_invoice_payment_id
+, amount
+, converted_amount
+, currency
+, plugin_name
+, plugin_created_date
+, plugin_effective_date
+, plugin_status
+, plugin_gateway_error
+, plugin_gateway_error_code
+, plugin_first_reference_id
+, plugin_second_reference_id
+, plugin_pm_id
+, plugin_pm_is_default
+, plugin_pm_type
+, plugin_pm_cc_name
+, plugin_pm_cc_type
+, plugin_pm_cc_expiration_month
+, plugin_pm_cc_expiration_year
+, plugin_pm_cc_last_4
+, plugin_pm_address1
+, plugin_pm_address2
+, plugin_pm_city
+, plugin_pm_state
+, plugin_pm_zip
+, plugin_pm_country
+, converted_currency
+, created_date
+, created_by
+, created_reason_code
+, created_comments
+, account_id
+, account_name
+, account_external_key
+, account_record_id
+, tenant_record_id
+, report_group
+) values (
+  :invoicePaymentRecordId
+, :invoicePaymentId
+, :invoiceId
+, :invoiceNumber
+, :invoiceCreatedDate
+, :invoiceDate
+, :invoiceTargetDate
+, :invoiceCurrency
+, :invoiceBalance
+, :convertedInvoiceBalance
+, :invoiceAmountPaid
+, :convertedInvoiceAmountPaid
+, :invoiceAmountCharged
+, :convertedInvoiceAmountCharged
+, :invoiceOriginalAmountCharged
+, :convertedInvoiceOriginalAmountCharged
+, :invoiceAmountCredited
+, :convertedInvoiceAmountCredited
+, :invoiceAmountRefunded
+, :convertedInvoiceAmountRefunded
+, :invoicePaymentType
+, :paymentId
+, :paymentNumber
+, :linkedInvoicePaymentId
+, :amount
+, :convertedAmount
+, :currency
+, :pluginName
+, :pluginCreatedDate
+, :pluginEffectiveDate
+, :pluginStatus
+, :pluginGatewayError
+, :pluginGatewayErrorCode
+, :pluginFirstReferenceId
+, :pluginSecondReferenceId
+, :pluginPmId
+, :pluginPmIsDefault
+, :pluginPmType
+, :pluginPmCcName
+, :pluginPmCcType
+, :pluginPmCcExpirationMonth
+, :pluginPmCcExpirationYear
+, :pluginPmCcLast4
+, :pluginPmAddress1
+, :pluginPmAddress2
+, :pluginPmCity
+, :pluginPmState
+, :pluginPmZip
+, :pluginPmCountry
+, :convertedCurrency
+, :createdDate
+, :createdBy
+, :createdReasonCode
+, :createdComments
+, :accountId
+, :accountName
+, :accountExternalKey
+, :accountRecordId
+, :tenantRecordId
+, :reportGroup
+);
+>>
+
+createAnalyticsPaymentCredits() ::= <<
+insert into analytics_payment_credits (
+  invoice_payment_record_id
+, invoice_payment_id
+, invoice_id
+, invoice_number
+, invoice_created_date
+, invoice_date
+, invoice_target_date
+, invoice_currency
+, invoice_balance
+, converted_invoice_balance
+, invoice_amount_paid
+, converted_invoice_amount_paid
+, invoice_amount_charged
+, converted_invoice_amount_charged
+, invoice_original_amount_charged
+, converted_invoice_original_amount_charged
+, invoice_amount_credited
+, converted_invoice_amount_credited
+, invoice_amount_refunded
+, converted_invoice_amount_refunded
+, invoice_payment_type
+, payment_id
+, payment_number
+, linked_invoice_payment_id
+, amount
+, converted_amount
+, currency
+, plugin_name
+, plugin_created_date
+, plugin_effective_date
+, plugin_status
+, plugin_gateway_error
+, plugin_gateway_error_code
+, plugin_first_reference_id
+, plugin_second_reference_id
+, plugin_pm_id
+, plugin_pm_is_default
+, plugin_pm_type
+, plugin_pm_cc_name
+, plugin_pm_cc_type
+, plugin_pm_cc_expiration_month
+, plugin_pm_cc_expiration_year
+, plugin_pm_cc_last_4
+, plugin_pm_address1
+, plugin_pm_address2
+, plugin_pm_city
+, plugin_pm_state
+, plugin_pm_zip
+, plugin_pm_country
+, converted_currency
+, created_date
+, created_by
+, created_reason_code
+, created_comments
+, account_id
+, account_name
+, account_external_key
+, account_record_id
+, tenant_record_id
+, report_group
+) values (
+  :invoicePaymentRecordId
+, :invoicePaymentId
+, :invoiceId
+, :invoiceNumber
+, :invoiceCreatedDate
+, :invoiceDate
+, :invoiceTargetDate
+, :invoiceCurrency
+, :invoiceBalance
+, :convertedInvoiceBalance
+, :invoiceAmountPaid
+, :convertedInvoiceAmountPaid
+, :invoiceAmountCharged
+, :convertedInvoiceAmountCharged
+, :invoiceOriginalAmountCharged
+, :convertedInvoiceOriginalAmountCharged
+, :invoiceAmountCredited
+, :convertedInvoiceAmountCredited
+, :invoiceAmountRefunded
+, :convertedInvoiceAmountRefunded
+, :invoicePaymentType
+, :paymentId
+, :paymentNumber
+, :linkedInvoicePaymentId
+, :amount
+, :convertedAmount
+, :currency
+, :pluginName
+, :pluginCreatedDate
+, :pluginEffectiveDate
+, :pluginStatus
+, :pluginGatewayError
+, :pluginGatewayErrorCode
+, :pluginFirstReferenceId
+, :pluginSecondReferenceId
+, :pluginPmId
+, :pluginPmIsDefault
+, :pluginPmType
+, :pluginPmCcName
+, :pluginPmCcType
+, :pluginPmCcExpirationMonth
+, :pluginPmCcExpirationYear
+, :pluginPmCcLast4
+, :pluginPmAddress1
+, :pluginPmAddress2
+, :pluginPmCity
+, :pluginPmState
+, :pluginPmZip
+, :pluginPmCountry
+, :convertedCurrency
+, :createdDate
+, :createdBy
+, :createdReasonCode
+, :createdComments
+, :accountId
+, :accountName
+, :accountExternalKey
+, :accountRecordId
+, :tenantRecordId
+, :reportGroup
+);
+>>
+
+createAnalyticsPaymentChargebacks() ::= <<
+insert into analytics_payment_chargebacks (
   invoice_payment_record_id
 , invoice_payment_id
 , invoice_id
@@ -1492,18 +1868,33 @@ getInvoiceItemCreditsByAccountRecordId() ::= <<
 ;
 >>
 
-getInvoicePaymentsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("analytics_payments")>
+getPaymentAuthsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_auths")>
 ;
 >>
 
-getInvoicePaymentRefundsByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("analytics_refunds")>
+getPaymentCapturesByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_captures")>
 ;
 >>
 
-getInvoicePaymentChargebacksByAccountRecordId() ::= <<
-<SELECT_STAR_FROM_TABLE("analytics_chargebacks")>
+getPaymentPurchasesByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_purchases")>
+;
+>>
+
+getPaymentRefundsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_refunds")>
+;
+>>
+
+getPaymentCreditsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_credits")>
+;
+>>
+
+getPaymentChargebacksByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_chargebacks")>
 ;
 >>
 

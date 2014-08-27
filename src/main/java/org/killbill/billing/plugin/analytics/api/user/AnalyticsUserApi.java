@@ -27,7 +27,7 @@ import org.killbill.billing.plugin.analytics.api.BusinessAccountTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessBundle;
 import org.killbill.billing.plugin.analytics.api.BusinessField;
 import org.killbill.billing.plugin.analytics.api.BusinessInvoice;
-import org.killbill.billing.plugin.analytics.api.BusinessInvoicePayment;
+import org.killbill.billing.plugin.analytics.api.BusinessPayment;
 import org.killbill.billing.plugin.analytics.api.BusinessSnapshot;
 import org.killbill.billing.plugin.analytics.api.BusinessSubscriptionTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessTag;
@@ -74,7 +74,7 @@ public class AnalyticsUserApi {
         final Collection<BusinessInvoice> businessInvoices = analyticsDao.getInvoicesForAccount(accountId, context);
 
         // Find all payments for that account
-        final Collection<BusinessInvoicePayment> businessInvoicePayments = analyticsDao.getInvoicePaymentsForAccount(accountId, context);
+        final Collection<BusinessPayment> businessPayments = analyticsDao.getInvoicePaymentsForAccount(accountId, context);
 
         // Find all tags for that account
         final Collection<BusinessTag> businessTags = analyticsDao.getTagsForAccount(accountId, context);
@@ -86,7 +86,7 @@ public class AnalyticsUserApi {
                                     businessBundles,
                                     businessSubscriptionTransitions,
                                     businessInvoices,
-                                    businessInvoicePayments,
+                                    businessPayments,
                                     businessAccountTransitions,
                                     businessTags,
                                     businessFields);

@@ -476,82 +476,10 @@ create index analytics_invoice_credits_account_id on analytics_invoice_credits(a
 create index analytics_invoice_credits_account_record_id on analytics_invoice_credits(account_record_id);
 create index analytics_invoice_credits_tenant_account_record_id on analytics_invoice_credits(tenant_record_id, account_record_id);
 
--- Invoice payments
-drop table if exists analytics_payments;
-create table analytics_payments (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
-, invoice_number bigint default null
-, invoice_created_date datetime default null
-, invoice_date date default null
-, invoice_target_date date default null
-, invoice_currency char(50) default null
-, invoice_balance numeric(10, 4) default 0
-, converted_invoice_balance numeric(10, 4) default null
-, invoice_amount_paid numeric(10, 4) default 0
-, converted_invoice_amount_paid numeric(10, 4) default null
-, invoice_amount_charged numeric(10, 4) default 0
-, converted_invoice_amount_charged numeric(10, 4) default null
-, invoice_original_amount_charged numeric(10, 4) default 0
-, converted_invoice_original_amount_charged numeric(10, 4) default null
-, invoice_amount_credited numeric(10, 4) default 0
-, converted_invoice_amount_credited numeric(10, 4) default null
-, invoice_amount_refunded numeric(10, 4) default 0
-, converted_invoice_amount_refunded numeric(10, 4) default null
-, invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, payment_number bigint default null
-, linked_invoice_payment_id char(36) default null
-, amount numeric(10, 4) default 0
-, converted_amount numeric(10, 4) default null
-, currency char(50) default null
-, plugin_name varchar(255) default null
-, plugin_created_date datetime default null
-, plugin_effective_date datetime default null
-, plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
-, plugin_gateway_error_code varchar(255) default null
-, plugin_first_reference_id varchar(255) default null
-, plugin_second_reference_id varchar(255) default null
-, plugin_pm_id varchar(255) default null
-, plugin_pm_is_default bool default null
-, plugin_pm_type varchar(255) default null
-, plugin_pm_cc_name varchar(255) default null
-, plugin_pm_cc_type varchar(255) default null
-, plugin_pm_cc_expiration_month varchar(255) default null
-, plugin_pm_cc_expiration_year varchar(255) default null
-, plugin_pm_cc_last_4 varchar(255) default null
-, plugin_pm_address1 varchar(255) default null
-, plugin_pm_address2 varchar(255) default null
-, plugin_pm_city varchar(255) default null
-, plugin_pm_state varchar(255) default null
-, plugin_pm_zip varchar(255) default null
-, plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
-, created_date datetime default null
-, created_by varchar(50) default null
-, created_reason_code varchar(255) default null
-, created_comments varchar(255) default null
-, account_id char(36) default null
-, account_name varchar(100) default null
-, account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
-, primary key(record_id)
-);
-create index analytics_payments_invoice_payment_record_id on analytics_payments(invoice_payment_record_id);
-create index analytics_payments_invoice_payment_id on analytics_payments(invoice_payment_id);
-create index analytics_payments_invoice_id on analytics_payments(invoice_id);
-create index analytics_payments_account_id on analytics_payments(account_id);
-create index analytics_payments_account_record_id on analytics_payments(account_record_id);
-create index analytics_payments_tenant_account_record_id on analytics_payments(tenant_record_id, account_record_id);
+-- Payments
 
--- Invoice refunds
-drop table if exists analytics_refunds;
-create table analytics_refunds (
+drop table if exists analytics_payment_auths;
+create table analytics_payment_auths (
   record_id int(11) unsigned not null auto_increment
 , invoice_payment_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -575,7 +503,6 @@ create table analytics_refunds (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
-, refund_id char(36) default null
 , payment_number bigint default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
@@ -616,16 +543,15 @@ create table analytics_refunds (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index analytics_refunds_invoice_payment_record_id on analytics_refunds(invoice_payment_record_id);
-create index analytics_refunds_invoice_payment_id on analytics_refunds(invoice_payment_id);
-create index analytics_refunds_invoice_id on analytics_refunds(invoice_id);
-create index analytics_refunds_account_id on analytics_refunds(account_id);
-create index analytics_refunds_account_record_id on analytics_refunds(account_record_id);
-create index analytics_refunds_tenant_account_record_id on analytics_refunds(tenant_record_id, account_record_id);
+create index analytics_payment_auths_invoice_payment_record_id on analytics_payment_auths(invoice_payment_record_id);
+create index analytics_payment_auths_invoice_payment_id on analytics_payment_auths(invoice_payment_id);
+create index analytics_payment_auths_invoice_id on analytics_payment_auths(invoice_id);
+create index analytics_payment_auths_account_id on analytics_payment_auths(account_id);
+create index analytics_payment_auths_account_record_id on analytics_payment_auths(account_record_id);
+create index analytics_payment_auths_tenant_account_record_id on analytics_payment_auths(tenant_record_id, account_record_id);
 
--- Invoice payment chargebacks
-drop table if exists analytics_chargebacks;
-create table analytics_chargebacks (
+drop table if exists analytics_payment_captures;
+create table analytics_payment_captures (
   record_id int(11) unsigned not null auto_increment
 , invoice_payment_record_id int(11) unsigned default null
 , invoice_payment_id char(36) default null
@@ -689,12 +615,302 @@ create table analytics_chargebacks (
 , report_group enum('default', 'test', 'partner') not null
 , primary key(record_id)
 );
-create index analytics_chargebacks_invoice_payment_record_id on analytics_chargebacks(invoice_payment_record_id);
-create index analytics_chargebacks_invoice_payment_id on analytics_chargebacks(invoice_payment_id);
-create index analytics_chargebacks_invoice_id on analytics_chargebacks(invoice_id);
-create index analytics_chargebacks_account_id on analytics_chargebacks(account_id);
-create index analytics_chargebacks_account_record_id on analytics_chargebacks(account_record_id);
-create index analytics_chargebacks_tenant_account_record_id on analytics_chargebacks(tenant_record_id, account_record_id);
+create index analytics_payment_captures_invoice_payment_record_id on analytics_payment_captures(invoice_payment_record_id);
+create index analytics_payment_captures_invoice_payment_id on analytics_payment_captures(invoice_payment_id);
+create index analytics_payment_captures_invoice_id on analytics_payment_captures(invoice_id);
+create index analytics_payment_captures_account_id on analytics_payment_captures(account_id);
+create index analytics_payment_captures_account_record_id on analytics_payment_captures(account_record_id);
+create index analytics_payment_captures_tenant_account_record_id on analytics_payment_captures(tenant_record_id, account_record_id);
+
+drop table if exists analytics_payment_purchases;
+create table analytics_payment_purchases (
+  record_id int(11) unsigned not null auto_increment
+, invoice_payment_record_id int(11) unsigned default null
+, invoice_payment_id char(36) default null
+, invoice_id char(36) default null
+, invoice_number bigint default null
+, invoice_created_date datetime default null
+, invoice_date date default null
+, invoice_target_date date default null
+, invoice_currency char(50) default null
+, invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
+, invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
+, invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
+, invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
+, invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
+, invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_payment_type varchar(50) default null
+, payment_id char(36) default null
+, payment_number bigint default null
+, linked_invoice_payment_id char(36) default null
+, amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
+, currency char(50) default null
+, plugin_name varchar(255) default null
+, plugin_created_date datetime default null
+, plugin_effective_date datetime default null
+, plugin_status varchar(255) default null
+, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error_code varchar(255) default null
+, plugin_first_reference_id varchar(255) default null
+, plugin_second_reference_id varchar(255) default null
+, plugin_pm_id varchar(255) default null
+, plugin_pm_is_default bool default null
+, plugin_pm_type varchar(255) default null
+, plugin_pm_cc_name varchar(255) default null
+, plugin_pm_cc_type varchar(255) default null
+, plugin_pm_cc_expiration_month varchar(255) default null
+, plugin_pm_cc_expiration_year varchar(255) default null
+, plugin_pm_cc_last_4 varchar(255) default null
+, plugin_pm_address1 varchar(255) default null
+, plugin_pm_address2 varchar(255) default null
+, plugin_pm_city varchar(255) default null
+, plugin_pm_state varchar(255) default null
+, plugin_pm_zip varchar(255) default null
+, plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
+, created_date datetime default null
+, created_by varchar(50) default null
+, created_reason_code varchar(255) default null
+, created_comments varchar(255) default null
+, account_id char(36) default null
+, account_name varchar(100) default null
+, account_external_key varchar(50) default null
+, account_record_id int(11) unsigned default null
+, tenant_record_id int(11) unsigned default null
+, report_group enum('default', 'test', 'partner') not null
+, primary key(record_id)
+);
+create index analytics_payment_purchases_invoice_payment_record_id on analytics_payment_purchases(invoice_payment_record_id);
+create index analytics_payment_purchases_invoice_payment_id on analytics_payment_purchases(invoice_payment_id);
+create index analytics_payment_purchases_invoice_id on analytics_payment_purchases(invoice_id);
+create index analytics_payment_purchases_account_id on analytics_payment_purchases(account_id);
+create index analytics_payment_purchases_account_record_id on analytics_payment_purchases(account_record_id);
+create index analytics_payment_purchases_tenant_account_record_id on analytics_payment_purchases(tenant_record_id, account_record_id);
+
+drop table if exists analytics_payment_refunds;
+create table analytics_payment_refunds (
+  record_id int(11) unsigned not null auto_increment
+, invoice_payment_record_id int(11) unsigned default null
+, invoice_payment_id char(36) default null
+, invoice_id char(36) default null
+, invoice_number bigint default null
+, invoice_created_date datetime default null
+, invoice_date date default null
+, invoice_target_date date default null
+, invoice_currency char(50) default null
+, invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
+, invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
+, invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
+, invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
+, invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
+, invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_payment_type varchar(50) default null
+, payment_id char(36) default null
+, payment_number bigint default null
+, linked_invoice_payment_id char(36) default null
+, amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
+, currency char(50) default null
+, plugin_name varchar(255) default null
+, plugin_created_date datetime default null
+, plugin_effective_date datetime default null
+, plugin_status varchar(255) default null
+, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error_code varchar(255) default null
+, plugin_first_reference_id varchar(255) default null
+, plugin_second_reference_id varchar(255) default null
+, plugin_pm_id varchar(255) default null
+, plugin_pm_is_default bool default null
+, plugin_pm_type varchar(255) default null
+, plugin_pm_cc_name varchar(255) default null
+, plugin_pm_cc_type varchar(255) default null
+, plugin_pm_cc_expiration_month varchar(255) default null
+, plugin_pm_cc_expiration_year varchar(255) default null
+, plugin_pm_cc_last_4 varchar(255) default null
+, plugin_pm_address1 varchar(255) default null
+, plugin_pm_address2 varchar(255) default null
+, plugin_pm_city varchar(255) default null
+, plugin_pm_state varchar(255) default null
+, plugin_pm_zip varchar(255) default null
+, plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
+, created_date datetime default null
+, created_by varchar(50) default null
+, created_reason_code varchar(255) default null
+, created_comments varchar(255) default null
+, account_id char(36) default null
+, account_name varchar(100) default null
+, account_external_key varchar(50) default null
+, account_record_id int(11) unsigned default null
+, tenant_record_id int(11) unsigned default null
+, report_group enum('default', 'test', 'partner') not null
+, primary key(record_id)
+);
+create index analytics_payment_refunds_invoice_payment_record_id on analytics_payment_refunds(invoice_payment_record_id);
+create index analytics_payment_refunds_invoice_payment_id on analytics_payment_refunds(invoice_payment_id);
+create index analytics_payment_refunds_invoice_id on analytics_payment_refunds(invoice_id);
+create index analytics_payment_refunds_account_id on analytics_payment_refunds(account_id);
+create index analytics_payment_refunds_account_record_id on analytics_payment_refunds(account_record_id);
+create index analytics_payment_refunds_tenant_account_record_id on analytics_payment_refunds(tenant_record_id, account_record_id);
+
+drop table if exists analytics_payment_credits;
+create table analytics_payment_credits (
+  record_id int(11) unsigned not null auto_increment
+, invoice_payment_record_id int(11) unsigned default null
+, invoice_payment_id char(36) default null
+, invoice_id char(36) default null
+, invoice_number bigint default null
+, invoice_created_date datetime default null
+, invoice_date date default null
+, invoice_target_date date default null
+, invoice_currency char(50) default null
+, invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
+, invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
+, invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
+, invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
+, invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
+, invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_payment_type varchar(50) default null
+, payment_id char(36) default null
+, payment_number bigint default null
+, linked_invoice_payment_id char(36) default null
+, amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
+, currency char(50) default null
+, plugin_name varchar(255) default null
+, plugin_created_date datetime default null
+, plugin_effective_date datetime default null
+, plugin_status varchar(255) default null
+, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error_code varchar(255) default null
+, plugin_first_reference_id varchar(255) default null
+, plugin_second_reference_id varchar(255) default null
+, plugin_pm_id varchar(255) default null
+, plugin_pm_is_default bool default null
+, plugin_pm_type varchar(255) default null
+, plugin_pm_cc_name varchar(255) default null
+, plugin_pm_cc_type varchar(255) default null
+, plugin_pm_cc_expiration_month varchar(255) default null
+, plugin_pm_cc_expiration_year varchar(255) default null
+, plugin_pm_cc_last_4 varchar(255) default null
+, plugin_pm_address1 varchar(255) default null
+, plugin_pm_address2 varchar(255) default null
+, plugin_pm_city varchar(255) default null
+, plugin_pm_state varchar(255) default null
+, plugin_pm_zip varchar(255) default null
+, plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
+, created_date datetime default null
+, created_by varchar(50) default null
+, created_reason_code varchar(255) default null
+, created_comments varchar(255) default null
+, account_id char(36) default null
+, account_name varchar(100) default null
+, account_external_key varchar(50) default null
+, account_record_id int(11) unsigned default null
+, tenant_record_id int(11) unsigned default null
+, report_group enum('default', 'test', 'partner') not null
+, primary key(record_id)
+);
+create index analytics_payment_credits_invoice_payment_record_id on analytics_payment_credits(invoice_payment_record_id);
+create index analytics_payment_credits_invoice_payment_id on analytics_payment_credits(invoice_payment_id);
+create index analytics_payment_credits_invoice_id on analytics_payment_credits(invoice_id);
+create index analytics_payment_credits_account_id on analytics_payment_credits(account_id);
+create index analytics_payment_credits_account_record_id on analytics_payment_credits(account_record_id);
+create index analytics_payment_credits_tenant_account_record_id on analytics_payment_credits(tenant_record_id, account_record_id);
+
+drop table if exists analytics_payment_chargebacks;
+create table analytics_payment_chargebacks (
+  record_id int(11) unsigned not null auto_increment
+, invoice_payment_record_id int(11) unsigned default null
+, invoice_payment_id char(36) default null
+, invoice_id char(36) default null
+, invoice_number bigint default null
+, invoice_created_date datetime default null
+, invoice_date date default null
+, invoice_target_date date default null
+, invoice_currency char(50) default null
+, invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
+, invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
+, invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
+, invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
+, invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
+, invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_payment_type varchar(50) default null
+, payment_id char(36) default null
+, payment_number bigint default null
+, linked_invoice_payment_id char(36) default null
+, amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
+, currency char(50) default null
+, plugin_name varchar(255) default null
+, plugin_created_date datetime default null
+, plugin_effective_date datetime default null
+, plugin_status varchar(255) default null
+, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error_code varchar(255) default null
+, plugin_first_reference_id varchar(255) default null
+, plugin_second_reference_id varchar(255) default null
+, plugin_pm_id varchar(255) default null
+, plugin_pm_is_default bool default null
+, plugin_pm_type varchar(255) default null
+, plugin_pm_cc_name varchar(255) default null
+, plugin_pm_cc_type varchar(255) default null
+, plugin_pm_cc_expiration_month varchar(255) default null
+, plugin_pm_cc_expiration_year varchar(255) default null
+, plugin_pm_cc_last_4 varchar(255) default null
+, plugin_pm_address1 varchar(255) default null
+, plugin_pm_address2 varchar(255) default null
+, plugin_pm_city varchar(255) default null
+, plugin_pm_state varchar(255) default null
+, plugin_pm_zip varchar(255) default null
+, plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
+, created_date datetime default null
+, created_by varchar(50) default null
+, created_reason_code varchar(255) default null
+, created_comments varchar(255) default null
+, account_id char(36) default null
+, account_name varchar(100) default null
+, account_external_key varchar(50) default null
+, account_record_id int(11) unsigned default null
+, tenant_record_id int(11) unsigned default null
+, report_group enum('default', 'test', 'partner') not null
+, primary key(record_id)
+);
+create index analytics_payment_chargebacks_invoice_payment_record_id on analytics_payment_chargebacks(invoice_payment_record_id);
+create index analytics_payment_chargebacks_invoice_payment_id on analytics_payment_chargebacks(invoice_payment_id);
+create index analytics_payment_chargebacks_invoice_id on analytics_payment_chargebacks(invoice_id);
+create index analytics_payment_chargebacks_account_id on analytics_payment_chargebacks(account_id);
+create index analytics_payment_chargebacks_account_record_id on analytics_payment_chargebacks(account_record_id);
+create index analytics_payment_chargebacks_tenant_account_record_id on analytics_payment_chargebacks(tenant_record_id, account_record_id);
+
+-- Tags
 
 drop table if exists analytics_account_tags;
 create table analytics_account_tags (

@@ -25,7 +25,7 @@ public class BusinessSnapshot {
     private final Collection<BusinessBundle> businessBundles;
     private final Collection<BusinessSubscriptionTransition> businessSubscriptionTransitions;
     private final Collection<BusinessInvoice> businessInvoices;
-    private final Collection<BusinessInvoicePayment> businessInvoicePayments;
+    private final Collection<BusinessPayment> businessPayments;
     private final Collection<BusinessAccountTransition> businessAccountTransitions;
     private final Collection<BusinessTag> businessTags;
     private final Collection<BusinessField> businessFields;
@@ -34,7 +34,7 @@ public class BusinessSnapshot {
                             final Collection<BusinessBundle> businessBundles,
                             final Collection<BusinessSubscriptionTransition> businessSubscriptionTransitions,
                             final Collection<BusinessInvoice> businessInvoices,
-                            final Collection<BusinessInvoicePayment> businessInvoicePayments,
+                            final Collection<BusinessPayment> businessPayments,
                             final Collection<BusinessAccountTransition> businessAccountTransitions,
                             final Collection<BusinessTag> businessTags,
                             final Collection<BusinessField> businessFields) {
@@ -42,7 +42,7 @@ public class BusinessSnapshot {
         this.businessBundles = businessBundles;
         this.businessSubscriptionTransitions = businessSubscriptionTransitions;
         this.businessInvoices = businessInvoices;
-        this.businessInvoicePayments = businessInvoicePayments;
+        this.businessPayments = businessPayments;
         this.businessAccountTransitions = businessAccountTransitions;
         this.businessTags = businessTags;
         this.businessFields = businessFields;
@@ -64,8 +64,8 @@ public class BusinessSnapshot {
         return businessInvoices;
     }
 
-    public Collection<BusinessInvoicePayment> getBusinessInvoicePayments() {
-        return businessInvoicePayments;
+    public Collection<BusinessPayment> getBusinessPayments() {
+        return businessPayments;
     }
 
     public Collection<BusinessAccountTransition> getBusinessAccountTransitions() {
@@ -87,7 +87,7 @@ public class BusinessSnapshot {
         sb.append(", businessBundles=").append(businessBundles);
         sb.append(", businessSubscriptionTransitions=").append(businessSubscriptionTransitions);
         sb.append(", businessInvoices=").append(businessInvoices);
-        sb.append(", businessInvoicePayments=").append(businessInvoicePayments);
+        sb.append(", businessInvoicePayments=").append(businessPayments);
         sb.append(", businessAccountTransitions=").append(businessAccountTransitions);
         sb.append(", businessTags=").append(businessTags);
         sb.append(", businessFields=").append(businessFields);
@@ -118,7 +118,7 @@ public class BusinessSnapshot {
         if (businessFields != null ? !businessFields.equals(that.businessFields) : that.businessFields != null) {
             return false;
         }
-        if (businessInvoicePayments != null ? !businessInvoicePayments.equals(that.businessInvoicePayments) : that.businessInvoicePayments != null) {
+        if (businessPayments != null ? !businessPayments.equals(that.businessPayments) : that.businessPayments != null) {
             return false;
         }
         if (businessInvoices != null ? !businessInvoices.equals(that.businessInvoices) : that.businessInvoices != null) {
@@ -140,7 +140,7 @@ public class BusinessSnapshot {
         result = 31 * result + (businessBundles != null ? businessBundles.hashCode() : 0);
         result = 31 * result + (businessSubscriptionTransitions != null ? businessSubscriptionTransitions.hashCode() : 0);
         result = 31 * result + (businessInvoices != null ? businessInvoices.hashCode() : 0);
-        result = 31 * result + (businessInvoicePayments != null ? businessInvoicePayments.hashCode() : 0);
+        result = 31 * result + (businessPayments != null ? businessPayments.hashCode() : 0);
         result = 31 * result + (businessAccountTransitions != null ? businessAccountTransitions.hashCode() : 0);
         result = 31 * result + (businessTags != null ? businessTags.hashCode() : 0);
         result = 31 * result + (businessFields != null ? businessFields.hashCode() : 0);
