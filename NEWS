@@ -1,3 +1,11 @@
+0.7.1
+    Support for new payment APIs
+    Update to killbill-oss-parent 0.7.15
+
+0.7.0
+    Iteration on Financial reports
+    Support for usage APIs
+
 0.6.0
     Change base package name to org.killbill.billing.plugin.analytics
     Change Maven coordinates to org.kill-bill.billing.plugin.java:analytics-plugin
