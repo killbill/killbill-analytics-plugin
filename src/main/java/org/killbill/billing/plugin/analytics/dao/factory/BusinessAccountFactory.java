@@ -18,9 +18,6 @@
 package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.ProductCategory;
@@ -36,43 +33,28 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.plugin.analytics.utils.PaymentUtils;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
-public class BusinessAccountFactory extends BusinessFactoryBase {
+public class BusinessAccountFactory {
 
-    public BusinessAccountFactory(final OSGIKillbillLogService logService,
-                                  final OSGIKillbillAPI osgiKillbillAPI,
-                                  final OSGIKillbillDataSource osgiKillbillDataSource,
-                                  final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-    }
-
-    public BusinessAccountModelDao createBusinessAccount(final UUID accountId,
-                                                         final AccountAuditLogs accountAuditLogs,
-                                                         final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
+    public BusinessAccountModelDao createBusinessAccount(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Account account = businessContextFactory.getAccount();
 
         // Retrieve the account creation audit log
-        final AuditLog creationAuditLog = getAccountCreationAuditLog(account.getId(), accountAuditLogs);
+        final AuditLog creationAuditLog = businessContextFactory.getAccountCreationAuditLog();
 
         // Retrieve the account balance
         // Note: since we retrieve the invoices below, we could compute it ourselves and avoid fetching the invoices
         // twice, but that way the computation logic is owned by invoice
-        final BigDecimal accountBalance = getAccountBalance(account.getId(), context);
+        final BigDecimal accountBalance = businessContextFactory.getAccountBalance();
 
         // Retrieve invoices information
         Invoice oldestUnpaidInvoice = null;
         Invoice lastInvoice = null;
-        final Collection<Invoice> invoices = getInvoicesByAccountId(account.getId(), context);
+        final Iterable<Invoice> invoices = businessContextFactory.getAccountInvoices();
         for (final Invoice invoice : invoices) {
             if (BigDecimal.ZERO.compareTo(invoice.getBalance()) < 0 &&
                 (oldestUnpaidInvoice == null || invoice.getInvoiceDate().isBefore(oldestUnpaidInvoice.getInvoiceDate()))) {
@@ -84,10 +66,11 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
         }
 
         // Retrieve payments information
-        final Collection<Payment> payments = getPaymentsByAccountId(account.getId(), context);
+        final Iterable<Payment> payments = businessContextFactory.getAccountPayments();
         final PaymentTransaction lastCaptureOrPurchaseTransaction = PaymentUtils.findLastPaymentTransaction(payments, TransactionType.CAPTURE, TransactionType.PURCHASE);
 
-        final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
+        // Retrieve bundles information
+        final Iterable<SubscriptionBundle> bundles = businessContextFactory.getAccountBundles();
 
         final int nbActiveBundles = Iterables.size(Iterables.<SubscriptionBundle>filter(bundles,
                                                                                         new Predicate<SubscriptionBundle>() {
@@ -106,10 +89,10 @@ public class BusinessAccountFactory extends BusinessFactoryBase {
                                                                                             }
                                                                                         }
                                                                                        ));
-        final Long accountRecordId = getAccountRecordId(account.getId(), context);
-        final Long tenantRecordId = getTenantRecordId(context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
-        final CurrencyConverter converter = getCurrencyConverter();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
+        final CurrencyConverter converter = businessContextFactory.getCurrencyConverter();
 
         return new BusinessAccountModelDao(account,
                                            accountRecordId,

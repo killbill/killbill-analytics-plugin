@@ -18,20 +18,17 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import java.util.Collection;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessBundleFactory;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessSubscriptionTransitionFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
@@ -47,48 +44,37 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
     private final BusinessSubscriptionTransitionFactory bstFactory;
 
     public BusinessSubscriptionTransitionDao(final OSGIKillbillLogService logService,
-                                             final OSGIKillbillAPI osgiKillbillAPI,
                                              final OSGIKillbillDataSource osgiKillbillDataSource,
                                              final BusinessAccountDao businessAccountDao,
-                                             final Executor executor,
-                                             final Clock clock) {
+                                             final Executor executor) {
         super(logService, osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
         this.businessBundleDao = new BusinessBundleDao(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        bbsFactory = new BusinessBundleFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
-        bstFactory = new BusinessSubscriptionTransitionFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bacFactory = new BusinessAccountFactory();
+        bbsFactory = new BusinessBundleFactory(executor);
+        bstFactory = new BusinessSubscriptionTransitionFactory();
     }
 
-    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics subscriptions for account " + accountId);
+    public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics subscriptions for account " + businessContextFactory.getAccountId());
 
         // Recompute the account record
-        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, accountAuditLogs, context);
+        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
 
         // Recompute all invoices and invoice items
-        final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(accountId,
-                                                                                                                         accountAuditLogs,
-                                                                                                                         bac.getAccountRecordId(),
-                                                                                                                         bac.getTenantRecordId(),
-                                                                                                                         context);
+        final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(businessContextFactory);
 
         // Recompute the bundle summary records
-        final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(accountId,
-                                                                                         accountAuditLogs,
-                                                                                         bac.getAccountRecordId(),
-                                                                                         bsts,
-                                                                                         bac.getTenantRecordId(),
-                                                                                         context);
+        final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(businessContextFactory, bsts);
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
-                updateInTransaction(bac, bbss, bsts, transactional, context);
+                updateInTransaction(bac, bbss, bsts, transactional, businessContextFactory.getCallContext());
                 return null;
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics subscriptions for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics subscriptions for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessAccountModelDao bac,

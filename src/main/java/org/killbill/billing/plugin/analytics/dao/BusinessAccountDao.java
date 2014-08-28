@@ -17,15 +17,11 @@
 
 package org.killbill.billing.plugin.analytics.dao;
 
-import java.util.UUID;
-
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
@@ -37,28 +33,26 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
     private final BusinessAccountFactory bacFactory;
 
     public BusinessAccountDao(final OSGIKillbillLogService logService,
-                              final OSGIKillbillAPI osgiKillbillAPI,
-                              final OSGIKillbillDataSource osgiKillbillDataSource,
-                              final Clock clock) {
+                              final OSGIKillbillDataSource osgiKillbillDataSource) {
         super(logService, osgiKillbillDataSource);
-        bacFactory = new BusinessAccountFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bacFactory = new BusinessAccountFactory();
     }
 
-    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics account for account " + accountId);
+    public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics account for account " + businessContextFactory.getAccountId());
 
         // Recompute the account record
-        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(accountId, accountAuditLogs, context);
+        final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
-                updateInTransaction(bac, transactional, context);
+                updateInTransaction(bac, transactional, businessContextFactory.getCallContext());
                 return null;
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics account for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics account for account " + businessContextFactory.getAccountId());
     }
 
     // Note: computing the BusinessAccountModelDao object is fairly expensive, hence should be done outside of the transaction

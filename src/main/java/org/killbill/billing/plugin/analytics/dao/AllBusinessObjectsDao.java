@@ -17,12 +17,10 @@
 
 package org.killbill.billing.plugin.analytics.dao;
 
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
-import org.killbill.billing.util.audit.AccountAuditLogs;
-import org.killbill.billing.util.callcontext.CallContext;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.clock.Clock;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -45,33 +43,33 @@ public class AllBusinessObjectsDao {
                                  final Clock clock) {
         this.logService = logService;
 
-        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
-        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
-        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        this.bTagDao = new BusinessTagDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillDataSource);
+        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillDataSource, bacDao, executor);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillDataSource, bacDao, executor);
+        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillDataSource);
+        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillDataSource);
+        this.bTagDao = new BusinessTagDao(logService, osgiKillbillDataSource);
     }
 
     // TODO: each refresh is done in a transaction - do we want to share a long running transaction across all refreshes?
-    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics for account " + accountId);
+    public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics for account " + businessContextFactory.getAccountId());
 
         // Refresh invoices and payments. This will automatically trigger a refresh of account
-        binAndBipDao.update(accountId, accountAuditLogs, context);
+        binAndBipDao.update(businessContextFactory);
 
         // Refresh subscription transitions
-        bstDao.update(accountId, accountAuditLogs, context);
+        bstDao.update(businessContextFactory);
 
         // Refresh tags
-        bTagDao.update(accountId, accountAuditLogs, context);
+        bTagDao.update(businessContextFactory);
 
         // Refresh fields
-        bFieldDao.update(accountId, accountAuditLogs, context);
+        bFieldDao.update(businessContextFactory);
 
         // Refresh account transitions
-        bosDao.update(accountId, accountAuditLogs, context);
+        bosDao.update(businessContextFactory);
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics for account " + businessContextFactory.getAccountId());
     }
 }

@@ -32,48 +32,30 @@ import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountTransitionModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
+public class BusinessAccountTransitionFactory {
 
-    public BusinessAccountTransitionFactory(final OSGIKillbillLogService logService,
-                                            final OSGIKillbillAPI osgiKillbillAPI,
-                                            final OSGIKillbillDataSource osgiKillbillDataSource,
-                                            final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-    }
-
-    public Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final UUID accountId,
-                                                                                          final AccountAuditLogs accountAuditLogs,
-                                                                                          final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
-
-        final Iterable<SubscriptionEvent> blockingStatesOrdered = getBlockingHistory(accountId, context);
+    public Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Iterable<SubscriptionEvent> blockingStatesOrdered = businessContextFactory.getAccountBlockingStates();
         if (!blockingStatesOrdered.iterator().hasNext()) {
             return ImmutableList.<BusinessAccountTransitionModelDao>of();
         }
 
-        return createBusinessAccountTransitions(account, accountAuditLogs, blockingStatesOrdered, context);
+        return createBusinessAccountTransitions(businessContextFactory, blockingStatesOrdered);
     }
 
     @VisibleForTesting
-    Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final Account account,
-                                                                                   final AccountAuditLogs accountAuditLogs,
-                                                                                   final Iterable<SubscriptionEvent> blockingStatesOrdered,
-                                                                                   final CallContext context) throws AnalyticsRefreshException {
-        final Long accountRecordId = getAccountRecordId(account.getId(), context);
-        final Long tenantRecordId = getTenantRecordId(context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
+    Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final BusinessContextFactory businessContextFactory,
+                                                                                   final Iterable<SubscriptionEvent> blockingStatesOrdered) throws AnalyticsRefreshException {
+        final Account account = businessContextFactory.getAccount();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
 
         final List<BusinessAccountTransitionModelDao> businessAccountTransitions = new LinkedList<BusinessAccountTransitionModelDao>();
 
@@ -91,8 +73,8 @@ public class BusinessAccountTransitionFactory extends BusinessFactoryBase {
                 blockingStateIdsSeen.add(state.getId());
             }
 
-            final Long blockingStateRecordId = getBlockingStateRecordId(state.getId(), context);
-            final AuditLog creationAuditLog = getBlockingStateCreationAuditLog(state.getId(), accountAuditLogs);
+            final Long blockingStateRecordId = businessContextFactory.getBlockingStateRecordId(state.getId());
+            final AuditLog creationAuditLog = businessContextFactory.getBlockingStateCreationAuditLog(state.getId());
             // TODO We're missing information about block billing, etc. Maybe capture it in an event name?
             final BusinessAccountTransitionModelDao accountTransition = new BusinessAccountTransitionModelDao(account,
                                                                                                               accountRecordId,

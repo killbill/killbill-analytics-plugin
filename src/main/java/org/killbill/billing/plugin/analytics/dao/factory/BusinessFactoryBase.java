@@ -52,9 +52,10 @@ import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
+import org.killbill.billing.util.api.AuditLevel;
+import org.killbill.billing.util.api.AuditUserApi;
 import org.killbill.billing.util.api.CustomFieldUserApi;
 import org.killbill.billing.util.api.RecordIdApi;
-import org.killbill.billing.util.api.TagDefinitionApiException;
 import org.killbill.billing.util.api.TagUserApi;
 import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
@@ -142,6 +143,11 @@ public abstract class BusinessFactoryBase {
         }
     }
 
+    protected AccountAuditLogs getAccountAuditLogs(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+        final AuditUserApi auditUserApi = getAuditUserApi();
+        return auditUserApi.getAccountAuditLogs(accountId, AuditLevel.MINIMAL, context);
+    }
+
     protected AuditLog getAccountCreationAuditLog(final UUID accountId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
         final List<AuditLog> auditLogsForAccount = accountAuditLogs.getAuditLogsForAccount();
         for (final AuditLog auditLog : auditLogsForAccount) {
@@ -159,13 +165,15 @@ public abstract class BusinessFactoryBase {
         return recordIdUserApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
     }
 
-    protected ReportGroup getReportGroup(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final TagUserApi tagUserApi = getTagUserApi();
+    protected ReportGroup getReportGroup(final Iterable<Tag> accountTags) throws AnalyticsRefreshException {
         boolean isTestAccount = false;
         boolean isPartnerAccount = false;
 
-        final List<Tag> tagForAccount = tagUserApi.getTagsForObject(accountId, ObjectType.ACCOUNT, false, context);
-        for (final Tag tag : tagForAccount) {
+        for (final Tag tag : accountTags) {
+            if (!ObjectType.ACCOUNT.equals(tag.getObjectType())) {
+                continue;
+            }
+
             if (ControlTagType.TEST.getId().equals(tag.getTagDefinitionId())) {
                 isTestAccount = true;
             } else if (ControlTagType.PARTNER.getId().equals(tag.getTagDefinitionId())) {
@@ -445,24 +453,42 @@ public abstract class BusinessFactoryBase {
         }
     }
 
-    protected PaymentMethod getPaymentMethod(final UUID paymentMethodId, final TenantContext context) throws AnalyticsRefreshException {
+    protected List<PaymentMethod> getPaymentMethodsForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final PaymentApi paymentApi = getPaymentUserApi();
 
         try {
-            // Try to get all payment methods, including deleted ones, with plugin information
-            return paymentApi.getPaymentMethodById(paymentMethodId, true, true, PLUGIN_PROPERTIES, context);
+            // Try to get all payment methods, with plugin information
+            // TODO this will not return deleted payment methods
+            return paymentApi.getAccountPaymentMethods(accountId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_INFO, "Error retrieving payment method for id " + paymentMethodId + ": " + e.getMessage());
+            logService.log(LogService.LOG_INFO, "Error retrieving payment methods for accountId " + accountId + ": " + e.getMessage());
         }
 
         try {
-            // If we come here, it is possible that the plugin couldn't answer about the payment method, maybe
+            // If we come here, it is possible that a plugin couldn't answer about a payment method, maybe
             // because it was deleted in the gateway. Try to return the Kill Bill specific info only
-            return paymentApi.getPaymentMethodById(paymentMethodId, true, false, PLUGIN_PROPERTIES, context);
+            return paymentApi.getAccountPaymentMethods(accountId, false, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_INFO, "Error retrieving payment method for id " + paymentMethodId, e);
-            return null;
+            logService.log(LogService.LOG_INFO, "Error retrieving payment method for account id " + accountId, e);
+            throw new AnalyticsRefreshException(e);
         }
+    }
+
+    protected AuditLog getPaymentCreationAuditLog(final UUID paymentId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
+        final List<AuditLog> auditLogsForPayment = accountAuditLogs.getAuditLogsForPayment(paymentId);
+        for (final AuditLog auditLog : auditLogsForPayment) {
+            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                return auditLog;
+            }
+        }
+
+        logService.log(LogService.LOG_WARNING, "Unable to find payment creation audit log for id " + paymentId);
+        return null;
+    }
+
+    protected Long getPaymentRecordId(final UUID paymentId, final TenantContext context) throws AnalyticsRefreshException {
+        final RecordIdApi recordIdUserApi = getRecordIdUserApi();
+        return recordIdUserApi.getRecordId(paymentId, ObjectType.PAYMENT, context);
     }
 
     //
@@ -500,15 +526,9 @@ public abstract class BusinessFactoryBase {
         return tagUserApi.getTagsForAccount(accountId, false, context);
     }
 
-    protected TagDefinition getTagDefinition(final UUID tagDefinitionId, final TenantContext context) throws AnalyticsRefreshException {
+    protected List<TagDefinition> getTagDefinitions(final TenantContext context) throws AnalyticsRefreshException {
         final TagUserApi tagUserApi = getTagUserApi();
-
-        try {
-            return tagUserApi.getTagDefinition(tagDefinitionId, context);
-        } catch (TagDefinitionApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving tag definition for id " + tagDefinitionId, e);
-            throw new AnalyticsRefreshException(e);
-        }
+        return tagUserApi.getTagDefinitions(context);
     }
 
     protected AuditLog getTagCreationAuditLog(final UUID tagId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
@@ -602,5 +622,13 @@ public abstract class BusinessFactoryBase {
             throw new AnalyticsRefreshException("Error retrieving recordIdApi");
         }
         return recordIdApi;
+    }
+
+    private AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
+        final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
+        if (auditUserApi == null) {
+            throw new AnalyticsRefreshException("Error retrieving auditUserApi");
+        }
+        return auditUserApi;
     }
 }

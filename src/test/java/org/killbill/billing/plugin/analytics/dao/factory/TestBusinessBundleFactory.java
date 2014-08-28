@@ -72,7 +72,7 @@ public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
             }
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
-        bundleFactory = new BusinessBundleFactory(osgiKillbillLogService, null, osgiKillbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
+        bundleFactory = new BusinessBundleFactory(BusinessExecutor.newCachedThreadPool());
     }
 
     @Test(groups = "fast")

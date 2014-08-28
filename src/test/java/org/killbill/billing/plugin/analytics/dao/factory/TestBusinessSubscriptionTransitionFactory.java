@@ -37,7 +37,7 @@ public class TestBusinessSubscriptionTransitionFactory extends AnalyticsTestSuit
 
     @Test(groups = "fast")
     public void testRespectPrevPerService() throws Exception {
-        final BusinessSubscriptionTransitionFactory factory = new BusinessSubscriptionTransitionFactory(logService, killbillAPI, killbillDataSource, clock);
+        final BusinessSubscriptionTransitionFactory factory = new BusinessSubscriptionTransitionFactory();
 
         final UUID subscriptionId1 = UUID.randomUUID();
         final UUID subscriptionId2 = UUID.randomUUID();
@@ -121,7 +121,8 @@ public class TestBusinessSubscriptionTransitionFactory extends AnalyticsTestSuit
         Mockito.when(event7.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
         events.add(event7);
 
-        final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(factory.buildTransitionsForBundle(account, bundle, events, currencyConverter, accountAuditLogs, accountRecordId, tenantRecordId, ReportGroup.test, callContext));
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, logService, killbillAPI, killbillDataSource, clock);
+        final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(factory.buildTransitionsForBundle(businessContextFactory, account, bundle, events, currencyConverter, accountRecordId, tenantRecordId, ReportGroup.test));
         Assert.assertEquals(result.get(0).getEvent(), "START_ENTITLEMENT_UNSPECIFIED");
         Assert.assertEquals(result.get(0).getSubscriptionId(), subscriptionId1);
         Assert.assertNull(result.get(0).getPrevStartDate());

@@ -64,7 +64,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
             }
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
-        invoiceFactory = new BusinessInvoiceFactory(osgiKillbillLogService, null, osgiKillbillDataSource, BusinessExecutor.newCachedThreadPool(), clock);
+        invoiceFactory = new BusinessInvoiceFactory(BusinessExecutor.newCachedThreadPool());
     }
 
     @Test(groups = "fast")

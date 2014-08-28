@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoicePayment;
@@ -37,98 +35,56 @@ import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
-public class BusinessPaymentFactory extends BusinessFactoryBase {
+public class BusinessPaymentFactory {
 
-    public BusinessPaymentFactory(final OSGIKillbillLogService logService,
-                                  final OSGIKillbillAPI osgiKillbillAPI,
-                                  final OSGIKillbillDataSource osgiKillbillDataSource,
-                                  final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-    }
-
-    public Collection<BusinessPaymentBaseModelDao> createBusinessPayments(final UUID accountId,
-                                                                          final AccountAuditLogs accountAuditLogs,
-                                                                          final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
-        final Long accountRecordId = getAccountRecordId(account.getId(), context);
-        final Long tenantRecordId = getTenantRecordId(context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
-        final CurrencyConverter currencyConverter = getCurrencyConverter();
+    public Collection<BusinessPaymentBaseModelDao> createBusinessPayments(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Account account = businessContextFactory.getAccount();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
+        final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
 
         // Optimize invoice lookups by fetching all invoices at once
-        final Collection<Invoice> invoicesForAccount = getInvoicesByAccountId(account.getId(), context);
+        final Iterable<Invoice> invoicesForAccount = businessContextFactory.getAccountInvoices();
         final Map<UUID, Invoice> invoices = new LinkedHashMap<UUID, Invoice>();
         for (final Invoice invoice : invoicesForAccount) {
             invoices.put(invoice.getId(), invoice);
         }
 
-        final Collection<Payment> paymentsForAccount = getPaymentsByAccountId(accountId, context);
-
         // Optimize invoice payment lookups by fetching all invoice payments at once
-        final Map<UUID, List<InvoicePayment>> allInvoicePaymentsByPaymentId = getAccountInvoicePayments(paymentsForAccount, context);
+        final Map<UUID, List<InvoicePayment>> allInvoicePaymentsByPaymentId = businessContextFactory.getAccountInvoicePayments();
+
+        final Iterable<Payment> paymentsForAccount = businessContextFactory.getAccountPayments();
 
         final Collection<BusinessPaymentBaseModelDao> businessPayments = new LinkedList<BusinessPaymentBaseModelDao>();
         for (final Payment payment : paymentsForAccount) {
             final List<InvoicePayment> invoicePaymentsForPayment = allInvoicePaymentsByPaymentId.get(payment.getId());
-            // TODO - assume one for now
-            final InvoicePayment invoicePaymentForPayment = invoicePaymentsForPayment == null || invoicePaymentsForPayment.isEmpty() ? null : invoicePaymentsForPayment.get(0);
+            // TODO - we will remove invoicePayment information from payment tables, we only care about the associated invoice id
+            final InvoicePayment invoicePayment = invoicePaymentsForPayment == null || invoicePaymentsForPayment.isEmpty() ? null : invoicePaymentsForPayment.get(0);
+            final Long invoicePaymentRecordId = 0L;
+            final Invoice invoice = invoicePayment == null ? null : invoices.get(invoicePayment.getInvoiceId());
 
-            final Collection<BusinessPaymentBaseModelDao> createdBusinessPayments = createBusinessPayment(account,
-                                                                                                          invoicePaymentForPayment,
-                                                                                                          invoices,
-                                                                                                          currencyConverter,
-                                                                                                          accountAuditLogs,
-                                                                                                          accountRecordId,
-                                                                                                          tenantRecordId,
-                                                                                                          reportGroup,
-                                                                                                          context);
-            businessPayments.addAll(createdBusinessPayments);
-        }
+            final PaymentMethod paymentMethod = businessContextFactory.getPaymentMethod(payment.getPaymentMethodId());
+            final AuditLog creationAuditLog = businessContextFactory.getPaymentCreationAuditLog(payment.getId());
 
-        return businessPayments;
-    }
-
-    private Collection<BusinessPaymentBaseModelDao> createBusinessPayment(final Account account,
-                                                                          final InvoicePayment invoicePayment,
-                                                                          final Map<UUID, Invoice> invoices,
-                                                                          final CurrencyConverter currencyConverter,
-                                                                          final AccountAuditLogs accountAuditLogs,
-                                                                          final Long accountRecordId,
-                                                                          final Long tenantRecordId,
-                                                                          @Nullable final ReportGroup reportGroup,
-                                                                          final CallContext context) throws AnalyticsRefreshException {
-        final Long invoicePaymentRecordId = getInvoicePaymentRecordId(invoicePayment.getId(), context);
-
-        final Payment payment = getPaymentWithPluginInfo(invoicePayment.getPaymentId(), context);
-
-        final Invoice invoice = invoices.get(invoicePayment.getInvoiceId());
-        final PaymentMethod paymentMethod = getPaymentMethod(payment.getPaymentMethodId(), context);
-        final AuditLog creationAuditLog = getInvoicePaymentCreationAuditLog(invoicePayment.getId(), accountAuditLogs);
-
-        final List<BusinessPaymentBaseModelDao> businessPayments = new LinkedList<BusinessPaymentBaseModelDao>();
-        for (final PaymentTransaction paymentTransaction : payment.getTransactions()) {
-            final BusinessPaymentBaseModelDao businessPayment = BusinessPaymentBaseModelDao.create(account,
-                                                                                                   accountRecordId,
-                                                                                                   invoice,
-                                                                                                   invoicePayment,
-                                                                                                   invoicePaymentRecordId,
-                                                                                                   payment,
-                                                                                                   paymentTransaction,
-                                                                                                   paymentMethod,
-                                                                                                   currencyConverter,
-                                                                                                   creationAuditLog,
-                                                                                                   tenantRecordId,
-                                                                                                   reportGroup);
-            if (businessPayment != null) {
-                businessPayments.add(businessPayment);
+            for (final PaymentTransaction paymentTransaction : payment.getTransactions()) {
+                final BusinessPaymentBaseModelDao businessPayment = BusinessPaymentBaseModelDao.create(account,
+                                                                                                       accountRecordId,
+                                                                                                       invoice,
+                                                                                                       invoicePayment,
+                                                                                                       invoicePaymentRecordId,
+                                                                                                       payment,
+                                                                                                       paymentTransaction,
+                                                                                                       paymentMethod,
+                                                                                                       currencyConverter,
+                                                                                                       creationAuditLog,
+                                                                                                       tenantRecordId,
+                                                                                                       reportGroup);
+                if (businessPayment != null) {
+                    businessPayments.add(businessPayment);
+                }
             }
         }
 

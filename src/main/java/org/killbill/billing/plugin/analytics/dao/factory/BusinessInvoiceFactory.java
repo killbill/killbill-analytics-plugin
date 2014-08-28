@@ -20,7 +20,6 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -47,14 +46,7 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseMo
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.billing.util.callcontext.TenantContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
@@ -70,38 +62,30 @@ import static org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils.i
 import static org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils.isInvoiceItemAdjustmentItem;
 import static org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils.isRevenueRecognizable;
 
-public class BusinessInvoiceFactory extends BusinessFactoryBase {
+public class BusinessInvoiceFactory {
 
     private final Executor executor;
 
-    public BusinessInvoiceFactory(final OSGIKillbillLogService logService,
-                                  final OSGIKillbillAPI osgiKillbillAPI,
-                                  final OSGIKillbillDataSource osgiKillbillDataSource,
-                                  final Executor executor,
-                                  final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+    public BusinessInvoiceFactory(final Executor executor) {
         this.executor = executor;
     }
 
     /**
      * Create current business invoices and invoice items.
      *
-     * @param accountId current accountId refreshed
-     * @param context   call context
      * @return all business invoice and invoice items to create
      * @throws org.killbill.billing.plugin.analytics.AnalyticsRefreshException
      */
-    public Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> createBusinessInvoicesAndInvoiceItems(final UUID accountId,
-                                                                                                                           final AccountAuditLogs accountAuditLogs,
-                                                                                                                           final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
-        final Long accountRecordId = getAccountRecordId(account.getId(), context);
-        final Long tenantRecordId = getTenantRecordId(context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
-        final CurrencyConverter currencyConverter = getCurrencyConverter();
+    public Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> createBusinessInvoicesAndInvoiceItems(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        // Pre-fetch these, to avoid contention on BusinessContextFactory
+        final Account account = businessContextFactory.getAccount();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
+        final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
 
         // Lookup the invoices for that account
-        final Collection<Invoice> invoices = getInvoicesByAccountId(account.getId(), context);
+        final Iterable<Invoice> invoices = businessContextFactory.getAccountInvoices();
 
         // All invoice items across all invoices for that account (we need to be able to reference items across multiple invoices)
         final Multimap<UUID, InvoiceItem> allInvoiceItems = ArrayListMultimap.<UUID, InvoiceItem>create();
@@ -113,7 +97,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         }
 
         // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each item)
-        final List<SubscriptionBundle> bundlesForAccount = getSubscriptionBundlesForAccount(accountId, context);
+        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
         final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
         for (final SubscriptionBundle bundle : bundlesForAccount) {
             bundles.put(bundle.getId(), bundle);
@@ -125,12 +109,13 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         final Multimap<UUID, BusinessInvoiceItemBaseModelDao> businessInvoiceItemsForInvoiceId = ArrayListMultimap.<UUID, BusinessInvoiceItemBaseModelDao>create();
         for (final InvoiceItem invoiceItem : allInvoiceItems.values()) {
             // Fetch audit logs in the main thread as AccountAuditLogs is not thread safe
-            final AuditLog creationAuditLog = invoiceItem.getId() != null ? getInvoiceItemCreationAuditLog(invoiceItem.getId(), accountAuditLogs) : null;
+            final AuditLog creationAuditLog = invoiceItem.getId() != null ? businessContextFactory.getInvoiceItemCreationAuditLog(invoiceItem.getId()) : null;
 
             completionService.submit(new Callable<BusinessInvoiceItemBaseModelDao>() {
                 @Override
                 public BusinessInvoiceItemBaseModelDao call() throws Exception {
-                    return createBusinessInvoiceItem(invoiceItem,
+                    return createBusinessInvoiceItem(businessContextFactory,
+                                                     invoiceItem,
                                                      allInvoiceItems,
                                                      invoiceIdToInvoiceMappings,
                                                      account,
@@ -139,8 +124,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                      creationAuditLog,
                                                      accountRecordId,
                                                      tenantRecordId,
-                                                     reportGroup,
-                                                     context);
+                                                     reportGroup);
                 }
             });
         }
@@ -165,21 +149,26 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                 continue;
             }
 
-            final BusinessInvoiceModelDao businessInvoice = createBusinessInvoice(account,
-                                                                                  invoice,
-                                                                                  currencyConverter,
-                                                                                  accountAuditLogs,
-                                                                                  accountRecordId,
-                                                                                  tenantRecordId,
-                                                                                  reportGroup,
-                                                                                  context);
+            final Long invoiceRecordId = businessContextFactory.getInvoiceRecordId(invoice.getId());
+            final AuditLog creationAuditLog = businessContextFactory.getInvoiceCreationAuditLog(invoice.getId());
+
+            final BusinessInvoiceModelDao businessInvoice = new BusinessInvoiceModelDao(account,
+                                                                                        accountRecordId,
+                                                                                        invoice,
+                                                                                        invoiceRecordId,
+                                                                                        currencyConverter,
+                                                                                        creationAuditLog,
+                                                                                        tenantRecordId,
+                                                                                        reportGroup);
+
             businessRecords.put(businessInvoice, businessInvoiceItems);
         }
 
         return businessRecords;
     }
 
-    private BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final InvoiceItem invoiceItem,
+    private BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final BusinessContextFactory businessContextFactory,
+                                                                      final InvoiceItem invoiceItem,
                                                                       final Multimap<UUID, InvoiceItem> allInvoiceItems,
                                                                       final Map<UUID, Invoice> invoiceIdToInvoiceMappings,
                                                                       final Account account,
@@ -188,8 +177,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final AuditLog creationAuditLog,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
-                                                                      final ReportGroup reportGroup,
-                                                                      final CallContext context) throws AnalyticsRefreshException {
+                                                                      final ReportGroup reportGroup) throws AnalyticsRefreshException {
         final Invoice invoice = invoiceIdToInvoiceMappings.get(invoiceItem.getInvoiceId());
         final Collection<InvoiceItem> otherInvoiceItems = Collections2.filter(allInvoiceItems.values(),
                                                                               new Predicate<InvoiceItem>() {
@@ -199,7 +187,8 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                                   }
                                                                               }
                                                                              );
-        return createBusinessInvoiceItem(account,
+        return createBusinessInvoiceItem(businessContextFactory,
+                                         account,
                                          invoice,
                                          invoiceItem,
                                          otherInvoiceItems,
@@ -208,32 +197,11 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                          creationAuditLog,
                                          accountRecordId,
                                          tenantRecordId,
-                                         reportGroup,
-                                         context);
+                                         reportGroup);
     }
 
-    private BusinessInvoiceModelDao createBusinessInvoice(final Account account,
-                                                          final Invoice invoice,
-                                                          final CurrencyConverter currencyConverter,
-                                                          final AccountAuditLogs accountAuditLogs,
-                                                          final Long accountRecordId,
-                                                          final Long tenantRecordId,
-                                                          @Nullable final ReportGroup reportGroup,
-                                                          final CallContext context) throws AnalyticsRefreshException {
-        final Long invoiceRecordId = getInvoiceRecordId(invoice.getId(), context);
-        final AuditLog creationAuditLog = getInvoiceCreationAuditLog(invoice.getId(), accountAuditLogs);
-
-        return new BusinessInvoiceModelDao(account,
-                                           accountRecordId,
-                                           invoice,
-                                           invoiceRecordId,
-                                           currencyConverter,
-                                           creationAuditLog,
-                                           tenantRecordId,
-                                           reportGroup);
-    }
-
-    private BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final Account account,
+    private BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final BusinessContextFactory businessContextFactory,
+                                                                      final Account account,
                                                                       final Invoice invoice,
                                                                       final InvoiceItem invoiceItem,
                                                                       final Collection<InvoiceItem> otherInvoiceItems,
@@ -242,8 +210,7 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
                                                                       final AuditLog creationAuditLog,
                                                                       final Long accountRecordId,
                                                                       final Long tenantRecordId,
-                                                                      @Nullable final ReportGroup reportGroup,
-                                                                      final TenantContext context) throws AnalyticsRefreshException {
+                                                                      @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
         // For convenience, populate empty columns using the linked item
         final InvoiceItem linkedInvoiceItem = Iterables.find(otherInvoiceItems, new Predicate<InvoiceItem>() {
             @Override
@@ -263,10 +230,10 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
 
         Plan plan = null;
         if (Strings.emptyToNull(invoiceItem.getPlanName()) != null) {
-            plan = getPlanFromInvoiceItem(invoiceItem, context);
+            plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem);
         }
         if (plan == null && linkedInvoiceItem != null && Strings.emptyToNull(linkedInvoiceItem.getPlanName()) != null) {
-            plan = getPlanFromInvoiceItem(linkedInvoiceItem, context);
+            plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem);
         }
 
         PlanPhase planPhase = null;
@@ -274,17 +241,17 @@ public class BusinessInvoiceFactory extends BusinessFactoryBase {
         if (invoiceItem.getSubscriptionId() != null && Strings.emptyToNull(invoiceItem.getPhaseName()) != null && bundle != null) {
             final LocalDate subscriptionStartDate = getSubscriptionStartDate(invoiceItem, bundle);
             if (subscriptionStartDate != null) {
-                planPhase = getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate, context);
+                planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate);
             }
         }
         if (planPhase == null && linkedInvoiceItem != null && linkedInvoiceItem.getSubscriptionId() != null && Strings.emptyToNull(linkedInvoiceItem.getPhaseName()) != null && bundle != null) {
             final LocalDate subscriptionStartDate = getSubscriptionStartDate(linkedInvoiceItem, bundle);
             if (subscriptionStartDate != null) {
-                planPhase = getPlanPhaseFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate, context);
+                planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate);
             }
         }
 
-        final Long invoiceItemRecordId = invoiceItem.getId() != null ? getInvoiceItemRecordId(invoiceItem.getId(), context) : null;
+        final Long invoiceItemRecordId = invoiceItem.getId() != null ? businessContextFactory.getInvoiceItemRecordId(invoiceItem.getId()) : null;
 
         return createBusinessInvoiceItem(account,
                                          invoice,

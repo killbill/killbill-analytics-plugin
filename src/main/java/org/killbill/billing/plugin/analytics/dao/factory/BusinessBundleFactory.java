@@ -21,7 +21,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -41,46 +40,35 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 
-public class BusinessBundleFactory extends BusinessFactoryBase {
+public class BusinessBundleFactory {
 
     private final Executor executor;
 
-    public BusinessBundleFactory(final OSGIKillbillLogService logService,
-                                 final OSGIKillbillAPI osgiKillbillAPI,
-                                 final OSGIKillbillDataSource osgiKillbillDataSource,
-                                 final Executor executor,
-                                 final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+    public BusinessBundleFactory(final Executor executor) {
         this.executor = executor;
     }
 
-    public Collection<BusinessBundleModelDao> createBusinessBundles(final UUID accountId,
-                                                                    final AccountAuditLogs accountAuditLogs,
-                                                                    final Long accountRecordId,
+    public Collection<BusinessBundleModelDao> createBusinessBundles(final BusinessContextFactory businessContextFactory,
                                                                     // Correctly ordered
-                                                                    final Collection<BusinessSubscriptionTransitionModelDao> sortedBsts,
-                                                                    final Long tenantRecordId,
-                                                                    final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
+                                                                    final Collection<BusinessSubscriptionTransitionModelDao> sortedBsts) throws AnalyticsRefreshException {
+        // Pre-fetch these, to avoid contention on BusinessContextFactory
+        final Account account = businessContextFactory.getAccount();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
+        final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
 
         // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each bundle)
         final Set<UUID> baseSubscriptionIds = new HashSet<UUID>();
         final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
-        final List<SubscriptionBundle> bundlesForAccount = getSubscriptionBundlesForAccount(account.getId(), context);
+        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
         for (final SubscriptionBundle bundle : bundlesForAccount) {
             for (final Subscription subscription : bundle.getSubscriptions()) {
                 baseSubscriptionIds.add(subscription.getBaseEntitlementId());
@@ -97,20 +85,22 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         final Collection<BusinessBundleModelDao> bbss = new LinkedList<BusinessBundleModelDao>();
         for (final BusinessSubscriptionTransitionModelDao bst : bstForBundle.values()) {
             // Fetch audit logs in the main thread as AccountAuditLogs is not thread safe
-            final AuditLog creationAuditLog = getBundleCreationAuditLog(bst.getBundleId(), accountAuditLogs);
+            final AuditLog creationAuditLog = businessContextFactory.getBundleCreationAuditLog(bst.getBundleId());
 
             completionService.submit(new Callable<BusinessBundleModelDao>() {
                 @Override
                 public BusinessBundleModelDao call() throws Exception {
-                    return buildBBS(account,
+                    return buildBBS(businessContextFactory,
+                                    account,
                                     creationAuditLog,
                                     accountRecordId,
                                     bundles,
                                     bst,
                                     rankForBundle.get(bst.getBundleId()),
+                                    currencyConverter,
                                     tenantRecordId,
-                                    reportGroup,
-                                    context);
+                                    reportGroup
+                                   );
                 }
             });
         }
@@ -149,19 +139,19 @@ public class BusinessBundleFactory extends BusinessFactoryBase {
         }
     }
 
-    private BusinessBundleModelDao buildBBS(final Account account,
+    private BusinessBundleModelDao buildBBS(final BusinessContextFactory businessContextFactory,
+                                            final Account account,
                                             final AuditLog creationAuditLog,
                                             final Long accountRecordId,
                                             final Map<UUID, SubscriptionBundle> bundles,
                                             final BusinessSubscriptionTransitionModelDao bst,
                                             final Integer bundleAccountRank,
+                                            final CurrencyConverter currencyConverter,
                                             final Long tenantRecordId,
-                                            final ReportGroup reportGroup,
-                                            final CallContext context) throws AnalyticsRefreshException {
+                                            final ReportGroup reportGroup) throws AnalyticsRefreshException {
         final SubscriptionBundle bundle = bundles.get(bst.getBundleId());
-        final Long bundleRecordId = getBundleRecordId(bundle.getId(), context);
-        final CurrencyConverter currencyConverter = getCurrencyConverter();
-        final Boolean latestForBundleExternalKey = getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey(), context).getId().equals(bundle.getId());
+        final Long bundleRecordId = businessContextFactory.getBundleRecordId(bundle.getId());
+        final Boolean latestForBundleExternalKey = businessContextFactory.getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey()).getId().equals(bundle.getId());
 
         LocalDate chargedThroughDate = null;
         final Optional<Subscription> base = Iterables.tryFind(bundle.getSubscriptions(),

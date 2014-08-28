@@ -36,7 +36,7 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
 
     @Test(groups = "fast")
     public void testRespectPrevPerService() throws Exception {
-        final BusinessAccountTransitionFactory factory = new BusinessAccountTransitionFactory(logService, killbillAPI, killbillDataSource, clock);
+        final BusinessAccountTransitionFactory factory = new BusinessAccountTransitionFactory();
 
         final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
         final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
@@ -64,7 +64,8 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
         Mockito.when(event4.getServiceName()).thenReturn("service-B");
         events.add(event4);
 
-        final List<BusinessAccountTransitionModelDao> result = ImmutableList.<BusinessAccountTransitionModelDao>copyOf(factory.createBusinessAccountTransitions(account, accountAuditLogs, events, callContext));
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, logService, killbillAPI, killbillDataSource, clock);
+        final List<BusinessAccountTransitionModelDao> result = ImmutableList.<BusinessAccountTransitionModelDao>copyOf(factory.createBusinessAccountTransitions(businessContextFactory, events));
         Assert.assertEquals(result.get(0).getService(), "service-A");
         Assert.assertEquals(result.get(0).getStartDate(), new LocalDate(2012, 5, 1));
         Assert.assertEquals(result.get(0).getEndDate(), new LocalDate(2012, 6, 1));

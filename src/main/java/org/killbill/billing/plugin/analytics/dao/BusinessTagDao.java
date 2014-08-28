@@ -17,16 +17,12 @@
 
 package org.killbill.billing.plugin.analytics.dao;
 
-import java.util.UUID;
-
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessTagFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessTagModelDao;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
@@ -38,27 +34,25 @@ public class BusinessTagDao extends BusinessAnalyticsDaoBase {
     private final BusinessTagFactory bTagFactory;
 
     public BusinessTagDao(final OSGIKillbillLogService logService,
-                          final OSGIKillbillAPI osgiKillbillAPI,
-                          final OSGIKillbillDataSource osgiKillbillDataSource,
-                          final Clock clock) {
+                          final OSGIKillbillDataSource osgiKillbillDataSource) {
         super(logService, osgiKillbillDataSource);
-        bTagFactory = new BusinessTagFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bTagFactory = new BusinessTagFactory();
     }
 
-    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics tags for account " + accountId);
+    public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
 
-        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos = bTagFactory.createBusinessTags(accountId, accountAuditLogs, context);
+        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos = bTagFactory.createBusinessTags(businessContextFactory);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
-                updateInTransaction(tagModelDaos, transactional, context);
+                updateInTransaction(tagModelDaos, transactional, businessContextFactory.getCallContext());
                 return null;
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics tags for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos,

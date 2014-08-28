@@ -17,16 +17,12 @@
 
 package org.killbill.billing.plugin.analytics.dao;
 
-import java.util.UUID;
-
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessFieldFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
@@ -38,27 +34,25 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
     private final BusinessFieldFactory bFieldFactory;
 
     public BusinessFieldDao(final OSGIKillbillLogService logService,
-                            final OSGIKillbillAPI osgiKillbillAPI,
-                            final OSGIKillbillDataSource osgiKillbillDataSource,
-                            final Clock clock) {
+                            final OSGIKillbillDataSource osgiKillbillDataSource) {
         super(logService, osgiKillbillDataSource);
-        bFieldFactory = new BusinessFieldFactory(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        bFieldFactory = new BusinessFieldFactory();
     }
 
-    public void update(final UUID accountId, final AccountAuditLogs accountAuditLogs, final CallContext context) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics custom fields for account " + accountId);
+    public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
 
-        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(accountId, accountAuditLogs, context);
+        final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(businessContextFactory);
 
         sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
-                updateInTransaction(fieldModelDaos, transactional, context);
+                updateInTransaction(fieldModelDaos, transactional, businessContextFactory.getCallContext());
                 return null;
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics custom fields for account " + accountId);
+        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos,

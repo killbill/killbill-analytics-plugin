@@ -20,7 +20,6 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,38 +30,23 @@ import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.customfield.CustomField;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
-public class BusinessFieldFactory extends BusinessFactoryBase {
+public class BusinessFieldFactory {
 
-    public BusinessFieldFactory(final OSGIKillbillLogService logService,
-                                final OSGIKillbillAPI osgiKillbillAPI,
-                                final OSGIKillbillDataSource osgiKillbillDataSource,
-                                final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-    }
+    public BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> createBusinessFields(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Account account = businessContextFactory.getAccount();
 
-    public BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> createBusinessFields(final UUID accountId,
-                                                                                                     final AccountAuditLogs accountAuditLogs,
-                                                                                                     final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
 
-        final Long accountRecordId = getAccountRecordId(account.getId(), context);
-        final Long tenantRecordId = getTenantRecordId(context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
-
-        final Collection<CustomField> fields = getFieldsForAccount(account.getId(), context);
+        final Iterable<CustomField> fields = businessContextFactory.getAccountCustomFields();
 
         // Lookup once all SubscriptionBundle for that account (optimized call, should be faster in case an account has a lot
         // of bundles with custom fields)
-        final List<SubscriptionBundle> bundlesForAccount = getSubscriptionBundlesForAccount(accountId, context);
+        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
         final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
         for (final SubscriptionBundle bundle : bundlesForAccount) {
             bundles.put(bundle.getId(), bundle);
@@ -71,8 +55,8 @@ public class BusinessFieldFactory extends BusinessFactoryBase {
         final Collection<BusinessFieldModelDao> fieldModelDaos = new LinkedList<BusinessFieldModelDao>();
         // We process custom fields sequentially: in practice, an account will be associated with a dozen fields at most
         for (final CustomField field : fields) {
-            final Long customFieldRecordId = getFieldRecordId(field.getId(), context);
-            final AuditLog creationAuditLog = getFieldCreationAuditLog(field.getId(), accountAuditLogs);
+            final Long customFieldRecordId = businessContextFactory.getCustomFieldRecordId(field.getId());
+            final AuditLog creationAuditLog = businessContextFactory.getCustomFieldCreationAuditLog(field.getId());
 
             SubscriptionBundle bundle = null;
             if (ObjectType.BUNDLE.equals(field.getObjectType())) {

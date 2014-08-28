@@ -33,10 +33,8 @@ import org.killbill.billing.plugin.analytics.dao.BusinessAccountTransitionDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessFieldDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessInvoiceAndPaymentDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessSubscriptionTransitionDao;
-import org.killbill.billing.util.api.AuditLevel;
-import org.killbill.billing.util.api.AuditUserApi;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.util.api.RecordIdApi;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.CallOrigin;
 import org.killbill.billing.util.callcontext.UserType;
@@ -70,8 +68,9 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                                                                .omitEmptyStrings();
     private final Iterable<String> accountsBlacklist;
 
-    private final LogService logService;
+    private final OSGIKillbillLogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
+    private final OSGIKillbillDataSource osgiKillbillDataSource;
     private final BusinessSubscriptionTransitionDao bstDao;
     private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
@@ -99,13 +98,14 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                       final Properties properties) throws NotificationQueueAlreadyExists {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
+        this.osgiKillbillDataSource = osgiKillbillDataSource;
         this.clock = clock;
 
-        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
-        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillAPI, osgiKillbillDataSource, bacDao, executor, clock);
-        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillDataSource);
+        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillDataSource, bacDao, executor);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillDataSource, bacDao, executor);
+        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillDataSource);
+        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
 
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
@@ -188,53 +188,46 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
-        final AccountAuditLogs accountAuditLogs = getAuditUserApi().getAccountAuditLogs(job.getAccountId(), AuditLevel.MINIMAL, callContext);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+
         switch (job.getEventType()) {
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:
                 // Note: account information is denormalized across all tables, we pretty much
                 // have to refresh all objects
-                allBusinessObjectsDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                allBusinessObjectsDao.update(businessContextFactory);
                 break;
             case SUBSCRIPTION_CREATION:
             case SUBSCRIPTION_CHANGE:
             case SUBSCRIPTION_CANCEL:
             case SUBSCRIPTION_PHASE:
             case SUBSCRIPTION_UNCANCEL:
-                bstDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                bstDao.update(businessContextFactory);
                 break;
             case OVERDUE_CHANGE:
-                bosDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                bosDao.update(businessContextFactory);
                 break;
             case INVOICE_CREATION:
             case INVOICE_ADJUSTMENT:
-                binAndBipDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                binAndBipDao.update(businessContextFactory);
                 break;
             case PAYMENT_SUCCESS:
             case PAYMENT_FAILED:
-                binAndBipDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                binAndBipDao.update(businessContextFactory);
                 break;
             case TAG_CREATION:
             case TAG_DELETION:
                 // Note: tags determine the report group. Since it is denormalized across all tables, we pretty much
                 // have to refresh all objects
-                allBusinessObjectsDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                allBusinessObjectsDao.update(businessContextFactory);
                 break;
             case CUSTOM_FIELD_CREATION:
             case CUSTOM_FIELD_DELETION:
-                bFieldDao.update(job.getAccountId(), accountAuditLogs, callContext);
+                bFieldDao.update(businessContextFactory);
                 break;
             default:
                 break;
         }
-    }
-
-    private AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
-        final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
-        if (auditUserApi == null) {
-            throw new AnalyticsRefreshException("Error retrieving auditUserApi");
-        }
-        return auditUserApi;
     }
 
     @VisibleForTesting

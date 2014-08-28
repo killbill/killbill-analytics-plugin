@@ -36,17 +36,11 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscription;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionEvent;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
-import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.annotations.VisibleForTesting;
 
-public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
+public class BusinessSubscriptionTransitionFactory {
 
     // See EntitlementService
     public static final String ENTITLEMENT_SERVICE_NAME = "entitlement-service";
@@ -54,54 +48,43 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
     public static final String BILLING_SERVICE_NAME = "billing-service";
     public static final String ENTITLEMENT_BILLING_SERVICE_NAME = "entitlement+billing-service";
 
-    public BusinessSubscriptionTransitionFactory(final OSGIKillbillLogService logService,
-                                                 final OSGIKillbillAPI osgiKillbillAPI,
-                                                 final OSGIKillbillDataSource osgiKillbillDataSource,
-                                                 final Clock clock) {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
-    }
+    public Collection<BusinessSubscriptionTransitionModelDao> createBusinessSubscriptionTransitions(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Account account = businessContextFactory.getAccount();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
+        final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
 
-    public Collection<BusinessSubscriptionTransitionModelDao> createBusinessSubscriptionTransitions(final UUID accountId,
-                                                                                                    final AccountAuditLogs accountAuditLogs,
-                                                                                                    final Long accountRecordId,
-                                                                                                    final Long tenantRecordId,
-                                                                                                    final CallContext context) throws AnalyticsRefreshException {
-        final Account account = getAccount(accountId, context);
-        final ReportGroup reportGroup = getReportGroup(account.getId(), context);
-        final CurrencyConverter currencyConverter = getCurrencyConverter();
-
-        final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(account.getId(), context);
+        final Iterable<SubscriptionBundle> bundles = businessContextFactory.getAccountBundles();
 
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = new LinkedList<BusinessSubscriptionTransitionModelDao>();
         for (final SubscriptionBundle bundle : bundles) {
-            bsts.addAll(buildTransitionsForBundle(account, bundle, currencyConverter, accountAuditLogs, accountRecordId, tenantRecordId, reportGroup, context));
+            bsts.addAll(buildTransitionsForBundle(businessContextFactory, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup));
         }
 
         return bsts;
     }
 
-    private Collection<BusinessSubscriptionTransitionModelDao> buildTransitionsForBundle(final Account account,
+    private Collection<BusinessSubscriptionTransitionModelDao> buildTransitionsForBundle(final BusinessContextFactory businessContextFactory,
+                                                                                         final Account account,
                                                                                          final SubscriptionBundle bundle,
                                                                                          final CurrencyConverter currencyConverter,
-                                                                                         final AccountAuditLogs accountAuditLogs,
                                                                                          final Long accountRecordId,
                                                                                          final Long tenantRecordId,
-                                                                                         @Nullable final ReportGroup reportGroup,
-                                                                                         final CallContext context) throws AnalyticsRefreshException {
+                                                                                         @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
         final List<SubscriptionEvent> transitions = bundle.getTimeline().getSubscriptionEvents();
-        return buildTransitionsForBundle(account, bundle, transitions, currencyConverter, accountAuditLogs, accountRecordId, tenantRecordId, reportGroup, context);
+        return buildTransitionsForBundle(businessContextFactory, account, bundle, transitions, currencyConverter, accountRecordId, tenantRecordId, reportGroup);
     }
 
     @VisibleForTesting
-    Collection<BusinessSubscriptionTransitionModelDao> buildTransitionsForBundle(final Account account,
+    Collection<BusinessSubscriptionTransitionModelDao> buildTransitionsForBundle(final BusinessContextFactory businessContextFactory,
+                                                                                 final Account account,
                                                                                  final SubscriptionBundle bundle,
                                                                                  final List<SubscriptionEvent> transitions,
                                                                                  final CurrencyConverter currencyConverter,
-                                                                                 final AccountAuditLogs accountAuditLogs,
                                                                                  final Long accountRecordId,
                                                                                  final Long tenantRecordId,
-                                                                                 @Nullable final ReportGroup reportGroup,
-                                                                                 final CallContext context) throws AnalyticsRefreshException {
+                                                                                 @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
         final List<BusinessSubscriptionTransitionModelDao> bsts = new LinkedList<BusinessSubscriptionTransitionModelDao>();
         final Map<String, Map<UUID, List<BusinessSubscriptionTransitionModelDao>>> bstsPerServicePerSubscription = new HashMap<String, Map<UUID, List<BusinessSubscriptionTransitionModelDao>>>();
         final Map<String, Map<UUID, BusinessSubscription>> prevSubscriptionPerServicePerSubscription = new HashMap<String, Map<UUID, BusinessSubscription>>();
@@ -118,12 +101,12 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
             } else {
                 nextSubscription = getBusinessSubscriptionFromTransition(account, transition, currencyConverter);
             }
-            createBusinessSubscriptionTransition(transition, bsts, bstsPerServicePerSubscription, prevSubscriptionPerServicePerSubscription, nextSubscription, account, bundle, currencyConverter, accountAuditLogs, accountRecordId, tenantRecordId, reportGroup, context);
+            createBusinessSubscriptionTransition(businessContextFactory, transition, bsts, bstsPerServicePerSubscription, prevSubscriptionPerServicePerSubscription, nextSubscription, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup);
 
             // Multiplex these events
             if (transition.getServiceName().equals(ENTITLEMENT_BILLING_SERVICE_NAME)) {
                 final BusinessSubscription nextNextSubscription = getBusinessSubscriptionFromTransition(account, transition, BILLING_SERVICE_NAME, currencyConverter);
-                createBusinessSubscriptionTransition(transition, bsts, bstsPerServicePerSubscription, prevSubscriptionPerServicePerSubscription, nextNextSubscription, account, bundle, currencyConverter, accountAuditLogs, accountRecordId, tenantRecordId, reportGroup, context);
+                createBusinessSubscriptionTransition(businessContextFactory, transition, bsts, bstsPerServicePerSubscription, prevSubscriptionPerServicePerSubscription, nextNextSubscription, account, bundle, currencyConverter, accountRecordId, tenantRecordId, reportGroup);
             }
         }
 
@@ -153,7 +136,8 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
         return bsts;
     }
 
-    private void createBusinessSubscriptionTransition(final SubscriptionEvent transition,
+    private void createBusinessSubscriptionTransition(final BusinessContextFactory businessContextFactory,
+                                                      final SubscriptionEvent transition,
                                                       final Collection<BusinessSubscriptionTransitionModelDao> bsts,
                                                       final Map<String, Map<UUID, List<BusinessSubscriptionTransitionModelDao>>> bstsPerServicePerSubscription,
                                                       final Map<String, Map<UUID, BusinessSubscription>> prevSubscriptionPerServicePerSubscription,
@@ -161,28 +145,26 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
                                                       final Account account,
                                                       final SubscriptionBundle bundle,
                                                       final CurrencyConverter currencyConverter,
-                                                      final AccountAuditLogs accountAuditLogs,
                                                       final Long accountRecordId,
                                                       final Long tenantRecordId,
-                                                      @Nullable final ReportGroup reportGroup,
-                                                      final CallContext context) throws AnalyticsRefreshException {
+                                                      @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
         Map<UUID, BusinessSubscription> prevSubscriptionPerSubscription = prevSubscriptionPerServicePerSubscription.get(nextSubscription.getService());
         if (prevSubscriptionPerSubscription == null) {
             prevSubscriptionPerSubscription = new HashMap<UUID, BusinessSubscription>();
             prevSubscriptionPerServicePerSubscription.put(nextSubscription.getService(), prevSubscriptionPerSubscription);
         }
 
-        final BusinessSubscriptionTransitionModelDao bst = createBusinessSubscriptionTransition(account,
+        final BusinessSubscriptionTransitionModelDao bst = createBusinessSubscriptionTransition(businessContextFactory,
+                                                                                                account,
                                                                                                 bundle,
                                                                                                 transition,
                                                                                                 prevSubscriptionPerSubscription.get(transition.getEntitlementId()),
                                                                                                 nextSubscription,
                                                                                                 currencyConverter,
-                                                                                                accountAuditLogs,
                                                                                                 accountRecordId,
                                                                                                 tenantRecordId,
-                                                                                                reportGroup,
-                                                                                                context);
+                                                                                                reportGroup
+                                                                                               );
         bsts.add(bst);
 
         Map<UUID, List<BusinessSubscriptionTransitionModelDao>> bstsPerSubscription = bstsPerServicePerSubscription.get(nextSubscription.getService());
@@ -198,20 +180,19 @@ public class BusinessSubscriptionTransitionFactory extends BusinessFactoryBase {
         prevSubscriptionPerSubscription.put(transition.getEntitlementId(), nextSubscription);
     }
 
-    private BusinessSubscriptionTransitionModelDao createBusinessSubscriptionTransition(final Account account,
+    private BusinessSubscriptionTransitionModelDao createBusinessSubscriptionTransition(final BusinessContextFactory businessContextFactory,
+                                                                                        final Account account,
                                                                                         final SubscriptionBundle subscriptionBundle,
                                                                                         final SubscriptionEvent subscriptionTransition,
                                                                                         @Nullable final BusinessSubscription prevNextSubscription,
                                                                                         final BusinessSubscription nextSubscription,
                                                                                         final CurrencyConverter currencyConverter,
-                                                                                        final AccountAuditLogs accountAuditLogs,
                                                                                         final Long accountRecordId,
                                                                                         final Long tenantRecordId,
-                                                                                        @Nullable final ReportGroup reportGroup,
-                                                                                        final CallContext context) throws AnalyticsRefreshException {
+                                                                                        @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
         final BusinessSubscriptionEvent businessEvent = BusinessSubscriptionEvent.fromTransition(subscriptionTransition);
-        final Long subscriptionEventRecordId = getSubscriptionEventRecordId(subscriptionTransition.getId(), subscriptionTransition.getSubscriptionEventType().getObjectType(), context);
-        final AuditLog creationAuditLog = getSubscriptionEventCreationAuditLog(subscriptionTransition.getId(), subscriptionTransition.getSubscriptionEventType().getObjectType(), accountAuditLogs);
+        final Long subscriptionEventRecordId = businessContextFactory.getSubscriptionEventRecordId(subscriptionTransition.getId(), subscriptionTransition.getSubscriptionEventType().getObjectType());
+        final AuditLog creationAuditLog = businessContextFactory.getSubscriptionEventCreationAuditLog(subscriptionTransition.getId(), subscriptionTransition.getSubscriptionEventType().getObjectType());
 
         return new BusinessSubscriptionTransitionModelDao(account,
                                                           accountRecordId,
