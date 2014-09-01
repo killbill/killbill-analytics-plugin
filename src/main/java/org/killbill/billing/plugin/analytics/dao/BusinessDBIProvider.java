@@ -53,11 +53,14 @@ import org.killbill.commons.jdbi.argument.UUIDArgumentFactory;
 import org.killbill.commons.jdbi.log.Slf4jLogging;
 import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import org.killbill.commons.jdbi.mapper.UUIDMapper;
+import org.killbill.commons.jdbi.notification.DatabaseTransactionNotificationApi;
+import org.killbill.commons.jdbi.transaction.NotificationTransactionHandler;
 import org.killbill.commons.jdbi.transaction.RestartTransactionRunner;
 import org.skife.jdbi.v2.Binding;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.StatementContext;
 import org.skife.jdbi.v2.tweak.Argument;
+import org.skife.jdbi.v2.tweak.TransactionHandler;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.base.CharMatcher;
@@ -107,7 +110,9 @@ public class BusinessDBIProvider {
 
         dbi.setSQLLog(new Slf4jLogging());
 
-        dbi.setTransactionHandler(new RestartTransactionRunner());
+        final DatabaseTransactionNotificationApi databaseTransactionNotificationApi = new DatabaseTransactionNotificationApi();
+        final TransactionHandler notificationTransactionHandler = new NotificationTransactionHandler(databaseTransactionNotificationApi);
+        dbi.setTransactionHandler(new RestartTransactionRunner(notificationTransactionHandler));
 
         return dbi;
     }
