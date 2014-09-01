@@ -139,7 +139,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     @Override
     public synchronized CurrencyConverter getCurrencyConverter() {
         if (currencyConverter == null) {
-            currencyConverter = getCurrencyConverter();
+            currencyConverter = super.getCurrencyConverter();
         }
         return currencyConverter;
     }
