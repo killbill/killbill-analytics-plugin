@@ -18,9 +18,7 @@
 package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -190,12 +188,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public synchronized Iterable<Payment> getAccountPayments() throws AnalyticsRefreshException {
         if (accountPayments == null) {
-            accountPayments = new LinkedList<Payment>();
-            // TODO PERF See https://github.com/killbill/killbill/issues/210
-            for (final Payment payment : getPaymentsByAccountId(accountId, callContext)) {
-                final Payment paymentWithPluginInfo = getPaymentWithPluginInfo(payment.getId(), callContext);
-                ((Collection<Payment>) accountPayments).add(paymentWithPluginInfo);
-            }
+            accountPayments = getPaymentsWithPluginInfoByAccountId(accountId, callContext);
         }
         return accountPayments;
     }

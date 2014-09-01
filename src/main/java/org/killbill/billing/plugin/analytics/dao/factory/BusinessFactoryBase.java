@@ -423,32 +423,12 @@ public abstract class BusinessFactoryBase {
     // PAYMENT
     //
 
-    protected Collection<Payment> getPaymentsByAccountId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+    protected Collection<Payment> getPaymentsWithPluginInfoByAccountId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
             return paymentApi.getAccountPayments(accountId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_WARNING, "Error retrieving payments for account id " + accountId, e);
-            throw new AnalyticsRefreshException(e);
-        }
-    }
-
-    protected Payment getPaymentWithPluginInfo(final UUID paymentId, final TenantContext context) throws AnalyticsRefreshException {
-        final PaymentApi paymentApi = getPaymentUserApi();
-
-        try {
-            // Try to get the payment information, with plugin information
-            return paymentApi.getPayment(paymentId, true, PLUGIN_PROPERTIES, context);
-        } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_INFO, "Error retrieving payment with plugin info for id " + paymentId, e);
-        }
-
-        try {
-            // If we come here, it is possible that the plugin couldn't answer about the payment, maybe
-            // because it was deleted in the gateway. Try to return the Kill Bill specific info only
-            return paymentApi.getPayment(paymentId, false, PLUGIN_PROPERTIES, context);
-        } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving payment for id " + paymentId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -462,14 +442,6 @@ public abstract class BusinessFactoryBase {
             return paymentApi.getAccountPaymentMethods(accountId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             logService.log(LogService.LOG_INFO, "Error retrieving payment methods for accountId " + accountId + ": " + e.getMessage());
-        }
-
-        try {
-            // If we come here, it is possible that a plugin couldn't answer about a payment method, maybe
-            // because it was deleted in the gateway. Try to return the Kill Bill specific info only
-            return paymentApi.getAccountPaymentMethods(accountId, false, PLUGIN_PROPERTIES, context);
-        } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_INFO, "Error retrieving payment method for account id " + accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
