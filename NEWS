@@ -1,3 +1,7 @@
+0.7.2
+    Introduce new payment tables (DDL change)
+    Update to killbill-oss-parent 0.7.22
+
 0.7.1
     Support for new payment APIs
     Update to killbill-oss-parent 0.7.15
