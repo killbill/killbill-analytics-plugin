@@ -62,7 +62,7 @@ import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS
 public class AnalyticsListener implements OSGIKillbillEventHandler {
 
     // List of account ids to ignore
-    static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "killbill.osgi.analytics.blacklist";
+    static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "org.killbill.billing.plugin.analytics.blacklist";
     private static final Splitter BLACKLIST_SPLITTER = Splitter.on(',')
                                                                .trimResults()
                                                                .omitEmptyStrings();
