@@ -18,7 +18,6 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -39,6 +38,7 @@ import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.CallOrigin;
 import org.killbill.billing.util.callcontext.UserType;
 import org.killbill.clock.Clock;
+import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
@@ -55,6 +55,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 
 import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS_QUEUE_SERVICE;
@@ -62,6 +63,7 @@ import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS
 public class AnalyticsListener implements OSGIKillbillEventHandler {
 
     // List of account ids to ignore
+    @VisibleForTesting
     static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "org.killbill.billing.plugin.analytics.blacklist";
     private static final Splitter BLACKLIST_SPLITTER = Splitter.on(',')
                                                                .trimResults()
@@ -71,6 +73,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     private final OSGIKillbillLogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIKillbillDataSource osgiKillbillDataSource;
+    private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
     private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
@@ -82,23 +85,14 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     public AnalyticsListener(final OSGIKillbillLogService logService,
                              final OSGIKillbillAPI osgiKillbillAPI,
                              final OSGIKillbillDataSource osgiKillbillDataSource,
+                             final OSGIConfigPropertiesService osgiConfigPropertiesService,
                              final Executor executor,
                              final Clock clock,
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
-        this(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock, notificationQueueService, System.getProperties());
-    }
-
-    @VisibleForTesting
-    AnalyticsListener(final OSGIKillbillLogService logService,
-                      final OSGIKillbillAPI osgiKillbillAPI,
-                      final OSGIKillbillDataSource osgiKillbillDataSource,
-                      final Executor executor,
-                      final Clock clock,
-                      final DefaultNotificationQueueService notificationQueueService,
-                      final Properties properties) throws NotificationQueueAlreadyExists {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiKillbillDataSource = osgiKillbillDataSource;
+        this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
 
         final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillDataSource);
@@ -128,7 +122,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         jobQueue = notificationQueueService.createNotificationQueue(ANALYTICS_QUEUE_SERVICE,
                                                                     "refresh-queue",
                                                                     notificationQueueHandler);
-        accountsBlacklist = BLACKLIST_SPLITTER.split(properties.getProperty(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, ""));
+        accountsBlacklist = BLACKLIST_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY)));
     }
 
     public void start() {
@@ -188,7 +182,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
 
         switch (job.getEventType()) {
             case ACCOUNT_CREATION:

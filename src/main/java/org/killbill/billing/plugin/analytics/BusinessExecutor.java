@@ -23,16 +23,18 @@ import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 
 import org.killbill.commons.concurrent.Executors;
+import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 
 public class BusinessExecutor {
 
-    @VisibleForTesting
-    static final Integer NB_THREADS = Integer.valueOf(System.getProperty("org.killbill.billing.plugin.analytics.refresh.nb_threads", "100"));
+    private static final String ANALYTICS_REFRESH_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.refresh.nb_threads";
 
-    public static ExecutorService newCachedThreadPool() {
-        return newCachedThreadPool(NB_THREADS, "osgi-analytics-refresh");
+    public static ExecutorService newCachedThreadPool(final OSGIConfigPropertiesService osgiConfigPropertiesService) {
+        final int nbThreads = getNbThreads(osgiConfigPropertiesService);
+        return newCachedThreadPool(nbThreads, "osgi-analytics-refresh");
     }
 
     public static ExecutorService newCachedThreadPool(final int nbThreads, final String name) {
@@ -49,5 +51,11 @@ public class BusinessExecutor {
     public static ScheduledExecutorService newSingleThreadScheduledExecutor(final String name) {
         return Executors.newSingleThreadScheduledExecutor(name,
                                                           new CallerRunsPolicy());
+    }
+
+    @VisibleForTesting
+    static int getNbThreads(OSGIConfigPropertiesService osgiConfigPropertiesService) {
+        final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_NB_THREADS_PROPERTY));
+        return nbThreadsMaybeNull == null ? 100 : Integer.valueOf(nbThreadsMaybeNull);
     }
 }

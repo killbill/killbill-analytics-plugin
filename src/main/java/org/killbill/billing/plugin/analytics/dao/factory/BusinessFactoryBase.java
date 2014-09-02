@@ -67,13 +67,16 @@ import org.killbill.billing.util.tag.ControlTagType;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -85,22 +88,25 @@ import com.google.common.collect.Iterables;
  */
 public abstract class BusinessFactoryBase {
 
-    private static final String REFERENCE_CURRENCY = System.getProperty("org.killbill.billing.plugin.analytics.referenceCurrency", "USD");
+    private static final String ANALYTICS_REFERENCE_CURRENCY_PROPERTY = "org.killbill.billing.plugin.analytics.referenceCurrency";
     private static final Iterable<PluginProperty> PLUGIN_PROPERTIES = ImmutableList.<PluginProperty>of();
 
     protected final OSGIKillbillLogService logService;
     protected final OSGIKillbillAPI osgiKillbillAPI;
     protected final Clock clock;
 
+    private final String referenceCurrency;
     private final CurrencyConversionDao currencyConversionDao;
 
     public BusinessFactoryBase(final OSGIKillbillLogService logService,
                                final OSGIKillbillAPI osgiKillbillAPI,
                                final OSGIKillbillDataSource osgiKillbillDataSource,
+                               final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                final Clock clock) {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.clock = clock;
+        this.referenceCurrency = Objects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
         this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
     }
 
@@ -109,7 +115,7 @@ public abstract class BusinessFactoryBase {
     //
 
     protected CurrencyConverter getCurrencyConverter() {
-        return new CurrencyConverter(clock, currencyConversionDao.getCurrencyConversions(REFERENCE_CURRENCY));
+        return new CurrencyConverter(clock, currencyConversionDao.getCurrencyConversions(referenceCurrency));
     }
 
     //

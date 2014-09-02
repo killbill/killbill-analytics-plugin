@@ -20,7 +20,6 @@ package org.killbill.billing.plugin.analytics;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -59,7 +58,6 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
     protected final Clock clock = new DefaultClock();
     protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
-    protected final Properties properties = new Properties();
 
     @BeforeClass(groups = "slow")
     public void setUpClass() throws Exception {
@@ -84,11 +82,8 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
         dbi = BusinessDBIProvider.get(embeddedDB.getDataSource());
         analyticsSqlDao = dbi.onDemand(BusinessAnalyticsSqlDao.class);
 
-        properties.setProperty("org.killbill.notificationq.analytics.tableName", "analytics_notifications");
-        properties.setProperty("org.killbill.notificationq.analytics.historyTableName", "analytics_notifications_history");
-
-        final NotificationQueueConfig config = new ConfigurationObjectFactory(properties).buildWithReplacements(NotificationQueueConfig.class,
-                                                                                                                ImmutableMap.<String, String>of("instanceName", "analytics"));
+        final NotificationQueueConfig config = new ConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
+                                                                                                                                                 ImmutableMap.<String, String>of("instanceName", "analytics"));
         notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
     }
 

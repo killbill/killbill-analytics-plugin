@@ -59,14 +59,14 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     public void start(final BundleContext context) throws Exception {
         super.start(context);
 
-        final Executor executor = BusinessExecutor.newCachedThreadPool();
+        final Executor executor = BusinessExecutor.newCachedThreadPool(configProperties);
 
-        final NotificationQueueConfig config = new ConfigurationObjectFactory(System.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
-                                                                                                                            ImmutableMap.<String, String>of("instanceName", "analytics"));
+        final NotificationQueueConfig config = new ConfigurationObjectFactory(configProperties.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
+                                                                                                                                      ImmutableMap.<String, String>of("instanceName", "analytics"));
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry);
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, executor, clock, notificationQueueService);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, clock, notificationQueueService);
         analyticsListener.start();
         dispatcher.registerEventHandler(analyticsListener);
 
@@ -75,8 +75,8 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, executor, clock);
-        reportsUserApi = new ReportsUserApi(logService, dataSource, reportsConfiguration, jobsScheduler);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, clock);
+        reportsUserApi = new ReportsUserApi(logService, dataSource, configProperties, reportsConfiguration, jobsScheduler);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);

@@ -45,6 +45,7 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
@@ -100,8 +101,9 @@ public class BusinessContextFactory extends BusinessFactoryBase {
                                   final OSGIKillbillLogService logService,
                                   final OSGIKillbillAPI osgiKillbillAPI,
                                   final OSGIKillbillDataSource osgiKillbillDataSource,
+                                  final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                   final Clock clock) throws AnalyticsRefreshException {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, clock);
+        super(logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
         this.accountId = accountId;
         this.callContext = callContext;
 

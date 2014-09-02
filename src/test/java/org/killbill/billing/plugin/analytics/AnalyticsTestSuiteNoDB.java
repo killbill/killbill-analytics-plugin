@@ -18,6 +18,7 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.math.BigDecimal;
+import java.util.Properties;
 import java.util.UUID;
 
 import javax.annotation.Nullable;
@@ -76,6 +77,7 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
+import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
@@ -117,6 +119,8 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final String serviceName = UUID.randomUUID().toString();
     protected final String stateName = UUID.randomUUID().toString();
 
+    protected final UUID blackListedAccountId = UUID.randomUUID();
+
     protected Account account;
     protected SubscriptionBundle bundle;
     protected Plan plan;
@@ -141,6 +145,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected OSGIKillbillLogService logService;
     protected OSGIKillbillAPI killbillAPI;
     protected OSGIKillbillDataSource killbillDataSource;
+    protected OSGIConfigPropertiesService osgiConfigPropertiesService;
 
     protected void verifyBusinessEntityBase(final BusinessEntityBase businessEntityBase) {
         Assert.assertEquals(businessEntityBase.getCreatedBy(), auditLog.getUserName());
@@ -505,5 +510,19 @@ public abstract class AnalyticsTestSuiteNoDB {
         killbillDataSource = Mockito.mock(OSGIKillbillDataSource.class);
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(killbillDataSource.getDataSource()).thenReturn(dataSource);
+
+        final Properties properties = System.getProperties();
+        properties.setProperty(AnalyticsListener.ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, String.format("%s,%s", UUID.randomUUID(), blackListedAccountId));
+        properties.setProperty("org.killbill.notificationq.analytics.tableName", "analytics_notifications");
+        properties.setProperty("org.killbill.notificationq.analytics.historyTableName", "analytics_notifications_history");
+
+        osgiConfigPropertiesService = Mockito.mock(OSGIConfigPropertiesService.class);
+        Mockito.when(osgiConfigPropertiesService.getProperties()).thenReturn(properties);
+        Mockito.when(osgiConfigPropertiesService.getString(Mockito.<String>any())).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return properties.getProperty((String) invocation.getArguments()[0]);
+            }
+        });
     }
 }

@@ -47,6 +47,7 @@ import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfig
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.analytics.reports.sql.Metadata;
+import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.skife.jdbi.v2.Handle;
@@ -56,6 +57,7 @@ import org.skife.jdbi.v2.tweak.HandleCallback;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -63,27 +65,31 @@ import com.google.common.collect.Sets;
 
 public class ReportsUserApi {
 
-    private static final Integer NB_THREADS = Integer.valueOf(System.getProperty("org.killbill.billing.plugin.analytics.dashboard.nb_threads", "10"));
+    private static final String ANALYTICS_REPORTS_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.dashboard.nb_threads";
 
     // Part of the public API
     public static final String DAY_COLUMN_NAME = "day";
     public static final String LABEL = "label";
     public static final String COUNT_COLUMN_NAME = "count";
 
-    private final ExecutorService dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(NB_THREADS, "osgi-analytics-dashboard");
-
     private final IDBI dbi;
+    private final ExecutorService dbiThreadsExecutor;
     private final ReportsConfiguration reportsConfiguration;
     private final JobsScheduler jobsScheduler;
     private final Metadata sqlMetadata;
 
     public ReportsUserApi(final OSGIKillbillLogService logService,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
+                          final OSGIConfigPropertiesService osgiConfigPropertiesService,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler) {
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+
+        final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REPORTS_NB_THREADS_PROPERTY));
+        this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? 10 : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");
+
         this.sqlMetadata = new Metadata(Sets.<String>newHashSet(Iterables.transform(reportsConfiguration.getAllReportConfigurations().values(),
                                                                                     new Function<ReportsConfigurationModelDao, String>() {
                                                                                         @Override

@@ -31,10 +31,10 @@ public class TestBusinessExecutor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testRejectionPolicy() throws Exception {
-        final Executor executor = BusinessExecutor.newCachedThreadPool();
+        final Executor executor = BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService);
         final CompletionService<Integer> completionService = new ExecutorCompletionService<Integer>(executor);
 
-        final int totalTasksSize = BusinessExecutor.NB_THREADS * 50;
+        final int totalTasksSize = BusinessExecutor.getNbThreads(osgiConfigPropertiesService) * 50;
         final AtomicInteger taskCounter = new AtomicInteger(totalTasksSize);
         for (int i = 0; i < totalTasksSize; i++) {
             completionService.submit(new Callable<Integer>() {

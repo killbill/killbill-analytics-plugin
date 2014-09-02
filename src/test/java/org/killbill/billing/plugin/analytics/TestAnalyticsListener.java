@@ -17,27 +17,21 @@
 
 package org.killbill.billing.plugin.analytics;
 
-import java.util.Properties;
 import java.util.UUID;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import static org.killbill.billing.plugin.analytics.AnalyticsListener.ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY;
-
 public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testBlacklist() throws Exception {
-        AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, null, clock, notificationQueueService);
+        AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, notificationQueueService);
 
         // No account is blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
 
-        final UUID blackListedAccountId = UUID.randomUUID();
-        final Properties properties = new Properties();
-        properties.put(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, String.format("%s,%s", UUID.randomUUID(), blackListedAccountId));
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, null, clock, notificationQueueService, properties);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, notificationQueueService);
 
         // Other accounts are blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
