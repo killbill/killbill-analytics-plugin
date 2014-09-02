@@ -30,7 +30,7 @@ import com.google.common.base.Strings;
 
 public class BusinessExecutor {
 
-    private static final String ANALYTICS_REFRESH_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.refresh.nb_threads";
+    private static final String ANALYTICS_REFRESH_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.refresh.nbThreads";
 
     public static ExecutorService newCachedThreadPool(final OSGIConfigPropertiesService osgiConfigPropertiesService) {
         final int nbThreads = getNbThreads(osgiConfigPropertiesService);

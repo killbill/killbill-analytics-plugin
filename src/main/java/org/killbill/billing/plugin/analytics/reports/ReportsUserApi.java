@@ -65,7 +65,7 @@ import com.google.common.collect.Sets;
 
 public class ReportsUserApi {
 
-    private static final String ANALYTICS_REPORTS_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.dashboard.nb_threads";
+    private static final String ANALYTICS_REPORTS_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.dashboard.nbThreads";
 
     // Part of the public API
     public static final String DAY_COLUMN_NAME = "day";
