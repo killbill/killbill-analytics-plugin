@@ -138,9 +138,9 @@ public class JobsScheduler {
 
     private List<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable Transmogrifier transmogrifier) {
         if (transmogrifier == null) {
-            return jobQueue.getFutureNotificationForSearchKey2(AnalyticsReportJob.class, JOBS_SCHEDULER_VERSION);
+            return jobQueue.getFutureNotificationForSearchKey2(JOBS_SCHEDULER_VERSION);
         } else {
-            return jobQueue.getFutureNotificationFromTransactionForSearchKey2(AnalyticsReportJob.class, JOBS_SCHEDULER_VERSION, transmogrifier);
+            return jobQueue.getFutureNotificationFromTransactionForSearchKey2(JOBS_SCHEDULER_VERSION, transmogrifier);
         }
     }
 
@@ -149,9 +149,9 @@ public class JobsScheduler {
         if (eventJsonRecordId != null) {
             // Fast search path
             if (transmogrifier == null) {
-                return jobQueue.getFutureNotificationForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJsonRecordId));
+                return jobQueue.getFutureNotificationForSearchKeys(Long.valueOf(eventJsonRecordId), JOBS_SCHEDULER_VERSION);
             } else {
-                return jobQueue.getFutureNotificationFromTransactionForSearchKey1(AnalyticsReportJob.class, Long.valueOf(eventJsonRecordId), transmogrifier);
+                return jobQueue.getFutureNotificationFromTransactionForSearchKeys(Long.valueOf(eventJsonRecordId), JOBS_SCHEDULER_VERSION, transmogrifier);
             }
         } else {
             // Slow search path

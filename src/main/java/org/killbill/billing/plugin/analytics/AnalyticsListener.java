@@ -18,6 +18,7 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -164,7 +165,8 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         if (accountRecordId != null) {
             // Verify if we don't have a notification for that type and account already.
             // If we do, no need to insert another one since we will do a full refresh anyways
-            if (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(jobQueue.getFutureNotificationForSearchKey1(AnalyticsJob.class, accountRecordId),
+            final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
+            if (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(futureNotificationForSearchKeys,
                                                                                new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
                                                                                    @Override
                                                                                    public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {

@@ -61,7 +61,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
     public void testVerifyNoDups() throws Exception {
         final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, notificationQueueService);
         // Don't start the dequeuer
-        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 0);
+        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 0);
 
         // Verify the original state
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
@@ -72,13 +72,13 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         analyticsListener.handleKillbillEvent(firstEvent);
 
         // Verify the size of the queue
-        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 1);
+        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 1);
 
         // Send the same event
         analyticsListener.handleKillbillEvent(firstEvent);
 
         // Verify the size of the queue
-        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 1);
+        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 1);
 
         // Now, send a different event type
         final ExtBusEvent secondEvent = createExtBusEvent();
@@ -86,7 +86,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         analyticsListener.handleKillbillEvent(secondEvent);
 
         // Verify the size of the queue
-        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKey1(AnalyticsJob.class, 1L).size(), 2);
+        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 2);
 
         // Verify the final state
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
