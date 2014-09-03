@@ -47,7 +47,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Wait for the notification to kick in
-        Awaitility.await().atMost(10, TimeUnit.SECONDS).until(new Callable<Boolean>() {
+        Awaitility.await().atMost(15, TimeUnit.SECONDS).until(new Callable<Boolean>() {
             @Override
             public Boolean call() throws Exception {
                 return analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size() == 1;
