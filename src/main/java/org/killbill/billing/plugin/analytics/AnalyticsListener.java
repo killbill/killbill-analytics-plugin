@@ -62,6 +62,11 @@ import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS
 
 public class AnalyticsListener implements OSGIKillbillEventHandler {
 
+    // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
+    // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
+    // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
+    private static final String ANALYTICS_REFRESH_DELAY_PROPERTY = "org.killbill.billing.plugin.analytics.refreshDelay";
+
     // List of account ids to ignore
     @VisibleForTesting
     static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "org.killbill.billing.plugin.analytics.blacklist";
@@ -69,7 +74,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                                                                .trimResults()
                                                                .omitEmptyStrings();
     private final Iterable<String> accountsBlacklist;
-
+    private final int refreshDelaySeconds;
     private final OSGIKillbillLogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIKillbillDataSource osgiKillbillDataSource;
@@ -94,6 +99,9 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         this.osgiKillbillDataSource = osgiKillbillDataSource;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
+
+        final String refreshDelayMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_DELAY_PROPERTY));
+        this.refreshDelaySeconds = refreshDelayMaybeNull == null ? 10 : Integer.valueOf(refreshDelayMaybeNull);
 
         final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillDataSource);
         this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillDataSource, bacDao, executor);
@@ -170,7 +178,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
 
         try {
-            jobQueue.recordFutureNotification(clock.getUTCNow(), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
+            jobQueue.recordFutureNotification(computeFutureNotificationTime(), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
         } catch (IOException e) {
             logService.log(LogService.LOG_WARNING, "Unable to record notification for event " + killbillEvent.toString());
         }
@@ -222,6 +230,10 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
             default:
                 break;
         }
+    }
+
+    private DateTime computeFutureNotificationTime() {
+        return clock.getUTCNow().plusSeconds(refreshDelaySeconds);
     }
 
     @VisibleForTesting

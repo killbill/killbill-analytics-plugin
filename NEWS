@@ -3,6 +3,7 @@
     Rename property killbill.osgi.analytics.blacklist to org.killbill.billing.plugin.analytics.blacklist
     Rename property org.killbill.billing.plugin.analytics.refresh.nb_threads to org.killbill.billing.plugin.analytics.refresh.nbThreads
     Rename property org.killbill.billing.plugin.analytics.dashboard.nb_threads to org.killbill.billing.plugin.analytics.dashboard.nbThreads
+    Introduce org.killbill.billing.plugin.analytics.refreshDelay, to delay refreshes
     Update to killbill-oss-parent 0.7.22
 
 0.7.1
