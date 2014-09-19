@@ -1122,7 +1122,7 @@ create index notifications_search_keys on analytics_notifications(search_key2, s
 
 drop table if exists analytics_notifications_history;
 create table analytics_notifications_history (
-  record_id int(11) unsigned not null auto_increment
+  record_id int(11) unsigned not null
 , class_name varchar(256) not null
 , event_json varchar(2048) not null
 , user_token char(36)
