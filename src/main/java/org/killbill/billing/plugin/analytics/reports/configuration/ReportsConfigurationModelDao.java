@@ -79,7 +79,7 @@ public class ReportsConfigurationModelDao {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
-        this.reportType = type;
+        this.reportType = Objects.firstNonNull(type, ReportType.TIMELINE);
         this.sourceTableName = sourceTableName;
         this.refreshProcedureName = refreshProcedureName;
         this.refreshFrequency = refreshFrequency;
