@@ -44,7 +44,7 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
 
         final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(businessContextFactory);
 
-        sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
+        executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
                 updateInTransaction(fieldModelDaos, transactional, businessContextFactory.getCallContext());

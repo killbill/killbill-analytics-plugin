@@ -47,7 +47,7 @@ public class BusinessAccountTransitionDao extends BusinessAnalyticsDaoBase {
 
         final Collection<BusinessAccountTransitionModelDao> businessAccountTransitions = bosFactory.createBusinessAccountTransitions(businessContextFactory);
 
-        sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
+        executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
                 updateInTransaction(businessAccountTransitions, transactional, businessContextFactory.getCallContext());

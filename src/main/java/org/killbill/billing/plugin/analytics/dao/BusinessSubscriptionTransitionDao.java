@@ -66,7 +66,7 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
 
         // Recompute the bundle summary records
         final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(businessContextFactory, bsts);
-        sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
+        executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
                 updateInTransaction(bac, bbss, bsts, transactional, businessContextFactory.getCallContext());

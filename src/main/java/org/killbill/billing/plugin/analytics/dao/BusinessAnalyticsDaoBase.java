@@ -20,6 +20,8 @@ package org.killbill.billing.plugin.analytics.dao;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Transaction;
+import org.skife.jdbi.v2.TransactionIsolationLevel;
 
 public class BusinessAnalyticsDaoBase {
 
@@ -30,5 +32,14 @@ public class BusinessAnalyticsDaoBase {
         final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
         sqlDao = dbi.onDemand(BusinessAnalyticsSqlDao.class);
         this.logService = logService;
+    }
+
+    public void executeInTransaction(final Transaction<Void, BusinessAnalyticsSqlDao> transaction) {
+        // In REPEATABLE READ, every lock acquired during a transaction is held for the duration of the transaction.
+        // In READ COMMITTED the locks that did not match the scan are released after the STATEMENT completes.
+        // We need to make sure to use READ COMMITTED here, to avoid MySQL deadlocks under high load. This should
+        // not have any impact in these transactions as we only delete & re-insert rows on a per account basis,
+        // and accounts are not updated in parallel (not enforced, but we try hard not to).
+        sqlDao.inTransaction(TransactionIsolationLevel.READ_COMMITTED, transaction);
     }
 }

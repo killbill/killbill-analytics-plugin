@@ -85,7 +85,7 @@ public class BusinessInvoiceAndPaymentDao extends BusinessAnalyticsDaoBase {
         createBusinessPojos(businessContextFactory, invoices, invoiceItems, invoicePayments);
 
         // Delete and recreate all items in the transaction
-        sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
+        executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
                 updateInTransaction(bac, invoices, invoiceItems, invoicePayments, transactional, businessContextFactory.getCallContext());

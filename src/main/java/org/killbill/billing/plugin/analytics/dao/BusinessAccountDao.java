@@ -44,7 +44,7 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
         // Recompute the account record
         final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
 
-        sqlDao.inTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
+        executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
                 updateInTransaction(bac, transactional, businessContextFactory.getCallContext());
