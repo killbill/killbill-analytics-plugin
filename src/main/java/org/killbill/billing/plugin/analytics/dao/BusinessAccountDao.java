@@ -39,7 +39,7 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics account for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics account for account " + businessContextFactory.getAccountId());
 
         // Recompute the account record
         final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
@@ -52,7 +52,7 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics account for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics account for account " + businessContextFactory.getAccountId());
     }
 
     // Note: computing the BusinessAccountModelDao object is fairly expensive, hence should be done outside of the transaction

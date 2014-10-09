@@ -41,6 +41,7 @@ import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
+import org.osgi.service.log.LogService;
 
 public class AnalyticsUserApi {
 
@@ -102,7 +103,9 @@ public class AnalyticsUserApi {
 
     public void rebuildAnalyticsForAccount(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
+        logService.log(LogService.LOG_INFO, "Starting Analytics refresh for account " + businessContextFactory.getAccountId());
         // TODO Should we take the account lock?
         allBusinessObjectsDao.update(businessContextFactory);
+        logService.log(LogService.LOG_INFO, "Finished Analytics refresh for account " + businessContextFactory.getAccountId());
     }
 }

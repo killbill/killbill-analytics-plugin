@@ -56,7 +56,7 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics subscriptions for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics subscriptions for account " + businessContextFactory.getAccountId());
 
         // Recompute the account record
         final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
@@ -74,7 +74,7 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics subscriptions for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics subscriptions for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessAccountModelDao bac,

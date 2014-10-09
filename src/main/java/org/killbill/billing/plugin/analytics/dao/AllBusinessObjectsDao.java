@@ -53,7 +53,7 @@ public class AllBusinessObjectsDao {
 
     // TODO: each refresh is done in a transaction - do we want to share a long running transaction across all refreshes?
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics for account " + businessContextFactory.getAccountId());
 
         // Refresh invoices and payments. This will automatically trigger a refresh of account
         binAndBipDao.update(businessContextFactory);
@@ -70,6 +70,6 @@ public class AllBusinessObjectsDao {
         // Refresh account transitions
         bosDao.update(businessContextFactory);
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics for account " + businessContextFactory.getAccountId());
     }
 }

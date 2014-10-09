@@ -40,7 +40,7 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
 
         final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(businessContextFactory);
 
@@ -52,7 +52,7 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos,

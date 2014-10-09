@@ -43,7 +43,7 @@ public class BusinessAccountTransitionDao extends BusinessAnalyticsDaoBase {
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics account transitions for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics account transitions for account " + businessContextFactory.getAccountId());
 
         final Collection<BusinessAccountTransitionModelDao> businessAccountTransitions = bosFactory.createBusinessAccountTransitions(businessContextFactory);
 
@@ -55,7 +55,7 @@ public class BusinessAccountTransitionDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics account transitions for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics account transitions for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final Collection<BusinessAccountTransitionModelDao> businessAccountTransitionModelDaos,

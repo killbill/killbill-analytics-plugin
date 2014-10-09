@@ -194,6 +194,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         final CallContext callContext = new AnalyticsCallContext(job, clock);
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
 
+        logService.log(LogService.LOG_INFO, "Refreshing Analytics data for account " + businessContextFactory.getAccountId());
         switch (job.getEventType()) {
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:

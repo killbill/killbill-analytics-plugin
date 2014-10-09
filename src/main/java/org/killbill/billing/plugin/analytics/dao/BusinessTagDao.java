@@ -40,7 +40,7 @@ public class BusinessTagDao extends BusinessAnalyticsDaoBase {
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_INFO, "Starting rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
 
         final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos = bTagFactory.createBusinessTags(businessContextFactory);
 
@@ -52,7 +52,7 @@ public class BusinessTagDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_INFO, "Finished rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
+        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos,
