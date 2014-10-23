@@ -1,10 +1,13 @@
 0.7.2
+    Fix MySQL deadlocks under high load
+    https://github.com/killbill/killbill-analytics-plugin/issues/31
+    Performance improvements
     Introduce new payment tables (DDL change)
     Rename property killbill.osgi.analytics.blacklist to org.killbill.billing.plugin.analytics.blacklist
     Rename property org.killbill.billing.plugin.analytics.refresh.nb_threads to org.killbill.billing.plugin.analytics.refresh.nbThreads
     Rename property org.killbill.billing.plugin.analytics.dashboard.nb_threads to org.killbill.billing.plugin.analytics.dashboard.nbThreads
     Introduce org.killbill.billing.plugin.analytics.refreshDelay, to delay refreshes
-    Update to killbill-oss-parent 0.7.22
+    Update to killbill-oss-parent 0.8.7
 
 0.7.1
     Support for new payment APIs
