@@ -100,7 +100,7 @@ public class BusinessSubscription {
                 billingPeriod = null;
             }
 
-            if (currentPhase.getRecurring().getRecurringPrice() != null && currency != null) {
+            if (currentPhase.getRecurring() != null && currentPhase.getRecurring().getRecurringPrice() != null && currency != null) {
                 BigDecimal tmpPrice;
                 try {
                     tmpPrice = currentPhase.getRecurring().getRecurringPrice().getPrice(currency);

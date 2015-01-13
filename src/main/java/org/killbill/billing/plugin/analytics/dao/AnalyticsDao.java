@@ -201,7 +201,12 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
 
     private Long getAccountRecordId(final UUID accountId, final TenantContext context) {
         final RecordIdApi recordIdApi = osgiKillbillAPI.getRecordIdApi();
-        return recordIdApi == null ? -1L : recordIdApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
+        if (recordIdApi == null) {
+            return -1L;
+        } else {
+            final Long accountRecordIdOrNull = recordIdApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
+            return accountRecordIdOrNull == null ? -1L : accountRecordIdOrNull;
+        }
     }
 
     private Long getTenantRecordId(final TenantContext context) {
