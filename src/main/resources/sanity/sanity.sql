@@ -661,7 +661,7 @@ from (
     invoice_id
   , invoice_amount_paid
   , sum(coalesce(amount,0)) bip_sum
-  from analytics_payments bip
+  from analytics_payment_purchases bip
   group by invoice_id, invoice_amount_paid
 ) bip_sum
 where bip_sum != bip_sum.invoice_amount_paid
@@ -678,20 +678,20 @@ from (
   , amount_paid
   , amount_refunded
   , original_amount_charged
-  from bin
+  from analytics_invoices
 ) bin
 left outer join (
   select
     invoice_id
   , sum(coalesce(amount,0)) bipc_sum
-  from analytics_chargebacks bipc
+  from analytics_payment_chargebacks bipc
   group by invoice_id
 ) bipc_sum using (invoice_id)
 left outer join (
   select
     invoice_id
   , sum(coalesce(amount,0)) bipr_sum
-  from analytics_refunds bipr
+  from analytics_payment_refunds bipr
   group by invoice_id
 ) bipr_sum using (invoice_id)
 where bipc_sum + bipr_sum != bin.amount_refunded
@@ -720,7 +720,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select 'G1a' as sanity_query_name;
 select distinct ip.account_record_id
 from invoice_payments ip
-left outer join analytics_payments bip on ip.id = bip.invoice_payment_id
+left outer join analytics_payment_purchases bip on ip.id = bip.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bip.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bip.invoice_id, 'NULL')
@@ -736,7 +736,7 @@ and ip.type = 'ATTEMPT'
 
 select 'G1b' as sanity_query_name;
 select distinct bip.account_record_id
-from analytics_payments bip
+from analytics_payment_purchases bip
 left outer join invoice_payments ip on ip.id = bip.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bip.invoice_payment_id, 'NULL')
@@ -753,7 +753,7 @@ or bip.invoice_payment_type != 'ATTEMPT'
 
 select 'G2' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_payments b
+from analytics_payment_purchases b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
@@ -762,7 +762,7 @@ or coalesce(a.name, '') != coalesce(b.account_name, '')
 
 select 'G3' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_payments b
+from analytics_payment_purchases b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
 or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
@@ -773,7 +773,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 
 select 'G4' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_payments b
+from analytics_payment_purchases b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
@@ -784,7 +784,7 @@ or b.invoice_amount_credited != bin.amount_credited
 
 select 'G5' as sanity_query_name;
 select distinct bip.account_record_id
-from analytics_payments bip
+from analytics_payment_purchases bip
 left outer join invoice_payments ip on bip.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
 where coalesce(p.record_id, 'NULL') != coalesce(bip.payment_number, 'NULL')
@@ -837,7 +837,7 @@ select 'G7i' as sanity_query_name;
 /*
 select *
 from analytics_payments bip
-left outer join _zuora_payment_methods ppm on bip.plugin_pm_id = ppm.z_pm_id		
+left outer join _zuora_payment_methods ppm on bip.plugin_pm_id = ppm.z_pm_id
 where (coalesce(ppm.z_pm_id, 'NULL') != coalesce(bip.plugin_pm_id, 'NULL')
 or coalesce(ppm.z_default, 'NULL') != coalesce(bip.plugin_pm_is_default, 'NULL')) and ppm.z_pm_id is not null -- workaround until we get plugin name, query will miss missing rows
 */
@@ -848,7 +848,7 @@ or coalesce(ppm.z_default, 'NULL') != coalesce(bip.plugin_pm_is_default, 'NULL')
 
 select 'G8' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_payments b
+from analytics_payment_purchases b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
@@ -869,7 +869,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select 'H1a' as sanity_query_name;
 select distinct ip.account_record_id
 from invoice_payments ip
-left outer join analytics_chargebacks bipc on ip.id = bipc.invoice_payment_id
+left outer join analytics_payment_chargebacks bipc on ip.id = bipc.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bipc.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipc.invoice_id, 'NULL')
@@ -885,7 +885,7 @@ and ip.type = 'CHARGED_BACK'
 
 select 'H1b' as sanity_query_name;
 select distinct bipc.account_record_id
-from analytics_chargebacks bipc
+from analytics_payment_chargebacks bipc
 left outer join invoice_payments ip on ip.id = bipc.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bipc.invoice_payment_id, 'NULL')
@@ -902,7 +902,7 @@ or bipc.invoice_payment_type != 'CHARGED_BACK'
 
 select 'H2' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_chargebacks b
+from analytics_payment_chargebacks b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
@@ -911,7 +911,7 @@ or coalesce(a.name, '') != coalesce(b.account_name, '')
 
 select 'H3' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_chargebacks b
+from analytics_payment_chargebacks b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
 or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
@@ -922,7 +922,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 
 select 'H4' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_chargebacks b
+from analytics_payment_chargebacks b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
@@ -933,7 +933,7 @@ or b.invoice_amount_credited != bin.amount_credited
 
 select 'H5' as sanity_query_name;
 select distinct bipc.account_record_id
-from analytics_chargebacks bipc
+from analytics_payment_chargebacks bipc
 left outer join invoice_payments ip on bipc.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
 where coalesce(p.record_id, 'NULL') != coalesce(bipc.payment_number, 'NULL')
@@ -941,7 +941,7 @@ where coalesce(p.record_id, 'NULL') != coalesce(bipc.payment_number, 'NULL')
 
 select 'H8' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_chargebacks b
+from analytics_payment_chargebacks b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
@@ -954,7 +954,7 @@ or coalesce(b.created_by, '') != coalesce(al.created_by, '')
 select 'H1a' as sanity_query_name;
 select distinct ip.account_record_id
 from invoice_payments ip
-left outer join analytics_refunds bipr on ip.id = bipr.invoice_payment_id
+left outer join analytics_payment_refunds bipr on ip.id = bipr.invoice_payment_id
 where (coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
 or coalesce(ip.ID, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipr.invoice_id, 'NULL')
@@ -970,7 +970,7 @@ and ip.type = 'REFUND'
 
 select 'H1b' as sanity_query_name;
 select distinct bipr.account_record_id
-from analytics_refunds bipr
+from analytics_payment_refunds bipr
 left outer join invoice_payments ip on ip.id = bipr.invoice_payment_id
 where coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
 or coalesce(ip.id, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
@@ -987,7 +987,7 @@ or bipr.invoice_payment_type != 'REFUND'
 
 select 'H2' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_refunds b
+from analytics_payment_refunds b
 left outer join accounts a on a.id = b.account_id
 where coalesce(a.record_id) != coalesce(b.account_record_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
@@ -996,7 +996,7 @@ or coalesce(a.name, '') != coalesce(b.account_name, '')
 
 select 'H3' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_refunds b
+from analytics_payment_refunds b
 left outer join invoices i on i.id = b.invoice_id
 where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
 or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
@@ -1007,7 +1007,7 @@ or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 
 select 'H4' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_refunds b
+from analytics_payment_refunds b
 left outer join analytics_invoices bin on b.invoice_id = bin.invoice_id
 where b.invoice_balance != bin.balance
 or b.invoice_amount_paid != bin.amount_paid
@@ -1018,7 +1018,7 @@ or b.invoice_amount_credited != bin.amount_credited
 
 select 'H5' as sanity_query_name;
 select distinct bipr.account_record_id
-from analytics_refunds bipr
+from analytics_payment_refunds bipr
 left outer join invoice_payments ip on bipr.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
 where coalesce(p.record_id, 'NULL') != coalesce(bipr.payment_number, 'NULL')
@@ -1026,7 +1026,7 @@ where coalesce(p.record_id, 'NULL') != coalesce(bipr.payment_number, 'NULL')
 
 select 'H8' as sanity_query_name;
 select distinct b.account_record_id
-from analytics_refunds b
+from analytics_payment_refunds b
 join audit_log al on b.invoice_payment_record_id = al.target_record_id and al.change_type = 'INSERT' and table_name = 'INVOICE_PAYMENTS'
 where coalesce(b.created_reason_code, 'NULL') != coalesce(al.reason_code, 'NULL')
 or coalesce(b.created_comments, 'NULL') != coalesce(al.comments, 'NULL')
