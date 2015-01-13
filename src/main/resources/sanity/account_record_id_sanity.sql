@@ -142,9 +142,64 @@ and (
 )
 union
 select
-  'BIP' as table_name
+  'BIP_AUTHS' as table_name
 , count(1) count
-from analytics_payments bip
+from analytics_payment_auths bip
+left outer join accounts a on bip.account_id = a.id
+where 1 = 1
+and (
+     bip.account_record_id != a.record_id
+  or bip.account_record_id is null
+)
+union
+select
+  'BIP_CAPTURES' as table_name
+, count(1) count
+from analytics_payment_captures bip
+left outer join accounts a on bip.account_id = a.id
+where 1 = 1
+and (
+     bip.account_record_id != a.record_id
+  or bip.account_record_id is null
+)
+union
+select
+  'BIP_PURCHASES' as table_name
+, count(1) count
+from analytics_payment_purchases bip
+left outer join accounts a on bip.account_id = a.id
+where 1 = 1
+and (
+     bip.account_record_id != a.record_id
+  or bip.account_record_id is null
+)
+union
+select
+  'BIP_REFUNDS' as table_name
+, count(1) count
+from analytics_payment_refunds bip
+left outer join accounts a on bip.account_id = a.id
+where 1 = 1
+and (
+     bip.account_record_id != a.record_id
+  or bip.account_record_id is null
+)
+union
+select
+  'BIP_CREDITS' as table_name
+, count(1) count
+from analytics_payment_credits bip
+left outer join accounts a on bip.account_id = a.id
+where 1 = 1
+and (
+     bip.account_record_id != a.record_id
+  or bip.account_record_id is null
+)
+union
+select
+  'BIP_CHARGEBACKS' as table_name
+, count(1) count
+from analytics_payment_chargebacks bip
 left outer join accounts a on bip.account_id = a.id
 where 1 = 1
 and (
@@ -172,28 +227,6 @@ where 1 = 1
 and (
      bip.account_record_id != a.record_id
   or bip.account_record_id is null
-)
-union
-select
-  'BIPC' as table_name
-, count(1) count
-from analytics_chargebacks bipc
-left outer join accounts a on bipc.account_id = a.id
-where 1 = 1
-and (
-     bipc.account_record_id != a.record_id
-  or bipc.account_record_id is null
-)
-union
-select
-  'BIPR' as table_name
-, count(1) count
-from analytics_refunds bipr
-left outer join accounts a on bipr.account_id = a.id
-where 1 = 1
-and (
-     bipr.account_record_id != a.record_id
-  or bipr.account_record_id is null
 )
 union
 select
