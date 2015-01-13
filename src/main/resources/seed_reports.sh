@@ -3,10 +3,12 @@
 ###################################################################################
 #                                                                                 #
 #                   Copyright 2010-2014 Ning, Inc.                                #
+#                   Copyright 2014-2015 Groupon, Inc.                             #
+#                   Copyright 2014-2015 The Billing Project, LLC                  #
 #                                                                                 #
-#      Ning licenses this file to you under the Apache License, version 2.0       #
-#      (the "License"); you may not use this file except in compliance with the   #
-#      License.  You may obtain a copy of the License at:                         #
+#      The Billing Project licenses this file to you under the Apache License,    #
+#      version 2.0 (the "License"); you may not use this file except in           #
+#      compliance with the License.  You may obtain a copy of the License at:     #
 #                                                                                 #
 #          http://www.apache.org/licenses/LICENSE-2.0                             #
 #                                                                                 #
@@ -18,6 +20,8 @@
 #                                                                                 #
 ###################################################################################
 
+HERE=`cd \`dirname $0\`; pwd`
+
 KILLBILL_HOST=${KILLBILL_HOST-"127.0.0.1"}
 KILLBILL_PORT=${KILLBILL_PORT-"8080"}
 
@@ -25,6 +29,18 @@ KILLBILL_USER=${KILLBILL_USER-"admin"}
 KILLBILL_PASSWORD=${KILLBILL_PASSWORD-"password"}
 KILLBILL_API_KEY=${KILLBILL_API_KEY-"bob"}
 KILLBILL_API_SECRET=${KILLBILL_API_SECRET-"lazar"}
+
+MYSQL_USER=${MYSQL_USER-"root"}
+MYSQL_PASSWORD=${MYSQL_PASSWORD-"root"}
+MYSQL_DATABASE=${MYSQL_DATABASE-"killbill"}
+
+REPORTS=$HERE/reports
+SYSTEM=$HERE/system
+
+function install_ddl() {
+    local ddl=$1
+    mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "source $ddl"
+}
 
 function create_report() {
     local report_name=$1
@@ -45,7 +61,12 @@ function create_report() {
          http://$KILLBILL_HOST:$KILLBILL_PORT/plugins/killbill-analytics/reports
 }
 
+# Install the DDL - the calendar table needs to be first
+install_ddl $REPORTS/calendar.sql
+for r in `find $REPORTS -type f -maxdepth 1`; do install_ddl $r; done
+for r in `find $SYSTEM -type f -maxdepth 1`; do install_ddl $r; done
 
+# Dashboard views
 create_report 'accounts_summary' 'Account summary' 'COUNTERS' 'v_report_accounts_summary'
 create_report 'active_by_product_term_monthly' 'Active subscriptions' 'TIMELINE' 'v_report_active_by_product_term_monthly'
 create_report 'cancellations_count_daily' 'Cancellations' 'TIMELINE' 'v_report_cancellations_count_daily'
@@ -58,23 +79,12 @@ create_report 'invoices_balance_daily' 'Invoice balance' 'TIMELINE' 'v_report_in
 create_report 'invoices_daily' 'Invoices' 'TIMELINE' 'v_report_invoices_daily'
 create_report 'mrr_daily' 'MRR' 'TIMELINE' 'v_report_mrr_daily'
 create_report 'new_accounts_daily' 'New accounts' 'TIMELINE' 'v_report_new_accounts_daily'
-create_report 'notifications_per_queue_name_count_daily' 'Pending notifications' 'TIMELINE' 'v_report_notifications_per_queue_name_count_daily'
-create_report 'notifications_per_queue_name_late_count' 'Late notifications' 'COUNTERS' 'v_report_notifications_per_queue_name_late_count'
 create_report 'overdue_states_count_daily' 'Overdue states' 'TIMELINE' 'v_report_overdue_states_count_daily'
-# create_report 'past_period_rev' 'Overdue states' 'TIMELINE' 'v_report_past_period_rev'
-create_report 'payment_failure_aborted_daily' 'Aborted payments' 'TIMELINE' 'v_report_payment_failure_aborted_daily'
-create_report 'payment_failures_daily' 'Failed payments' 'TIMELINE' 'v_report_payment_failures_daily'
-create_report 'payment_plugin_failure_aborted_daily' 'Aborted payments (plugin failure)' 'TIMELINE' 'v_report_payment_plugin_failure_aborted_daily'
-create_report 'payment_plugin_failure_daily' 'Failed payments (plugin failure)' 'TIMELINE' 'v_report_payment_plugin_failure_daily'
-create_report 'payment_success_daily' 'Successful payments' 'TIMELINE' 'v_report_payment_success_daily'
-create_report 'payments_count' 'Payment summary' 'COUNTERS' 'v_report_payments_count'
 create_report 'payments_total_daily' 'Payment ($ amount)' 'TIMELINE' 'v_report_payments_total_daily'
 create_report 'refunds_total_daily' 'Refunds' 'TIMELINE' 'v_report_refunds_total_daily'
-#create_report 'report_revenue_recognition' 'Revenue recognition' 'TIMELINE' 'v_report_revenue_recognition'
 create_report 'trial_starts_count_daily' 'Trials' 'TIMELINE' 'v_report_trial_starts_count_daily'
 
-
-
+# System views
 create_report 'system_report_control_tag_no_test' 'Control tags' 'COUNTERS' 'v_system_report_control_tag_no_test'
 create_report 'system_report_notifications_per_queue_name' 'Notification queues' 'TIMELINE' 'v_system_report_notifications_per_queue_name'
 create_report 'system_report_notifications_per_queue_name_late' 'Late notifications' 'COUNTERS' 'v_system_report_notifications_per_queue_name_late'
