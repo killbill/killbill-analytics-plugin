@@ -4,7 +4,7 @@ select
 , date_format(ac.created_date,'%Y-%m-%d') as day
 , sum(ac.converted_amount) as count
 from
-  analytics_chargebacks ac 
+  analytics_payment_chargebacks ac
 where 1=1
   and ac.report_group='default'
 group by 1,2
