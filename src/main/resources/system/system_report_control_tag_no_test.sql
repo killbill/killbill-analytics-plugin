@@ -1,6 +1,6 @@
 create or replace view v_system_report_control_tag_no_test as
 select
-a1.name as tag_name
+  a1.name as tag_name
 , count(distinct(a1.account_id)) as count
 from analytics_account_tags a1
 left outer join analytics_account_tags a2
