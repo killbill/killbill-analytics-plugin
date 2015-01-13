@@ -85,21 +85,17 @@ Reports.prototype.hasReport = function(val) {
 
 Reports.prototype.availableReports = function(callback) {
     var url = this.buildBaseURL('/plugins/killbill-analytics/reports');
-    $.get(url, function(allReports) { callback(allReports); }, 'json');
+    this.doGet(url, function(allReports) { callback(allReports); });
 }
 
 Reports.prototype.getDataForReport = function(position, callback) {
     var url = this.buildDataURL(position);
 
-    return $.ajax({
-        type: 'GET',
-        contentType: 'application/json',
-        dataType: 'json',
-        url: url
-    }).done(function(data) {
+    return this.doGet(url,
+            function(data) {
                 callback(position, data);
-            })
-            .fail(function(jqXHR, textStatus, errorThrown) {
+            },
+            function(jqXHR, textStatus, errorThrown) {
                 if (jqXHR.responseText) {
                     try {
                         errors = $.parseJSON(jqXHR.responseText);
@@ -202,4 +198,17 @@ Reports.prototype.buildDataURL = function(position, format) {
 
 Reports.prototype.buildBaseURL = function(path) {
     return this.protocol + '://' + this.host + ':' + this.port + path;
+}
+
+Reports.prototype.doGet = function(url, doneCallback, failCallback) {
+    var apiKey = $.url().param('apiKey') || 'bob';
+    var apiSecret = $.url().param('apiSecret') || 'lazar';
+
+    $.ajax({
+        type: 'GET',
+        contentType: 'application/json',
+        headers: { 'X-Killbill-ApiKey': apiKey, 'X-Killbill-ApiSecret': apiSecret },
+        dataType: 'json',
+        url: url
+    }).done(doneCallback).fail(failCallback);
 }
