@@ -204,7 +204,7 @@ Reports.prototype.doGet = function(url, doneCallback, failCallback) {
     var apiKey = $.url().param('apiKey') || 'bob';
     var apiSecret = $.url().param('apiSecret') || 'lazar';
 
-    $.ajax({
+    return $.ajax({
         type: 'GET',
         contentType: 'application/json',
         headers: { 'X-Killbill-ApiKey': apiKey, 'X-Killbill-ApiSecret': apiSecret },
