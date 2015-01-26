@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -33,6 +34,7 @@ import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 
 import org.joda.time.LocalDate;
+import org.killbill.billing.ObjectType;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.json.Chart;
@@ -47,7 +49,11 @@ import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfig
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.analytics.reports.sql.Metadata;
+import org.killbill.billing.util.api.RecordIdApi;
+import org.killbill.billing.util.callcontext.CallContext;
+import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.skife.jdbi.v2.Handle;
@@ -72,6 +78,7 @@ public class ReportsUserApi {
     public static final String LABEL = "label";
     public static final String COUNT_COLUMN_NAME = "count";
 
+    private final OSGIKillbillAPI killbillAPI;
     private final IDBI dbi;
     private final ExecutorService dbiThreadsExecutor;
     private final ReportsConfiguration reportsConfiguration;
@@ -79,10 +86,12 @@ public class ReportsUserApi {
     private final Metadata sqlMetadata;
 
     public ReportsUserApi(final OSGIKillbillLogService logService,
+                          final OSGIKillbillAPI killbillAPI,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
                           final OSGIConfigPropertiesService osgiConfigPropertiesService,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler) {
+        this.killbillAPI = killbillAPI;
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
@@ -90,7 +99,7 @@ public class ReportsUserApi {
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REPORTS_NB_THREADS_PROPERTY));
         this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? 10 : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");
 
-        this.sqlMetadata = new Metadata(Sets.<String>newHashSet(Iterables.transform(reportsConfiguration.getAllReportConfigurations().values(),
+        this.sqlMetadata = new Metadata(Sets.<String>newHashSet(Iterables.transform(reportsConfiguration.getAllReportConfigurations(null).values(),
                                                                                     new Function<ReportsConfigurationModelDao, String>() {
                                                                                         @Override
                                                                                         public String apply(final ReportsConfigurationModelDao reportConfiguration) {
@@ -107,12 +116,14 @@ public class ReportsUserApi {
         dbiThreadsExecutor.shutdownNow();
     }
 
-    public void clearCaches() {
+    // TODO Cache per tenant
+    public void clearCaches(final CallContext context) {
         sqlMetadata.clearCaches();
     }
 
-    public ReportConfigurationJson getReportConfiguration(final String reportName) throws SQLException {
-        final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
+    public ReportConfigurationJson getReportConfiguration(final String reportName, final TenantContext context) throws SQLException {
+        final Long tenantRecordId = getTenantRecordId(context);
+        final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName, tenantRecordId);
         if (reportsConfigurationModelDao != null) {
             return new ReportConfigurationJson(reportsConfigurationModelDao, sqlMetadata.getTable(reportsConfigurationModelDao.getSourceTableName()));
         } else {
@@ -120,27 +131,32 @@ public class ReportsUserApi {
         }
     }
 
-    public void createReport(final ReportConfigurationJson reportConfigurationJson) {
+    public void createReport(final ReportConfigurationJson reportConfigurationJson, final CallContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
         final ReportsConfigurationModelDao reportsConfigurationModelDao = new ReportsConfigurationModelDao(reportConfigurationJson);
-        reportsConfiguration.createReportConfiguration(reportsConfigurationModelDao);
+        reportsConfiguration.createReportConfiguration(reportsConfigurationModelDao, tenantRecordId);
     }
 
-    public void updateReport(final String reportName, final ReportConfigurationJson reportConfigurationJson) {
-        final ReportsConfigurationModelDao currentReportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
+    public void updateReport(final String reportName, final ReportConfigurationJson reportConfigurationJson, final CallContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
+        final ReportsConfigurationModelDao currentReportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName, tenantRecordId);
         final ReportsConfigurationModelDao reportsConfigurationModelDao = new ReportsConfigurationModelDao(reportConfigurationJson, currentReportsConfigurationModelDao);
-        reportsConfiguration.updateReportConfiguration(reportsConfigurationModelDao);
+        reportsConfiguration.updateReportConfiguration(reportsConfigurationModelDao, tenantRecordId);
     }
 
-    public void deleteReport(final String reportName) {
-        reportsConfiguration.deleteReportConfiguration(reportName);
+    public void deleteReport(final String reportName, final CallContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
+        reportsConfiguration.deleteReportConfiguration(reportName, tenantRecordId);
     }
 
-    public void refreshReport(final String reportName) {
-        final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName);
+    public void refreshReport(final String reportName, final CallContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
+        final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName, tenantRecordId);
         jobsScheduler.scheduleNow(reportsConfigurationModelDao);
     }
 
-    public List<ReportConfigurationJson> getReports() {
+    public List<ReportConfigurationJson> getReports(final TenantContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
         final List<ReportsConfigurationModelDao> reports = Ordering.natural()
                                                                    .nullsLast()
                                                                    .onResultOf(new Function<ReportsConfigurationModelDao, String>() {
@@ -149,7 +165,7 @@ public class ReportsUserApi {
                                                                            return input.getReportPrettyName();
                                                                        }
                                                                    })
-                                                                   .immutableSortedCopy(reportsConfiguration.getAllReportConfigurations().values());
+                                                                   .immutableSortedCopy(reportsConfiguration.getAllReportConfigurations(tenantRecordId).values());
 
         return Lists.<ReportsConfigurationModelDao, ReportConfigurationJson>transform(reports,
                                                                                       new Function<ReportsConfigurationModelDao, ReportConfigurationJson>() {
@@ -168,16 +184,20 @@ public class ReportsUserApi {
     // Useful for testing
     public List<String> getSQLForReport(final String[] rawReportNames,
                                         @Nullable final LocalDate startDate,
-                                        @Nullable final LocalDate endDate) {
+                                        @Nullable final LocalDate endDate,
+                                        final TenantContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
+
         final List<String> sqlQueries = new LinkedList<String>();
         for (final String rawReportName : rawReportNames) {
             final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
-            final ReportsConfigurationModelDao reportConfigurationForReport = reportsConfiguration.getReportConfigurationForReport(reportSpecification.getReportName());
+            final ReportsConfigurationModelDao reportConfigurationForReport = reportsConfiguration.getReportConfigurationForReport(reportSpecification.getReportName(), tenantRecordId);
             if (reportConfigurationForReport != null) {
                 final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportConfigurationForReport.getSourceTableName(),
                                                                                                  reportSpecification,
                                                                                                  startDate,
-                                                                                                 endDate);
+                                                                                                 endDate,
+                                                                                                 tenantRecordId);
                 sqlQueries.add(sqlReportDataExtractor.toString());
             }
         }
@@ -188,7 +208,10 @@ public class ReportsUserApi {
     public List<Chart> getDataForReport(final String[] rawReportNames,
                                         @Nullable final LocalDate startDate,
                                         @Nullable final LocalDate endDate,
-                                        @Nullable final SmootherType smootherType) {
+                                        @Nullable final SmootherType smootherType,
+                                        final TenantContext context) {
+        final Long tenantRecordId = getTenantRecordId(context);
+
         final List<Chart> result = new LinkedList<Chart>();
         final Map<String, Map<String, List<XY>>> timeSeriesData = new ConcurrentHashMap<String, Map<String, List<XY>>>();
 
@@ -199,7 +222,7 @@ public class ReportsUserApi {
         }
 
         // Fetch the latest reports configurations
-        final Map<String, ReportsConfigurationModelDao> reportsConfigurations = reportsConfiguration.getAllReportConfigurations();
+        final Map<String, ReportsConfigurationModelDao> reportsConfigurations = reportsConfiguration.getAllReportConfigurations(tenantRecordId);
 
         final List<Future> jobs = new LinkedList<Future>();
         for (final ReportSpecification reportSpecification : reportSpecifications) {
@@ -214,12 +237,12 @@ public class ReportsUserApi {
                 public void run() {
                     switch (reportType) {
                         case COUNTERS:
-                            List<DataMarker> counters = getCountersData(tableName);
+                            List<DataMarker> counters = getCountersData(tableName, tenantRecordId);
                             result.add(new Chart(ReportType.COUNTERS, prettyName, counters));
                             break;
 
                         case TIMELINE:
-                            final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, reportConfiguration, startDate, endDate);
+                            final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, reportConfiguration, startDate, endDate, tenantRecordId);
                             timeSeriesData.put(reportName, data);
                             break;
                         default:
@@ -332,11 +355,11 @@ public class ReportsUserApi {
         }
     }
 
-    private List<DataMarker> getCountersData(final String tableName) {
+    private List<DataMarker> getCountersData(final String tableName, final Long tenantRecordId) {
         return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
             @Override
             public List<DataMarker> withHandle(final Handle handle) throws Exception {
-                final List<Map<String, Object>> results = handle.select("select * from " + tableName);
+                final List<Map<String, Object>> results = handle.select("select * from " + tableName + " where tenant_record_id = " + tenantRecordId);
                 if (results.size() == 0) {
                     return Collections.emptyList();
                 }
@@ -364,11 +387,13 @@ public class ReportsUserApi {
                                                     final ReportSpecification reportSpecification,
                                                     final ReportsConfigurationModelDao reportsConfiguration,
                                                     @Nullable final LocalDate startDate,
-                                                    @Nullable final LocalDate endDate) {
+                                                    @Nullable final LocalDate endDate,
+                                                    final Long tenantRecordId) {
         final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName,
                                                                                          reportSpecification,
                                                                                          startDate,
-                                                                                         endDate);
+                                                                                         endDate,
+                                                                                         tenantRecordId);
         return dbi.withHandle(new HandleCallback<Map<String, List<XY>>>() {
             @Override
             public Map<String, List<XY>> withHandle(final Handle handle) throws Exception {
@@ -476,6 +501,16 @@ public class ReportsUserApi {
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private Long getTenantRecordId(final TenantContext context) {
+        // See convention in InternalCallContextFactory
+        if (context.getTenantId() == null) {
+            return 0L;
+        } else {
+            final RecordIdApi recordIdApi = killbillAPI.getRecordIdApi();
+            return recordIdApi.getRecordId(context.getTenantId(), ObjectType.TENANT, context);
         }
     }
 }

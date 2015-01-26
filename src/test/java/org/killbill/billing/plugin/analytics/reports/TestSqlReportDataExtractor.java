@@ -30,7 +30,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     public void testSimple() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day");
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
-                                                               "from payments_per_day");
+                                                               "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234");
     }
 
     @Test(groups = "fast")
@@ -40,7 +41,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
                                                                "  `state`\n" +
-                                                               "from payments_per_day");
+                                                               "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234");
     }
 
     @Test(groups = "fast")
@@ -50,7 +52,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `day`, \n" +
                                                                "  `amount`, \n" +
                                                                "  `fee`\n" +
-                                                               "from payments_per_day");
+                                                               "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234");
     }
 
     @Test(groups = "fast")
@@ -62,7 +65,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `state`, \n" +
                                                                "  `amount`, \n" +
                                                                "  `fee`\n" +
-                                                               "from payments_per_day");
+                                                               "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234");
     }
 
     @Test(groups = "fast")
@@ -81,7 +85,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `state`, \n" +
                                                                "  `amount`, \n" +
                                                                "  `fee`\n" +
-                                                               "from payments_per_day");
+                                                               "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234");
     }
 
     @Test(groups = "fast")
@@ -100,8 +105,11 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `amount`, \n" +
                                                                "  `fee`\n" +
                                                                "from payments_per_day\n" +
-                                                               "where currency in (\n" +
-                                                               "  'USD', 'BRL', 'GBP', 'EUR', 'MXN', 'AUD'\n" +
+                                                               "where (\n" +
+                                                               "  currency in (\n" +
+                                                               "    'USD', 'BRL', 'GBP', 'EUR', 'MXN', 'AUD'\n" +
+                                                               "  )\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")");
     }
 
@@ -111,8 +119,11 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
-                                                               "  `currency` = 'BTC'\n" +
-                                                               "  or `currency` = 'EUR'\n" +
+                                                               "  (\n" +
+                                                               "    `currency` = 'BTC'\n" +
+                                                               "    or `currency` = 'EUR'\n" +
+                                                               "  )\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")");
     }
 
@@ -122,8 +133,11 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
-                                                               "  `currency` <> 'BTC'\n" +
-                                                               "  or `currency` <> 'EUR'\n" +
+                                                               "  (\n" +
+                                                               "    `currency` <> 'BTC'\n" +
+                                                               "    or `currency` <> 'EUR'\n" +
+                                                               "  )\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")");
     }
 
@@ -133,9 +147,12 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
-                                                               "  `currency` <> 'EUR'\n" +
-                                                               "  or `state` = 'PROCESSED'\n" +
-                                                               "  or `state` = 'PROCESSING'\n" +
+                                                               "  (\n" +
+                                                               "    `currency` <> 'EUR'\n" +
+                                                               "    or `state` = 'PROCESSED'\n" +
+                                                               "    or `state` = 'PROCESSING'\n" +
+                                                               "  )\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")");
     }
 
@@ -150,6 +167,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  sum(`fee`), \n" +
                                                                "  count(distinct `amount`)\n" +
                                                                "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234\n" +
                                                                "group by \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
@@ -163,6 +181,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  `day`, \n" +
                                                                "  avg(`amount`)\n" +
                                                                "from payments_per_day\n" +
+                                                               "where `tenant_record_id` = 1234\n" +
                                                                "group by `day`");
     }
 
@@ -171,7 +190,10 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", new LocalDate(2012, 11, 10), null);
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
-                                                               "where `day` >= '2012-11-10'");
+                                                               "where (\n" +
+                                                               "  `day` >= '2012-11-10'\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
+                                                               ")");
     }
 
     @Test(groups = "fast")
@@ -179,7 +201,10 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", null, new LocalDate(2013, 11, 10));
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
-                                                               "where `day` <= '2013-11-10'");
+                                                               "where (\n" +
+                                                               "  `day` <= '2013-11-10'\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
+                                                               ")");
     }
 
     @Test(groups = "fast")
@@ -190,6 +215,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "where (\n" +
                                                                "  `day` <= '2013-11-10'\n" +
                                                                "  and `day` >= '2012-11-10'\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")");
     }
 
@@ -213,6 +239,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  )\n" +
                                                                "  and `day` >= '2012-11-10'\n" +
                                                                "  and `day` <= '2013-11-10'\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")");
     }
 
@@ -246,6 +273,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  )\n" +
                                                                "  and `day` >= '2012-11-10'\n" +
                                                                "  and `day` <= '2013-11-10'\n" +
+                                                               "  and `tenant_record_id` = 1234\n" +
                                                                ")\n" +
                                                                "group by \n" +
                                                                "  `day`, \n" +
@@ -259,6 +287,6 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName, @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
-        return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate);
+        return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate, 1234L);
     }
 }

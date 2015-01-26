@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -30,37 +31,39 @@ import org.testng.annotations.Test;
 
 public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
 
+    private final Long tenantRecordId = 1234L;
+
     @Test(groups = "slow")
     public void testCrud() throws Exception {
         final JobsScheduler jobsScheduler = new JobsScheduler(logService, killbillDataSource, clock, notificationQueueService);
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(killbillDataSource, jobsScheduler);
 
         // Verify initial state
-        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 0);
+        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations(tenantRecordId).keySet().size(), 0);
         Assert.assertEquals(jobsScheduler.schedules().size(), 0);
 
         final ReportsConfigurationModelDao report1 = createReportConfiguration();
         final ReportsConfigurationModelDao report2 = createReportConfiguration();
 
         // Create the first report
-        reportsConfiguration.createReportConfiguration(report1);
-        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 1);
-        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(report1));
-        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(report1));
+        reportsConfiguration.createReportConfiguration(report1, tenantRecordId);
+        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations(tenantRecordId).keySet().size(), 1);
+        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report1.getReportName()).equalsNoRecordId(report1));
+        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName(), tenantRecordId).equalsNoRecordId(report1));
 
-        final AnalyticsReportJob reportJob1 = new AnalyticsReportJob(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()));
+        final AnalyticsReportJob reportJob1 = new AnalyticsReportJob(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report1.getReportName()));
         Assert.assertEquals(jobsScheduler.schedules().size(), 1);
         Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
 
         // Create the second one
-        reportsConfiguration.createReportConfiguration(report2);
-        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 2);
-        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(report1));
-        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report2.getReportName()).equalsNoRecordId(report2));
-        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(report1));
-        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName()).equalsNoRecordId(report2));
+        reportsConfiguration.createReportConfiguration(report2, tenantRecordId);
+        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations(tenantRecordId).keySet().size(), 2);
+        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report1.getReportName()).equalsNoRecordId(report1));
+        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report2.getReportName()).equalsNoRecordId(report2));
+        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName(), tenantRecordId).equalsNoRecordId(report1));
+        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName(), tenantRecordId).equalsNoRecordId(report2));
 
-        final AnalyticsReportJob reportJob2 = new AnalyticsReportJob(reportsConfiguration.getAllReportConfigurations().get(report2.getReportName()));
+        final AnalyticsReportJob reportJob2 = new AnalyticsReportJob(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report2.getReportName()));
         Assert.assertEquals(jobsScheduler.schedules().size(), 2);
         Assert.assertEquals(jobsScheduler.schedules().get(0), reportJob1);
         Assert.assertEquals(jobsScheduler.schedules().get(1), reportJob2);
@@ -73,22 +76,22 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
                                                                                              report1.getRefreshProcedureName(),
                                                                                              Frequency.HOURLY,
                                                                                              report1.getRefreshHourOfDayGmt());
-        reportsConfiguration.updateReportConfiguration(updatedReport1);
-        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 2);
-        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(updatedReport1));
-        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report2.getReportName()).equalsNoRecordId(report2));
-        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(updatedReport1));
-        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName()).equalsNoRecordId(report2));
+        reportsConfiguration.updateReportConfiguration(updatedReport1, tenantRecordId);
+        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations(tenantRecordId).keySet().size(), 2);
+        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report1.getReportName()).equalsNoRecordId(updatedReport1));
+        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report2.getReportName()).equalsNoRecordId(report2));
+        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName(), tenantRecordId).equalsNoRecordId(updatedReport1));
+        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report2.getReportName(), tenantRecordId).equalsNoRecordId(report2));
         Assert.assertEquals(jobsScheduler.schedules().size(), 2);
         Assert.assertEquals(jobsScheduler.schedules().get(0).getReportName(), report1.getReportName());
         Assert.assertEquals(jobsScheduler.schedules().get(0).getRefreshFrequency(), Frequency.HOURLY);
         Assert.assertEquals(jobsScheduler.schedules().get(1), reportJob2);
 
         // Delete the second one
-        reportsConfiguration.deleteReportConfiguration(report2.getReportName());
-        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations().keySet().size(), 1);
-        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations().get(report1.getReportName()).equalsNoRecordId(updatedReport1));
-        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName()).equalsNoRecordId(updatedReport1));
+        reportsConfiguration.deleteReportConfiguration(report2.getReportName(), tenantRecordId);
+        Assert.assertEquals(reportsConfiguration.getAllReportConfigurations(tenantRecordId).keySet().size(), 1);
+        Assert.assertTrue(reportsConfiguration.getAllReportConfigurations(tenantRecordId).get(report1.getReportName()).equalsNoRecordId(updatedReport1));
+        Assert.assertTrue(reportsConfiguration.getReportConfigurationForReport(report1.getReportName(), tenantRecordId).equalsNoRecordId(updatedReport1));
         Assert.assertEquals(jobsScheduler.schedules().size(), 1);
         Assert.assertEquals(jobsScheduler.schedules().get(0).getReportName(), report1.getReportName());
     }

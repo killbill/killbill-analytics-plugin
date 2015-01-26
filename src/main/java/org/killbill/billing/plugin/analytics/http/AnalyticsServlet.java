@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -24,27 +25,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.api.BusinessSnapshot;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
-import org.killbill.billing.tenant.api.Tenant;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.billing.util.callcontext.CallOrigin;
-import org.killbill.billing.util.callcontext.UserType;
 import org.osgi.service.log.LogService;
-
-import com.google.common.base.Objects;
 
 // Handle /plugins/killbill-analytics/<kbAccountId>
 public class AnalyticsServlet extends BaseServlet {
-
-    private static final String QUERY_TENANT_ID = "tenantId";
-    private static final String HDR_CREATED_BY = "X-Killbill-CreatedBy";
-    private static final String HDR_REASON = "X-Killbill-Reason";
-    private static final String HDR_COMMENT = "X-Killbill-Comment";
 
     public AnalyticsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
         super(analyticsUserApi, reportsUserApi, logService);
@@ -79,87 +68,6 @@ public class AnalyticsServlet extends BaseServlet {
         } catch (AnalyticsRefreshException e) {
             logService.log(LogService.LOG_ERROR, "Error refreshing account " + kbAccountId, e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-        }
-    }
-
-    private CallContext createCallContext(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
-        final String createdBy = Objects.firstNonNull(req.getHeader(HDR_CREATED_BY), req.getRemoteAddr());
-        final String reason = req.getHeader(HDR_REASON);
-        final String comment = Objects.firstNonNull(req.getHeader(HDR_COMMENT), req.getRequestURI());
-
-        // Set by the TenantFilter
-        final Tenant tenant = (Tenant) req.getAttribute("killbill_tenant");
-
-        UUID tenantId = null;
-        if (tenant != null) {
-            tenantId = tenant.getId();
-        }
-        return new AnalyticsApiCallContext(createdBy, reason, comment, tenantId);
-    }
-
-    private static final class AnalyticsApiCallContext implements CallContext {
-
-        private final String createdBy;
-        private final String reason;
-        private final String comment;
-        private final UUID tenantId;
-        private final DateTime now;
-
-        private AnalyticsApiCallContext(final String createdBy,
-                                        final String reason,
-                                        final String comment,
-                                        final UUID tenantId) {
-            this.createdBy = createdBy;
-            this.reason = reason;
-            this.comment = comment;
-            this.tenantId = tenantId;
-
-            this.now = new DateTime(DateTimeZone.UTC);
-        }
-
-        @Override
-        public UUID getUserToken() {
-            return UUID.randomUUID();
-        }
-
-        @Override
-        public String getUserName() {
-            return createdBy;
-        }
-
-        @Override
-        public CallOrigin getCallOrigin() {
-            return CallOrigin.EXTERNAL;
-        }
-
-        @Override
-        public UserType getUserType() {
-            return UserType.ADMIN;
-        }
-
-        @Override
-        public String getReasonCode() {
-            return reason;
-        }
-
-        @Override
-        public String getComments() {
-            return comment;
-        }
-
-        @Override
-        public DateTime getCreatedDate() {
-            return now;
-        }
-
-        @Override
-        public DateTime getUpdatedDate() {
-            return now;
-        }
-
-        @Override
-        public UUID getTenantId() {
-            return tenantId;
         }
     }
 }

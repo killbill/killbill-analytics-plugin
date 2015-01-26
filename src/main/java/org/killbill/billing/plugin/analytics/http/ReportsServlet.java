@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -40,6 +41,8 @@ import org.killbill.billing.plugin.analytics.json.XY;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother.SmootherType;
+import org.killbill.billing.util.callcontext.CallContext;
+import org.killbill.billing.util.callcontext.TenantContext;
 import org.osgi.service.log.LogService;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -68,11 +71,13 @@ public class ReportsServlet extends BaseServlet {
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        final TenantContext context = createCallContext(req, resp);
+
         final String reportName = (String) req.getAttribute(REPORT_NAME_ATTRIBUTE);
         if (reportName != null) {
             final ReportConfigurationJson reportConfigurationJson;
             try {
-                reportConfigurationJson = reportsUserApi.getReportConfiguration(reportName);
+                reportConfigurationJson = reportsUserApi.getReportConfiguration(reportName, context);
             } catch (SQLException e) {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
                 return;
@@ -84,14 +89,16 @@ public class ReportsServlet extends BaseServlet {
             resp.getOutputStream().write(jsonMapper.writeValueAsBytes(reportConfigurationJson));
             resp.setContentType("application/json");
         } else {
-            doHandleReports(req, resp);
+            doHandleReports(req, resp, context);
         }
     }
 
     @Override
     protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        final CallContext context = createCallContext(req, resp);
+
         final ReportConfigurationJson reportConfigurationJson = jsonMapper.readValue(req.getInputStream(), ReportConfigurationJson.class);
-        reportsUserApi.createReport(reportConfigurationJson);
+        reportsUserApi.createReport(reportConfigurationJson, context);
 
         resp.setHeader("Location", "/plugins/killbill-analytics/reports/" + reportConfigurationJson.getReportName());
         resp.setStatus(201);
@@ -99,33 +106,37 @@ public class ReportsServlet extends BaseServlet {
 
     @Override
     protected void doPut(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        final CallContext context = createCallContext(req, resp);
+
         final String reportName = (String) req.getAttribute(REPORT_NAME_ATTRIBUTE);
         if (reportName == null) {
             return;
         }
 
         if ((Boolean) req.getAttribute(SHOULD_REFRESH)) {
-            reportsUserApi.refreshReport(reportName);
+            reportsUserApi.refreshReport(reportName, context);
         } else {
             final ReportConfigurationJson reportConfigurationJson = jsonMapper.readValue(req.getInputStream(), ReportConfigurationJson.class);
-            reportsUserApi.updateReport(reportName, reportConfigurationJson);
+            reportsUserApi.updateReport(reportName, reportConfigurationJson, context);
         }
     }
 
     @Override
     protected void doDelete(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+        final CallContext context = createCallContext(req, resp);
+
         final String reportName = (String) req.getAttribute(REPORT_NAME_ATTRIBUTE);
         if (reportName == null) {
-            reportsUserApi.clearCaches();
+            reportsUserApi.clearCaches(context);
         } else {
-            reportsUserApi.deleteReport(reportName);
+            reportsUserApi.deleteReport(reportName, context);
         }
     }
 
-    private void doHandleReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
+    private void doHandleReports(final HttpServletRequest req, final HttpServletResponse resp, final TenantContext context) throws ServletException, IOException {
         final String[] rawReportNames = req.getParameterValues(REPORTS_QUERY_NAME);
         if (rawReportNames == null || rawReportNames.length == 0) {
-            listReports(req, resp);
+            listReports(req, resp, context);
             return;
         }
 
@@ -135,7 +146,7 @@ public class ReportsServlet extends BaseServlet {
         final boolean sqlOnly = req.getParameter(REPORT_QUERY_SQL_ONLY) != null;
 
         if (sqlOnly) {
-            for (final String sql : reportsUserApi.getSQLForReport(rawReportNames, startDate, endDate)) {
+            for (final String sql : reportsUserApi.getSQLForReport(rawReportNames, startDate, endDate, context)) {
                 resp.getOutputStream().write(("\n" + sql + "\n").getBytes(Charset.forName("UTF-8")));
             }
             resp.setContentType("text/plain");
@@ -143,7 +154,7 @@ public class ReportsServlet extends BaseServlet {
             final SmootherType smootherType = Smoother.fromString(Strings.emptyToNull(req.getParameter(REPORTS_SMOOTHER_NAME)));
 
             // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
-            final List<Chart> results = reportsUserApi.getDataForReport(rawReportNames, startDate, endDate, smootherType);
+            final List<Chart> results = reportsUserApi.getDataForReport(rawReportNames, startDate, endDate, smootherType, context);
 
             final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
             if (CSV_DATA_FORMAT.equals(format)) {
@@ -157,8 +168,8 @@ public class ReportsServlet extends BaseServlet {
         }
     }
 
-    private void listReports(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        final List<ReportConfigurationJson> reports = reportsUserApi.getReports();
+    private void listReports(final HttpServletRequest req, final HttpServletResponse resp, final TenantContext context) throws ServletException, IOException {
+        final List<ReportConfigurationJson> reports = reportsUserApi.getReports(context);
         resp.getOutputStream().write(jsonMapper.writeValueAsBytes(reports));
         resp.setContentType("application/json");
     }

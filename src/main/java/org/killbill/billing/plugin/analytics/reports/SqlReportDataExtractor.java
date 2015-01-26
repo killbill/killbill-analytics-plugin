@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -52,6 +53,7 @@ public class SqlReportDataExtractor {
     private final LocalDate startDate;
     private final LocalDate endDate;
     private final DSLContext context;
+    private final Long tenantRecordId;
 
     private Collection<Field<Object>> dimensions = ImmutableList.<Field<Object>>of();
     private Collection<Field<Object>> metrics = ImmutableList.<Field<Object>>of();
@@ -60,26 +62,24 @@ public class SqlReportDataExtractor {
     private boolean shouldGroupBy = false;
 
     public SqlReportDataExtractor(final String tableName,
-                                  final ReportSpecification reportSpecification) {
-        this(tableName, reportSpecification, null, null);
-    }
-
-    public SqlReportDataExtractor(final String tableName,
                                   final ReportSpecification reportSpecification,
                                   @Nullable final LocalDate startDate,
-                                  @Nullable final LocalDate endDate) {
-        this(tableName, reportSpecification, startDate, endDate, SQLDialect.MYSQL);
+                                  @Nullable final LocalDate endDate,
+                                  final Long tenantRecordId) {
+        this(tableName, reportSpecification, startDate, endDate, SQLDialect.MYSQL, tenantRecordId);
     }
 
     public SqlReportDataExtractor(final String tableName,
                                   final ReportSpecification reportSpecification,
                                   @Nullable final LocalDate startDate,
                                   @Nullable final LocalDate endDate,
-                                  final SQLDialect sqlDialect) {
+                                  final SQLDialect sqlDialect,
+                                  final Long tenantRecordId) {
         this.tableName = tableName;
         this.reportSpecification = reportSpecification;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.tenantRecordId = tenantRecordId;
 
         final Settings settings = new Settings();
         settings.withStatementType(StatementType.STATIC_STATEMENT);
@@ -106,6 +106,8 @@ public class SqlReportDataExtractor {
         if (condition != null) {
             statement = statement.and(condition);
         }
+
+        statement.and(DSL.fieldByName("tenant_record_id").eq(tenantRecordId));
 
         if (shouldGroupBy) {
             return statement.groupBy(dimensions)

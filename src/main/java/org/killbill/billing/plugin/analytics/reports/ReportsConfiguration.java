@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -30,6 +31,7 @@ import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
 
+// TODO Make reports configurable per tenant
 public class ReportsConfiguration {
 
     private final ReportsConfigurationSqlDao sqlDao;
@@ -41,7 +43,7 @@ public class ReportsConfiguration {
         this.scheduler = scheduler;
     }
 
-    public void createReportConfiguration(final ReportsConfigurationModelDao report) {
+    public void createReportConfiguration(final ReportsConfigurationModelDao report, final Long tenantRecordId) {
         sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
             @Override
             public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
@@ -58,7 +60,7 @@ public class ReportsConfiguration {
         });
     }
 
-    public void updateReportConfiguration(final ReportsConfigurationModelDao report) {
+    public void updateReportConfiguration(final ReportsConfigurationModelDao report, final Long tenantRecordId) {
         sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
             @Override
             public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
@@ -76,7 +78,7 @@ public class ReportsConfiguration {
         });
     }
 
-    public void deleteReportConfiguration(final String reportName) {
+    public void deleteReportConfiguration(final String reportName, final Long tenantRecordId) {
         sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
             @Override
             public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
@@ -90,7 +92,7 @@ public class ReportsConfiguration {
         });
     }
 
-    public Map<String, ReportsConfigurationModelDao> getAllReportConfigurations() {
+    public Map<String, ReportsConfigurationModelDao> getAllReportConfigurations(final Long tenantRecordId) {
         final Map<String, ReportsConfigurationModelDao> reports = new LinkedHashMap<String, ReportsConfigurationModelDao>();
 
         final List<ReportsConfigurationModelDao> reportsConfigurationModelDaos = sqlDao.getAllReportsConfigurations();
@@ -101,7 +103,7 @@ public class ReportsConfiguration {
         return reports;
     }
 
-    public ReportsConfigurationModelDao getReportConfigurationForReport(final String reportName) {
+    public ReportsConfigurationModelDao getReportConfigurationForReport(final String reportName, final Long tenantRecordId) {
         return sqlDao.getReportConfigurationForReport(reportName);
     }
 }
