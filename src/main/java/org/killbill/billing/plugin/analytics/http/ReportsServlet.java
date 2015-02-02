@@ -98,10 +98,23 @@ public class ReportsServlet extends BaseServlet {
         final CallContext context = createCallContext(req, resp);
 
         final ReportConfigurationJson reportConfigurationJson = jsonMapper.readValue(req.getInputStream(), ReportConfigurationJson.class);
-        reportsUserApi.createReport(reportConfigurationJson, context);
+
+        final ReportConfigurationJson existingReportConfiguration;
+        try {
+            existingReportConfiguration = reportsUserApi.getReportConfiguration(reportConfigurationJson.getReportName(), context);
+        } catch (SQLException e) {
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            return;
+        }
+
+        if (existingReportConfiguration == null) {
+            reportsUserApi.createReport(reportConfigurationJson, context);
+            resp.setStatus(201);
+        } else {
+            resp.setStatus(409);
+        }
 
         resp.setHeader("Location", "/plugins/killbill-analytics/reports/" + reportConfigurationJson.getReportName());
-        resp.setStatus(201);
     }
 
     @Override
