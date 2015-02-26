@@ -17,18 +17,17 @@
 
 package org.killbill.billing.plugin.analytics.reports.configuration;
 
-import java.util.List;
-
 import org.killbill.commons.jdbi.binder.SmartBindBean;
 import org.skife.jdbi.v2.sqlobject.Bind;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
-import org.skife.jdbi.v2.sqlobject.mixins.Transmogrifier;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
 
+import java.util.List;
+
 @UseStringTemplate3StatementLocator
-public interface ReportsConfigurationSqlDao extends Transmogrifier, Transactional<ReportsConfigurationSqlDao> {
+public interface ReportsConfigurationSqlDao extends Transactional<ReportsConfigurationSqlDao> {
 
     @SqlQuery
     public List<ReportsConfigurationModelDao> getAllReportsConfigurations();

@@ -54,7 +54,6 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
         Mockito.when(recurring1.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
 
         Mockito.when(phase1.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(phase1.getPlan()).thenReturn(plan1);
         Mockito.when(phase1.getRecurring()).thenReturn(recurring1);
         Mockito.when(phase1.getPhaseType()).thenReturn(PhaseType.TRIAL);
 
@@ -70,7 +69,6 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
         Mockito.when(recurring2.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
 
         Mockito.when(phase2.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(phase2.getPlan()).thenReturn(plan2);
         Mockito.when(phase2.getRecurring()).thenReturn(recurring2);
         Mockito.when(phase2.getPhaseType()).thenReturn(PhaseType.TRIAL);
 
@@ -86,7 +84,6 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
         Mockito.when(recurring3.getBillingPeriod()).thenReturn(BillingPeriod.MONTHLY);
 
         Mockito.when(phase3.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(phase3.getPlan()).thenReturn(plan2);
         Mockito.when(phase3.getRecurring()).thenReturn(recurring3);
         Mockito.when(phase3.getPhaseType()).thenReturn(PhaseType.EVERGREEN);
 

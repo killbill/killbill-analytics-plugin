@@ -18,6 +18,7 @@
 
 package org.killbill.billing.plugin.analytics.reports;
 
+import java.sql.Connection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,65 +29,65 @@ import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfig
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.skife.jdbi.v2.DBI;
+import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+import org.skife.jdbi.v2.tweak.HandleCallback;
 
 // TODO Make reports configurable per tenant
 public class ReportsConfiguration {
 
-    private final ReportsConfigurationSqlDao sqlDao;
     private final JobsScheduler scheduler;
+    private final DBI dbi;
 
     public ReportsConfiguration(final OSGIKillbillDataSource osgiKillbillDataSource, final JobsScheduler scheduler) {
-        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
-        this.sqlDao = dbi.onDemand(ReportsConfigurationSqlDao.class);
+        this.dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
         this.scheduler = scheduler;
     }
 
+
     public void createReportConfiguration(final ReportsConfigurationModelDao report, final Long tenantRecordId) {
-        sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
+        executeWithConnectionAndTransaction(new ReportsConfigurationQueryCallback<Void>() {
             @Override
-            public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
+            public Void executeCallback(Connection connection, ReportsConfigurationSqlDao transactional) {
                 transactional.addReportConfiguration(report);
 
                 if (report.getRefreshFrequency() != null && report.getRefreshProcedureName() != null) {
                     // Re-read the record to optimize the schedule creation path
                     final ReportsConfigurationModelDao reportWithRecordId = transactional.getReportConfigurationForReport(report.getReportName());
-                    scheduler.schedule(reportWithRecordId, transactional);
+                    scheduler.schedule(reportWithRecordId, connection);
                 }
-
                 return null;
             }
         });
     }
 
     public void updateReportConfiguration(final ReportsConfigurationModelDao report, final Long tenantRecordId) {
-        sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
+        executeWithConnectionAndTransaction(new ReportsConfigurationQueryCallback<Void>() {
             @Override
-            public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
+            public Void executeCallback(Connection connection, ReportsConfigurationSqlDao transactional) {
                 transactional.updateReportConfiguration(report);
 
                 if (report.getRefreshFrequency() != null && report.getRefreshProcedureName() != null) {
                     // Re-read the record to optimize the schedule creation path
                     final ReportsConfigurationModelDao reportWithRecordId = transactional.getReportConfigurationForReport(report.getReportName());
-                    scheduler.unSchedule(reportWithRecordId, transactional);
-                    scheduler.schedule(reportWithRecordId, transactional);
+                    scheduler.unSchedule(reportWithRecordId, connection);
+                    scheduler.schedule(reportWithRecordId, connection);
                 }
-
                 return null;
             }
         });
     }
 
     public void deleteReportConfiguration(final String reportName, final Long tenantRecordId) {
-        sqlDao.inTransaction(new Transaction<Void, ReportsConfigurationSqlDao>() {
+        executeWithConnectionAndTransaction(new ReportsConfigurationQueryCallback<Void>() {
             @Override
-            public Void inTransaction(final ReportsConfigurationSqlDao transactional, final TransactionStatus status) throws Exception {
+            public Void executeCallback(Connection connection, ReportsConfigurationSqlDao transactional) {
                 // Re-read the record to optimize the schedule deletion path
                 final ReportsConfigurationModelDao reportsConfigurationModelDao = transactional.getReportConfigurationForReport(reportName);
 
                 transactional.deleteReportConfiguration(reportName);
-                scheduler.unSchedule(reportsConfigurationModelDao, transactional);
+                scheduler.unSchedule(reportsConfigurationModelDao, connection);
                 return null;
             }
         });
@@ -94,8 +95,12 @@ public class ReportsConfiguration {
 
     public Map<String, ReportsConfigurationModelDao> getAllReportConfigurations(final Long tenantRecordId) {
         final Map<String, ReportsConfigurationModelDao> reports = new LinkedHashMap<String, ReportsConfigurationModelDao>();
-
-        final List<ReportsConfigurationModelDao> reportsConfigurationModelDaos = sqlDao.getAllReportsConfigurations();
+        final List<ReportsConfigurationModelDao> reportsConfigurationModelDaos = executeWithConnectionAndTransaction(new ReportsConfigurationQueryCallback<List<ReportsConfigurationModelDao>>() {
+            @Override
+            public List<ReportsConfigurationModelDao> executeCallback(Connection connection, ReportsConfigurationSqlDao transactional) {
+                return transactional.getAllReportsConfigurations();
+            }
+        });
         for (final ReportsConfigurationModelDao report : reportsConfigurationModelDaos) {
             reports.put(report.getReportName(), report);
         }
@@ -104,6 +109,26 @@ public class ReportsConfiguration {
     }
 
     public ReportsConfigurationModelDao getReportConfigurationForReport(final String reportName, final Long tenantRecordId) {
-        return sqlDao.getReportConfigurationForReport(reportName);
+        return executeWithConnectionAndTransaction(new ReportsConfigurationQueryCallback<ReportsConfigurationModelDao>() {
+            @Override
+            public ReportsConfigurationModelDao executeCallback(Connection connection, ReportsConfigurationSqlDao transactional) {
+                return transactional.getReportConfigurationForReport(reportName);
+            }
+        });
     }
+
+    private interface ReportsConfigurationQueryCallback<Result> {
+        public Result executeCallback(final Connection connection, final ReportsConfigurationSqlDao transactional);
+    }
+
+    private <Result> Result executeWithConnectionAndTransaction(final ReportsConfigurationQueryCallback<Result> callback) {
+        return dbi.withHandle(new HandleCallback<Result>() {
+            @Override
+            public Result withHandle(Handle handle) throws Exception {
+                final Connection connection  = handle.getConnection();
+                final ReportsConfigurationSqlDao transactional = handle.attach(ReportsConfigurationSqlDao.class);
+                return callback.executeCallback(connection, transactional);
+            }
+        });
+    };
 }

@@ -279,7 +279,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(recurring.getBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
         Mockito.when(phase.getRecurring()).thenReturn(recurring);
         Mockito.when(phase.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(phase.getPlan()).thenReturn(plan);
         Mockito.when(phase.getPhaseType()).thenReturn(PhaseType.DISCOUNT);
 
         final InternationalPrice internationalPrice = Mockito.mock(InternationalPrice.class);
