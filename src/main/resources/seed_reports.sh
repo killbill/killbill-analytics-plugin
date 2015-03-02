@@ -30,6 +30,7 @@ KILLBILL_PASSWORD=${KILLBILL_PASSWORD-"password"}
 KILLBILL_API_KEY=${KILLBILL_API_KEY-"bob"}
 KILLBILL_API_SECRET=${KILLBILL_API_SECRET-"lazar"}
 
+MYSQL_HOST=${MYSQL_HOST-"127.0.0.1"}
 MYSQL_USER=${MYSQL_USER-"root"}
 MYSQL_PASSWORD=${MYSQL_PASSWORD-"root"}
 MYSQL_DATABASE=${MYSQL_DATABASE-"killbill"}
@@ -39,7 +40,7 @@ SYSTEM=$HERE/system
 
 function install_ddl() {
     local ddl=$1
-    mysql -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "source $ddl"
+    mysql -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "source $ddl"
 }
 
 function create_report() {
