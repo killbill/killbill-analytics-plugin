@@ -57,7 +57,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     protected DefaultNotificationQueueService notificationQueueService;
 
     protected final Clock clock = new DefaultClock();
-    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
+    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, "USD", ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
 
     @BeforeClass(groups = "slow")
     public void setUpClass() throws Exception {

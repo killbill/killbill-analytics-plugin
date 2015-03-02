@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2015 Groupon, Inc
+ * Copyright 2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -40,19 +41,10 @@ public class CurrencyConverter {
     // TODO PIERRE Better representation (heap?)
     private final Map<String, List<CurrencyConversionModelDao>> currencyConversions;
 
-    public CurrencyConverter(final Clock clock, final Map<String, List<CurrencyConversionModelDao>> currencyConversions) {
+    public CurrencyConverter(final Clock clock, final String referenceCurrency, final Map<String, List<CurrencyConversionModelDao>> currencyConversions) {
         this.clock = clock;
+        this.referenceCurrency = referenceCurrency;
         this.currencyConversions = currencyConversions;
-
-        // We expect the currency conversions to be for the same reference currency - we don't check it though
-        String commonReferenceCurrency = null;
-        if (currencyConversions.values().iterator().hasNext()) {
-            final List<CurrencyConversionModelDao> firstCurrencyConversion = currencyConversions.values().iterator().next();
-            if (firstCurrencyConversion.iterator().hasNext()) {
-                commonReferenceCurrency = firstCurrencyConversion.iterator().next().getReferenceCurrency();
-            }
-        }
-        this.referenceCurrency = commonReferenceCurrency;
     }
 
     public BigDecimal getConvertedValue(@Nullable final BigDecimal value,

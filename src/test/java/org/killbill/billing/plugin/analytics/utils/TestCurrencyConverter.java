@@ -44,7 +44,7 @@ public class TestCurrencyConverter extends AnalyticsTestSuiteNoDB {
                         new CurrencyConversionModelDao("EUR", new LocalDate(2012, 9, 15), new LocalDate(2012, 9, 30), new BigDecimal("1.5"), "USD"),
                         new CurrencyConversionModelDao("EUR", new LocalDate(2012, 10, 1), new LocalDate(2012, 10, 31), new BigDecimal("1.6"), "USD"))
                                                                                                                                            );
-        final CurrencyConverter currencyConverter = new CurrencyConverter(new DefaultClock(), currencyConversions);
+        final CurrencyConverter currencyConverter = new CurrencyConverter(new DefaultClock(), "USD", currencyConversions);
 
         // No data for currency
         Assert.assertNull(currencyConverter.getConvertedValue(BigDecimal.TEN, "FOO", new LocalDate(2012, 9, 1)));

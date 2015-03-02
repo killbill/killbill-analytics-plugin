@@ -115,7 +115,7 @@ public abstract class BusinessFactoryBase {
     //
 
     protected CurrencyConverter getCurrencyConverter() {
-        return new CurrencyConverter(clock, currencyConversionDao.getCurrencyConversions(referenceCurrency));
+        return new CurrencyConverter(clock, referenceCurrency, currencyConversionDao.getCurrencyConversions(referenceCurrency));
     }
 
     //
