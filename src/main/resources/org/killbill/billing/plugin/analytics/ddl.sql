@@ -504,6 +504,8 @@ create table analytics_payment_auths (
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_external_key varchar(255) default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
@@ -576,6 +578,8 @@ create table analytics_payment_captures (
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_external_key varchar(255) default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
@@ -648,6 +652,8 @@ create table analytics_payment_purchases (
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_external_key varchar(255) default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
@@ -720,6 +726,8 @@ create table analytics_payment_refunds (
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_external_key varchar(255) default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
@@ -792,6 +800,8 @@ create table analytics_payment_credits (
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_external_key varchar(255) default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
@@ -864,6 +874,8 @@ create table analytics_payment_chargebacks (
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
 , payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_external_key varchar(255) default null
 , linked_invoice_payment_id char(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
