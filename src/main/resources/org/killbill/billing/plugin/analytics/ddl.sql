@@ -293,7 +293,7 @@ create index analytics_invoice_adjustments_account_id on analytics_invoice_adjus
 create index analytics_invoice_adjustments_account_record_id on analytics_invoice_adjustments(account_record_id);
 create index analytics_invoice_adjustments_tenant_account_record_id on analytics_invoice_adjustments(tenant_record_id, account_record_id);
 
--- Invoice items (without adjustments, type EXTERNAL_CHARGE, FIXED and RECURRING)
+-- Invoice items (without adjustments, type EXTERNAL_CHARGE, FIXED, RECURRING, USAGE and TAX)
 drop table if exists analytics_invoice_items;
 create table analytics_invoice_items (
   record_id int(11) unsigned not null auto_increment
