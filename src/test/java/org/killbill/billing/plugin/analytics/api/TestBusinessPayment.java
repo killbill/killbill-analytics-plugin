@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -63,6 +64,10 @@ public class TestBusinessPayment extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessPayment.getConvertedInvoiceAmountRefunded().compareTo(invoicePaymentBaseModelDao.getConvertedInvoiceAmountRefunded()), 0);
         Assert.assertEquals(businessPayment.getInvoicePaymentType(), invoicePaymentBaseModelDao.getInvoicePaymentType());
         Assert.assertEquals(businessPayment.getPaymentNumber(), invoicePaymentBaseModelDao.getPaymentNumber());
+        Assert.assertEquals(businessPayment.getPaymentId(), invoicePaymentBaseModelDao.getPaymentId());
+        Assert.assertEquals(businessPayment.getPaymentExternalKey(), invoicePaymentBaseModelDao.getPaymentExternalKey());
+        Assert.assertEquals(businessPayment.getPaymentTransactionId(), invoicePaymentBaseModelDao.getPaymentTransactionId());
+        Assert.assertEquals(businessPayment.getPaymentTransactionExternalKey(), invoicePaymentBaseModelDao.getPaymentTransactionExternalKey());
         Assert.assertEquals(businessPayment.getLinkedInvoicePaymentId(), invoicePaymentBaseModelDao.getLinkedInvoicePaymentId());
         Assert.assertEquals(businessPayment.getAmount().compareTo(invoicePaymentBaseModelDao.getAmount()), 0);
         Assert.assertEquals(businessPayment.getConvertedAmount().compareTo(invoicePaymentBaseModelDao.getConvertedAmount()), 0);

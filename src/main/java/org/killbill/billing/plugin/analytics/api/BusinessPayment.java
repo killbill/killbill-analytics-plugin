@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 Groupon, Inc
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -50,6 +50,10 @@ public class BusinessPayment extends BusinessEntityBase {
     private final UUID paymentId;
     private final UUID refundId;
     private final Long paymentNumber;
+    private final String paymentExternalKey;
+    private final UUID paymentTransactionId;
+    private final String paymentTransactionExternalKey;
+    private final String paymentTransactionStatus;
     private final UUID linkedInvoicePaymentId;
     private final BigDecimal amount;
     private final BigDecimal convertedAmount;
@@ -110,6 +114,10 @@ public class BusinessPayment extends BusinessEntityBase {
         this.paymentId = businessPaymentBaseModelDao.getPaymentId();
         this.refundId = businessPaymentBaseModelDao.getRefundId();
         this.paymentNumber = businessPaymentBaseModelDao.getPaymentNumber();
+        this.paymentExternalKey = businessPaymentBaseModelDao.getPaymentExternalKey();
+        this.paymentTransactionId = businessPaymentBaseModelDao.getPaymentTransactionId();
+        this.paymentTransactionExternalKey = businessPaymentBaseModelDao.getPaymentTransactionExternalKey();
+        this.paymentTransactionStatus = businessPaymentBaseModelDao.getPaymentTransactionStatus();
         this.linkedInvoicePaymentId = businessPaymentBaseModelDao.getLinkedInvoicePaymentId();
         this.amount = businessPaymentBaseModelDao.getAmount();
         this.convertedAmount = businessPaymentBaseModelDao.getConvertedAmount();
@@ -229,6 +237,22 @@ public class BusinessPayment extends BusinessEntityBase {
 
     public Long getPaymentNumber() {
         return paymentNumber;
+    }
+
+    public String getPaymentExternalKey() {
+        return paymentExternalKey;
+    }
+
+    public UUID getPaymentTransactionId() {
+        return paymentTransactionId;
+    }
+
+    public String getPaymentTransactionExternalKey() {
+        return paymentTransactionExternalKey;
+    }
+
+    public String getPaymentTransactionStatus() {
+        return paymentTransactionStatus;
     }
 
     public UUID getLinkedInvoicePaymentId() {
@@ -365,6 +389,10 @@ public class BusinessPayment extends BusinessEntityBase {
         sb.append(", paymentId=").append(paymentId);
         sb.append(", refundId=").append(refundId);
         sb.append(", paymentNumber=").append(paymentNumber);
+        sb.append(", paymentExternalKey='").append(paymentExternalKey).append('\'');
+        sb.append(", paymentTransactionId=").append(paymentTransactionId);
+        sb.append(", paymentTransactionExternalKey='").append(paymentTransactionExternalKey).append('\'');
+        sb.append(", paymentTransactionStatus='").append(paymentTransactionStatus).append('\'');
         sb.append(", linkedInvoicePaymentId=").append(linkedInvoicePaymentId);
         sb.append(", amount=").append(amount);
         sb.append(", convertedAmount=").append(convertedAmount);
@@ -491,6 +519,18 @@ public class BusinessPayment extends BusinessEntityBase {
         if (paymentNumber != null ? !paymentNumber.equals(that.paymentNumber) : that.paymentNumber != null) {
             return false;
         }
+        if (paymentExternalKey != null ? !paymentExternalKey.equals(that.paymentExternalKey) : that.paymentExternalKey != null) {
+            return false;
+        }
+        if (paymentTransactionId != null ? !paymentTransactionId.equals(that.paymentTransactionId) : that.paymentTransactionId != null) {
+            return false;
+        }
+        if (paymentTransactionExternalKey != null ? !paymentTransactionExternalKey.equals(that.paymentTransactionExternalKey) : that.paymentTransactionExternalKey != null) {
+            return false;
+        }
+        if (paymentTransactionStatus != null ? !paymentTransactionStatus.equals(that.paymentTransactionStatus) : that.paymentTransactionStatus != null) {
+            return false;
+        }
         if (pluginCreatedDate != null ? pluginCreatedDate.compareTo(that.pluginCreatedDate) != 0 : that.pluginCreatedDate != null) {
             return false;
         }
@@ -590,6 +630,10 @@ public class BusinessPayment extends BusinessEntityBase {
         result = 31 * result + (paymentId != null ? paymentId.hashCode() : 0);
         result = 31 * result + (refundId != null ? refundId.hashCode() : 0);
         result = 31 * result + (paymentNumber != null ? paymentNumber.hashCode() : 0);
+        result = 31 * result + (paymentExternalKey != null ? paymentExternalKey.hashCode() : 0);
+        result = 31 * result + (paymentTransactionId != null ? paymentTransactionId.hashCode() : 0);
+        result = 31 * result + (paymentTransactionExternalKey != null ? paymentTransactionExternalKey.hashCode() : 0);
+        result = 31 * result + (paymentTransactionStatus != null ? paymentTransactionStatus.hashCode() : 0);
         result = 31 * result + (linkedInvoicePaymentId != null ? linkedInvoicePaymentId.hashCode() : 0);
         result = 31 * result + (amount != null ? amount.hashCode() : 0);
         result = 31 * result + (convertedAmount != null ? convertedAmount.hashCode() : 0);

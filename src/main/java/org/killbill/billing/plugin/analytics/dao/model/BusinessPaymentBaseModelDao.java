@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 Groupon, Inc
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -76,6 +76,10 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
     private UUID paymentId;
     private UUID refundId;
     private Long paymentNumber;
+    private String paymentExternalKey;
+    private UUID paymentTransactionId;
+    private String paymentTransactionExternalKey;
+    private String paymentTransactionStatus;
     private UUID linkedInvoicePaymentId;
     private BigDecimal amount;
     private BigDecimal convertedAmount;
@@ -216,6 +220,10 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                        final UUID paymentId,
                                        final UUID refundId,
                                        final Long paymentNumber,
+                                       final String paymentExternalKey,
+                                       final UUID paymentTransactionId,
+                                       final String paymentTransactionExternalKey,
+                                       final String paymentTransactionStatus,
                                        final UUID linkedInvoicePaymentId,
                                        final BigDecimal amount,
                                        final BigDecimal convertedAmount,
@@ -299,6 +307,10 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         this.paymentId = paymentId;
         this.refundId = null; // TODO refundId;
         this.paymentNumber = paymentNumber;
+        this.paymentExternalKey = paymentExternalKey;
+        this.paymentTransactionId = paymentTransactionId;
+        this.paymentTransactionExternalKey = paymentTransactionExternalKey;
+        this.paymentTransactionStatus = paymentTransactionStatus;
         this.linkedInvoicePaymentId = linkedInvoicePaymentId;
         this.amount = amount;
         this.convertedAmount = convertedAmount;
@@ -382,6 +394,10 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
              payment.getId(),
              lastRefund != null ? lastRefund.getId() : null,
              payment.getPaymentNumber() == null ? null : payment.getPaymentNumber().longValue(),
+             payment.getExternalKey(),
+             paymentTransaction.getId(),
+             paymentTransaction.getExternalKey(),
+             paymentTransaction.getTransactionStatus() == null ? null : paymentTransaction.getTransactionStatus().name(),
              invoicePayment == null ? null : invoicePayment.getLinkedInvoicePaymentId(),
              invoicePayment == null ? null : invoicePayment.getAmount(),
              currencyConverter.getConvertedValue(invoicePayment, invoice),
@@ -530,6 +546,22 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         return paymentNumber;
     }
 
+    public String getPaymentExternalKey() {
+        return paymentExternalKey;
+    }
+
+    public UUID getPaymentTransactionId() {
+        return paymentTransactionId;
+    }
+
+    public String getPaymentTransactionExternalKey() {
+        return paymentTransactionExternalKey;
+    }
+
+    public String getPaymentTransactionStatus() {
+        return paymentTransactionStatus;
+    }
+
     public UUID getLinkedInvoicePaymentId() {
         return linkedInvoicePaymentId;
     }
@@ -665,6 +697,10 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         sb.append(", paymentId=").append(paymentId);
         sb.append(", refundId=").append(refundId);
         sb.append(", paymentNumber=").append(paymentNumber);
+        sb.append(", paymentExternalKey='").append(paymentExternalKey).append('\'');
+        sb.append(", paymentTransactionId=").append(paymentTransactionId);
+        sb.append(", paymentTransactionExternalKey='").append(paymentTransactionExternalKey).append('\'');
+        sb.append(", paymentTransactionStatus='").append(paymentTransactionStatus).append('\'');
         sb.append(", linkedInvoicePaymentId=").append(linkedInvoicePaymentId);
         sb.append(", amount=").append(amount);
         sb.append(", convertedAmount=").append(convertedAmount);
@@ -794,6 +830,18 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         if (paymentNumber != null ? !paymentNumber.equals(that.paymentNumber) : that.paymentNumber != null) {
             return false;
         }
+        if (paymentExternalKey != null ? !paymentExternalKey.equals(that.paymentExternalKey) : that.paymentExternalKey != null) {
+            return false;
+        }
+        if (paymentTransactionId != null ? !paymentTransactionId.equals(that.paymentTransactionId) : that.paymentTransactionId != null) {
+            return false;
+        }
+        if (paymentTransactionExternalKey != null ? !paymentTransactionExternalKey.equals(that.paymentTransactionExternalKey) : that.paymentTransactionExternalKey != null) {
+            return false;
+        }
+        if (paymentTransactionStatus != null ? !paymentTransactionStatus.equals(that.paymentTransactionStatus) : that.paymentTransactionStatus != null) {
+            return false;
+        }
         if (pluginCreatedDate != null ? pluginCreatedDate.compareTo(that.pluginCreatedDate) != 0 : that.pluginCreatedDate != null) {
             return false;
         }
@@ -894,6 +942,10 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         result = 31 * result + (paymentId != null ? paymentId.hashCode() : 0);
         result = 31 * result + (refundId != null ? refundId.hashCode() : 0);
         result = 31 * result + (paymentNumber != null ? paymentNumber.hashCode() : 0);
+        result = 31 * result + (paymentExternalKey != null ? paymentExternalKey.hashCode() : 0);
+        result = 31 * result + (paymentTransactionId != null ? paymentTransactionId.hashCode() : 0);
+        result = 31 * result + (paymentTransactionExternalKey != null ? paymentTransactionExternalKey.hashCode() : 0);
+        result = 31 * result + (paymentTransactionStatus != null ? paymentTransactionStatus.hashCode() : 0);
         result = 31 * result + (linkedInvoicePaymentId != null ? linkedInvoicePaymentId.hashCode() : 0);
         result = 31 * result + (amount != null ? amount.hashCode() : 0);
         result = 31 * result + (convertedAmount != null ? convertedAmount.hashCode() : 0);

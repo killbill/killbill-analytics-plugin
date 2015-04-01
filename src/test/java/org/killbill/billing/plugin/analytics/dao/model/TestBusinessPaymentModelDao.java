@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 Groupon, Inc
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -16,6 +17,8 @@
  */
 
 package org.killbill.billing.plugin.analytics.dao.model;
+
+import java.util.UUID;
 
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.testng.Assert;
@@ -37,7 +40,7 @@ public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                            auditLog,
                                                                                                            tenantRecordId,
                                                                                                            reportGroup);
-        verifyCommonFields(invoicePaymentModelDao);
+        verifyCommonFields(invoicePaymentModelDao, payment.getId());
         Assert.assertEquals(invoicePaymentModelDao.getPluginName(), BusinessPaymentBaseModelDao.DEFAULT_PLUGIN_NAME);
         Assert.assertNull(invoicePaymentModelDao.getPluginCreatedDate());
         Assert.assertNull(invoicePaymentModelDao.getPluginEffectiveDate());
@@ -76,7 +79,7 @@ public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                            auditLog,
                                                                                                            tenantRecordId,
                                                                                                            reportGroup);
-        verifyCommonFields(invoicePaymentModelDao);
+        verifyCommonFields(invoicePaymentModelDao, paymentNoRefund.getId());
     }
 
     @Test(groups = "fast")
@@ -93,10 +96,10 @@ public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                            auditLog,
                                                                                                            tenantRecordId,
                                                                                                            reportGroup);
-        verifyCommonFields(invoicePaymentModelDao);
+        verifyCommonFields(invoicePaymentModelDao, payment.getId());
     }
 
-    private void verifyCommonFields(final BusinessPaymentPurchaseModelDao invoicePaymentModelDao) {
+    private void verifyCommonFields(final BusinessPaymentPurchaseModelDao invoicePaymentModelDao, final UUID paymentId) {
         verifyBusinessModelDaoBase(invoicePaymentModelDao, accountRecordId, tenantRecordId);
         Assert.assertEquals(invoicePaymentModelDao.getCreatedDate(), invoicePayment.getCreatedDate());
         Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentRecordId(), invoicePaymentRecordId);
@@ -115,6 +118,10 @@ public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceAmountRefunded(), invoice.getRefundedAmount());
         Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentType(), invoicePayment.getType().toString());
         Assert.assertEquals(invoicePaymentModelDao.getPaymentNumber(), (Long) payment.getPaymentNumber().longValue());
+        Assert.assertEquals(invoicePaymentModelDao.getPaymentId(), paymentId);
+        Assert.assertEquals(invoicePaymentModelDao.getPaymentExternalKey(), payment.getExternalKey());
+        Assert.assertEquals(invoicePaymentModelDao.getPaymentTransactionId(), paymentTransaction.getId());
+        Assert.assertEquals(invoicePaymentModelDao.getPaymentTransactionExternalKey(), paymentTransaction.getExternalKey());
         Assert.assertEquals(invoicePaymentModelDao.getLinkedInvoicePaymentId(), invoicePayment.getLinkedInvoicePaymentId());
         Assert.assertEquals(invoicePaymentModelDao.getAmount(), invoicePayment.getAmount());
         Assert.assertEquals(invoicePaymentModelDao.getCurrency(), invoicePayment.getCurrency().toString());
