@@ -305,7 +305,7 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         this.convertedInvoiceAmountRefunded = convertedInvoiceAmountRefunded;
         this.invoicePaymentType = invoicePaymentType;
         this.paymentId = paymentId;
-        this.refundId = null; // TODO refundId;
+        this.refundId = refundId;
         this.paymentNumber = paymentNumber;
         this.paymentExternalKey = paymentExternalKey;
         this.paymentTransactionId = paymentTransactionId;

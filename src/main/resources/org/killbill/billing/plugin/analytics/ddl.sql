@@ -503,6 +503,7 @@ create table analytics_payment_auths (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
+, refund_id char(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
 , payment_transaction_id char(36) default null
@@ -579,6 +580,7 @@ create table analytics_payment_captures (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
+, refund_id char(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
 , payment_transaction_id char(36) default null
@@ -655,6 +657,7 @@ create table analytics_payment_purchases (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
+, refund_id char(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
 , payment_transaction_id char(36) default null
@@ -731,6 +734,7 @@ create table analytics_payment_refunds (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
+, refund_id char(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
 , payment_transaction_id char(36) default null
@@ -807,6 +811,7 @@ create table analytics_payment_credits (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
+, refund_id char(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
 , payment_transaction_id char(36) default null
@@ -883,6 +888,7 @@ create table analytics_payment_chargebacks (
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
 , payment_id char(36) default null
+, refund_id char(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
 , payment_transaction_id char(36) default null

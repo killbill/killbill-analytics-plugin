@@ -774,6 +774,7 @@ insert into analytics_payment_auths (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
+, refund_id
 , payment_number
 , payment_external_key
 , payment_transaction_id
@@ -839,6 +840,7 @@ insert into analytics_payment_auths (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
+, :refundId
 , :paymentNumber
 , :paymentExternalKey
 , :paymentTransactionId
@@ -908,6 +910,7 @@ insert into analytics_payment_captures (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
+, refund_id
 , payment_number
 , payment_external_key
 , payment_transaction_id
@@ -973,6 +976,7 @@ insert into analytics_payment_captures (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
+, :refundId
 , :paymentNumber
 , :paymentExternalKey
 , :paymentTransactionId
@@ -1042,6 +1046,7 @@ insert into analytics_payment_purchases (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
+, refund_id
 , payment_number
 , payment_external_key
 , payment_transaction_id
@@ -1107,6 +1112,7 @@ insert into analytics_payment_purchases (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
+, :refundId
 , :paymentNumber
 , :paymentExternalKey
 , :paymentTransactionId
@@ -1176,6 +1182,7 @@ insert into analytics_payment_refunds (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
+, refund_id
 , payment_number
 , payment_external_key
 , payment_transaction_id
@@ -1241,6 +1248,7 @@ insert into analytics_payment_refunds (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
+, :refundId
 , :paymentNumber
 , :paymentExternalKey
 , :paymentTransactionId
@@ -1310,6 +1318,7 @@ insert into analytics_payment_credits (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
+, refund_id
 , payment_number
 , payment_external_key
 , payment_transaction_id
@@ -1375,6 +1384,7 @@ insert into analytics_payment_credits (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
+, :refundId
 , :paymentNumber
 , :paymentExternalKey
 , :paymentTransactionId
@@ -1444,6 +1454,7 @@ insert into analytics_payment_chargebacks (
 , converted_invoice_amount_refunded
 , invoice_payment_type
 , payment_id
+, refund_id
 , payment_number
 , payment_external_key
 , payment_transaction_id
@@ -1509,6 +1520,7 @@ insert into analytics_payment_chargebacks (
 , :convertedInvoiceAmountRefunded
 , :invoicePaymentType
 , :paymentId
+, :refundId
 , :paymentNumber
 , :paymentExternalKey
 , :paymentTransactionId
