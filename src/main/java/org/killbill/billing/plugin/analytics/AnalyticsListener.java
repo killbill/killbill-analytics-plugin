@@ -144,6 +144,11 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
 
     @Override
     public void handleKillbillEvent(final ExtBusEvent killbillEvent) {
+        // Ignore non account-specific events (e.g. TENANT_CONFIG_CHANGE)
+        if (killbillEvent.getAccountId() == null) {
+            return;
+        }
+
         // Don't mirror accounts in the blacklist
         if (isAccountBlacklisted(killbillEvent.getAccountId())) {
             return;
