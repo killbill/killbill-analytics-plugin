@@ -940,6 +940,83 @@ create index analytics_payment_chargebacks_account_id on analytics_payment_charg
 create index analytics_payment_chargebacks_account_record_id on analytics_payment_chargebacks(account_record_id);
 create index analytics_payment_chargebacks_tenant_account_record_id on analytics_payment_chargebacks(tenant_record_id, account_record_id);
 
+drop table if exists analytics_payment_voids;
+create table analytics_payment_voids (
+  record_id int(11) unsigned not null auto_increment
+, invoice_payment_record_id int(11) unsigned default null
+, invoice_payment_id char(36) default null
+, invoice_id char(36) default null
+, invoice_number bigint default null
+, invoice_created_date datetime default null
+, invoice_date date default null
+, invoice_target_date date default null
+, invoice_currency char(50) default null
+, invoice_balance numeric(10, 4) default 0
+, converted_invoice_balance numeric(10, 4) default null
+, invoice_amount_paid numeric(10, 4) default 0
+, converted_invoice_amount_paid numeric(10, 4) default null
+, invoice_amount_charged numeric(10, 4) default 0
+, converted_invoice_amount_charged numeric(10, 4) default null
+, invoice_original_amount_charged numeric(10, 4) default 0
+, converted_invoice_original_amount_charged numeric(10, 4) default null
+, invoice_amount_credited numeric(10, 4) default 0
+, converted_invoice_amount_credited numeric(10, 4) default null
+, invoice_amount_refunded numeric(10, 4) default 0
+, converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_payment_type varchar(50) default null
+, payment_id char(36) default null
+, refund_id char(36) default null
+, payment_number bigint default null
+, payment_external_key varchar(255) default null
+, payment_transaction_id char(36) default null
+, payment_transaction_external_key varchar(255) default null
+, payment_transaction_status varchar(255) default null
+, linked_invoice_payment_id char(36) default null
+, amount numeric(10, 4) default 0
+, converted_amount numeric(10, 4) default null
+, currency char(50) default null
+, plugin_name varchar(255) default null
+, plugin_created_date datetime default null
+, plugin_effective_date datetime default null
+, plugin_status varchar(255) default null
+, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error_code varchar(255) default null
+, plugin_first_reference_id varchar(255) default null
+, plugin_second_reference_id varchar(255) default null
+, plugin_pm_id varchar(255) default null
+, plugin_pm_is_default bool default null
+, plugin_pm_type varchar(255) default null
+, plugin_pm_cc_name varchar(255) default null
+, plugin_pm_cc_type varchar(255) default null
+, plugin_pm_cc_expiration_month varchar(255) default null
+, plugin_pm_cc_expiration_year varchar(255) default null
+, plugin_pm_cc_last_4 varchar(255) default null
+, plugin_pm_address1 varchar(255) default null
+, plugin_pm_address2 varchar(255) default null
+, plugin_pm_city varchar(255) default null
+, plugin_pm_state varchar(255) default null
+, plugin_pm_zip varchar(255) default null
+, plugin_pm_country varchar(255) default null
+, converted_currency char(3) default null
+, created_date datetime default null
+, created_by varchar(50) default null
+, created_reason_code varchar(255) default null
+, created_comments varchar(255) default null
+, account_id char(36) default null
+, account_name varchar(100) default null
+, account_external_key varchar(50) default null
+, account_record_id int(11) unsigned default null
+, tenant_record_id int(11) unsigned default null
+, report_group enum('default', 'test', 'partner') not null
+, primary key(record_id)
+);
+create index analytics_payment_voids_invoice_payment_record_id on analytics_payment_voids(invoice_payment_record_id);
+create index analytics_payment_voids_invoice_payment_id on analytics_payment_voids(invoice_payment_id);
+create index analytics_payment_voids_invoice_id on analytics_payment_voids(invoice_id);
+create index analytics_payment_voids_account_id on analytics_payment_voids(account_id);
+create index analytics_payment_voids_account_record_id on analytics_payment_voids(account_record_id);
+create index analytics_payment_voids_tenant_account_record_id on analytics_payment_voids(tenant_record_id, account_record_id);
+
 -- Tags
 
 drop table if exists analytics_account_tags;

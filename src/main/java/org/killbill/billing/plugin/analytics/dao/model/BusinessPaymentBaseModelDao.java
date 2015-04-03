@@ -49,8 +49,9 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
     protected static final String REFUNDS_TABLE_NAME = "analytics_payment_refunds";
     protected static final String CREDITS_TABLE_NAME = "analytics_payment_credits";
     protected static final String CHARGEBACKS_TABLE_NAME = "analytics_payment_chargebacks";
+    protected static final String VOIDS_TABLE_NAME = "analytics_payment_voids";
 
-    public static final String[] ALL_PAYMENTS_TABLE_NAMES = new String[]{AUTHS_TABLE_NAME, CAPTURES_TABLE_NAME, PURCHASES_TABLE_NAME, REFUNDS_TABLE_NAME, CREDITS_TABLE_NAME, CHARGEBACKS_TABLE_NAME};
+    public static final String[] ALL_PAYMENTS_TABLE_NAMES = new String[]{AUTHS_TABLE_NAME, CAPTURES_TABLE_NAME, PURCHASES_TABLE_NAME, REFUNDS_TABLE_NAME, CREDITS_TABLE_NAME, CHARGEBACKS_TABLE_NAME, VOIDS_TABLE_NAME};
 
     private Long invoicePaymentRecordId;
     private UUID invoicePaymentId;
@@ -199,8 +200,18 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                      tenantRecordId,
                                                      reportGroup);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.VOID)) {
-            // TODO
-            return null;
+            return new BusinessPaymentVoidModelDao(account,
+                                                   accountRecordId,
+                                                   invoice,
+                                                   invoicePayment,
+                                                   invoicePaymentRecordId,
+                                                   payment,
+                                                   paymentTransaction,
+                                                   paymentMethod,
+                                                   currencyConverter,
+                                                   creationAuditLog,
+                                                   tenantRecordId,
+                                                   reportGroup);
         } else {
             throw new IllegalStateException("Unexpected transaction type: " + paymentTransaction.getTransactionType());
         }
