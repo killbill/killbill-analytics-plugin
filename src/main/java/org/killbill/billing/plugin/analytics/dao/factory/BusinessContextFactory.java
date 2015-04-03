@@ -360,7 +360,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     }
 
     public synchronized TagDefinition getTagDefinition(final UUID tagDefinitionId) throws AnalyticsRefreshException {
-        if (tagDefinitions == null) {
+        if (tagDefinitions.isEmpty()) {
             tagDefinitions = new HashMap<UUID, TagDefinition>();
             for (final TagDefinition tagDefinition : getTagDefinitions(callContext)) {
                 tagDefinitions.put(tagDefinition.getId(), tagDefinition);
