@@ -36,19 +36,37 @@ public class TestFilters extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testConditionFromExpressionBuilder() throws Exception {
         final ReportSpecification reportSpecification1 = new ReportSpecification("payments_per_day^filter:currency=AUD^filter:currency=EUR");
-        Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification1.getFilterExpression()).toString(), "(\"currency\" = 'AUD' or \"currency\" = 'EUR')");
+        Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification1.getFilterExpression()).toString(), "(\n" +
+                                                                                                                         "  \"currency\" = 'AUD'\n" +
+                                                                                                                         "  or \"currency\" = 'EUR'\n" +
+                                                                                                                         ")");
 
         final ReportSpecification reportSpecification2 = new ReportSpecification("payments_per_day^filter:currency!=AUD^filter:currency!=EUR");
-        Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification2.getFilterExpression()).toString(), "(\"currency\" <> 'AUD' or \"currency\" <> 'EUR')");
+        Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification2.getFilterExpression()).toString(), "(\n" +
+                                                                                                                         "  \"currency\" <> 'AUD'\n" +
+                                                                                                                         "  or \"currency\" <> 'EUR'\n" +
+                                                                                                                         ")");
 
         final ReportSpecification reportSpecification3 = new ReportSpecification("payments_per_day^" +
                                                                                  "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED)^" +
                                                                                  "filter:name~'John Doe'&age>=35|name!~Fred&age<24");
-        Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification3.getFilterExpression()).toString(), "(" +
-                                                                                                                         "(\"age\" < '24' and \"name\" not like 'Fred') " +
-                                                                                                                         "or (\"age\" >= '35' and \"name\" like 'John Doe') " +
-                                                                                                                         "or (\"currency\" = 'EUR' and \"state\" = 'PROCESSED') " +
-                                                                                                                         "or (\"currency\" = 'USD' and \"state\" <> 'ERRORED')" +
+        Assert.assertEquals(Filters.buildConditionFromExpression(reportSpecification3.getFilterExpression()).toString(), "(\n" +
+                                                                                                                         "  (\n" +
+                                                                                                                         "    \"age\" < '24'\n" +
+                                                                                                                         "    and \"name\" not like 'Fred'\n" +
+                                                                                                                         "  )\n" +
+                                                                                                                         "  or (\n" +
+                                                                                                                         "    \"age\" >= '35'\n" +
+                                                                                                                         "    and \"name\" like 'John Doe'\n" +
+                                                                                                                         "  )\n" +
+                                                                                                                         "  or (\n" +
+                                                                                                                         "    \"currency\" = 'EUR'\n" +
+                                                                                                                         "    and \"state\" = 'PROCESSED'\n" +
+                                                                                                                         "  )\n" +
+                                                                                                                         "  or (\n" +
+                                                                                                                         "    \"currency\" = 'USD'\n" +
+                                                                                                                         "    and \"state\" <> 'ERRORED'\n" +
+                                                                                                                         "  )\n" +
                                                                                                                          ")");
     }
 }
