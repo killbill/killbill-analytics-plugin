@@ -5,6 +5,17 @@ Kill Bill plugin to provide business analytics and reporting capabilities. You c
 
 Release builds are available on [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.kill-bill.billing.plugin.java%22%20AND%20a%3A%22analytics-plugin%22) with coordinates `org.kill-bill.billing.plugin.java:analytics-plugin`.
 
+Kill Bill compatibility
+-----------------------
+
+| Plugin version | Kill Bill version |
+| -------------: | ----------------: |
+| 1.x.y          | 0.14.z            |
+
+Requirements
+------------
+
+The plugin needs a database. The latest version of the schema can be found [here](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/ddl.sql).
 
 Setup
 -----
