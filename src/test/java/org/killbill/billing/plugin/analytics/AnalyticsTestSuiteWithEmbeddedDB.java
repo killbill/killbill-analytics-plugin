@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2015 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -45,8 +45,7 @@ import org.testng.annotations.BeforeMethod;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.CharStreams;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Resources;
 
 public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuiteNoDB {
@@ -93,14 +92,11 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     }
 
     public static String toString(final InputStream stream) throws IOException {
-        final InputSupplier<InputStream> inputSupplier = new InputSupplier<InputStream>() {
-            @Override
-            public InputStream getInput() throws IOException {
-                return stream;
-            }
-        };
-
-        return CharStreams.toString(CharStreams.newReaderSupplier(inputSupplier, Charsets.UTF_8));
+        try {
+            return new String(ByteStreams.toByteArray(stream), Charsets.UTF_8);
+        } finally {
+            stream.close();
+        }
     }
 
     private final class AnalyticsOSGIKillbillDataSource extends OSGIKillbillDataSource {
