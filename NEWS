@@ -1,4 +1,8 @@
 1.0.0
+    Add external keys in payment tables (DDL change)
+    Track void transactions
+    Add support for TAX and USAGE items
+    Fix caching of tag definitions
     Update to killbill-oss-parent 0.11.0
 
 0.8.0
