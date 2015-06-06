@@ -22,6 +22,7 @@
 
 HERE=`cd \`dirname $0\`; pwd`
 
+KILLBILL_HTTP_PROTOCOL=${KILLBILL_HTTP_PROTOCOL-"http"}
 KILLBILL_HOST=${KILLBILL_HOST-"127.0.0.1"}
 KILLBILL_PORT=${KILLBILL_PORT-"8080"}
 
@@ -59,7 +60,7 @@ function create_report() {
               \"reportPrettyName\": \"$report_pretty_name\",
               \"reportType\": \"$report_type\",
               \"sourceTableName\": \"$source_table_name\"}" \
-         http://$KILLBILL_HOST:$KILLBILL_PORT/plugins/killbill-analytics/reports
+         $KILLBILL_HTTP_PROTOCOL://$KILLBILL_HOST:$KILLBILL_PORT/plugins/killbill-analytics/reports
 }
 
 # Install the DDL - the calendar table needs to be first
