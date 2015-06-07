@@ -85,25 +85,42 @@ public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
         final BusinessPaymentPurchaseModelDao invoicePaymentModelDao = new BusinessPaymentPurchaseModelDao(account,
-                                                                                                           accountRecordId,
-                                                                                                           invoice,
-                                                                                                           invoicePayment,
-                                                                                                           invoicePaymentRecordId,
-                                                                                                           payment,
-                                                                                                           paymentTransaction,
-                                                                                                           paymentMethod,
-                                                                                                           currencyConverter,
-                                                                                                           auditLog,
-                                                                                                           tenantRecordId,
-                                                                                                           reportGroup);
+                accountRecordId,
+                invoice,
+                invoicePayment,
+                invoicePaymentRecordId,
+                payment,
+                paymentTransaction,
+                paymentMethod,
+                currencyConverter,
+                auditLog,
+                tenantRecordId,
+                reportGroup);
         verifyCommonFields(invoicePaymentModelDao, payment.getId());
     }
 
+    @Test(groups = "fast")
+    public void testConstructorWithNullInvoicePayment() throws Exception {
+        invoicePayment = null;
+        final BusinessPaymentPurchaseModelDao invoicePaymentModelDao = new BusinessPaymentPurchaseModelDao(account,
+                accountRecordId,
+                invoice,
+                invoicePayment,
+                invoicePaymentRecordId,
+                payment,
+                paymentTransaction,
+                paymentMethod,
+                currencyConverter,
+                auditLog,
+                tenantRecordId,
+                reportGroup);
+        verifyCommonFields(invoicePaymentModelDao, payment.getId());
+    }
+
+
     private void verifyCommonFields(final BusinessPaymentPurchaseModelDao invoicePaymentModelDao, final UUID paymentId) {
         verifyBusinessModelDaoBase(invoicePaymentModelDao, accountRecordId, tenantRecordId);
-        Assert.assertEquals(invoicePaymentModelDao.getCreatedDate(), invoicePayment.getCreatedDate());
         Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentRecordId(), invoicePaymentRecordId);
-        Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentId(), invoicePayment.getId());
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceId(), invoice.getId());
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceNumber(), invoice.getInvoiceNumber());
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceCreatedDate(), invoice.getCreatedDate());
@@ -116,14 +133,31 @@ public class TestBusinessPaymentModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceOriginalAmountCharged(), invoice.getOriginalChargedAmount());
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceAmountCredited(), invoice.getCreditedAmount());
         Assert.assertEquals(invoicePaymentModelDao.getInvoiceAmountRefunded(), invoice.getRefundedAmount());
-        Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentType(), invoicePayment.getType().toString());
         Assert.assertEquals(invoicePaymentModelDao.getPaymentNumber(), (Long) payment.getPaymentNumber().longValue());
         Assert.assertEquals(invoicePaymentModelDao.getPaymentId(), paymentId);
         Assert.assertEquals(invoicePaymentModelDao.getPaymentExternalKey(), payment.getExternalKey());
         Assert.assertEquals(invoicePaymentModelDao.getPaymentTransactionId(), paymentTransaction.getId());
         Assert.assertEquals(invoicePaymentModelDao.getPaymentTransactionExternalKey(), paymentTransaction.getExternalKey());
+        if (invoicePayment != null) {
+            verifyCommonFieldsFromInvoicePayments(invoicePaymentModelDao);
+        } else {
+            verifyCommonFieldsFromNullInvoicePayments(invoicePaymentModelDao);
+        }
+    }
+
+    private void verifyCommonFieldsFromInvoicePayments(final BusinessPaymentPurchaseModelDao invoicePaymentModelDao) {
+        Assert.assertEquals(invoicePaymentModelDao.getCreatedDate(), invoicePayment.getCreatedDate());
+        Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentId(), invoicePayment.getId());
+        Assert.assertEquals(invoicePaymentModelDao.getInvoicePaymentType(), invoicePayment.getType().toString());
         Assert.assertEquals(invoicePaymentModelDao.getLinkedInvoicePaymentId(), invoicePayment.getLinkedInvoicePaymentId());
         Assert.assertEquals(invoicePaymentModelDao.getAmount(), invoicePayment.getAmount());
         Assert.assertEquals(invoicePaymentModelDao.getCurrency(), invoicePayment.getCurrency().toString());
     }
+
+    private void verifyCommonFieldsFromNullInvoicePayments(final BusinessPaymentPurchaseModelDao invoicePaymentModelDao) {
+        Assert.assertEquals(invoicePaymentModelDao.getCreatedDate(), paymentTransaction.getCreatedDate());
+        Assert.assertEquals(invoicePaymentModelDao.getAmount(), paymentTransaction.getAmount());
+        Assert.assertEquals(invoicePaymentModelDao.getCurrency(), paymentTransaction.getCurrency().toString());
+    }
+
 }

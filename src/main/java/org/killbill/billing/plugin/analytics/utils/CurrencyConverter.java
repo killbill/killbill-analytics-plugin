@@ -29,6 +29,7 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
+import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
 import org.killbill.clock.Clock;
 
@@ -114,9 +115,9 @@ public class CurrencyConverter {
         return getConvertedValue(invoiceItem.getAmount(), invoiceItem.getCurrency().toString(), invoice.getInvoiceDate());
     }
 
-    public BigDecimal getConvertedValue(@Nullable final InvoicePayment invoicePayment, final Invoice invoice) {
+    public BigDecimal getConvertedValue(@Nullable final InvoicePayment invoicePayment, final PaymentTransaction transaction, final Invoice invoice) {
         if (invoicePayment == null || invoicePayment.getCurrency() == null) {
-            return null;
+            return transaction.getAmount();
         }
         // Use the invoice date as the effective date for consistency - invoice payment payment date could also be a candidate
         return getConvertedValue(invoicePayment.getAmount(), invoicePayment.getCurrency().toString(), invoice.getInvoiceDate());

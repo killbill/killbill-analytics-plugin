@@ -226,7 +226,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<InvoiceItem>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
-        Mockito.when(currencyConverter.getConvertedValue(Mockito.<InvoicePayment>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
+        Mockito.when(currencyConverter.getConvertedValue(Mockito.<InvoicePayment>any(), Mockito.<PaymentTransaction>any(), Mockito.<Invoice>any())).thenReturn(BigDecimal.TEN);
 
         account = Mockito.mock(Account.class);
         Mockito.when(account.getId()).thenReturn(UUID.randomUUID());
