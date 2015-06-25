@@ -256,13 +256,15 @@ public class ReportsUserApi {
         //
         // Normalization and smoothing of time series if needed
         //
-        normalizeAndSortXValues(timeSeriesData, startDate, endDate);
-        if (smootherType != null) {
-            final Smoother smoother = smootherType.createSmoother(timeSeriesData);
-            smoother.smooth();
-            result.addAll(buildNamedXYTimeSeries(smoother.getDataForReports(), reportsConfigurations));
-        } else {
-            result.addAll(buildNamedXYTimeSeries(timeSeriesData, reportsConfigurations));
+        if (!timeSeriesData.isEmpty()) {
+            normalizeAndSortXValues(timeSeriesData, startDate, endDate);
+            if (smootherType != null) {
+                final Smoother smoother = smootherType.createSmoother(timeSeriesData);
+                smoother.smooth();
+                result.addAll(buildNamedXYTimeSeries(smoother.getDataForReports(), reportsConfigurations));
+            } else {
+                result.addAll(buildNamedXYTimeSeries(timeSeriesData, reportsConfigurations));
+            }
         }
 
         return result;
@@ -313,7 +315,7 @@ public class ReportsUserApi {
         }
 
         if (minDate == null || maxDate == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException(String.format("minDate and maxDate shouldn't be null! minDate=%s, maxDate=%s, dataForReports=%s", minDate, maxDate, dataForReports));
         }
 
         // Add 0 for missing days
