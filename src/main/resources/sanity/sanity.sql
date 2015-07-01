@@ -1243,3 +1243,861 @@ join (
 
 -- BUNDLE TAGS
 /* table not currently used */
+
+select 'K1: Validate consistency of states between payments and payment_transactions' as sanity_query_name;
+select * from (
+select
+     p.id
+    ,case when first_failure_record_id is not null then
+         case when first_failure_ptrx.transaction_status in ('UNKNOWN','PLUGIN_FAILURE') then
+              case when first_failure_ptrx.transaction_type='AUTHORIZE' then 'AUTH_ERRORED'
+                   when first_failure_ptrx.transaction_type='CAPTURE' then 'CAPTURE_ERRORED'
+                   when first_failure_ptrx.transaction_type='CHARGEBACK' then'CHARGEBACK_ERRORED'
+                   when first_failure_ptrx.transaction_type='CREDIT' then 'CREDIT_ERRORED'
+                   when first_failure_ptrx.transaction_type='PURCHASE' then 'PURCHASE_ERRORED'
+                   when first_failure_ptrx.transaction_type='REFUND' then 'REFUND_ERRORED'
+                   when first_failure_ptrx.transaction_type='VOID' then 'VOID_ERRORED'
+              end
+              when first_failure_ptrx.transaction_status='PAYMENT_FAILURE' then
+              case when first_failure_ptrx.transaction_type='AUTHORIZE' then 'AUTH_FAILED'
+                   when first_failure_ptrx.transaction_type='CAPTURE' then 'CAPTURE_FAILED'
+                   when first_failure_ptrx.transaction_type='CHARGEBACK' then'CHARGEBACK_FAILED'
+                   when first_failure_ptrx.transaction_type='CREDIT' then 'CREDIT_FAILED'
+                   when first_failure_ptrx.transaction_type='PURCHASE' then 'PURCHASE_FAILED'
+                   when first_failure_ptrx.transaction_type='REFUND' then 'REFUND_FAILED'
+                   when first_failure_ptrx.transaction_type='VOID' then 'VOID_FAILED'
+              end
+         end
+         when first_failure_record_id is null and last_success_record_id is not null then
+              case when last_success_ptrx.transaction_type='AUTHORIZE' then 'AUTH_SUCCESS'
+                   when last_success_ptrx.transaction_type='CAPTURE' then 'CAPTURE_SUCCESS'
+                   when last_success_ptrx.transaction_type='CHARGEBACK' then'CHARGEBACK_SUCCESS'
+                   when last_success_ptrx.transaction_type='CREDIT' then 'CREDIT_SUCCESS'
+                   when last_success_ptrx.transaction_type='PURCHASE' then 'PURCHASE_SUCCESS'
+                   when last_success_ptrx.transaction_type='REFUND' then 'REFUND_SUCCESS'
+                   when last_success_ptrx.transaction_type='VOID' then 'VOID_SUCCESS'
+              end
+         when first_failure_record_id is null and last_success_record_id is null and first_record_id is not null then
+         case when first_ptrx.transaction_status in ('UNKNOWN','PLUGIN_FAILURE') then
+              case when first_ptrx.transaction_type='AUTHORIZE' then 'AUTH_ERRORED'
+                   when first_ptrx.transaction_type='CAPTURE' then 'CAPTURE_ERRORED'
+                   when first_ptrx.transaction_type='CHARGEBACK' then'CHARGEBACK_ERRORED'
+                   when first_ptrx.transaction_type='CREDIT' then 'CREDIT_ERRORED'
+                   when first_ptrx.transaction_type='PURCHASE' then 'PURCHASE_ERRORED'
+                   when first_ptrx.transaction_type='REFUND' then 'REFUND_ERRORED'
+                   when first_ptrx.transaction_type='VOID' then 'VOID_ERRORED'
+              end
+              when first_ptrx.transaction_status='PAYMENT_FAILURE' then
+              case when first_ptrx.transaction_type='AUTHORIZE' then 'AUTH_FAILED'
+                   when first_ptrx.transaction_type='CAPTURE' then 'CAPTURE_FAILED'
+                   when first_ptrx.transaction_type='CHARGEBACK' then'CHARGEBACK_FAILED'
+                   when first_ptrx.transaction_type='CREDIT' then 'CREDIT_FAILED'
+                   when first_ptrx.transaction_type='PURCHASE' then 'PURCHASE_FAILED'
+                   when first_ptrx.transaction_type='REFUND' then 'REFUND_FAILED'
+                   when first_ptrx.transaction_type='VOID' then 'VOID_FAILED'
+              end
+         end
+     end as expected_value
+     ,p.state_name
+from (
+    select
+         first_ptrx.payment_id
+        ,first_ptrx.record_id first_record_id
+        ,latest_success.record_id as last_success_record_id
+        ,min(pt.record_id) as first_failure_record_id
+    from (
+        select
+            pt.payment_id
+           ,min(pt.record_id) record_id
+        from payment_transactions pt
+        group by 1
+        ) first_ptrx
+        left outer join (
+            select
+                 pt.payment_id
+                ,max(pt.record_id) record_id
+            from payment_transactions pt
+            where 1=1
+                and pt.transaction_status = 'SUCCESS'
+            group by 1
+        ) latest_success on first_ptrx.payment_id=latest_success.payment_id
+        left outer join payment_transactions pt on
+            pt.payment_id=latest_success.payment_id
+            and pt.record_id>latest_success.record_id
+            and pt.transaction_status != 'SUCCESS'
+    group by 1,2
+    ) ptrx
+    inner join payments p on
+        ptrx.payment_id = p.id
+    left outer join payment_transactions first_ptrx on
+        ptrx.first_record_id=first_ptrx.record_id
+    left outer join payment_transactions last_success_ptrx on
+        ptrx.last_success_record_id=last_success_ptrx.record_id
+    left outer join payment_transactions first_failure_ptrx on
+        ptrx.first_failure_record_id=first_failure_ptrx.record_id
+) t1
+where 1=1
+    and expected_value != state_name
+;
+
+select 'K2: payments.last_success_state_name and payment_transactions.transaction_state and payment_transactions.transaction_status' as sanity_query_name;
+select
+    *
+from (
+select
+    pt.transaction_type
+    ,pt.transaction_status
+    ,case when pt.transaction_type='AUTHORIZE' then 'AUTH_SUCCESS'
+          when pt.transaction_type='CAPTURE' then 'CAPTURE_SUCCESS'
+          when pt.transaction_type='CHARGEBACK' then'CHARGEBACK_SUCCESS'
+          when pt.transaction_type='CREDIT' then 'CREDIT_SUCCESS'
+          when pt.transaction_type='PURCHASE' then 'PURCHASE_SUCCESS'
+          when pt.transaction_type='REFUND' then 'REFUND_SUCCESS'
+          when pt.transaction_type='VOID' then 'VOID_SUCCESS'
+     end as expected_value
+    ,p.last_success_state_name
+    ,count(1)
+from (
+select
+     pt.payment_id
+    ,max(pt.record_id) latest_record_id
+from payment_transactions pt
+where 1=1
+    and pt.transaction_status = 'SUCCESS'
+group by 1
+) latest_pt
+    inner join payment_transactions pt on
+        latest_pt.payment_id=pt.payment_id
+        and latest_pt.latest_record_id=pt.record_id
+    inner join payments p on
+        latest_pt.payment_id=p.id
+group by 1,2,3,4
+) t1
+where 1=1
+    and expected_value != last_success_state_name
+;
+
+select 'K3: At least on payment trx for each payment' as sanity_query_name;
+select
+    *
+from
+    payments p
+    left outer join payment_transactions pt on
+        p.id=pt.payment_id
+where 1=1
+    and pt.payment_id is null
+;
+
+select 'L1: Validate consistency between base payments tables and anlytics_payment_* tables' as sanity_query_name;
+select
+   a.tenant_record_id
+  ,'analytics_payment_auths' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_auths b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='AUTHORIZE'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_captures' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_captures b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='CAPTURE'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_credits' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_credits b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='CREDIT' -- ??
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_chargebacks' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_chargebacks b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='CHARGEBACK' -- ??
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_purchases' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_purchases b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='PURCHASE'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_refunds' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_refunds b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='REFUND'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_voids' as table_name
+  ,sum(case when b.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when b.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+             and p.id=b.payment_id and p.external_key=b.payment_external_key and p.record_id=b.payment_number and p.account_id=b.account_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  payments p
+  inner join payment_transactions a on
+    p.id=a.payment_id
+  left outer join analytics_payment_voids b on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='VOID'
+group by 1,2
+;
+
+select 'L2: Validate consistency between base payment_transactions tables and anlytics_payment_* tables' as sanity_query_name;select '' as sanity_query_name;
+select
+   a.tenant_record_id
+  ,'analytics_payment_auths' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_auths b
+  left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='AUTHORIZE'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_captures' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_captures b
+  left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='CAPTURE'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_credits' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_credits b
+  left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='CREDIT' -- ??
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_chargebacks' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_chargebacks b
+    left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='CHARGEBACK' -- ??
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_purchases' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_purchases b
+    left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='PURCHASE'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_refunds' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_refunds b
+    left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='REFUND'
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_voids' as table_name
+  ,sum(case when a.payment_id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.payment_id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_transaction_id and a.transaction_external_key=b.payment_transaction_external_key
+             and a.transaction_status=b.payment_transaction_status -- and a.amount=b.amount and a.currency=b.currency and a.tenant_record_id=b.tenant_record_id
+            then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_voids b
+    left outer join payment_transactions a on
+    a.id=b.payment_transaction_id
+where 1=1
+  and a.transaction_type='VOID'
+group by 1,2
+;
+
+select 'L3: Validate consistency between anlytics_payment_* tables and base payments tables' as sanity_query_name;
+select
+   a.tenant_record_id
+  ,'analytics_payment_auths' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_auths b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_captures' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches  ,count(1) total
+from
+  analytics_payment_captures b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_credits' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches  ,count(1) total
+from
+  analytics_payment_credits b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_chargebacks' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches  ,count(1) total
+from
+  analytics_payment_chargebacks b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_purchases' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches  ,count(1) total
+from
+  analytics_payment_purchases b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_refunds' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches  ,count(1) total
+from
+  analytics_payment_refunds b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_voids' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.payment_id and a.record_id=b.payment_number and a.external_key=b.payment_external_key then 1 else 0 end) matches  ,count(1) total
+from
+  analytics_payment_voids b
+  left outer join payments a on
+    a.id=b.payment_id
+group by 1,2
+;
+
+select 'L4: Validate consistency between anlytics_payment_* tables and base accounts tables' as sanity_query_name;
+select
+   a.tenant_record_id
+  ,'analytics_payment_auths' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_auths b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_captures' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_captures b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_credits' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_credits b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_chargebacks' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_chargebacks b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_purchases' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_purchases b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_refunds' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_refunds b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_voids' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id=b.account_id and a.record_id=b.account_record_id and a.external_key=b.account_external_key then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_voids b
+  left outer join accounts a on
+    a.id=b.account_id
+group by 1,2
+;
+
+select 'L5: Validate consistency between anlytics_payment_* tables and base invoice_payments tables' as sanity_query_name;
+select
+   a.tenant_record_id
+  ,'analytics_payment_auths' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_auths b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_captures' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_captures b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_credits' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_credits b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_chargebacks' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_chargebacks b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_purchases' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_purchases b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_refunds' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_refunds b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_voids' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_payment_id and a.record_id = b.invoice_payment_record_id and a.type = b.invoice_payment_type then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_voids b
+  left outer join invoice_payments a on
+    a.id=b.invoice_payment_id
+where 1=1
+  and b.invoice_payment_id is not null
+group by 1,2
+;
+
+select 'L6: Validate consistency between anlytics_payment_* tables and base invoices tables' as sanity_query_name;
+select
+   a.tenant_record_id
+  ,'analytics_payment_auths' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_auths b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_captures' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_captures b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_credits' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_credits b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_chargebacks' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_chargebacks b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_purchases' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_purchases b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_refunds' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_refunds b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+UNION
+select
+   a.tenant_record_id
+  ,'analytics_payment_voids' as table_name
+  ,sum(case when a.id is null then 1 else 0 end) as row_missing
+  ,sum(case when a.id is not null then 1 else 0 end) as row_exists
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+                 and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
+  ,count(1) total
+from
+  analytics_payment_voids b
+  left outer join invoices a on
+    a.id=b.invoice_id
+where 1=1
+  and b.invoice_id is not null
+group by 1,2
+;
+
+select 'L7: Validate no duplicate rows in analytics_payment_*' as sanity_query_name;
+select
+    table_name as "Table Name"
+    ,repeat_count as "Repeated Row Count"
+from (
+select 'analytics_accounts' as table_name, ifnull(count(1),0) as repeat_count from (
+    select account_record_id from analytics_accounts a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_bundles' as table_name, count(1) from (
+    select bundle_record_id from analytics_bundles a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_invoice_adjustments' as table_name, ifnull(count(1),0) as repeat_count from (
+    select invoice_item_record_id from analytics_invoice_adjustments a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_invoice_credits' as table_name, ifnull(count(1),0) as repeat_count from (
+    select invoice_item_record_id from analytics_invoice_credits a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_invoice_item_adjustments' as table_name, ifnull(count(1),0) as repeat_count from (
+    select invoice_item_record_id from analytics_invoice_item_adjustments a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_invoice_items' as table_name, ifnull(count(1),0) as repeat_count from (
+    select invoice_item_record_id from analytics_invoice_items a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_invoices' as table_name, ifnull(count(1),0) as repeat_count from (
+    select invoice_record_id from analytics_invoices a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_auths' as table_name, ifnull(count(1),0) as repeat_count from (
+    select payment_transaction_id from analytics_payment_auths a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_captures' as table_name, count(1) from (
+    select payment_transaction_id from analytics_payment_captures a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_credits' as table_name, count(1) from (
+    select payment_transaction_id from analytics_payment_credits a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_chargebacks' as table_name, count(1) from (
+    select payment_transaction_id from analytics_payment_chargebacks a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_purchases' as table_name, count(1) from (
+    select payment_transaction_id from analytics_payment_purchases a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_refunds' as table_name, count(1) from (
+    select payment_transaction_id from analytics_payment_refunds a group by 1 having count(1)>1 ) b
+UNION
+select 'analytics_payment_voids' as table_name, count(1) from (
+    select payment_transaction_id from analytics_payment_voids a group by 1 having count(1)>1 ) b
+) c
+order by 2 desc, 1
+;
