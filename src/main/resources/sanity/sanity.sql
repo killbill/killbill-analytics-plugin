@@ -1474,7 +1474,7 @@ where 1=1
 group by 1,2
 ;
 
-select 'L2: Validate consistency between base payment_transactions tables and anlytics_payment_* tables' as sanity_query_name;select '' as sanity_query_name;
+select 'L2: Validate consistency between base payment_transactions tables and anlytics_payment_* tables' as sanity_query_name;
 select
    a.tenant_record_id
   ,'analytics_payment_auths' as table_name
