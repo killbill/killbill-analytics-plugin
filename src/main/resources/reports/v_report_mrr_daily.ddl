@@ -6,8 +6,8 @@ select
 , sum(ast.converted_next_mrr) as count
 from
   calendar cal
-  left join analytics_subscription_transitions ast on date_format(ast.next_start_date, '%Y-%m-%d') <= date_format(cal.d, '%Y-%m-%d')
-    and case when ast.next_end_date is not null then ast.next_end_date > date_format(cal.d, '%Y-%m-%d') else 1=1 end
+  left join analytics_subscription_transitions ast on cast(date_format(ast.next_start_date, '%Y-%m-%d') as date) <= cast(date_format(cal.d, '%Y-%m-%d') as date)
+    and case when ast.next_end_date is not null then ast.next_end_date > cast(date_format(cal.d, '%Y-%m-%d') as date) else 1=1 end
 where 1=1
   and cal.d <= now()
   and ast.report_group='default'
@@ -21,8 +21,8 @@ union select
 , sum(ast.converted_next_mrr) as count
 from
   calendar cal
-  left join analytics_subscription_transitions ast on date_format(ast.next_start_date, '%Y-%m-%d') <= date_format(cal.d, '%Y-%m-%d')
-    and case when ast.next_end_date is not null then ast.next_end_date > date_format(cal.d, '%Y-%m-%d') else 1=1 end
+  left join analytics_subscription_transitions ast on cast(date_format(ast.next_start_date, '%Y-%m-%d') as date) <= cast(date_format(cal.d, '%Y-%m-%d') as date)
+    and case when ast.next_end_date is not null then ast.next_end_date > cast(date_format(cal.d, '%Y-%m-%d') as date) else 1=1 end
 where 1=1
   and cal.d <= now()
   and ast.report_group='default'
