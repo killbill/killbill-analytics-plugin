@@ -18,18 +18,18 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.killbill.billing.platform.test.PlatformDBTestingHelper;
 import org.killbill.billing.plugin.analytics.dao.BusinessAnalyticsSqlDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.clock.Clock;
 import org.killbill.clock.DefaultClock;
-import org.killbill.commons.embeddeddb.mysql.MySQLEmbeddedDB;
+import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
@@ -38,41 +38,35 @@ import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
 import org.testng.Assert;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
+import org.testng.ITestContext;
+import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteStreams;
-import com.google.common.io.Resources;
 
 public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuiteNoDB {
-
-    protected MySQLEmbeddedDB embeddedDB;
-    protected DBI dbi;
-    protected BusinessAnalyticsSqlDao analyticsSqlDao;
-    protected DefaultNotificationQueueService notificationQueueService;
 
     protected final Clock clock = new DefaultClock();
     protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, "USD", ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
 
-    @BeforeClass(groups = "slow")
-    public void setUpClass() throws Exception {
-        embeddedDB = new MySQLEmbeddedDB();
-        embeddedDB.initialize();
-        embeddedDB.start();
+    protected EmbeddedDB embeddedDB;
+    protected DBI dbi;
+    protected BusinessAnalyticsSqlDao analyticsSqlDao;
+    protected DefaultNotificationQueueService notificationQueueService;
 
-        final String ddl = toString(Resources.getResource("org/killbill/billing/plugin/analytics/ddl.sql").openStream());
-        embeddedDB.executeScript(ddl);
-        embeddedDB.refreshTableNames();
+    @BeforeSuite(groups = "slow")
+    public void setUpSuite(final ITestContext context) throws Exception {
+        final AnalyticsPlatformDBTestingHelper analyticsPlatformDBTestingHelper = new AnalyticsPlatformDBTestingHelper();
+        analyticsPlatformDBTestingHelper.start();
+
+        context.setAttribute("DBTestingHelper", analyticsPlatformDBTestingHelper);
     }
 
     @BeforeMethod(groups = "slow")
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
+    public void setUp(final ITestContext context) throws Exception {
+        embeddedDB = ((PlatformDBTestingHelper) context.getAttribute("DBTestingHelper")).getInstance();
 
         killbillDataSource = new AnalyticsOSGIKillbillDataSource();
 
@@ -86,17 +80,9 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
         notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
     }
 
-    @AfterClass(groups = "slow")
+    @AfterSuite(groups = "slow")
     public void tearDown() throws Exception {
         embeddedDB.stop();
-    }
-
-    public static String toString(final InputStream stream) throws IOException {
-        try {
-            return new String(ByteStreams.toByteArray(stream), Charsets.UTF_8);
-        } finally {
-            stream.close();
-        }
     }
 
     private final class AnalyticsOSGIKillbillDataSource extends OSGIKillbillDataSource {
@@ -113,6 +99,19 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
                 Assert.fail(e.toString(), e);
                 return null;
             }
+        }
+    }
+
+    private final class AnalyticsPlatformDBTestingHelper extends PlatformDBTestingHelper {
+
+        public AnalyticsPlatformDBTestingHelper() {
+            super();
+        }
+
+        @Override
+        protected synchronized void executePostStartupScripts() throws IOException {
+            final String baseResource = "org/killbill/billing/plugin/analytics/";
+            executePostStartupScripts(baseResource);
         }
     }
 }
