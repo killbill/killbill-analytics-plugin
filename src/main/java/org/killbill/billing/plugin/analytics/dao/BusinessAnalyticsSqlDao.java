@@ -45,8 +45,8 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentRefundMode
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
-import org.killbill.commons.jdbi.binder.SmartBindBean;
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.customizers.Define;
@@ -58,7 +58,7 @@ public interface BusinessAnalyticsSqlDao extends Transactional<BusinessAnalytics
 
     @SqlUpdate
     public void create(final String tableName,
-                       @SmartBindBean final BusinessModelDaoBase entity,
+                       @BindBean final BusinessModelDaoBase entity,
                        final CallContext callContext);
 
     @SqlUpdate

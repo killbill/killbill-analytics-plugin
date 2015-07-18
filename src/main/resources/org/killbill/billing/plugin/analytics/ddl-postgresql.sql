@@ -4,6 +4,18 @@ CREATE DOMAIN datetime AS timestamp without time zone;
 
 CREATE OR REPLACE LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION last_insert_id() RETURNS BIGINT AS $$
+    DECLARE
+        result BIGINT;
+    BEGIN
+        SELECT lastval() INTO result;
+        RETURN result;
+    EXCEPTION WHEN OTHERS THEN
+        SELECT NULL INTO result;
+        RETURN result;
+    END;
+$$ LANGUAGE plpgsql VOLATILE;
+
 CREATE OR REPLACE FUNCTION schema() RETURNS VARCHAR AS $$
     DECLARE
         result VARCHAR;

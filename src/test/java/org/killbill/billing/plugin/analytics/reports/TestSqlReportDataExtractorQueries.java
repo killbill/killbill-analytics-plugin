@@ -45,7 +45,7 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
                              "metric:avg(fee);" +
                              "metric:100*sum(fee)/amount";
         final ReportSpecification reportSpecification = new ReportSpecification(query);
-        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName, reportSpecification, new LocalDate(2012, 10, 10), new LocalDate(2014, 11, 11), 1234L);
+        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName, reportSpecification, new LocalDate(2012, 10, 10), new LocalDate(2014, 11, 11), embeddedDB.getDBEngine(), 1234L);
 
         final List<Map<String, Object>> results = dbi.withHandle(new HandleCallback<List<Map<String, Object>>>() {
             @Override

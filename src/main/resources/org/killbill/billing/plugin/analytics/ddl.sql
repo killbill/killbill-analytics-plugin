@@ -3,11 +3,11 @@
 -- Subscription events
 drop table if exists analytics_subscription_transitions;
 create table analytics_subscription_transitions (
-  record_id int(11) unsigned not null auto_increment
-, subscription_event_record_id int(11) unsigned default null
-, bundle_id char(36) default null
+  record_id serial unique
+, subscription_event_record_id bigint /*! unsigned */ default null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
-, subscription_id char(36) default null
+, subscription_id varchar(36) default null
 , requested_timestamp date default null
 , event varchar(50) default null
 , prev_product_name varchar(50) default null
@@ -43,17 +43,17 @@ create table analytics_subscription_transitions (
 , next_business_active bool default true
 , next_start_date date default null
 , next_end_date date default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_subscription_transitions_bundle_id on analytics_subscription_transitions(bundle_id);
@@ -65,12 +65,12 @@ create index analytics_subscription_transitions_tenant_account_record_id on anal
 -- Bundle summary
 drop table if exists analytics_bundles;
 create table analytics_bundles (
-  record_id int(11) unsigned not null auto_increment
-, bundle_record_id int(11) unsigned default null
-, bundle_id char(36) default null
+  record_id serial unique
+, bundle_record_id bigint /*! unsigned */ default null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
-, subscription_id char(36) default null
-, bundle_account_rank int(11) default null
+, subscription_id varchar(36) default null
+, bundle_account_rank int default null
 , latest_for_bundle_external_key bool default false
 , charged_through_date date default null
 , current_product_name varchar(50) default null
@@ -90,18 +90,18 @@ create table analytics_bundles (
 , current_business_active bool default true
 , current_start_date date default null
 , current_end_date date default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , original_created_date datetime default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_bundles_bundle_bundle_id on analytics_bundles(bundle_id);
@@ -113,12 +113,12 @@ create index analytics_bundles_tenant_account_record_id on analytics_bundles(ten
 -- Accounts
 drop table if exists analytics_accounts;
 create table analytics_accounts (
-  record_id int(11) unsigned not null auto_increment
+  record_id serial unique
 , email varchar(128) default null
-, first_name_length int(11) default null
-, currency char(3) default null
+, first_name_length int default null
+, currency varchar(3) default null
 , billing_cycle_day_local int default null
-, payment_method_id char(36) default null
+, payment_method_id varchar(36) default null
 , time_zone varchar(50) default null
 , locale varchar(5) default null
 , address1 varchar(100) default null
@@ -135,29 +135,29 @@ create table analytics_accounts (
 , converted_balance numeric(10, 4) default null
 , oldest_unpaid_invoice_date date default null
 , oldest_unpaid_invoice_balance numeric(10, 4) default null
-, oldest_unpaid_invoice_currency char(3) default null
+, oldest_unpaid_invoice_currency varchar(3) default null
 , converted_oldest_unpaid_invoice_balance numeric(10, 4) default null
-, oldest_unpaid_invoice_id char(36) default null
+, oldest_unpaid_invoice_id varchar(36) default null
 , last_invoice_date date default null
 , last_invoice_balance numeric(10, 4) default null
-, last_invoice_currency char(3) default null
+, last_invoice_currency varchar(3) default null
 , converted_last_invoice_balance numeric(10, 4) default null
-, last_invoice_id char(36) default null
+, last_invoice_id varchar(36) default null
 , last_payment_date datetime default null
 , last_payment_status varchar(255) default null
-, nb_active_bundles int(11) default 0
-, converted_currency char(3) default null
+, nb_active_bundles int default 0
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
 , updated_date datetime default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_accounts_account_external_key on analytics_accounts(account_external_key);
@@ -167,8 +167,8 @@ create index analytics_accounts_tenant_account_record_id on analytics_accounts(t
 
 drop table if exists analytics_account_transitions;
 create table analytics_account_transitions (
-  record_id int(11) unsigned not null auto_increment
-, blocking_state_record_id int(11) unsigned default null
+  record_id serial unique
+, blocking_state_record_id bigint /*! unsigned */ default null
 , service varchar(50) default null
 , state varchar(50) default null
 , start_date date default null
@@ -177,12 +177,12 @@ create table analytics_account_transitions (
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_account_transitions_account_id on analytics_account_transitions(account_id);
@@ -194,13 +194,13 @@ create index analytics_account_transitions_blocking_state_record_id on analytics
 -- Invoices
 drop table if exists analytics_invoices;
 create table analytics_invoices (
-  record_id int(11) unsigned not null auto_increment
-, invoice_record_id int(11) unsigned default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_record_id bigint /*! unsigned */ default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_date date default null
 , target_date date default null
-, currency char(50) default null
+, currency varchar(50) default null
 , balance numeric(10, 4) default 0
 , converted_balance numeric(10, 4) default null
 , amount_paid numeric(10, 4) default 0
@@ -213,17 +213,17 @@ create table analytics_invoices (
 , converted_amount_credited numeric(10, 4) default null
 , amount_refunded numeric(10, 4) default 0
 , converted_amount_refunded numeric(10, 4) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoices_invoice_record_id on analytics_invoices(invoice_record_id);
@@ -235,16 +235,16 @@ create index analytics_invoices_tenant_account_record_id on analytics_invoices(t
 -- Invoice adjustments (type REFUND_ADJ)
 drop table if exists analytics_invoice_adjustments;
 create table analytics_invoice_adjustments (
-  record_id int(11) unsigned not null auto_increment
-, invoice_item_record_id int(11) unsigned default null
-, second_invoice_item_record_id int(11) unsigned default null
-, item_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_item_record_id bigint /*! unsigned */ default null
+, second_invoice_item_record_id bigint /*! unsigned */ default null
+, item_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -257,9 +257,9 @@ create table analytics_invoice_adjustments (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
-, item_type char(50) default null
-, item_source enum('system', 'user') not null
-, bundle_id char(36) default null
+, item_type varchar(50) default null
+, item_source varchar(50) not null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
@@ -271,19 +271,19 @@ create table analytics_invoice_adjustments (
 , end_date date default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
-, linked_item_id char(36) default null
-, converted_currency char(3) default null
+, currency varchar(50) default null
+, linked_item_id varchar(36) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoice_adjustments_invoice_item_record_id on analytics_invoice_adjustments(invoice_item_record_id);
@@ -296,16 +296,16 @@ create index analytics_invoice_adjustments_tenant_account_record_id on analytics
 -- Invoice items (without adjustments, type EXTERNAL_CHARGE, FIXED, RECURRING, USAGE and TAX)
 drop table if exists analytics_invoice_items;
 create table analytics_invoice_items (
-  record_id int(11) unsigned not null auto_increment
-, invoice_item_record_id int(11) unsigned default null
-, second_invoice_item_record_id int(11) unsigned default null
-, item_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_item_record_id bigint /*! unsigned */ default null
+, second_invoice_item_record_id bigint /*! unsigned */ default null
+, item_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -318,9 +318,9 @@ create table analytics_invoice_items (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
-, item_type char(50) default null
-, item_source enum('system', 'user') not null
-, bundle_id char(36) default null
+, item_type varchar(50) default null
+, item_source varchar(50) not null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
@@ -332,19 +332,19 @@ create table analytics_invoice_items (
 , end_date date default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
-, linked_item_id char(36) default null
-, converted_currency char(3) default null
+, currency varchar(50) default null
+, linked_item_id varchar(36) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoice_items_invoice_item_record_id on analytics_invoice_items(invoice_item_record_id);
@@ -357,16 +357,16 @@ create index analytics_invoice_items_tenant_account_record_id on analytics_invoi
 -- Invoice items adjustments (type ITEM_ADJ)
 drop table if exists analytics_invoice_item_adjustments;
 create table analytics_invoice_item_adjustments (
-  record_id int(11) unsigned not null auto_increment
-, invoice_item_record_id int(11) unsigned default null
-, second_invoice_item_record_id int(11) unsigned default null
-, item_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_item_record_id bigint /*! unsigned */ default null
+, second_invoice_item_record_id bigint /*! unsigned */ default null
+, item_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -379,9 +379,9 @@ create table analytics_invoice_item_adjustments (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
-, item_type char(50) default null
-, item_source enum('system', 'user') not null
-, bundle_id char(36) default null
+, item_type varchar(50) default null
+, item_source varchar(50) not null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
@@ -393,19 +393,19 @@ create table analytics_invoice_item_adjustments (
 , end_date date default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
-, linked_item_id char(36) default null
-, converted_currency char(3) default null
+, currency varchar(50) default null
+, linked_item_id varchar(36) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoice_item_adjustments_invoice_item_record_id on analytics_invoice_item_adjustments(invoice_item_record_id);
@@ -418,16 +418,16 @@ create index analytics_invoice_item_adjustments_tenant_account_record_id on anal
 -- Account credits (type CBA_ADJ and CREDIT_ADJ)
 drop table if exists analytics_invoice_credits;
 create table analytics_invoice_credits (
-  record_id int(11) unsigned not null auto_increment
-, invoice_item_record_id int(11) unsigned default null
-, second_invoice_item_record_id int(11) unsigned default null
-, item_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_item_record_id bigint /*! unsigned */ default null
+, second_invoice_item_record_id bigint /*! unsigned */ default null
+, item_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -440,9 +440,9 @@ create table analytics_invoice_credits (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
-, item_type char(50) default null
-, item_source enum('system', 'user') not null
-, bundle_id char(36) default null
+, item_type varchar(50) default null
+, item_source varchar(50) not null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
@@ -454,19 +454,19 @@ create table analytics_invoice_credits (
 , end_date date default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
-, linked_item_id char(36) default null
-, converted_currency char(3) default null
+, currency varchar(50) default null
+, linked_item_id varchar(36) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoice_credits_invoice_item_record_id on analytics_invoice_credits(invoice_item_record_id);
@@ -480,15 +480,15 @@ create index analytics_invoice_credits_tenant_account_record_id on analytics_inv
 
 drop table if exists analytics_payment_auths;
 create table analytics_payment_auths (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -502,17 +502,17 @@ create table analytics_payment_auths (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -535,17 +535,17 @@ create table analytics_payment_auths (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_auths_invoice_payment_record_id on analytics_payment_auths(invoice_payment_record_id);
@@ -557,15 +557,15 @@ create index analytics_payment_auths_tenant_account_record_id on analytics_payme
 
 drop table if exists analytics_payment_captures;
 create table analytics_payment_captures (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -579,17 +579,17 @@ create table analytics_payment_captures (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -612,17 +612,17 @@ create table analytics_payment_captures (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_captures_invoice_payment_record_id on analytics_payment_captures(invoice_payment_record_id);
@@ -634,15 +634,15 @@ create index analytics_payment_captures_tenant_account_record_id on analytics_pa
 
 drop table if exists analytics_payment_purchases;
 create table analytics_payment_purchases (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -656,17 +656,17 @@ create table analytics_payment_purchases (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -689,17 +689,17 @@ create table analytics_payment_purchases (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_purchases_invoice_payment_record_id on analytics_payment_purchases(invoice_payment_record_id);
@@ -711,15 +711,15 @@ create index analytics_payment_purchases_tenant_account_record_id on analytics_p
 
 drop table if exists analytics_payment_refunds;
 create table analytics_payment_refunds (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -733,17 +733,17 @@ create table analytics_payment_refunds (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -766,17 +766,17 @@ create table analytics_payment_refunds (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_refunds_invoice_payment_record_id on analytics_payment_refunds(invoice_payment_record_id);
@@ -788,15 +788,15 @@ create index analytics_payment_refunds_tenant_account_record_id on analytics_pay
 
 drop table if exists analytics_payment_credits;
 create table analytics_payment_credits (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -810,17 +810,17 @@ create table analytics_payment_credits (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -843,17 +843,17 @@ create table analytics_payment_credits (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_credits_invoice_payment_record_id on analytics_payment_credits(invoice_payment_record_id);
@@ -865,15 +865,15 @@ create index analytics_payment_credits_tenant_account_record_id on analytics_pay
 
 drop table if exists analytics_payment_chargebacks;
 create table analytics_payment_chargebacks (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -887,17 +887,17 @@ create table analytics_payment_chargebacks (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -920,17 +920,17 @@ create table analytics_payment_chargebacks (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_chargebacks_invoice_payment_record_id on analytics_payment_chargebacks(invoice_payment_record_id);
@@ -942,15 +942,15 @@ create index analytics_payment_chargebacks_tenant_account_record_id on analytics
 
 drop table if exists analytics_payment_voids;
 create table analytics_payment_voids (
-  record_id int(11) unsigned not null auto_increment
-, invoice_payment_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
-, invoice_id char(36) default null
+  record_id serial unique
+, invoice_payment_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
+, invoice_id varchar(36) default null
 , invoice_number bigint default null
 , invoice_created_date datetime default null
 , invoice_date date default null
 , invoice_target_date date default null
-, invoice_currency char(50) default null
+, invoice_currency varchar(50) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -964,17 +964,17 @@ create table analytics_payment_voids (
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
 , invoice_payment_type varchar(50) default null
-, payment_id char(36) default null
-, refund_id char(36) default null
+, payment_id varchar(36) default null
+, refund_id varchar(36) default null
 , payment_number bigint default null
 , payment_external_key varchar(255) default null
-, payment_transaction_id char(36) default null
+, payment_transaction_id varchar(36) default null
 , payment_transaction_external_key varchar(255) default null
 , payment_transaction_status varchar(255) default null
-, linked_invoice_payment_id char(36) default null
+, linked_invoice_payment_id varchar(36) default null
 , amount numeric(10, 4) default 0
 , converted_amount numeric(10, 4) default null
-, currency char(50) default null
+, currency varchar(50) default null
 , plugin_name varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
@@ -997,17 +997,17 @@ create table analytics_payment_voids (
 , plugin_pm_state varchar(255) default null
 , plugin_pm_zip varchar(255) default null
 , plugin_pm_country varchar(255) default null
-, converted_currency char(3) default null
+, converted_currency varchar(3) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_voids_invoice_payment_record_id on analytics_payment_voids(invoice_payment_record_id);
@@ -1021,19 +1021,19 @@ create index analytics_payment_voids_tenant_account_record_id on analytics_payme
 
 drop table if exists analytics_account_tags;
 create table analytics_account_tags (
-  record_id int(11) unsigned not null auto_increment
-, tag_record_id int(11) unsigned default null
+  record_id serial unique
+, tag_record_id bigint /*! unsigned */ default null
 , name varchar(50) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_account_tags_account_id on analytics_account_tags(account_id);
@@ -1042,21 +1042,21 @@ create index analytics_account_tags_tenant_account_record_id on analytics_accoun
 
 drop table if exists analytics_bundle_tags;
 create table analytics_bundle_tags (
-  record_id int(11) unsigned not null auto_increment
-, tag_record_id int(11) unsigned default null
-, bundle_id char(36) default null
+  record_id serial unique
+, tag_record_id bigint /*! unsigned */ default null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
 , name varchar(50) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_bundle_tags_account_id on analytics_bundle_tags(account_id);
@@ -1067,20 +1067,20 @@ create index analytics_bundle_tags_tenant_account_record_id on analytics_bundle_
 
 drop table if exists analytics_invoice_tags;
 create table analytics_invoice_tags (
-  record_id int(11) unsigned not null auto_increment
-, tag_record_id int(11) unsigned default null
-, invoice_id char(36) default null
+  record_id serial unique
+, tag_record_id bigint /*! unsigned */ default null
+, invoice_id varchar(36) default null
 , name varchar(50) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoice_tags_account_id on analytics_invoice_tags(account_id);
@@ -1089,20 +1089,20 @@ create index analytics_invoice_tags_tenant_account_record_id on analytics_invoic
 
 drop table if exists analytics_payment_tags;
 create table analytics_payment_tags (
-  record_id int(11) unsigned not null auto_increment
-, tag_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
+  record_id serial unique
+, tag_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
 , name varchar(50) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_tags_account_id on analytics_payment_tags(account_id);
@@ -1111,20 +1111,20 @@ create index analytics_payment_tags_tenant_account_record_id on analytics_paymen
 
 drop table if exists analytics_account_fields;
 create table analytics_account_fields (
-  record_id int(11) unsigned not null auto_increment
-, custom_field_record_id int(11) unsigned default null
+  record_id serial unique
+, custom_field_record_id bigint /*! unsigned */ default null
 , name varchar(50) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_account_fields_account_id on analytics_account_fields(account_id);
@@ -1133,9 +1133,9 @@ create index analytics_account_fields_tenant_account_record_id on analytics_acco
 
 drop table if exists analytics_bundle_fields;
 create table analytics_bundle_fields (
-  record_id int(11) unsigned not null auto_increment
-, custom_field_record_id int(11) unsigned default null
-, bundle_id char(36) default null
+  record_id serial unique
+, custom_field_record_id bigint /*! unsigned */ default null
+, bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
 , name varchar(50) default null
 , value varchar(255) default null
@@ -1143,12 +1143,12 @@ create table analytics_bundle_fields (
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_bundle_fields_account_id on analytics_bundle_fields(account_id);
@@ -1159,21 +1159,21 @@ create index analytics_bundle_fields_tenant_account_record_id on analytics_bundl
 
 drop table if exists analytics_invoice_fields;
 create table analytics_invoice_fields (
-  record_id int(11) unsigned not null auto_increment
-, custom_field_record_id int(11) unsigned default null
-, invoice_id char(36) default null
+  record_id serial unique
+, custom_field_record_id bigint /*! unsigned */ default null
+, invoice_id varchar(36) default null
 , name varchar(50) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_invoice_fields_account_id on analytics_invoice_fields(account_id);
@@ -1182,21 +1182,21 @@ create index analytics_invoice_fields_tenant_account_record_id on analytics_invo
 
 drop table if exists analytics_payment_fields;
 create table analytics_payment_fields (
-  record_id int(11) unsigned not null auto_increment
-, custom_field_record_id int(11) unsigned default null
-, invoice_payment_id char(36) default null
+  record_id serial unique
+, custom_field_record_id bigint /*! unsigned */ default null
+, invoice_payment_id varchar(36) default null
 , name varchar(50) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
 , created_comments varchar(255) default null
-, account_id char(36) default null
+, account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
-, account_record_id int(11) unsigned default null
-, tenant_record_id int(11) unsigned default null
-, report_group enum('default', 'test', 'partner') not null
+, account_record_id bigint /*! unsigned */ default null
+, tenant_record_id bigint /*! unsigned */ default null
+, report_group varchar(50) not null
 , primary key(record_id)
 );
 create index analytics_payment_fields_account_id on analytics_payment_fields(account_id);
@@ -1205,70 +1205,70 @@ create index analytics_payment_fields_tenant_account_record_id on analytics_paym
 
 drop table if exists analytics_notifications;
 create table analytics_notifications (
-  record_id int(11) unsigned not null auto_increment
+  record_id serial unique
 , class_name varchar(256) not null
 , event_json varchar(2048) not null
-, user_token char(36)
+, user_token varchar(36)
 , created_date datetime not null
-, creating_owner char(50) not null
-, processing_owner char(50) default null
+, creating_owner varchar(50) not null
+, processing_owner varchar(50) default null
 , processing_available_date datetime default null
 , processing_state varchar(14) default 'AVAILABLE'
-, error_count int(11) unsigned DEFAULT 0
-, search_key1 int(11) unsigned default null
-, search_key2 int(11) unsigned default null
-, queue_name char(64) not null
+, error_count int /*! unsigned */ DEFAULT 0
+, search_key1 int /*! unsigned */ default null
+, search_key2 int /*! unsigned */ default null
+, queue_name varchar(64) not null
 , effective_date datetime not null
-, future_user_token char(36)
+, future_user_token varchar(36)
 , primary key(record_id)
 );
-create index idx_comp_where on analytics_notifications(effective_date, processing_state, processing_owner, processing_available_date);
-create index idx_update on analytics_notifications(processing_state,processing_owner,processing_available_date);
-create index idx_get_ready on analytics_notifications(effective_date,created_date);
-create index notifications_search_keys on analytics_notifications(search_key2, search_key1);
+create index analytics_notifications_comp_where on analytics_notifications(effective_date, processing_state, processing_owner, processing_available_date);
+create index analytics_notifications_update on analytics_notifications(processing_state,processing_owner,processing_available_date);
+create index analytics_notifications_get_ready on analytics_notifications(effective_date,created_date);
+create index analytics_notifications_search_keys on analytics_notifications(search_key2, search_key1);
 
 drop table if exists analytics_notifications_history;
 create table analytics_notifications_history (
-  record_id int(11) unsigned not null auto_increment
+  record_id serial unique
 , class_name varchar(256) not null
 , event_json varchar(2048) not null
-, user_token char(36)
+, user_token varchar(36)
 , created_date datetime not null
-, creating_owner char(50) not null
-, processing_owner char(50) default null
+, creating_owner varchar(50) not null
+, processing_owner varchar(50) default null
 , processing_available_date datetime default null
 , processing_state varchar(14) default 'AVAILABLE'
-, error_count int(11) unsigned DEFAULT 0
-, search_key1 int(11) unsigned default null
-, search_key2 int(11) unsigned default null
-, queue_name char(64) not null
+, error_count int /*! unsigned */ DEFAULT 0
+, search_key1 int /*! unsigned */ default null
+, search_key2 int /*! unsigned */ default null
+, queue_name varchar(64) not null
 , effective_date datetime not null
-, future_user_token char(36)
+, future_user_token varchar(36)
 , primary key(record_id)
 );
 
 drop table if exists analytics_currency_conversion;
 create table analytics_currency_conversion (
-  record_id int(11) unsigned not null auto_increment
-, currency char(3) not null
+  record_id serial unique
+, currency varchar(3) not null
 , start_date date not null
 , end_date date not null
 , reference_rate decimal(10, 4) not null
-, reference_currency char(3) default 'USD'
+, reference_currency varchar(3) default 'USD'
 , primary key(record_id)
 );
-create index idx_comp_where on analytics_currency_conversion(start_date, end_date, currency, reference_currency);
+create index analytics_currency_conversion_dates_currencies on analytics_currency_conversion(start_date, end_date, currency, reference_currency);
 
 drop table if exists analytics_reports;
 create table analytics_reports (
-  record_id int(11) unsigned not null auto_increment
+  record_id serial unique
 , report_name varchar(100) not null
 , report_pretty_name varchar(256) default null
 , report_type varchar(24) not null default 'TIMELINE'
 , source_table_name varchar(256) not null
 , refresh_procedure_name varchar(256) default null
-, refresh_frequency enum('HOURLY', 'DAILY') default null
-, refresh_hour_of_day_gmt tinyint default null
+, refresh_frequency varchar(50) default null
+, refresh_hour_of_day_gmt smallint default null
 , primary key(record_id)
 );
-create unique index analytics_reports_report_name on analytics_reports(report_name(100));
+create unique index analytics_reports_report_name on analytics_reports(report_name);

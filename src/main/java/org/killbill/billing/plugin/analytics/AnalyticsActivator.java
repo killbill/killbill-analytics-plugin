@@ -17,6 +17,8 @@
 
 package org.killbill.billing.plugin.analytics;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.concurrent.Executor;
 
@@ -32,6 +34,7 @@ import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.clock.Clock;
 import org.killbill.clock.DefaultClock;
+import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.killbill.notificationq.DefaultNotificationQueueService;
@@ -75,8 +78,9 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
+        final EmbeddedDB.DBEngine dbEngine = getDbEngine();
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, clock);
-        reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, reportsConfiguration, jobsScheduler);
+        reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);
@@ -105,5 +109,30 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, Servlet.class, servlet, props);
+    }
+
+    private EmbeddedDB.DBEngine getDbEngine() throws SQLException {
+        Connection connection = null;
+        String databaseProductName = null;
+        try {
+            connection = dataSource.getDataSource().getConnection();
+            databaseProductName = connection.getMetaData().getDatabaseProductName();
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
+
+        final EmbeddedDB.DBEngine dbEngine;
+        if ("H2".equalsIgnoreCase(databaseProductName)) {
+            dbEngine = EmbeddedDB.DBEngine.H2;
+        } else if ("MySQL".equalsIgnoreCase(databaseProductName)) {
+            dbEngine = EmbeddedDB.DBEngine.MYSQL;
+        } else if ("PostgreSQL".equalsIgnoreCase(databaseProductName)) {
+            dbEngine = EmbeddedDB.DBEngine.POSTGRESQL;
+        } else {
+            dbEngine = EmbeddedDB.DBEngine.GENERIC;
+        }
+        return dbEngine;
     }
 }

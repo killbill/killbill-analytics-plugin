@@ -37,6 +37,7 @@ import org.jooq.impl.DSL;
 import org.killbill.billing.plugin.analytics.reports.sql.Cases;
 import org.killbill.billing.plugin.analytics.reports.sql.Filters;
 import org.killbill.billing.plugin.analytics.reports.sql.MetricExpressionParser;
+import org.killbill.commons.embeddeddb.EmbeddedDB;
 
 import com.bpodgursky.jbool_expressions.And;
 import com.bpodgursky.jbool_expressions.Expression;
@@ -65,8 +66,9 @@ public class SqlReportDataExtractor {
                                   final ReportSpecification reportSpecification,
                                   @Nullable final LocalDate startDate,
                                   @Nullable final LocalDate endDate,
+                                  final EmbeddedDB.DBEngine dbEngine,
                                   final Long tenantRecordId) {
-        this(tableName, reportSpecification, startDate, endDate, SQLDialect.MYSQL, tenantRecordId);
+        this(tableName, reportSpecification, startDate, endDate, SQLDialectFromDBEngine(dbEngine), tenantRecordId);
     }
 
     public SqlReportDataExtractor(final String tableName,
@@ -162,6 +164,19 @@ public class SqlReportDataExtractor {
         if (endDate != null) {
             final Variable<String> dateCheck = Variable.of(String.format("%s<=%s", DAY_COLUMN_NAME, endDate));
             filters = filters == null ? dateCheck : And.of(filters, dateCheck);
+        }
+    }
+
+    private static SQLDialect SQLDialectFromDBEngine(final EmbeddedDB.DBEngine dbEngine) {
+        switch (dbEngine) {
+            case H2:
+                return SQLDialect.H2;
+            case MYSQL:
+                return SQLDialect.MARIADB;
+            case POSTGRESQL:
+                return SQLDialect.POSTGRES;
+            default:
+                throw new IllegalArgumentException("Unsupported DB engine: " + dbEngine);
         }
     }
 }
