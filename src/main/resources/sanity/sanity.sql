@@ -9,9 +9,9 @@ or (coalesce(a.id, '') != coalesce(bac.account_id, ''))
 or a.external_key != bac.account_external_key
 or (coalesce(a.email, '') != coalesce(bac.email, ''))
 or (coalesce(a.name, '') != coalesce(bac.account_name, ''))
-or (coalesce(a.first_name_length, '') != coalesce(bac.first_name_length, ''))
+or (coalesce(a.first_name_length, -1) != coalesce(bac.first_name_length, -1))
 or (coalesce(a.currency, '') != coalesce(bac.currency, ''))
-or (coalesce(a.billing_cycle_day_local, '') != coalesce(bac.billing_cycle_day_local, ''))
+or (coalesce(a.billing_cycle_day_local, -1) != coalesce(bac.billing_cycle_day_local, -1))
 or (coalesce(a.payment_method_id, '') != coalesce(bac.payment_method_id, ''))
 or (coalesce(a.time_zone, '') != coalesce(bac.time_zone, ''))
 or (coalesce(a.locale, '') != coalesce(bac.locale, ''))
@@ -23,8 +23,8 @@ or (coalesce(a.state_or_province, '') != coalesce(bac.state_or_province, ''))
 or (coalesce(a.country, '') != coalesce(bac.country, ''))
 or (coalesce(a.postal_code, '') != coalesce(bac.postal_code, ''))
 or (coalesce(a.phone, '') != coalesce(bac.phone, ''))
-or (coalesce(a.migrated, '') != coalesce(bac.migrated, ''))
-or (coalesce(a.is_notified_for_invoices, '') != coalesce(bac.notified_for_invoices, ''))
+or (coalesce(a.migrated, false) != coalesce(bac.migrated, false))
+or (coalesce(a.is_notified_for_invoices, false) != coalesce(bac.notified_for_invoices, false))
 or a.created_date  != bac.created_date
 or a.updated_date != bac.updated_date
 or a.tenant_record_id != bac.tenant_record_id
@@ -39,9 +39,9 @@ or (coalesce(a.id, '') != coalesce(bac.account_id, ''))
 or a.external_key  != bac.account_external_key
 or (coalesce(a.email, '') != coalesce(bac.email, ''))
 or (coalesce(a.name, '') != coalesce(bac.account_name, ''))
-or (coalesce(a.first_name_length, '') != coalesce(bac.first_name_length, ''))
+or (coalesce(a.first_name_length, -1) != coalesce(bac.first_name_length, -1))
 or (coalesce(a.currency, '') != coalesce(bac.currency, ''))
-or (coalesce(a.billing_cycle_day_local, '') != coalesce(bac.billing_cycle_day_local, ''))
+or (coalesce(a.billing_cycle_day_local, -1) != coalesce(bac.billing_cycle_day_local, -1))
 or (coalesce(a.payment_method_id, '') != coalesce(bac.payment_method_id, ''))
 or (coalesce(a.time_zone, '') != coalesce(bac.time_zone, ''))
 or (coalesce(a.locale, '') != coalesce(bac.locale, ''))
@@ -53,11 +53,11 @@ or (coalesce(a.state_or_province, '') != coalesce(bac.state_or_province, ''))
 or (coalesce(a.country, '') != coalesce(bac.country, ''))
 or (coalesce(a.postal_code, '') != coalesce(bac.postal_code, ''))
 or (coalesce(a.phone, '') != coalesce(bac.phone, ''))
-or (coalesce(a.migrated, '') != coalesce(bac.migrated, ''))
-or (coalesce(a.is_notified_for_invoices, '') != coalesce(bac.notified_for_invoices, ''))
-or (coalesce(a.created_date, '') != coalesce(bac.created_date, ''))
-or (coalesce(a.updated_date, '') != coalesce(bac.updated_date, ''))
-or (coalesce(a.tenant_record_id, '') != coalesce(bac.tenant_record_id, ''))
+or (coalesce(a.migrated, false) != coalesce(bac.migrated, false))
+or (coalesce(a.is_notified_for_invoices, false) != coalesce(bac.notified_for_invoices, false))
+or (coalesce(a.created_date, cast('1970-01-01' as date)) != coalesce(bac.created_date, cast('1970-01-01' as date)))
+or (coalesce(a.updated_date, cast('1970-01-01' as date)) != coalesce(bac.updated_date, cast('1970-01-01' as date)))
+or (coalesce(a.tenant_record_id, -1) != coalesce(bac.tenant_record_id, -1))
 ;
 
 select 'A2' as sanity_query_name;
@@ -81,9 +81,9 @@ where 1 = 1
 and (
      coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
   or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
-  or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
-  or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
-  or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
+  or coalesce(b.created_date, cast('1970-01-01' as date)) != coalesce(cf.created_date, cast('1970-01-01' as date))
+  or coalesce(b.account_record_id, -1) != coalesce(cf.account_record_id, -1)
+  or coalesce(b.tenant_record_id, -1) != coalesce(cf.tenant_record_id, -1)
 )
 and cf.object_type = 'ACCOUNT'
 ;
@@ -96,9 +96,9 @@ where 1 = 1
 and (
      coalesce(b.name, 'NULL') != coalesce(cf.field_name, 'NULL')
   or coalesce(b.value, 'NULL') != coalesce(cf.field_value, 'NULL')
-  or coalesce(b.created_date, 'NULL') != coalesce(cf.created_date, 'NULL')
-  or coalesce(b.account_record_id, 'NULL') != coalesce(cf.account_record_id, 'NULL')
-  or coalesce(b.tenant_record_id, 'NULL') != coalesce(cf.tenant_record_id, 'NULL')
+  or coalesce(b.created_date, cast('1970-01-01' as date)) != coalesce(cf.created_date, cast('1970-01-01' as date))
+  or coalesce(b.account_record_id, -1) != coalesce(cf.account_record_id, -1)
+  or coalesce(b.tenant_record_id, -1) != coalesce(cf.tenant_record_id, -1)
   or cf.object_type != 'ACCOUNT'
 )
 ;
@@ -107,7 +107,7 @@ select 'K2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_account_fields b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -133,11 +133,11 @@ join tag_definitions td on t.tag_definition_id = td.id
 left outer join analytics_account_tags b on t.record_id = b.tag_record_id and t.object_id = b.account_id /* To use the index */
 where 1 = 1
 and (
-     coalesce(b.tag_record_id, 'NULL') != coalesce(t.record_id, 'NULL')
+     coalesce(b.tag_record_id, -1) != coalesce(t.record_id, -1)
   or coalesce(b.name, 'NULL') != coalesce(td.name, 'NULL')
-  or coalesce(b.created_date, 'NULL') != coalesce(t.created_date, 'NULL')
-  or coalesce(b.account_record_id, 'NULL') != coalesce(t.account_record_id, 'NULL')
-  or coalesce(b.tenant_record_id, 'NULL') != coalesce(t.tenant_record_id, 'NULL')
+  or coalesce(b.created_date, cast('1970-01-01' as date)) != coalesce(t.created_date, cast('1970-01-01' as date))
+  or coalesce(b.account_record_id, -1) != coalesce(t.account_record_id, -1)
+  or coalesce(b.tenant_record_id, -1) != coalesce(t.tenant_record_id, -1)
 )
 and t.object_type = 'ACCOUNT'
 ;
@@ -147,11 +147,11 @@ select distinct b.account_record_id
 from analytics_account_tags b
 left outer join tags t on t.record_id = b.tag_record_id
 left outer join tag_definitions td on t.tag_definition_id = td.id
-where (coalesce(b.tag_record_id, 'NULL') != coalesce(t.record_id, 'NULL')
+where (coalesce(b.tag_record_id, -1) != coalesce(t.record_id, -1)
 or coalesce(b.name, 'NULL') != coalesce(td.name, 'NULL')
-or coalesce(b.created_date, 'NULL') != coalesce(t.created_date, 'NULL')
-or coalesce(b.account_record_id, 'NULL') != coalesce(t.account_record_id, 'NULL')
-or coalesce(b.tenant_record_id, 'NULL') != coalesce(t.tenant_record_id, 'NULL'))
+or coalesce(b.created_date, cast('1970-01-01' as date)) != coalesce(t.created_date, cast('1970-01-01' as date))
+or coalesce(b.account_record_id, -1) != coalesce(t.account_record_id, -1)
+or coalesce(b.tenant_record_id, -1) != coalesce(t.tenant_record_id, -1))
 and t.object_type = 'ACCOUNT'
 -- Ignore system tags
 and t.tag_definition_id not in ('00000000-0000-0000-0000-000000000001',
@@ -167,7 +167,7 @@ select 'L2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_account_tags b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -192,38 +192,38 @@ select distinct b.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_adjustments b on ii.id = b.item_id
 where ii.type in ('CREDIT_ADJ','REFUND_ADJ')
-and (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
+and (coalesce(ii.record_id, -1) != coalesce(b.invoice_item_record_id, -1)
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
 or (coalesce(ii.phase_name, '') != coalesce(b.slug, ''))
-or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(b.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(b.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(b.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(b.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(b.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(b.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(b.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(b.tenant_record_id, -1)))
 ;
 
 select 'B1b' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
-where (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, ''))
+where (coalesce(ii.record_id, -1) != coalesce(b.invoice_item_record_id, -1))
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
 or (coalesce(ii.phase_name, '') != coalesce(b.slug, ''))
-or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(b.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(b.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(b.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(b.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(b.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, ''))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(b.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(b.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(b.tenant_record_id, -1))
 or ii.type not in ('CREDIT_ADJ','REFUND_ADJ')
 ;
 
@@ -231,7 +231,7 @@ select 'B2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -241,10 +241,10 @@ select 'B3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_adjustments b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -283,38 +283,38 @@ select distinct ii.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_items bii on ii.id = bii.item_id
 where ii.type in ('FIXED','RECURRING','EXTERNAL_CHARGE')
-and (coalesce(ii.record_id, '') != coalesce(bii.invoice_item_record_id, '')
+and (coalesce(ii.record_id, -1) != coalesce(bii.invoice_item_record_id, -1)
 or (coalesce(ii.id, '') != coalesce(bii.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(bii.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(bii.invoice_id, ''))
 or (coalesce(ii.account_id, '') != coalesce(bii.account_id, ''))
 or (coalesce(ii.phase_name, '') != coalesce(bii.slug, ''))
-or (coalesce(ii.start_date, '') != coalesce(bii.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(bii.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(bii.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(bii.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(bii.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(bii.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(bii.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(bii.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(bii.tenant_record_id, '')))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(bii.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(bii.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(bii.tenant_record_id, -1)))
 ;
 
 select 'C1b' as sanity_query_name;
 select distinct bii.account_record_id
 from analytics_invoice_items bii
 left outer join invoice_items ii on ii.id = bii.item_id
-where (coalesce(ii.record_id, '') != coalesce(bii.invoice_item_record_id, ''))
+where (coalesce(ii.record_id, -1) != coalesce(bii.invoice_item_record_id, -1))
 or (coalesce(ii.id, '') != coalesce(bii.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(bii.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(bii.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(bii.account_id, ''))
 or (coalesce(ii.phase_name, '') != coalesce(bii.slug, ''))
-or (coalesce(ii.start_date, '') != coalesce(bii.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(bii.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(bii.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(bii.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(bii.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(bii.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(bii.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(bii.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(bii.tenant_record_id, ''))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(bii.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(bii.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(bii.tenant_record_id, -1))
 or ii.type not in ('FIXED','RECURRING','EXTERNAL_CHARGE')
 ;
 
@@ -322,7 +322,7 @@ select 'C2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_items b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -332,10 +332,10 @@ select 'C3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_items b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -374,39 +374,39 @@ select distinct ii.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_item_adjustments b on ii.id = b.item_id
 where ii.type in ('ITEM_ADJ', 'REPAIR_ADJ')
-and (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
+and (coalesce(ii.record_id, -1) != coalesce(b.invoice_item_record_id, -1)
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
 or ((coalesce(ii.phase_name, '') != coalesce(b.slug,'')) and ii.phase_name is not null)
-or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(b.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(b.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(b.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(b.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(b.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(b.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(b.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(b.tenant_record_id, -1)))
 ;
 
 select 'D1b' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join invoice_items ii on ii.id = b.item_id
-where coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
+where coalesce(ii.record_id, -1) != coalesce(b.invoice_item_record_id, -1)
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
 /* The code is smart and will populate NULL columns from the linked item id */
 or (ii.phase_name is not null and ii.phase_name != b.slug)
-or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
-or ( (coalesce(ii.amount, '') != coalesce(b.amount, '')) and ii.type != 'REPAIR_ADJ' ) -- need to calc correct amount in case of REPAIR_ADJ case
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(b.start_date, cast('1970-01-01' as date)))
+or ( (coalesce(ii.amount, -1) != coalesce(b.amount, -1)) and ii.type != 'REPAIR_ADJ' ) -- need to calc correct amount in case of REPAIR_ADJ case
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(b.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(b.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, ''))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(b.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(b.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(b.tenant_record_id, -1))
 or ii.type not in ('ITEM_ADJ','REPAIR_ADJ')
 ;
 
@@ -414,7 +414,7 @@ select 'D2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -424,10 +424,10 @@ select 'D3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_item_adjustments b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -467,38 +467,38 @@ select distinct ii.account_record_id
 from invoice_items ii
 left outer join analytics_invoice_credits b on ii.id = b.item_id
 where ii.type in ('CBA_ADJ')
-and (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, '')
+and (coalesce(ii.record_id, -1) != coalesce(b.invoice_item_record_id, -1)
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
 or (coalesce(ii.phase_name, '') != coalesce(b.slug, ''))
-or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(b.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(b.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(b.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(b.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(b.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, '')))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(b.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(b.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(b.tenant_record_id, -1)))
 ;
 
 select 'E1b' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join invoice_items ii on ii.id = b.item_id
-where (coalesce(ii.record_id, '') != coalesce(b.invoice_item_record_id, ''))
+where (coalesce(ii.record_id, -1) != coalesce(b.invoice_item_record_id, -1))
 or (coalesce(ii.id, '') != coalesce(b.item_id, ''))
 or (coalesce(ii.type, '') != coalesce(b.item_type, ''))
 or (coalesce(ii.invoice_id, '') != coalesce(b.invoice_id, ''))
 or (coalesce(ii.account_id, '')!= coalesce(b.account_id, ''))
 or (coalesce(ii.phase_name, '') != coalesce(b.slug, ''))
-or (coalesce(ii.start_date, '') != coalesce(b.start_date, ''))
-or (coalesce(ii.amount, '') != coalesce(b.amount, ''))
+or (coalesce(ii.start_date, cast('1970-01-01' as date)) != coalesce(b.start_date, cast('1970-01-01' as date)))
+or (coalesce(ii.amount, -1) != coalesce(b.amount, -1))
 or (coalesce(ii.currency, '') != coalesce(b.currency, ''))
 or (coalesce(ii.linked_item_id, '') != coalesce(b.linked_item_id, ''))
-or (coalesce(ii.created_date, '') != coalesce(b.created_date, ''))
-or (coalesce(ii.account_record_id, '') != coalesce(b.account_record_id, ''))
-or (coalesce(ii.tenant_record_id, '') != coalesce(b.tenant_record_id, ''))
+or (coalesce(ii.created_date, cast('1970-01-01' as date)) != coalesce(b.created_date, cast('1970-01-01' as date)))
+or (coalesce(ii.account_record_id, -1) != coalesce(b.account_record_id, -1))
+or (coalesce(ii.tenant_record_id, -1) != coalesce(b.tenant_record_id, -1))
 or ii.type not in ('CBA_ADJ')
 ;
 
@@ -506,7 +506,7 @@ select 'E2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -516,10 +516,10 @@ select 'E3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoice_credits b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -565,37 +565,37 @@ select 'F1a' as sanity_query_name;
 select distinct i.account_record_id
 from invoices i
 left outer join analytics_invoices bin on i.id = bin.invoice_id
-where coalesce(i.record_id, '') != coalesce(bin.invoice_record_id, '')
-or coalesce(i.record_id, '') != coalesce(bin.invoice_number, '')
+where coalesce(i.record_id, -1) != coalesce(bin.invoice_record_id, -1)
+or coalesce(i.record_id, -1) != coalesce(bin.invoice_number, -1)
 or coalesce(i.id, '') != coalesce(bin.invoice_id, '')
 or (coalesce(i.account_id, '') != coalesce(bin.account_id, ''))
-or (coalesce(i.invoice_date, '') != coalesce(bin.invoice_date, ''))
-or (coalesce(i.target_date, '') != coalesce(bin.target_date, ''))
+or (coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(bin.invoice_date, cast('1970-01-01' as date)))
+or (coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(bin.target_date, cast('1970-01-01' as date)))
 or (coalesce(i.currency, '') != coalesce(bin.currency, ''))
-or (coalesce(i.created_date, '') != coalesce( bin.created_date, ''))
-or (coalesce(i.account_record_id, '') != coalesce(bin.account_record_id, ''))
-or (coalesce(i.tenant_record_id, '') != coalesce(bin.tenant_record_id, ''))
+or (coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce( bin.created_date, cast('1970-01-01' as date)))
+or (coalesce(i.account_record_id, -1) != coalesce(bin.account_record_id, -1))
+or (coalesce(i.tenant_record_id, -1) != coalesce(bin.tenant_record_id, -1))
 ;
 
 select 'F1b' as sanity_query_name;
 select distinct bin.account_record_id
 from analytics_invoices bin
 left outer join invoices i on i.id = bin.invoice_id
-where (coalesce(i.record_id, '') != coalesce(bin.invoice_record_id, ''))
+where (coalesce(i.record_id, -1) != coalesce(bin.invoice_record_id, -1))
 or (coalesce(i.id, '') != coalesce(bin.invoice_id, ''))
 or (coalesce(i.account_id, '') != coalesce(bin.account_id, ''))
-or (coalesce(i.invoice_date, '') != coalesce(bin.invoice_date, ''))
-or (coalesce(i.target_date, '') != coalesce(bin.target_date, ''))
+or (coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(bin.invoice_date, cast('1970-01-01' as date)))
+or (coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(bin.target_date, cast('1970-01-01' as date)))
 or (coalesce(i.currency, '') != coalesce(bin.currency, ''))
-or (coalesce(i.created_date, '') != coalesce(bin.created_date, ''))
-or (coalesce(i.account_record_id, '') != coalesce(bin.account_record_id, ''))
+or (coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(bin.created_date, cast('1970-01-01' as date)))
+or (coalesce(i.account_record_id, -1) != coalesce(bin.account_record_id, -1))
 ;
 
 select 'F2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_invoices b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -721,16 +721,16 @@ select 'G1a' as sanity_query_name;
 select distinct ip.account_record_id
 from invoice_payments ip
 left outer join analytics_payment_purchases bip on ip.id = bip.invoice_payment_id
-where (coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
+where (coalesce(ip.record_id, -1) != coalesce(bip.invoice_payment_record_id, -1)
 or coalesce(ip.ID, 'NULL') != coalesce(bip.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bip.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bip.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bip.linked_invoice_payment_id, 'NULL')
-or coalesce(ip.amount, 'NULL') != coalesce(bip.amount, 'NULL')
+or coalesce(ip.amount, -1) != coalesce(bip.amount, -1)
 or coalesce(ip.currency, 'NULL') != coalesce(bip.currency, 'NULL')
-or coalesce(ip.created_date, 'NULL') != coalesce(bip.created_date, 'NULL')
-or coalesce(ip.account_record_id, 'NULL') != coalesce(bip.account_record_id, 'NULL')
-or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bip.tenant_record_id, 'NULL'))
+or coalesce(ip.created_date, cast('1970-01-01' as date)) != coalesce(bip.created_date, cast('1970-01-01' as date))
+or coalesce(ip.account_record_id, -1) != coalesce(bip.account_record_id, -1)
+or coalesce(ip.tenant_record_id, -1) != coalesce(bip.tenant_record_id, -1))
 and ip.type = 'ATTEMPT'
 ;
 
@@ -738,16 +738,16 @@ select 'G1b' as sanity_query_name;
 select distinct bip.account_record_id
 from analytics_payment_purchases bip
 left outer join invoice_payments ip on ip.id = bip.invoice_payment_id
-where (coalesce(ip.record_id, 'NULL') != coalesce(bip.invoice_payment_record_id, 'NULL')
+where (coalesce(ip.record_id, -1) != coalesce(bip.invoice_payment_record_id, -1)
 or coalesce(ip.ID, 'NULL') != coalesce(bip.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bip.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bip.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bip.linked_invoice_payment_id, 'NULL')
-or coalesce(ip.amount, 'NULL') != coalesce(bip.amount, 'NULL')
+or coalesce(ip.amount, -1) != coalesce(bip.amount, -1)
 or coalesce(ip.currency, 'NULL') != coalesce(bip.currency, 'NULL')
-or coalesce(ip.created_date, 'NULL') != coalesce(bip.created_date, 'NULL')
-or coalesce(ip.account_record_id, 'NULL') != coalesce(bip.account_record_id, 'NULL')
-or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bip.tenant_record_id, 'NULL')
+or coalesce(ip.created_date, cast('1970-01-01' as date)) != coalesce(bip.created_date, cast('1970-01-01' as date))
+or coalesce(ip.account_record_id, -1) != coalesce(bip.account_record_id, -1)
+or coalesce(ip.tenant_record_id, -1) != coalesce(bip.tenant_record_id, -1)
 or bip.invoice_payment_type != 'ATTEMPT')
 and bip.invoice_payment_record_id !=0
 ;
@@ -756,7 +756,7 @@ select 'G2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_payment_purchases b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
@@ -765,10 +765,10 @@ select 'G3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_payment_purchases b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -788,7 +788,7 @@ select distinct bip.account_record_id
 from analytics_payment_purchases bip
 left outer join invoice_payments ip on bip.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
-where coalesce(p.record_id, 'NULL') != coalesce(bip.payment_number, 'NULL')
+where coalesce(p.record_id, -1) != coalesce(bip.payment_number, -1)
 and bip.invoice_payment_record_id!=0
 ;
 
@@ -816,16 +816,16 @@ select 'H1a' as sanity_query_name;
 select distinct ip.account_record_id
 from invoice_payments ip
 left outer join analytics_payment_chargebacks bipc on ip.id = bipc.invoice_payment_id
-where (coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
+where (coalesce(ip.record_id, -1) != coalesce(bipc.invoice_payment_record_id, -1)
 or coalesce(ip.ID, 'NULL') != coalesce(bipc.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipc.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bipc.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bipc.linked_invoice_payment_id, 'NULL')
-or coalesce(ip.amount, 'NULL') != coalesce(bipc.amount, 'NULL')
+or coalesce(ip.amount, -1) != coalesce(bipc.amount, -1)
 or coalesce(ip.currency, 'NULL') != coalesce(bipc.currency, 'NULL')
-or coalesce(ip.created_date, 'NULL') != coalesce(bipc.created_date, 'NULL')
-or coalesce(ip.account_record_id, 'NULL') != coalesce(bipc.account_record_id, 'NULL')
-or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipc.tenant_record_id, 'NULL'))
+or coalesce(ip.created_date, cast('1970-01-01' as date)) != coalesce(bipc.created_date, cast('1970-01-01' as date))
+or coalesce(ip.account_record_id, -1) != coalesce(bipc.account_record_id, -1)
+or coalesce(ip.tenant_record_id, -1) != coalesce(bipc.tenant_record_id, -1))
 and ip.type = 'CHARGED_BACK'
 ;
 
@@ -833,16 +833,16 @@ select 'H1b' as sanity_query_name;
 select distinct bipc.account_record_id
 from analytics_payment_chargebacks bipc
 left outer join invoice_payments ip on ip.id = bipc.invoice_payment_id
-where (coalesce(ip.record_id, 'NULL') != coalesce(bipc.invoice_payment_record_id, 'NULL')
+where (coalesce(ip.record_id, -1) != coalesce(bipc.invoice_payment_record_id, -1)
 or coalesce(ip.ID, 'NULL') != coalesce(bipc.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipc.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bipc.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bipc.linked_invoice_payment_id, 'NULL')
-or coalesce(ip.amount, 'NULL') != coalesce(bipc.amount, 'NULL')
+or coalesce(ip.amount, -1) != coalesce(bipc.amount, -1)
 or coalesce(ip.currency, 'NULL') != coalesce(bipc.currency, 'NULL')
-or coalesce(ip.created_date, 'NULL') != coalesce(bipc.created_date, 'NULL')
-or coalesce(ip.account_record_id, 'NULL') != coalesce(bipc.account_record_id, 'NULL')
-or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipc.tenant_record_id, 'NULL')
+or coalesce(ip.created_date, cast('1970-01-01' as date)) != coalesce(bipc.created_date, cast('1970-01-01' as date))
+or coalesce(ip.account_record_id, -1) != coalesce(bipc.account_record_id, -1)
+or coalesce(ip.tenant_record_id, -1) != coalesce(bipc.tenant_record_id, -1)
 or bipc.invoice_payment_type != 'CHARGED_BACK')
 and bipc.invoice_payment_record_id!=0
 ;
@@ -851,7 +851,7 @@ select 'H2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_payment_chargebacks b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
@@ -860,10 +860,10 @@ select 'H3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_payment_chargebacks b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -883,7 +883,7 @@ select distinct bipc.account_record_id
 from analytics_payment_chargebacks bipc
 left outer join invoice_payments ip on bipc.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
-where coalesce(p.record_id, 'NULL') != coalesce(bipc.payment_number, 'NULL')
+where coalesce(p.record_id, -1) != coalesce(bipc.payment_number, -1)
 and bipc.invoice_payment_record_id!=0
 ;
 
@@ -903,16 +903,16 @@ select 'H1a' as sanity_query_name;
 select distinct ip.account_record_id
 from invoice_payments ip
 left outer join analytics_payment_refunds bipr on ip.id = bipr.invoice_payment_id
-where (coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
+where (coalesce(ip.record_id, -1) != coalesce(bipr.invoice_payment_record_id, -1)
 or coalesce(ip.ID, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipr.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bipr.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bipr.linked_invoice_payment_id, 'NULL')
-or coalesce(ip.amount, 'NULL') != coalesce(bipr.amount, 'NULL')
+or coalesce(ip.amount, -1) != coalesce(bipr.amount, -1)
 or coalesce(ip.currency, 'NULL') != coalesce(bipr.currency, 'NULL')
-or coalesce(ip.created_date, 'NULL') != coalesce(bipr.created_date, 'NULL')
-or coalesce(ip.account_record_id, 'NULL') != coalesce(bipr.account_record_id, 'NULL')
-or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipr.tenant_record_id, 'NULL'))
+or coalesce(ip.created_date, cast('1970-01-01' as date)) != coalesce(bipr.created_date, cast('1970-01-01' as date))
+or coalesce(ip.account_record_id, -1) != coalesce(bipr.account_record_id, -1)
+or coalesce(ip.tenant_record_id, -1) != coalesce(bipr.tenant_record_id, -1))
 and ip.type = 'REFUND'
 ;
 
@@ -920,16 +920,16 @@ select 'H1b' as sanity_query_name;
 select distinct bipr.account_record_id
 from analytics_payment_refunds bipr
 left outer join invoice_payments ip on ip.id = bipr.invoice_payment_id
-where (coalesce(ip.record_id, 'NULL') != coalesce(bipr.invoice_payment_record_id, 'NULL')
+where (coalesce(ip.record_id, -1) != coalesce(bipr.invoice_payment_record_id, -1)
 or coalesce(ip.id, 'NULL') != coalesce(bipr.invoice_payment_id, 'NULL')
 or coalesce(ip.invoice_id, 'NULL') != coalesce(bipr.invoice_id, 'NULL')
 or coalesce(ip.type, 'NULL') != coalesce(bipr.invoice_payment_type, 'NULL')
 or coalesce(ip.linked_invoice_payment_id, 'NULL') != coalesce(bipr.linked_invoice_payment_id, 'NULL')
-or coalesce(ip.amount, 'NULL') != coalesce(bipr.amount, 'NULL')
+or coalesce(ip.amount, -1) != coalesce(bipr.amount, -1)
 or coalesce(ip.currency, 'NULL') != coalesce(bipr.currency, 'NULL')
-or coalesce(ip.created_date, 'NULL') != coalesce(bipr.created_date, 'NULL')
-or coalesce(ip.account_record_id, 'NULL') != coalesce(bipr.account_record_id, 'NULL')
-or coalesce(ip.tenant_record_id, 'NULL') != coalesce(bipr.tenant_record_id, 'NULL')
+or coalesce(ip.created_date, cast('1970-01-01' as date)) != coalesce(bipr.created_date, cast('1970-01-01' as date))
+or coalesce(ip.account_record_id, -1) != coalesce(bipr.account_record_id, -1)
+or coalesce(ip.tenant_record_id, -1) != coalesce(bipr.tenant_record_id, -1)
 or bipr.invoice_payment_type != 'REFUND')
 and bipr.invoice_payment_record_id!=0
 ;
@@ -938,7 +938,7 @@ select 'H2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_payment_refunds b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
 ;
@@ -947,10 +947,10 @@ select 'H3' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_payment_refunds b
 left outer join invoices i on i.id = b.invoice_id
-where coalesce(i.record_id, 'NULL') != coalesce(b.invoice_number, 'NULL')
-or coalesce(i.created_date, 'NULL') != coalesce(b.invoice_created_date, 'NULL')
-or coalesce(i.invoice_date, 'NULL') != coalesce(b.invoice_date, 'NULL')
-or coalesce(i.target_date, 'NULL') != coalesce(b.invoice_target_date, 'NULL')
+where coalesce(i.record_id, -1) != coalesce(b.invoice_number, -1)
+or coalesce(i.created_date, cast('1970-01-01' as date)) != coalesce(b.invoice_created_date, cast('1970-01-01' as date))
+or coalesce(i.invoice_date, cast('1970-01-01' as date)) != coalesce(b.invoice_date, cast('1970-01-01' as date))
+or coalesce(i.target_date, cast('1970-01-01' as date)) != coalesce(b.invoice_target_date, cast('1970-01-01' as date))
 or coalesce(i.currency, 'NULL') != coalesce(b.invoice_currency, 'NULL')
 ;
 
@@ -970,7 +970,7 @@ select distinct bipr.account_record_id
 from analytics_payment_refunds bipr
 left outer join invoice_payments ip on bipr.invoice_payment_id = ip.id
 left outer join payments p on ip.payment_id = p.id
-where coalesce(p.record_id, 'NULL') != coalesce(bipr.payment_number, 'NULL')
+where coalesce(p.record_id, -1) != coalesce(bipr.payment_number, -1)
 and bipr.invoice_payment_record_id!=0
 ;
 
@@ -991,20 +991,20 @@ select distinct bs.account_record_id
 from blocking_states bs
 join analytics_account_transitions bos on bs.record_id = bos.blocking_state_record_id
 where 1 = 1
-and bs.is_active = 1
+and bs.is_active = true
 and (
-     coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
+     coalesce(bs.record_id, -1) != coalesce(bos.blocking_state_record_id, -1)
   or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
   /* TODO SubscriptionEvent is not an entity, we don't have that info yet
-  or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
+  or coalesce(bs.created_date, cast('1970-01-01' as date)) != coalesce(bos.created_date, cast('1970-01-01' as date)) */
   or (
     /* Tricky... Need to look at the account timezone */
-        coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
-    and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
-    and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
+        coalesce(date(bs.effective_date), cast('1970-01-01' as date)) != coalesce(date(bos.start_date), cast('1970-01-01' as date))
+    and coalesce(date(bs.effective_date), cast('1970-01-01' as date)) != coalesce(date_add(date(bos.start_date), INTERVAL '1' DAY), cast('1970-01-01' as date))
+    and coalesce(date(bs.effective_date), cast('1970-01-01' as date)) != coalesce(date_sub(date(bos.start_date), INTERVAL '1' DAY), cast('1970-01-01' as date))
   )
-  or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
-  or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
+  or coalesce(bs.account_record_id, -1) != coalesce(bos.account_record_id, -1)
+  or coalesce(bs.tenant_record_id, -1) != coalesce(bos.tenant_record_id, -1)
 )
 ;
 
@@ -1013,18 +1013,18 @@ select distinct bos.account_record_id
 from analytics_account_transitions bos
 join blocking_states bs on bs.record_id = bos.blocking_state_record_id
 where 1 = 1
-and bs.is_active = 1
+and bs.is_active = true
 and (
-     coalesce(bs.record_id, 'NULL') != coalesce(bos.blocking_state_record_id, 'NULL')
+     coalesce(bs.record_id, -1) != coalesce(bos.blocking_state_record_id, -1)
   or coalesce(bs.state, 'NULL') != coalesce(bos.state, 'NULL')
   /* TODO SubscriptionEvent is not an entity, we don't have that info yet
-  or coalesce(bs.created_date, 'NULL') != coalesce(bos.created_date, 'NULL') */
+  or coalesce(bs.created_date, cast('1970-01-01' as date)) != coalesce(bos.created_date, cast('1970-01-01' as date)) */
   /* Tricky... Need to look at the account timezone */
-  or (coalesce(date(bs.effective_date), 'NULL') != coalesce(date(bos.start_date), 'NULL')
-  and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_add(date(bos.start_date), INTERVAL 1 DAY), 'NULL')
-  and coalesce(date(bs.effective_date), 'NULL') != coalesce(date_sub(date(bos.start_date), INTERVAL 1 DAY), 'NULL'))
-  or coalesce(bs.account_record_id, 'NULL') != coalesce(bos.account_record_id, 'NULL')
-  or coalesce(bs.tenant_record_id, 'NULL') != coalesce(bos.tenant_record_id, 'NULL')
+  or (coalesce(date(bs.effective_date), cast('1970-01-01' as date)) != coalesce(date(bos.start_date), cast('1970-01-01' as date))
+  and coalesce(date(bs.effective_date), cast('1970-01-01' as date)) != coalesce(date_add(date(bos.start_date), INTERVAL '1' DAY), cast('1970-01-01' as date))
+  and coalesce(date(bs.effective_date), cast('1970-01-01' as date)) != coalesce(date_sub(date(bos.start_date), INTERVAL '1' DAY), cast('1970-01-01' as date)))
+  or coalesce(bs.account_record_id, -1) != coalesce(bos.account_record_id, -1)
+  or coalesce(bs.tenant_record_id, -1) != coalesce(bos.tenant_record_id, -1)
 )
 ;
 
@@ -1034,7 +1034,7 @@ from analytics_account_transitions b
 left outer join accounts a on a.id = b.account_id
 where 1 = 1
 and (
-     coalesce(a.record_id) != coalesce(b.account_record_id, '')
+     coalesce(a.record_id) != coalesce(b.account_record_id, -1)
   or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
   or coalesce(a.name, '') != coalesce(b.account_name, '')
 )
@@ -1064,27 +1064,27 @@ where (coalesce(bst.prev_service, 'entitlement-service') = 'entitlement-service'
 and coalesce(bst.next_service, 'entitlement-service') = 'entitlement-service'
 and bst.subscription_event_record_id is not null)
 /* Tricky... Need to look at the account timezone */
-and ((coalesce(date(se.requested_date), '') != coalesce(date(bst.requested_timestamp), '')
-and coalesce(date(se.requested_date), '') != coalesce(date_add(date(bst.requested_timestamp), INTERVAL 1 DAY), '')
-and coalesce(date(se.requested_date), '') != coalesce(date_sub(date(bst.requested_timestamp), INTERVAL 1 DAY), ''))
-or (coalesce(date(se.effective_date), '') != coalesce(date(bst.next_start_date), '')
-and coalesce(date(se.effective_date), '') != coalesce(date_add(date(bst.next_start_date), INTERVAL 1 DAY), '')
-and coalesce(date(se.effective_date), '') != coalesce(date_sub(date(bst.next_start_date), INTERVAL 1 DAY), ''))
+and ((coalesce(date(se.requested_date), cast('1970-01-01' as date)) != coalesce(date(bst.requested_timestamp), cast('1970-01-01' as date))
+and coalesce(date(se.requested_date), cast('1970-01-01' as date)) != coalesce(date_add(date(bst.requested_timestamp), INTERVAL '1' DAY), cast('1970-01-01' as date))
+and coalesce(date(se.requested_date), cast('1970-01-01' as date)) != coalesce(date_sub(date(bst.requested_timestamp), INTERVAL '1' DAY), cast('1970-01-01' as date)))
+or (coalesce(date(se.effective_date), cast('1970-01-01' as date)) != coalesce(date(bst.next_start_date), cast('1970-01-01' as date))
+and coalesce(date(se.effective_date), cast('1970-01-01' as date)) != coalesce(date_add(date(bst.next_start_date), INTERVAL '1' DAY), cast('1970-01-01' as date))
+and coalesce(date(se.effective_date), cast('1970-01-01' as date)) != coalesce(date_sub(date(bst.next_start_date), INTERVAL '1' DAY), cast('1970-01-01' as date)))
 or coalesce(se.subscription_id, '') != coalesce(bst.subscription_id, '')
 or coalesce(se.phase_name, '') != coalesce(bst.next_slug, '')
 /* See https://github.com/killbill/killbill/issues/65: subscription_events won't have the pricelist but the SubscriptionEvent object will at runtime */
 or (se.price_list_name is not null and se.price_list_name != coalesce(bst.next_price_list, ''))
 /* TODO SubscriptionEvent is not an entity, we don't have that info yet (we currently look at audit logs but this doesn't work for in-memory events)
-or coalesce(se.created_date, '') != coalesce(bst.created_date, '') */
-or coalesce(se.account_record_id, '') != coalesce(bst.account_record_id, '')
-or coalesce(se.tenant_record_id, '') != coalesce(bst.tenant_record_id, ''))
+or coalesce(se.created_date, cast('1970-01-01' as date)) != coalesce(bst.created_date, cast('1970-01-01' as date)) */
+or coalesce(se.account_record_id, -1) != coalesce(bst.account_record_id, -1)
+or coalesce(se.tenant_record_id, -1) != coalesce(bst.tenant_record_id, -1))
 ;
 
 select 'J2' as sanity_query_name;
 select distinct b.account_record_id
 from analytics_subscription_transitions b
 left outer join accounts a on a.id = b.account_id
-where coalesce(a.record_id) != coalesce(b.account_record_id, '')
+where coalesce(a.record_id) != coalesce(b.account_record_id, -1)
 or coalesce(a.id, '') != coalesce(b.account_id, '')
 or coalesce(a.external_key, '') != coalesce(b.account_external_key, '')
 or coalesce(a.name, '') != coalesce(b.account_name, '')
@@ -1888,7 +1888,7 @@ select
   ,'analytics_payment_auths' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
@@ -1904,7 +1904,7 @@ select
   ,'analytics_payment_captures' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
@@ -1920,7 +1920,7 @@ select
   ,'analytics_payment_credits' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
@@ -1936,7 +1936,7 @@ select
   ,'analytics_payment_chargebacks' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
@@ -1952,7 +1952,7 @@ select
   ,'analytics_payment_purchases' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
@@ -1968,7 +1968,7 @@ select
   ,'analytics_payment_refunds' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
@@ -1984,7 +1984,7 @@ select
   ,'analytics_payment_voids' as table_name
   ,sum(case when a.id is null then 1 else 0 end) as row_missing
   ,sum(case when a.id is not null then 1 else 0 end) as row_exists
-  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number and a.created_by = b.invoice_created_date
+  ,sum(case when a.id = b.invoice_id and a.currency = b.invoice_currency and a.record_id = b.invoice_number
                  and a.invoice_date = b.invoice_date and a.target_date = b.invoice_target_date then 1 else 0 end) matches
   ,count(1) total
 from
