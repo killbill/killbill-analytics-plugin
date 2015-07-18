@@ -5,7 +5,7 @@ SELECT distinct
 FROM
     analytics_payment_captures apc
 WHERE 1=1
-    AND apc.created_date > sysdate() - interval 1 week
+    AND apc.created_date > sysdate() - interval '7' day
 UNION
 SELECT distinct
     app.plugin_name
@@ -13,5 +13,5 @@ SELECT distinct
 FROM
     analytics_payment_purchases app
 WHERE 1=1
-    AND app.created_date > sysdate() - interval 1 week
+    AND app.created_date > sysdate() - interval '7' day
 ;
