@@ -19,11 +19,11 @@ select
 , round(cc.reference_rate * pmt.amount,4) as "Payment Amount USD"
 , pmt.payment_id
 from
-  analytics_payments pmt
-  join analytics_currency_conversion cc on pmt.created_date >= cc.start_date and pmt.created_date <= cc.end_date and cc.currency =pmt.currency
+  analytics_payment_purchases pmt
+  join analytics_currency_conversion cc on pmt.created_date >= cc.start_date and pmt.created_date <= cc.end_date and cc.currency = pmt.currency
 where 1=1
-  and pmt.created_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
-  and pmt.created_date < date_format(sysdate(),'%Y-%m-01')
+  and pmt.created_date >= cast(date_format(date_sub(sysdate(), interval '1' month), '%Y-%m-01') as date)
+  and pmt.created_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
   and pmt.report_group != 'test'
 order by
   account_name

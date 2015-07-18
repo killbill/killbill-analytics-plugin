@@ -26,12 +26,12 @@ select
 , rfnd.created_by as "User Responsible for Refund"
 , 'REASON' as "Reason for Refund"
 from
-  analytics_refunds rfnd
-  join analytics_currency_conversion cc on rfnd.created_date >= cc.start_date and rfnd.created_date <= cc.end_date and cc.currency =rfnd.currency
+  analytics_payment_refunds rfnd
+  join analytics_currency_conversion cc on rfnd.created_date >= cc.start_date and rfnd.created_date <= cc.end_date and cc.currency = rfnd.currency
   left outer join paypal_express_transactions pp on pp.kb_payment_id=rfnd.payment_id and api_call = 'refund' -- workaround paypal #
-  left outer join litle_responses lr on lr.kb_payment_id=rfnd.payment_id and lr.success=1 and lr.api_call = 'charge' -- workaround litle #     
+  left outer join litle_responses lr on lr.kb_payment_id=rfnd.payment_id and lr.success=1 and lr.api_call = 'charge' -- workaround litle #
 where 1=1
-  and rfnd.created_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
-  and rfnd.created_date < date_format(sysdate(),'%Y-%m-01')
+  and rfnd.created_date >= cast(date_format(date_sub(sysdate(), interval '1' month), '%Y-%m-01') as date)
+  and rfnd.created_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
   and rfnd.report_group != 'test'
 order by 1,rfnd.invoice_payment_record_id; -- just for well defined ordering
