@@ -10,7 +10,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
         analytics_payment_auths a
     WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -26,7 +25,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
         analytics_payment_captures a
     WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -42,8 +40,7 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
          analytics_payment_chargebacks a
     WHERE 1=1
-         AND a.tenant_record_id=1
-    GROUP BY
+     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
     UNION
@@ -58,7 +55,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
          analytics_payment_credits a
     WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -74,7 +70,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
         analytics_payment_purchases a
     WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -90,7 +85,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
         analytics_payment_refunds a
     WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -106,7 +100,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
         analytics_payment_voids a
     WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -124,7 +117,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_auths a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -141,7 +133,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_captures a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -158,7 +149,6 @@ create or replace view v_report_payments_by_provider_sub1 as
          analytics_payment_chargebacks a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -175,7 +165,6 @@ create or replace view v_report_payments_by_provider_sub1 as
          analytics_payment_credits a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -192,7 +181,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_purchases a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -209,7 +197,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_refunds a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -226,7 +213,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_voids a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 7 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -244,7 +230,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_auths a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 1 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -261,7 +246,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_captures a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 1 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -277,7 +261,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     FROM
          analytics_payment_chargebacks a
      WHERE 1=1
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -294,7 +277,6 @@ create or replace view v_report_payments_by_provider_sub1 as
          analytics_payment_credits a
      WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 1 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -311,7 +293,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_purchases a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 1 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -328,7 +309,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_refunds a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 1 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -345,7 +325,6 @@ create or replace view v_report_payments_by_provider_sub1 as
         analytics_payment_voids a
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 1 day)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -364,7 +343,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -382,7 +360,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -400,7 +377,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -418,7 +394,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -436,7 +411,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -454,7 +428,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
@@ -472,7 +445,6 @@ create or replace view v_report_payments_by_provider_sub1 as
     WHERE 1=1
         AND a.created_date>date_sub(sysdate(),interval 34 minute)
         AND a.created_date<=date_sub(sysdate(),interval 4 minute)
-        AND a.tenant_record_id=1
     GROUP BY
          a.plugin_name
          ,a.tenant_record_id
