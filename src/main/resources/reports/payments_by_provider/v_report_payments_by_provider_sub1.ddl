@@ -283,7 +283,7 @@ create or replace view v_report_payments_by_provider_sub1 as
     UNION
 	SELECT
          a.plugin_name as plugin_name
-        ,1 as timeframe        ,a.tenant_record_id
+        ,3 as timeframe        ,a.tenant_record_id
         ,'PURCHASE' as transaction_type
         ,count(1) as total
         ,sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
