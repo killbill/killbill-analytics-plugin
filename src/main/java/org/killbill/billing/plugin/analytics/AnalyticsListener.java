@@ -197,6 +197,24 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
+
+
+        // Verify that we're not currently working on an event for the account
+        // We should expect that it's a different type (we wouldn't have enqueued it otherwise)
+        // so we can't just drop this new one: it might require different refresh than the
+        // one currently being processed
+        final List<NotificationEventWithMetadata<AnalyticsJob>> inProcessingNotifications = jobQueue.getInProcessingNotifications();
+        if (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(inProcessingNotifications,
+                    new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
+                        @Override
+                        public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
+                            return notificationEvent.getEvent().getAccountId().equals(job.getEvent().getAccountId()) && !notificationEvent.getEvent().equals(job) ;
+                        }
+                    }
+            ).isPresent()) {
+                // Do something
+            }
+
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
 
         logService.log(LogService.LOG_INFO, "Refreshing Analytics data for account " + businessContextFactory.getAccountId());
