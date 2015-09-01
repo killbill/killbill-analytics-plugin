@@ -412,7 +412,7 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
              invoicePayment == null ? null : invoicePayment.getLinkedInvoicePaymentId(),
              invoicePayment == null ? paymentTransaction.getAmount() : invoicePayment.getAmount(),
              currencyConverter.getConvertedValue(invoicePayment, paymentTransaction, invoice),
-             invoicePayment == null || invoicePayment.getCurrency() == null ? paymentTransaction.getCurrency().toString() : invoicePayment.getCurrency().toString(),
+             invoicePayment == null || invoicePayment.getCurrency() == null ? ( paymentTransaction == null || paymentTransaction.getCurrency() == null ? null : paymentTransaction.getCurrency().toString() ) : invoicePayment.getCurrency().toString(),
              invoice == null ? null : invoice.getBalance(),
              invoice == null ? null : currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
              invoice == null ? null : invoice.getPaidAmount(),
