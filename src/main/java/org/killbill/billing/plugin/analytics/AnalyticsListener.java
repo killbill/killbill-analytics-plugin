@@ -72,8 +72,8 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     @VisibleForTesting
     static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "org.killbill.billing.plugin.analytics.blacklist";
     private static final Splitter BLACKLIST_SPLITTER = Splitter.on(',')
-            .trimResults()
-            .omitEmptyStrings();
+                                                               .trimResults()
+                                                               .omitEmptyStrings();
     private final Iterable<String> accountsBlacklist;
     private final int refreshDelaySeconds;
     private final OSGIKillbillLogService logService;
@@ -129,8 +129,8 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
             }
         };
         jobQueue = notificationQueueService.createNotificationQueue(ANALYTICS_QUEUE_SERVICE,
-                "refresh-queue",
-                notificationQueueHandler);
+                                                                    "refresh-queue",
+                                                                    notificationQueueHandler);
         accountsBlacklist = BLACKLIST_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY)));
     }
 
@@ -172,13 +172,13 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
             // If we do, no need to insert another one since we will do a full refresh anyways
             final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
             if (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(futureNotificationForSearchKeys,
-                    new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
-                        @Override
-                        public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
-                            return notificationEvent.getEvent().equals(job);
-                        }
-                    }
-            ).isPresent()) {
+                                                                               new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
+                                                                                   @Override
+                                                                                   public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
+                                                                                       return notificationEvent.getEvent().equals(job);
+                                                                                   }
+                                                                               }
+                                                                              ).isPresent()) {
                 logService.log(LogService.LOG_DEBUG, "Skipping already present notification for event " + killbillEvent.toString());
                 return;
             }
@@ -289,8 +289,8 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         @Override
         public String getComments() {
             return "eventType=" + job.getEventType() + ", objectType="
-                    + job.getObjectType() + ", objectId=" + job.getObjectId() + ", accountId="
-                    + job.getAccountId() + ", tenantId=" + job.getTenantId();
+                   + job.getObjectType() + ", objectId=" + job.getObjectId() + ", accountId="
+                   + job.getAccountId() + ", tenantId=" + job.getTenantId();
         }
 
         @Override
