@@ -1,4 +1,4 @@
-create or replace view v_report_payment_provider_conversion as
+create or replace view v_report_payment_provider_conversion as 
 select
      plugin_name
     ,sum(current_success_count) as current_success_count

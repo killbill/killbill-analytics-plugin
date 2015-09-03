@@ -1,4 +1,4 @@
-create or replace view v_report_payment_provider_conversion_sub1 as
+create or replace view v_report_payment_provider_conversion_sub1 as 
 SELECT
     apc.plugin_name
     ,apc.tenant_record_id
