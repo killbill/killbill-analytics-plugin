@@ -6,7 +6,7 @@ select
     ,ifnull(sum(rpccs1.current_customer_count),0) as current_customer_count
     ,sum(rpccs2.historical_success_count) as historical_success_count
     ,sum(rpccs2.historical_transaction_count) as historical_transaction_count    
-    ,'1970-01-01' as day
+    ,cast('1970-01-01' as date) as day
     ,1 as count
     ,rpccs1.tenant_record_id    
 from
