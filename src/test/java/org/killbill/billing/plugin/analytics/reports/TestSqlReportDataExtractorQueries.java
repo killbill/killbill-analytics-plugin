@@ -32,7 +32,9 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
     @Test(groups = "slow")
     public void testQueryGeneration() throws Exception {
         final String tableName = "payments_per_day";
-        embeddedDB.executeScript(String.format("create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int, tenant_record_id int);", tableName));
+        embeddedDB.executeScript(String.format("drop table if exists %s;" +
+                                               "create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int, tenant_record_id int);",
+                                               tableName, tableName));
 
         final String query = "payments_per_day;" +
                              "filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does');" +
@@ -43,7 +45,7 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
                              "metric:avg(fee);" +
                              "metric:100*sum(fee)/amount";
         final ReportSpecification reportSpecification = new ReportSpecification(query);
-        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName, reportSpecification, new LocalDate(2012, 10, 10), new LocalDate(2014, 11, 11), 1234L);
+        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName, reportSpecification, new LocalDate(2012, 10, 10), new LocalDate(2014, 11, 11), embeddedDB.getDBEngine(), 1234L);
 
         final List<Map<String, Object>> results = dbi.withHandle(new HandleCallback<List<Map<String, Object>>>() {
             @Override

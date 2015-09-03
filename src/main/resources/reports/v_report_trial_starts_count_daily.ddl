@@ -10,7 +10,7 @@ where 1=1
   and ast.report_group='default'
   and ast.prev_phase is null
   and ast.next_phase='TRIAL'
-  and ast.next_start_date
+  and ast.next_start_date IS NOT NULL
   and ast.event='START_ENTITLEMENT_BASE'
 group by 1,2,3
 ;

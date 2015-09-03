@@ -2003,8 +2003,17 @@ insert into analytics_payment_fields (
 >>
 
 CHECK_TENANT_AND_ACCOUNT(prefix) ::= <<
-    <prefix>tenant_record_id \<=\> :tenantRecordId
-and <prefix>account_record_id \<=\> :accountRecordId
+case
+    when <prefix>tenant_record_id is null and :tenantRecordId is null then true
+    when <prefix>tenant_record_id is null or  :tenantRecordId is null then false
+    else <prefix>tenant_record_id = :tenantRecordId
+end
+and
+case
+    when <prefix>account_record_id is null and :accountRecordId is null then true
+    when <prefix>account_record_id is null or  :accountRecordId is null then false
+    else <prefix>account_record_id = :accountRecordId
+end
 >>
 
 SELECT_STAR_FROM_TABLE(table) ::= <<

@@ -52,6 +52,7 @@ import org.killbill.billing.plugin.analytics.reports.sql.Metadata;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
+import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -80,6 +81,7 @@ public class ReportsUserApi {
 
     private final OSGIKillbillAPI killbillAPI;
     private final IDBI dbi;
+    private final EmbeddedDB.DBEngine dbEngine;
     private final ExecutorService dbiThreadsExecutor;
     private final ReportsConfiguration reportsConfiguration;
     private final JobsScheduler jobsScheduler;
@@ -89,9 +91,11 @@ public class ReportsUserApi {
                           final OSGIKillbillAPI killbillAPI,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
                           final OSGIConfigPropertiesService osgiConfigPropertiesService,
+                          final EmbeddedDB.DBEngine dbEngine,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler) {
         this.killbillAPI = killbillAPI;
+        this.dbEngine = dbEngine;
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
@@ -197,7 +201,9 @@ public class ReportsUserApi {
                                                                                                  reportSpecification,
                                                                                                  startDate,
                                                                                                  endDate,
+                                                                                                 dbEngine,
                                                                                                  tenantRecordId);
+
                 sqlQueries.add(sqlReportDataExtractor.toString());
             }
         }
@@ -395,6 +401,7 @@ public class ReportsUserApi {
                                                                                          reportSpecification,
                                                                                          startDate,
                                                                                          endDate,
+                                                                                         dbEngine,
                                                                                          tenantRecordId);
         return dbi.withHandle(new HandleCallback<Map<String, List<XY>>>() {
             @Override

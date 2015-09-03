@@ -19,10 +19,10 @@ select
 , round(cc.reference_rate * ii.amount,4) as "Invoice Item Amount USD"
 from
   analytics_invoice_items ii
-  join analytics_currency_conversion cc on ii.created_date >= cc.start_date and ii.created_date <= cc.end_date and cc.currency =ii.currency
+  join analytics_currency_conversion cc on ii.created_date >= cc.start_date and ii.created_date <= cc.end_date and cc.currency = ii.currency
 where 1=1
-  and ii.invoice_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
-  and ii.invoice_date < date_format(sysdate(),'%Y-%m-01')
+  and ii.invoice_date >= cast(date_format(sysdate() -  interval '1' month, '%Y-%m-01') as date)
+  and ii.invoice_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
   and ii.report_group != 'test'
 order by
   invoice_number

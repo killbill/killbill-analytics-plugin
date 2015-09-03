@@ -21,6 +21,7 @@ import javax.annotation.Nullable;
 
 import org.joda.time.LocalDate;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
+import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -287,6 +288,6 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName, @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
-        return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate, 1234L);
+        return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate, EmbeddedDB.DBEngine.MYSQL, 1234L);
     }
 }

@@ -17,14 +17,14 @@
 
 package org.killbill.billing.plugin.analytics.reports.configuration;
 
-import org.killbill.commons.jdbi.binder.SmartBindBean;
+import java.util.List;
+
 import org.skife.jdbi.v2.sqlobject.Bind;
+import org.skife.jdbi.v2.sqlobject.BindBean;
 import org.skife.jdbi.v2.sqlobject.SqlQuery;
 import org.skife.jdbi.v2.sqlobject.SqlUpdate;
 import org.skife.jdbi.v2.sqlobject.mixins.Transactional;
 import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
-
-import java.util.List;
 
 @UseStringTemplate3StatementLocator
 public interface ReportsConfigurationSqlDao extends Transactional<ReportsConfigurationSqlDao> {
@@ -36,10 +36,10 @@ public interface ReportsConfigurationSqlDao extends Transactional<ReportsConfigu
     public ReportsConfigurationModelDao getReportConfigurationForReport(@Bind("reportName") final String reportName);
 
     @SqlUpdate
-    public void addReportConfiguration(@SmartBindBean final ReportsConfigurationModelDao reportsConfigurationModelDao);
+    public void addReportConfiguration(@BindBean final ReportsConfigurationModelDao reportsConfigurationModelDao);
 
     @SqlUpdate
-    void updateReportConfiguration(@SmartBindBean final ReportsConfigurationModelDao report);
+    void updateReportConfiguration(@BindBean final ReportsConfigurationModelDao report);
 
     @SqlUpdate
     void deleteReportConfiguration(@Bind("reportName") final String reportName);

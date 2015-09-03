@@ -8,7 +8,7 @@ FROM
     analytics_payment_captures apc
 WHERE 1=1
     AND apc.payment_transaction_status='SUCCESS'
-    AND apc.created_date > sysdate() - interval 12 hour
+    AND apc.created_date > sysdate() - interval '12' hour
 GROUP BY
     apc.plugin_name
     ,apc.tenant_record_id
@@ -22,7 +22,7 @@ FROM
     analytics_payment_purchases app
 WHERE 1=1
     AND app.payment_transaction_status='SUCCESS'
-    AND app.created_date > sysdate() - interval 12 hour
+    AND app.created_date > sysdate() - interval '12' hour
 GROUP BY
     app.plugin_name
     ,app.tenant_record_id

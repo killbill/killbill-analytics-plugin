@@ -21,8 +21,8 @@ from
   analytics_invoice_credits ic
   join analytics_currency_conversion cc on ic.created_date >= cc.start_date and ic.created_date <= cc.end_date and cc.currency =ic.currency
 where 1=1
-  and ic.created_date >= date_format(date_sub(sysdate(), interval 1 month),'%Y-%m-01')
-  and ic.created_date < date_format(sysdate(),'%Y-%m-01')
+  and ic.created_date >= cast(date_format(date_sub(sysdate(), interval '1' month), '%Y-%m-01') as date)
+  and ic.created_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
   and ic.report_group != 'test'
 order by
   invoice_number
