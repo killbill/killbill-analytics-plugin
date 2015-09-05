@@ -114,13 +114,20 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 
             @Override
-            public void handleReadyNotification(final NotificationEvent eventJson, final DateTime eventDateTime, final UUID userToken, final Long searchKey1, final Long searchKey2) {
+            public void handleReadyNotification(final NotificationEvent eventJson, final DateTime eventDateTime, final UUID futureUserToken, final Long searchKey1, final Long searchKey2) {
                 if (eventJson == null || !(eventJson instanceof AnalyticsJob)) {
                     logService.log(LogService.LOG_ERROR, "Analytics service received an unexpected event: " + eventJson);
                     return;
                 }
 
                 final AnalyticsJob job = (AnalyticsJob) eventJson;
+
+                // We need to check again if there is a duplicate because it's possible that 2 events were processed at the same time in handleKillbillEvent (e.g. ACCOUNT_CREATION and ACCOUNT_CHANGE)
+                if (hasDuplicate(job, futureUserToken, searchKey1, searchKey2)) {
+                    logService.log(LogService.LOG_DEBUG, "Skipping already present notification for job " + job.toString());
+                    return;
+                }
+
                 try {
                     handleAnalyticsJob(job);
                 } catch (AnalyticsRefreshException e) {
@@ -167,21 +174,12 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
             tenantRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(killbillEvent.getTenantId(), ObjectType.TENANT, callContext);
         }
 
-        if (accountRecordId != null) {
-            // Verify if we don't have a notification for that type and account already.
-            // If we do, no need to insert another one since we will do a full refresh anyways
-            final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
-            if (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(futureNotificationForSearchKeys,
-                                                                               new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
-                                                                                   @Override
-                                                                                   public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
-                                                                                       return notificationEvent.getEvent().equals(job);
-                                                                                   }
-                                                                               }
-                                                                              ).isPresent()) {
-                logService.log(LogService.LOG_DEBUG, "Skipping already present notification for event " + killbillEvent.toString());
-                return;
-            }
+        // We check for duplicates here to avoid triggering useless refreshes. Note that because multiple bus_ext_events threads
+        // are calling handleKillbillEvent in parallel, there is a small chance that this check will miss some, so we will check again
+        // before processing the job (see handleReadyNotification above)
+        if (accountRecordId != null && hasDuplicate(job, accountRecordId, tenantRecordId)) {
+            logService.log(LogService.LOG_DEBUG, "Skipping already present notification for event " + killbillEvent.toString());
+            return;
         }
 
         try {
@@ -189,6 +187,29 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         } catch (IOException e) {
             logService.log(LogService.LOG_WARNING, "Unable to record notification for event " + killbillEvent.toString());
         }
+    }
+
+    private boolean hasDuplicate(final AnalyticsJob job, final Long accountRecordId, final Long tenantRecordId) {
+        return hasDuplicate(job, null, accountRecordId, tenantRecordId);
+    }
+
+    private boolean hasDuplicate(final AnalyticsJob job, @Nullable final UUID futureUserToken, final Long accountRecordId, final Long tenantRecordId) {
+        final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureOrInProcessingNotificationForSearchKeys(accountRecordId, tenantRecordId);
+
+        return (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(futureNotificationForSearchKeys,
+                                                                               new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
+                                                                                   @Override
+                                                                                   public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
+                                                                                       final AnalyticsJob existingJob = notificationEvent.getEvent();
+                                                                                       final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob.getEventType());
+
+                                                                                       return !notificationEvent.getFutureUserToken().equals(futureUserToken) &&
+                                                                                              existingJob.getAccountId().equals(job.getAccountId()) &&
+                                                                                              (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job.getEventType())) ||
+                                                                                               AnalyticsJobHierarchy.Group.ALL.equals(existingHierarchyGroup));
+                                                                                   }
+                                                                               }
+                                                                              ).isPresent());
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
@@ -200,41 +221,23 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
 
         logService.log(LogService.LOG_INFO, "Refreshing Analytics data for account " + businessContextFactory.getAccountId());
-        switch (job.getEventType()) {
-            case ACCOUNT_CREATION:
-            case ACCOUNT_CHANGE:
-                // Note: account information is denormalized across all tables, we pretty much
-                // have to refresh all objects
+        switch (AnalyticsJobHierarchy.fromEventType(job.getEventType())) {
+            case ALL:
                 allBusinessObjectsDao.update(businessContextFactory);
                 break;
-            case SUBSCRIPTION_CREATION:
-            case SUBSCRIPTION_CHANGE:
-            case SUBSCRIPTION_CANCEL:
-            case SUBSCRIPTION_PHASE:
-            case SUBSCRIPTION_UNCANCEL:
+            case SUBSCRIPTIONS:
                 bstDao.update(businessContextFactory);
                 break;
-            case OVERDUE_CHANGE:
+            case OVERDUE:
                 bosDao.update(businessContextFactory);
                 break;
-            case INVOICE_CREATION:
-            case INVOICE_ADJUSTMENT:
+            case INVOICE_AND_PAYMENTS:
                 binAndBipDao.update(businessContextFactory);
                 break;
-            case PAYMENT_SUCCESS:
-            case PAYMENT_FAILED:
-                binAndBipDao.update(businessContextFactory);
-                break;
-            case TAG_CREATION:
-            case TAG_DELETION:
-                // Note: tags determine the report group. Since it is denormalized across all tables, we pretty much
-                // have to refresh all objects
-                allBusinessObjectsDao.update(businessContextFactory);
-                break;
-            case CUSTOM_FIELD_CREATION:
-            case CUSTOM_FIELD_DELETION:
+            case FIELDS:
                 bFieldDao.update(businessContextFactory);
                 break;
+            case OTHER:
             default:
                 break;
         }

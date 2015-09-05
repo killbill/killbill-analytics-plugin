@@ -68,7 +68,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Send the first event
         final ExtBusEvent firstEvent = createExtBusEvent();
-        Mockito.when(firstEvent.getObjectType()).thenReturn(ObjectType.ACCOUNT);
+        Mockito.when(firstEvent.getEventType()).thenReturn(ExtBusEventType.INVOICE_CREATION);
         analyticsListener.handleKillbillEvent(firstEvent);
 
         // Verify the size of the queue
@@ -82,8 +82,16 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Now, send a different event type
         final ExtBusEvent secondEvent = createExtBusEvent();
-        Mockito.when(secondEvent.getObjectType()).thenReturn(ObjectType.TENANT);
+        Mockito.when(secondEvent.getEventType()).thenReturn(ExtBusEventType.OVERDUE_CHANGE);
         analyticsListener.handleKillbillEvent(secondEvent);
+
+        // Verify the size of the queue
+        Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 2);
+
+        // Now, send a different event type, but triggering the same refresh type as the first event
+        final ExtBusEvent thirdEvent = createExtBusEvent();
+        Mockito.when(thirdEvent.getEventType()).thenReturn(ExtBusEventType.PAYMENT_FAILED);
+        analyticsListener.handleKillbillEvent(thirdEvent);
 
         // Verify the size of the queue
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 2);
