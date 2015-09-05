@@ -93,7 +93,7 @@ public class Metadata {
 
             Schema analyticsSchema = null;
             for (final Schema schema : meta.getSchemas()) {
-                if (schemaName.equals(schema.getName())) {
+                if (schemaName.equalsIgnoreCase(schema.getName())) {
                     analyticsSchema = schema;
                     break;
                 }

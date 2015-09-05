@@ -26,7 +26,8 @@ import com.google.common.collect.Sets;
 
 public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
 
-    @Test(groups = "slow")
+    // jOOQ doesn't seem to be able to retrieve H2 metadata
+    @Test(groups = {"mysql", "postgresql"})
     public void testTableRetrieval() throws Exception {
         final String tableName = "payments_per_day";
         embeddedDB.executeScript(String.format("create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int);", tableName));

@@ -82,7 +82,9 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
     @AfterSuite(groups = "slow")
     public void tearDown() throws Exception {
-        embeddedDB.stop();
+        if (embeddedDB != null) {
+            embeddedDB.stop();
+        }
     }
 
     private final class AnalyticsOSGIKillbillDataSource extends OSGIKillbillDataSource {

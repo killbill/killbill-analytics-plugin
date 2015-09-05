@@ -31,6 +31,7 @@ import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSelectStep;
+import org.jooq.conf.RenderNameStyle;
 import org.jooq.conf.Settings;
 import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
@@ -86,6 +87,9 @@ public class SqlReportDataExtractor {
         final Settings settings = new Settings();
         settings.withStatementType(StatementType.STATIC_STATEMENT);
         settings.withRenderFormatted(true);
+        if (SQLDialect.H2.equals(sqlDialect)) {
+            settings.withRenderNameStyle(RenderNameStyle.AS_IS);
+        }
         this.context = DSL.using(sqlDialect, settings);
 
         setup();
