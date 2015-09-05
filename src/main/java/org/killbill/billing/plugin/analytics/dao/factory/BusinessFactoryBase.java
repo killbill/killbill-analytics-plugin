@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.joda.time.LocalDate;
+import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
@@ -434,26 +435,51 @@ public abstract class BusinessFactoryBase {
     //
 
     protected Collection<Payment> getPaymentsWithPluginInfoByAccountId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+        PaymentApiException error;
+
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
             return paymentApi.getAccountPayments(accountId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving payments for account id " + accountId, e);
-            throw new AnalyticsRefreshException(e);
+            error = e;
+            if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
+                logService.log(LogService.LOG_WARNING, e.getMessage() + ". Analytics tables will be missing plugin specific information");
+
+                try {
+                    return paymentApi.getAccountPayments(accountId, false, PLUGIN_PROPERTIES, context);
+                } catch (PaymentApiException e1) {
+                    error = e1;
+                }
+            }
         }
+
+        logService.log(LogService.LOG_WARNING, "Error retrieving payments for account id " + accountId, error);
+        throw new AnalyticsRefreshException(error);
     }
 
     protected List<PaymentMethod> getPaymentMethodsForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final PaymentApi paymentApi = getPaymentUserApi();
+        PaymentApiException error;
 
+        final PaymentApi paymentApi = getPaymentUserApi();
         try {
             // Try to get all payment methods, with plugin information
             // TODO this will not return deleted payment methods
             return paymentApi.getAccountPaymentMethods(accountId, true, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
-            logService.log(LogService.LOG_INFO, "Error retrieving payment methods for accountId " + accountId + ": " + e.getMessage());
-            throw new AnalyticsRefreshException(e);
+            error = e;
+            if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
+                logService.log(LogService.LOG_WARNING, e.getMessage() + ". Analytics tables will be missing plugin specific information");
+
+                try {
+                    return paymentApi.getAccountPaymentMethods(accountId, false, PLUGIN_PROPERTIES, context);
+                } catch (PaymentApiException e1) {
+                    error = e1;
+                }
+            }
         }
+
+        logService.log(LogService.LOG_WARNING, "Error retrieving payment methods for account id " + accountId, error);
+        throw new AnalyticsRefreshException(error);
     }
 
     protected AuditLog getPaymentCreationAuditLog(final UUID paymentId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
