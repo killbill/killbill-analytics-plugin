@@ -123,7 +123,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                 final AnalyticsJob job = (AnalyticsJob) eventJson;
 
                 // We need to check again if there is a duplicate because it's possible that 2 events were processed at the same time in handleKillbillEvent (e.g. ACCOUNT_CREATION and ACCOUNT_CHANGE)
-                if (hasDuplicate(job, futureUserToken, searchKey1, searchKey2)) {
+                if (!shouldRun(job, futureUserToken, searchKey1, searchKey2)) {
                     logService.log(LogService.LOG_DEBUG, "Skipping already present notification for job " + job.toString());
                     return;
                 }
@@ -177,7 +177,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         // We check for duplicates here to avoid triggering useless refreshes. Note that because multiple bus_ext_events threads
         // are calling handleKillbillEvent in parallel, there is a small chance that this check will miss some, so we will check again
         // before processing the job (see handleReadyNotification above)
-        if (accountRecordId != null && hasDuplicate(job, accountRecordId, tenantRecordId)) {
+        if (accountRecordId != null && futureOverlappingJobAlreadyScheduled(job, accountRecordId, tenantRecordId)) {
             logService.log(LogService.LOG_DEBUG, "Skipping already present notification for event " + killbillEvent.toString());
             return;
         }
@@ -189,27 +189,48 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
     }
 
-    private boolean hasDuplicate(final AnalyticsJob job, final Long accountRecordId, final Long tenantRecordId) {
-        return hasDuplicate(job, null, accountRecordId, tenantRecordId);
+    // Is there already a future notification overlapping this new job?
+    private boolean futureOverlappingJobAlreadyScheduled(final AnalyticsJob newJob, final Long accountRecordId, final Long tenantRecordId) {
+        // We don't look at IN_PROCESSING notifications here, as we want to make sure the latest state is refreshed
+        final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
+        final Iterable<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(newJob, futureNotificationForSearchKeys);
+        return scheduledOverlappingJobs.iterator().hasNext();
     }
 
-    private boolean hasDuplicate(final AnalyticsJob job, @Nullable final UUID futureUserToken, final Long accountRecordId, final Long tenantRecordId) {
+    // Should this IN_PROCESSING job actually run?
+    private boolean shouldRun(final AnalyticsJob inProcessingJob, final UUID existingJobUserToken, final Long accountRecordId, final Long tenantRecordId) {
         final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureOrInProcessingNotificationForSearchKeys(accountRecordId, tenantRecordId);
+        final Iterable<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(inProcessingJob, futureNotificationForSearchKeys);
 
-        return (Iterables.<NotificationEventWithMetadata<AnalyticsJob>>tryFind(futureNotificationForSearchKeys,
-                                                                               new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
-                                                                                   @Override
-                                                                                   public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
-                                                                                       final AnalyticsJob existingJob = notificationEvent.getEvent();
-                                                                                       final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob.getEventType());
+        NotificationEventWithMetadata runningJobToRun = null;
+        for (final NotificationEventWithMetadata<AnalyticsJob> runningJob : scheduledOverlappingJobs) {
+            if (runningJobToRun == null || runningJob.getRecordId() > runningJobToRun.getRecordId()) {
+                runningJobToRun = runningJob;
+            }
+        }
 
-                                                                                       return !notificationEvent.getFutureUserToken().equals(futureUserToken) &&
-                                                                                              existingJob.getAccountId().equals(job.getAccountId()) &&
-                                                                                              (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job.getEventType())) ||
-                                                                                               AnalyticsJobHierarchy.Group.ALL.equals(existingHierarchyGroup));
-                                                                                   }
-                                                                               }
-                                                                              ).isPresent());
+        return runningJobToRun == null || runningJobToRun.getFutureUserToken().equals(existingJobUserToken);
+    }
+
+    private Iterable<NotificationEventWithMetadata<AnalyticsJob>> findScheduledOverlappingJobs(final AnalyticsJob job, final List<NotificationEventWithMetadata<AnalyticsJob>> existingScheduledJobs) {
+        return Iterables.<NotificationEventWithMetadata<AnalyticsJob>>filter(existingScheduledJobs,
+                                                                             new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
+                                                                                 @Override
+                                                                                 public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
+                                                                                     return jobsOverlap(job, notificationEvent);
+                                                                                 }
+                                                                             }
+                                                                            );
+    }
+
+    // Does the specified existing notification overlap with this job?
+    private boolean jobsOverlap(final AnalyticsJob job, final NotificationEventWithMetadata<AnalyticsJob> notificationEventForExistingJob) {
+        final AnalyticsJob existingJob = notificationEventForExistingJob.getEvent();
+        final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob.getEventType());
+
+        return existingJob.getAccountId().equals(job.getAccountId()) &&
+               (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job.getEventType())) ||
+                AnalyticsJobHierarchy.Group.ALL.equals(existingHierarchyGroup));
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
