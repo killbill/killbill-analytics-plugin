@@ -1,3 +1,7 @@
+1.0.2
+    listener: rewrite duplicate detection logic
+    postgresql support
+
 1.0.0
     Add external keys in payment tables (DDL change)
     Track void transactions
