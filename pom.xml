@@ -24,7 +24,7 @@
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
-    <version>1.0.2</version>
+    <version>1.0.3-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Kill Bill OSGI Analytics bundle</name>
     <description>Kill Bill Analytics plugin</description>
