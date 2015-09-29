@@ -1,3 +1,7 @@
+1.0.3
+    Fix NPE occuring on payment void
+    Utilize more payment plugin properties
+
 1.0.2
     listener: rewrite duplicate detection logic
     postgresql support
