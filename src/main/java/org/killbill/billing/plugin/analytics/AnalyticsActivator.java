@@ -36,6 +36,7 @@ import org.killbill.clock.Clock;
 import org.killbill.clock.DefaultClock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
+import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
@@ -70,11 +71,8 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry);
 
         analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, clock, notificationQueueService);
-        analyticsListener.start();
-        dispatcher.registerEventHandler(analyticsListener);
 
         jobsScheduler = new JobsScheduler(logService, dataSource, clock, notificationQueueService);
-        jobsScheduler.start();
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
@@ -103,6 +101,18 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     @Override
     public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
         return analyticsListener;
+    }
+
+    @Override
+    public OSGIFrameworkEventHandler getOSGIFrameworkEventHandler() {
+        return new OSGIFrameworkEventHandler() {
+            @Override
+            public void started() {
+                analyticsListener.start();
+                dispatcher.registerEventHandler(analyticsListener);
+                jobsScheduler.start();
+            }
+        };
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {
