@@ -1,6 +1,6 @@
 2.0.0
     Delay event processing until all plugins have started
-    Update to killbill-oss-parent 0.50
+    Update to killbill-oss-parent 0.51
 
 1.0.3
     Fix NPE occuring on payment void
