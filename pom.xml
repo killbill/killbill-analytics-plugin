@@ -253,6 +253,7 @@
                             sun.misc;
                             javax.management;
                             javax.xml.parsers;
+                            org.osgi.service.log;
                             *;resolution:=optional
                         </Import-Package>
                     </instructions>
