@@ -1,3 +1,7 @@
+2.0.1
+    Fix OSGI logging
+    Update to killbill-oss-parent 0.57
+
 2.0.0
     Delay event processing until all plugins have started
     Update to killbill-oss-parent 0.52
