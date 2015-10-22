@@ -34,7 +34,7 @@ public class BusinessPaymentDao extends BusinessAnalyticsDaoBase {
      * Delete all invoice payment records and insert the specified ones as current.
      *
      * @param bac                     current, fully populated, BusinessAccountModelDao record
-     * @param businessInvoicePayments current, fully populated, mapping of invoice id -> BusinessInvoicePaymentBaseModelDao records
+     * @param businessInvoicePayments current, fully populated, mapping of invoice id to BusinessInvoicePaymentBaseModelDao records
      * @param transactional           current transaction
      * @param context                 call context
      */

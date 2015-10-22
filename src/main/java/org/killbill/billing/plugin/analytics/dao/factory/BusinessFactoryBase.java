@@ -83,7 +83,7 @@ import com.google.common.collect.Iterables;
 
 /**
  * Wrapper around Kill Bill APIs
- * <p/>
+ * <p>
  * Note: the code is merciful in case audit logs cannot be retrieved. This is because the auditing code
  * is fairly recent, and we want this plugin to support early versions of Kill Bill (with non audited data).
  */

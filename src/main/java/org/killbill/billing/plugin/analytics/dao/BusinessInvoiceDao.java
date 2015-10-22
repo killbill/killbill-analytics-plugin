@@ -40,8 +40,8 @@ public class BusinessInvoiceDao extends BusinessAnalyticsDaoBase {
      * Delete all invoice and invoice item records and insert the specified ones as current.
      *
      * @param bac                  current, fully populated, BusinessAccountModelDao record
-     * @param businessInvoices     current, fully populated, mapping of invoice id -> BusinessInvoiceModelDao records
-     * @param businessInvoiceItems current, fully populated, mapping of invoice id -> BusinessInvoiceItemBaseModelDao records
+     * @param businessInvoices     current, fully populated, mapping of invoice id to BusinessInvoiceModelDao records
+     * @param businessInvoiceItems current, fully populated, mapping of invoice id to BusinessInvoiceItemBaseModelDao records
      * @param transactional        current transaction
      * @param context              call context
      */

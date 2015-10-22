@@ -46,7 +46,7 @@ import com.google.common.collect.Multimap;
 
 /**
  * Wrapper around BusinessInvoiceDao and BusinessPaymentDao.
- * <p/>
+ * <p>
  * These two should always be updated together as invoice and payment information is denormalized across
  * bot sets of tables.
  */
