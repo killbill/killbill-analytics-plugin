@@ -55,7 +55,7 @@ create table analytics_subscription_transitions (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_subscription_transitions_bundle_id on analytics_subscription_transitions(bundle_id);
 create index analytics_subscription_transitions_bundle_external_key on analytics_subscription_transitions(bundle_external_key);
 create index analytics_subscription_transitions_account_id on analytics_subscription_transitions(account_id);
@@ -103,7 +103,7 @@ create table analytics_bundles (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_bundles_bundle_bundle_id on analytics_bundles(bundle_id);
 create index analytics_bundles_bundle_external_key on analytics_bundles(bundle_external_key);
 create index analytics_bundles_account_id on analytics_bundles(account_id);
@@ -159,7 +159,7 @@ create table analytics_accounts (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_accounts_account_external_key on analytics_accounts(account_external_key);
 create index analytics_accounts_account_id on analytics_accounts(account_id);
 create index analytics_accounts_account_record_id on analytics_accounts(account_record_id);
@@ -184,7 +184,7 @@ create table analytics_account_transitions (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_account_transitions_account_id on analytics_account_transitions(account_id);
 create index analytics_account_transitions_account_record_id on analytics_account_transitions(account_record_id);
 create index analytics_account_transitions_tenant_account_record_id on analytics_account_transitions(tenant_record_id, account_record_id);
@@ -225,7 +225,7 @@ create table analytics_invoices (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoices_invoice_record_id on analytics_invoices(invoice_record_id);
 create index analytics_invoices_invoice_id on analytics_invoices(invoice_id);
 create index analytics_invoices_account_id on analytics_invoices(account_id);
@@ -285,7 +285,7 @@ create table analytics_invoice_adjustments (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoice_adjustments_invoice_item_record_id on analytics_invoice_adjustments(invoice_item_record_id);
 create index analytics_invoice_adjustments_item_id on analytics_invoice_adjustments(item_id);
 create index analytics_invoice_adjustments_invoice_id on analytics_invoice_adjustments(invoice_id);
@@ -346,7 +346,7 @@ create table analytics_invoice_items (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoice_items_invoice_item_record_id on analytics_invoice_items(invoice_item_record_id);
 create index analytics_invoice_items_item_id on analytics_invoice_items(item_id);
 create index analytics_invoice_items_invoice_id on analytics_invoice_items(invoice_id);
@@ -407,7 +407,7 @@ create table analytics_invoice_item_adjustments (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoice_item_adjustments_invoice_item_record_id on analytics_invoice_item_adjustments(invoice_item_record_id);
 create index analytics_invoice_item_adjustments_item_id on analytics_invoice_item_adjustments(item_id);
 create index analytics_invoice_item_adjustments_invoice_id on analytics_invoice_item_adjustments(invoice_id);
@@ -468,7 +468,7 @@ create table analytics_invoice_credits (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoice_credits_invoice_item_record_id on analytics_invoice_credits(invoice_item_record_id);
 create index analytics_invoice_credits_item_id on analytics_invoice_credits(item_id);
 create index analytics_invoice_credits_invoice_id on analytics_invoice_credits(invoice_id);
@@ -547,7 +547,7 @@ create table analytics_payment_auths (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_auths_invoice_payment_record_id on analytics_payment_auths(invoice_payment_record_id);
 create index analytics_payment_auths_invoice_payment_id on analytics_payment_auths(invoice_payment_id);
 create index analytics_payment_auths_invoice_id on analytics_payment_auths(invoice_id);
@@ -624,7 +624,7 @@ create table analytics_payment_captures (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_captures_invoice_payment_record_id on analytics_payment_captures(invoice_payment_record_id);
 create index analytics_payment_captures_invoice_payment_id on analytics_payment_captures(invoice_payment_id);
 create index analytics_payment_captures_invoice_id on analytics_payment_captures(invoice_id);
@@ -701,7 +701,7 @@ create table analytics_payment_purchases (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_purchases_invoice_payment_record_id on analytics_payment_purchases(invoice_payment_record_id);
 create index analytics_payment_purchases_invoice_payment_id on analytics_payment_purchases(invoice_payment_id);
 create index analytics_payment_purchases_invoice_id on analytics_payment_purchases(invoice_id);
@@ -778,7 +778,7 @@ create table analytics_payment_refunds (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_refunds_invoice_payment_record_id on analytics_payment_refunds(invoice_payment_record_id);
 create index analytics_payment_refunds_invoice_payment_id on analytics_payment_refunds(invoice_payment_id);
 create index analytics_payment_refunds_invoice_id on analytics_payment_refunds(invoice_id);
@@ -855,7 +855,7 @@ create table analytics_payment_credits (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_credits_invoice_payment_record_id on analytics_payment_credits(invoice_payment_record_id);
 create index analytics_payment_credits_invoice_payment_id on analytics_payment_credits(invoice_payment_id);
 create index analytics_payment_credits_invoice_id on analytics_payment_credits(invoice_id);
@@ -932,7 +932,7 @@ create table analytics_payment_chargebacks (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_chargebacks_invoice_payment_record_id on analytics_payment_chargebacks(invoice_payment_record_id);
 create index analytics_payment_chargebacks_invoice_payment_id on analytics_payment_chargebacks(invoice_payment_id);
 create index analytics_payment_chargebacks_invoice_id on analytics_payment_chargebacks(invoice_id);
@@ -1009,7 +1009,7 @@ create table analytics_payment_voids (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_voids_invoice_payment_record_id on analytics_payment_voids(invoice_payment_record_id);
 create index analytics_payment_voids_invoice_payment_id on analytics_payment_voids(invoice_payment_id);
 create index analytics_payment_voids_invoice_id on analytics_payment_voids(invoice_id);
@@ -1035,7 +1035,7 @@ create table analytics_account_tags (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_account_tags_account_id on analytics_account_tags(account_id);
 create index analytics_account_tags_account_record_id on analytics_account_tags(account_record_id);
 create index analytics_account_tags_tenant_account_record_id on analytics_account_tags(tenant_record_id, account_record_id);
@@ -1058,7 +1058,7 @@ create table analytics_bundle_tags (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_bundle_tags_account_id on analytics_bundle_tags(account_id);
 create index analytics_bundle_tags_bundle_id on analytics_bundle_tags(bundle_id);
 create index analytics_bundle_tags_bundle_external_key on analytics_bundle_tags(bundle_external_key);
@@ -1082,7 +1082,7 @@ create table analytics_invoice_tags (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoice_tags_account_id on analytics_invoice_tags(account_id);
 create index analytics_invoice_tags_account_record_id on analytics_invoice_tags(account_record_id);
 create index analytics_invoice_tags_tenant_account_record_id on analytics_invoice_tags(tenant_record_id, account_record_id);
@@ -1104,7 +1104,7 @@ create table analytics_payment_tags (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_tags_account_id on analytics_payment_tags(account_id);
 create index analytics_payment_tags_account_record_id on analytics_payment_tags(account_record_id);
 create index analytics_payment_tags_tenant_account_record_id on analytics_payment_tags(tenant_record_id, account_record_id);
@@ -1126,7 +1126,7 @@ create table analytics_account_fields (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_account_fields_account_id on analytics_account_fields(account_id);
 create index analytics_account_fields_account_record_id on analytics_account_fields(account_record_id);
 create index analytics_account_fields_tenant_account_record_id on analytics_account_fields(tenant_record_id, account_record_id);
@@ -1150,7 +1150,7 @@ create table analytics_bundle_fields (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_bundle_fields_account_id on analytics_bundle_fields(account_id);
 create index analytics_bundle_fields_bundle_id on analytics_bundle_fields(bundle_id);
 create index analytics_bundle_fields_bundle_external_key on analytics_bundle_fields(bundle_external_key);
@@ -1175,7 +1175,7 @@ create table analytics_invoice_fields (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_invoice_fields_account_id on analytics_invoice_fields(account_id);
 create index analytics_invoice_fields_account_record_id on analytics_invoice_fields(account_record_id);
 create index analytics_invoice_fields_tenant_account_record_id on analytics_invoice_fields(tenant_record_id, account_record_id);
@@ -1198,7 +1198,7 @@ create table analytics_payment_fields (
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_fields_account_id on analytics_payment_fields(account_id);
 create index analytics_payment_fields_account_record_id on analytics_payment_fields(account_record_id);
 create index analytics_payment_fields_tenant_account_record_id on analytics_payment_fields(tenant_record_id, account_record_id);
@@ -1221,7 +1221,7 @@ create table analytics_notifications (
 , effective_date datetime not null
 , future_user_token varchar(36)
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_notifications_comp_where on analytics_notifications(effective_date, processing_state, processing_owner, processing_available_date);
 create index analytics_notifications_update on analytics_notifications(processing_state,processing_owner,processing_available_date);
 create index analytics_notifications_get_ready on analytics_notifications(effective_date,created_date);
@@ -1245,7 +1245,7 @@ create table analytics_notifications_history (
 , effective_date datetime not null
 , future_user_token varchar(36)
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 
 drop table if exists analytics_currency_conversion;
 create table analytics_currency_conversion (
@@ -1256,7 +1256,7 @@ create table analytics_currency_conversion (
 , reference_rate decimal(10, 4) not null
 , reference_currency varchar(3) default 'USD'
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_currency_conversion_dates_currencies on analytics_currency_conversion(start_date, end_date, currency, reference_currency);
 
 drop table if exists analytics_reports;
@@ -1270,5 +1270,5 @@ create table analytics_reports (
 , refresh_frequency varchar(50) default null
 , refresh_hour_of_day_gmt smallint default null
 , primary key(record_id)
-);
+) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create unique index analytics_reports_report_name on analytics_reports(report_name);
