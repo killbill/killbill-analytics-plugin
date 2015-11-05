@@ -2008,12 +2008,7 @@ case
     when <prefix>tenant_record_id is null or  :tenantRecordId is null then false
     else <prefix>tenant_record_id = :tenantRecordId
 end
-and
-case
-    when <prefix>account_record_id is null and :accountRecordId is null then true
-    when <prefix>account_record_id is null or  :accountRecordId is null then false
-    else <prefix>account_record_id = :accountRecordId
-end
+and <prefix>account_record_id = :accountRecordId
 >>
 
 SELECT_STAR_FROM_TABLE(table) ::= <<
