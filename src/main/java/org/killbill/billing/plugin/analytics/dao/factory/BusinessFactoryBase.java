@@ -169,7 +169,9 @@ public abstract class BusinessFactoryBase {
 
     protected Long getAccountRecordId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
         final RecordIdApi recordIdUserApi = getRecordIdUserApi();
-        return recordIdUserApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
+        final Long accountRecordIdOrNull = recordIdUserApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
+        // Never return null, to make sure indexes can be used (see https://github.com/killbill/killbill-analytics-plugin/issues/59)
+        return accountRecordIdOrNull == null ? -1L : accountRecordIdOrNull;
     }
 
     protected ReportGroup getReportGroup(final Iterable<Tag> accountTags) throws AnalyticsRefreshException {

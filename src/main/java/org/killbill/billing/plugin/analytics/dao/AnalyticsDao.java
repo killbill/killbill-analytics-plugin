@@ -205,6 +205,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
             return -1L;
         } else {
             final Long accountRecordIdOrNull = recordIdApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
+            // Never return null, to make sure indexes can be used (see https://github.com/killbill/killbill-analytics-plugin/issues/59)
             return accountRecordIdOrNull == null ? -1L : accountRecordIdOrNull;
         }
     }
