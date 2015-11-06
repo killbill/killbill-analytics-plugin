@@ -36,6 +36,7 @@ import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
+import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AccountAuditLogs;
@@ -98,12 +99,12 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
+                                  final CurrencyConversionDao currencyConversionDao,
                                   final OSGIKillbillLogService logService,
                                   final OSGIKillbillAPI osgiKillbillAPI,
-                                  final OSGIKillbillDataSource osgiKillbillDataSource,
                                   final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                   final Clock clock) throws AnalyticsRefreshException {
-        super(logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
+        super(currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
         this.accountId = accountId;
         this.callContext = callContext;
 

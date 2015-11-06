@@ -99,16 +99,16 @@ public abstract class BusinessFactoryBase {
     private final String referenceCurrency;
     private final CurrencyConversionDao currencyConversionDao;
 
-    public BusinessFactoryBase(final OSGIKillbillLogService logService,
+    public BusinessFactoryBase(final CurrencyConversionDao currencyConversionDao,
+                               final OSGIKillbillLogService logService,
                                final OSGIKillbillAPI osgiKillbillAPI,
-                               final OSGIKillbillDataSource osgiKillbillDataSource,
                                final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                final Clock clock) {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.clock = clock;
         this.referenceCurrency = Objects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
-        this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
+        this.currencyConversionDao = currencyConversionDao;
     }
 
     //

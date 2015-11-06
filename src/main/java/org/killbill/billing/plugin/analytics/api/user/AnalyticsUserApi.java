@@ -33,6 +33,7 @@ import org.killbill.billing.plugin.analytics.api.BusinessSubscriptionTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessTag;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
 import org.killbill.billing.plugin.analytics.dao.AnalyticsDao;
+import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
@@ -47,11 +48,11 @@ public class AnalyticsUserApi {
 
     private final OSGIKillbillLogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
-    private final OSGIKillbillDataSource osgiKillbillDataSource;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final Clock clock;
     private final AnalyticsDao analyticsDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
+    private final CurrencyConversionDao currencyConversionDao;
 
     public AnalyticsUserApi(final OSGIKillbillLogService logService,
                             final OSGIKillbillAPI osgiKillbillAPI,
@@ -61,11 +62,11 @@ public class AnalyticsUserApi {
                             final Clock clock) {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
-        this.osgiKillbillDataSource = osgiKillbillDataSource;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
         this.analyticsDao = new AnalyticsDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
+        this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
     }
 
     public BusinessSnapshot getBusinessSnapshot(final UUID accountId, final TenantContext context) {
@@ -102,7 +103,7 @@ public class AnalyticsUserApi {
     }
 
     public void rebuildAnalyticsForAccount(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
         logService.log(LogService.LOG_INFO, "Starting Analytics refresh for account " + businessContextFactory.getAccountId());
         // TODO Should we take the account lock?
         allBusinessObjectsDao.update(businessContextFactory);

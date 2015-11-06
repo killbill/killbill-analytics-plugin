@@ -33,6 +33,7 @@ import org.killbill.billing.plugin.analytics.dao.BusinessAccountTransitionDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessFieldDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessInvoiceAndPaymentDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessSubscriptionTransitionDao;
+import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.CallContext;
@@ -78,13 +79,13 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
     private final int refreshDelaySeconds;
     private final OSGIKillbillLogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
-    private final OSGIKillbillDataSource osgiKillbillDataSource;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
     private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
+    private final CurrencyConversionDao currencyConversionDao;
     private final NotificationQueue jobQueue;
     private final Clock clock;
 
@@ -97,7 +98,6 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
-        this.osgiKillbillDataSource = osgiKillbillDataSource;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
 
@@ -110,6 +110,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillDataSource);
         this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
+        this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
 
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 
@@ -239,7 +240,7 @@ public class AnalyticsListener implements OSGIKillbillEventHandler {
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, logService, osgiKillbillAPI, osgiKillbillDataSource, osgiConfigPropertiesService, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
 
         logService.log(LogService.LOG_INFO, "Refreshing Analytics data for account " + businessContextFactory.getAccountId());
         switch (AnalyticsJobHierarchy.fromEventType(job.getEventType())) {

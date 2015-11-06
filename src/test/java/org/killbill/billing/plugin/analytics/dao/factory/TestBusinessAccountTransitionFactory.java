@@ -64,7 +64,7 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
         Mockito.when(event4.getServiceName()).thenReturn("service-B");
         events.add(event4);
 
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyConversionDao, logService, killbillAPI, osgiConfigPropertiesService, clock);
         final List<BusinessAccountTransitionModelDao> result = ImmutableList.<BusinessAccountTransitionModelDao>copyOf(factory.createBusinessAccountTransitions(businessContextFactory, events));
         Assert.assertEquals(result.get(0).getService(), "service-A");
         Assert.assertEquals(result.get(0).getStartDate(), new LocalDate(2012, 5, 1));

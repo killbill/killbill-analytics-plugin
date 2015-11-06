@@ -25,6 +25,7 @@ import org.joda.time.LocalDate;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.entitlement.api.SubscriptionEventType;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
+import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 import org.mockito.Mockito;
@@ -121,7 +122,7 @@ public class TestBusinessSubscriptionTransitionFactory extends AnalyticsTestSuit
         Mockito.when(event7.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
         events.add(event7);
 
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyConversionDao, logService, killbillAPI, osgiConfigPropertiesService, clock);
         final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(factory.buildTransitionsForBundle(businessContextFactory, account, bundle, events, currencyConverter, accountRecordId, tenantRecordId, ReportGroup.test));
         Assert.assertEquals(result.get(0).getEvent(), "START_ENTITLEMENT_UNSPECIFIED");
         Assert.assertEquals(result.get(0).getSubscriptionId(), subscriptionId1);

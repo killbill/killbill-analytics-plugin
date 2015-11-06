@@ -56,6 +56,7 @@ import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.payment.api.TransactionStatus;
 import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.plugin.analytics.api.BusinessEntityBase;
+import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.TestCallContext;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.BusinessInvoiceItemType;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
@@ -114,6 +115,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final ItemSource itemSource = ItemSource.user;
     protected final ClockMock clock = new ClockMock();
     protected final CurrencyConverter currencyConverter = Mockito.mock(CurrencyConverter.class);
+    protected final CurrencyConversionDao currencyConversionDao = Mockito.mock(CurrencyConversionDao.class);
     protected final DefaultNotificationQueueService notificationQueueService = Mockito.mock(DefaultNotificationQueueService.class);
 
     protected final String serviceName = UUID.randomUUID().toString();
