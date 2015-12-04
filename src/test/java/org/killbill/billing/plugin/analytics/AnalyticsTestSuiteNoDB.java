@@ -264,14 +264,12 @@ public abstract class AnalyticsTestSuiteNoDB {
 
         final Product product = Mockito.mock(Product.class);
         Mockito.when(product.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(product.isRetired()).thenReturn(true);
         Mockito.when(product.getCategory()).thenReturn(ProductCategory.STANDALONE);
         Mockito.when(product.getCatalogName()).thenReturn(UUID.randomUUID().toString());
 
         plan = Mockito.mock(Plan.class);
         Mockito.when(plan.getProduct()).thenReturn(product);
         Mockito.when(plan.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(plan.isRetired()).thenReturn(true);
         Mockito.when(plan.getRecurringBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
         Mockito.when(plan.getEffectiveDateForExistingSubscriptons()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 59, DateTimeZone.UTC).toDate());
         final String planName = plan.getName();
@@ -290,7 +288,6 @@ public abstract class AnalyticsTestSuiteNoDB {
 
         priceList = Mockito.mock(PriceList.class);
         Mockito.when(priceList.getName()).thenReturn(UUID.randomUUID().toString());
-        Mockito.when(priceList.isRetired()).thenReturn(false);
 
         subscriptionTransition = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(subscriptionTransition.getEntitlementId()).thenReturn(UUID.randomUUID());
