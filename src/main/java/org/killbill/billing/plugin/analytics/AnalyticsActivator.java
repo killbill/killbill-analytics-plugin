@@ -37,7 +37,6 @@ import org.killbill.clock.DefaultClock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.osgi.framework.BundleContext;
@@ -56,28 +55,31 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     private JobsScheduler jobsScheduler;
     private ReportsUserApi reportsUserApi;
 
-    private final Clock clock = new DefaultClock();
+    private Clock killbillClock;
+
     private final MetricRegistry metricRegistry = new MetricRegistry();
 
     @Override
     public void start(final BundleContext context) throws Exception {
         super.start(context);
 
+        killbillClock = clock.getClock();
+
         final Executor executor = BusinessExecutor.newCachedThreadPool(configProperties);
 
         final NotificationQueueConfig config = new ConfigurationObjectFactory(configProperties.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                       ImmutableMap.<String, String>of("instanceName", "analytics"));
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
-        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry);
+        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, clock, notificationQueueService);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, notificationQueueService);
 
-        jobsScheduler = new JobsScheduler(logService, dataSource, clock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(logService, dataSource, killbillClock, notificationQueueService);
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final EmbeddedDB.DBEngine dbEngine = getDbEngine();
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, clock);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, killbillClock);
         reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
@@ -98,11 +100,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         super.stop(context);
     }
 
-    @Override
-    public OSGIKillbillEventHandler getOSGIKillbillEventHandler() {
-        return analyticsListener;
-    }
-
+    @Deprecated
     @Override
     public OSGIFrameworkEventHandler getOSGIFrameworkEventHandler() {
         return new OSGIFrameworkEventHandler() {
