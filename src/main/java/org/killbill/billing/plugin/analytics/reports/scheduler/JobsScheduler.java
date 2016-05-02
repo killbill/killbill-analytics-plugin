@@ -18,6 +18,7 @@
 package org.killbill.billing.plugin.analytics.reports.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -190,21 +191,20 @@ public class JobsScheduler {
 
     @VisibleForTesting
     DateTime computeNextRun(final AnalyticsReportJob report) {
+
+        final DateTime now = clock.getUTCNow();
+
         if (Frequency.HOURLY.equals(report.getRefreshFrequency())) {
             // 5' past the hour (fixed to avoid drifts)
-            return clock.getUTCNow().plusHours(1).withMinuteOfHour(5).withSecondOfMinute(0).withMillisOfSecond(0);
+            return now.plusHours(1).withMinuteOfHour(5).withSecondOfMinute(0).withMillisOfSecond(0);
         } else if (Frequency.DAILY.equals(report.getRefreshFrequency())) {
             // 6am GMT by default
-            final Integer hourOfTheDayGMT = Objects.firstNonNull(report.getRefreshHourOfDayGmt(), 6);
-            if (clock.getUTCNow().getHourOfDay() > hourOfTheDayGMT) {
-                // We missed it for today
-                return clock.getUTCNow().plusDays(1).withHourOfDay(hourOfTheDayGMT).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-            } else {
-                return clock.getUTCNow().withHourOfDay(hourOfTheDayGMT).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-            }
+            final Integer hourOfTheDayGMT = MoreObjects.firstNonNull(report.getRefreshHourOfDayGmt(), 6);
+            final DateTime boundryTime = now.withHourOfDay(hourOfTheDayGMT).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+            return now.compareTo(boundryTime) >= 0 ? boundryTime.plusDays(1) : boundryTime;
         } else {
             // Run now
-            return clock.getUTCNow();
+            return now;
         }
     }
 
