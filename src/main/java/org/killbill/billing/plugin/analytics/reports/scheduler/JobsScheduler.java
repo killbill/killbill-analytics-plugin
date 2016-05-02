@@ -200,8 +200,8 @@ public class JobsScheduler {
         } else if (Frequency.DAILY.equals(report.getRefreshFrequency())) {
             // 6am GMT by default
             final Integer hourOfTheDayGMT = MoreObjects.firstNonNull(report.getRefreshHourOfDayGmt(), 6);
-            final DateTime boundryTime = now.withHourOfDay(hourOfTheDayGMT).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
-            return now.compareTo(boundryTime) >= 0 ? boundryTime.plusDays(1) : boundryTime;
+            final DateTime boundaryTime = now.withHourOfDay(hourOfTheDayGMT).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
+            return now.compareTo(boundaryTime) >= 0 ? boundaryTime.plusDays(1) : boundaryTime;
         } else {
             // Run now
             return now;
