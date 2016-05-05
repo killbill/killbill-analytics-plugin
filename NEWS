@@ -1,3 +1,7 @@
+3.0.2
+    Fix issue in the scheduking for reporting
+    Fix issue when hot-restarting plugin to ensure bus event notifications handler is correctly unregistered
+
 3.0.1
     Update oss parent version to use latest commons 0.12
 
