@@ -250,6 +250,7 @@
                             org.w3c.dom;
                             org.w3c.dom.ls,
                             org.killbill.billing.osgi.api;
+                            org.killbill.billing.osgi.api.config;
                             sun.misc;
                             javax.management;
                             javax.xml.parsers;
