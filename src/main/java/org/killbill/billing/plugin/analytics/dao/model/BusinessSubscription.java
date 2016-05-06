@@ -23,6 +23,7 @@ import java.math.RoundingMode;
 import javax.annotation.Nullable;
 
 import org.joda.time.LocalDate;
+import org.joda.time.Period;
 import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.CatalogApiException;
 import org.killbill.billing.catalog.api.Currency;
@@ -214,13 +215,35 @@ public class BusinessSubscription {
     public LocalDate getEndDate() {
         return endDate;
     }
-
     static BigDecimal getMrrFromBillingPeriod(final BillingPeriod period, final BigDecimal price) {
-        if (period == null || period.getNumberOfMonths() == 0) {
-            return BigDecimal.ZERO;
+
+        final int nbMonths;
+        switch (period) {
+            case MONTHLY:
+                nbMonths = 1;
+                break;
+            case QUARTERLY:
+                nbMonths = 3;
+                break;
+            case BIANNUAL:
+                nbMonths = 6;
+                break;
+            case ANNUAL:
+                nbMonths = 12;
+                break;
+            case BIENNIAL:
+                nbMonths = 24;
+                break;
+            case DAILY:
+            case WEEKLY:
+            case BIWEEKLY:
+            case THIRTY_DAYS:
+            default:
+                nbMonths = 0;
+                break;
         }
 
-        return price.divide(BigDecimal.valueOf(period.getNumberOfMonths()), Rounder.SCALE, RoundingMode.HALF_UP);
+        return nbMonths != 0 ?  price.divide(BigDecimal.valueOf(nbMonths), Rounder.SCALE, RoundingMode.HALF_UP) : BigDecimal.ZERO;
     }
 
     @Override

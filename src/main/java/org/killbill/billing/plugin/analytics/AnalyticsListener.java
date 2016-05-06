@@ -27,6 +27,11 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
+import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountTransitionDao;
@@ -40,11 +45,6 @@ import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.CallOrigin;
 import org.killbill.billing.util.callcontext.UserType;
 import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIKillbillEventHandler;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationEvent;
 import org.killbill.notificationq.api.NotificationEventWithMetadata;
@@ -62,7 +62,7 @@ import com.google.common.collect.Iterables;
 
 import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS_QUEUE_SERVICE;
 
-public class AnalyticsListener implements OSGIKillbillEventHandler {
+public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbillEventHandler {
 
     // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
     // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state

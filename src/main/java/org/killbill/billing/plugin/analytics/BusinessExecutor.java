@@ -22,8 +22,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor.CallerRunsPolicy;
 import java.util.concurrent.TimeUnit;
 
+import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.commons.concurrent.Executors;
-import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;

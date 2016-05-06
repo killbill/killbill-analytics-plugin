@@ -50,7 +50,7 @@ public class TestBusinessSubscriptionTransitionModelDao extends AnalyticsTestSui
         Assert.assertEquals(subscriptionTransitionModelDao.getBundleId(), bundle.getId());
         Assert.assertEquals(subscriptionTransitionModelDao.getBundleExternalKey(), bundle.getExternalKey());
         Assert.assertEquals(subscriptionTransitionModelDao.getSubscriptionId(), subscriptionTransition.getEntitlementId());
-        Assert.assertEquals(subscriptionTransitionModelDao.getRequestedTimestamp(), subscriptionTransition.getRequestedDate());
+        Assert.assertEquals(subscriptionTransitionModelDao.getRequestedTimestamp(), subscriptionTransition.getEffectiveDate());
         Assert.assertEquals(subscriptionTransitionModelDao.getEvent(), event.toString());
 
         Assert.assertNull(subscriptionTransitionModelDao.getPrevProductName());

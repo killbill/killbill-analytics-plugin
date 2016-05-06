@@ -23,15 +23,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationSqlDao;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.Transaction;
-import org.skife.jdbi.v2.TransactionStatus;
 import org.skife.jdbi.v2.tweak.HandleCallback;
 
 // TODO Make reports configurable per tenant

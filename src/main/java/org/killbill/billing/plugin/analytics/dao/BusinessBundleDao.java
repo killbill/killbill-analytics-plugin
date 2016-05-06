@@ -19,10 +19,10 @@ package org.killbill.billing.plugin.analytics.dao;
 
 import java.util.Collection;
 
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class BusinessBundleDao extends BusinessAnalyticsDaoBase {
 

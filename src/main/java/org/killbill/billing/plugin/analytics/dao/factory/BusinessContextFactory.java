@@ -33,6 +33,9 @@ import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
+import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
@@ -46,10 +49,6 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
-import org.killbill.killbill.osgi.libs.killbill.OSGIConfigPropertiesService;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
 

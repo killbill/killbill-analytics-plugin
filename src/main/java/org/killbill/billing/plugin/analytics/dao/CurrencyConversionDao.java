@@ -25,9 +25,9 @@ import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.skife.jdbi.v2.DBI;
 
 public class CurrencyConversionDao {

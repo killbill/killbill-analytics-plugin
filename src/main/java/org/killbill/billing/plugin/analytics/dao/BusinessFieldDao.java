@@ -17,14 +17,14 @@
 
 package org.killbill.billing.plugin.analytics.dao;
 
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessFieldFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;

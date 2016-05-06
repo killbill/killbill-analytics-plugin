@@ -25,13 +25,13 @@ import javax.sql.DataSource;
 
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;

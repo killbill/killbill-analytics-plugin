@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.platform.test.PlatformDBTestingHelper;
 import org.killbill.billing.plugin.analytics.dao.BusinessAnalyticsSqlDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
@@ -30,7 +31,6 @@ import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.clock.Clock;
 import org.killbill.clock.DefaultClock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.mockito.Mockito;

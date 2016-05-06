@@ -193,7 +193,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
              bundle.getId(),
              bundle.getExternalKey(),
              transition.getEntitlementId(),
-             transition.getRequestedDate(),
+             transition.getEffectiveDate(),
              event,
              previousSubscription,
              nextSubscription,

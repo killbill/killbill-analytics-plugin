@@ -26,6 +26,8 @@ import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
+import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.http.ServletRouter;
@@ -33,10 +35,7 @@ import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.clock.Clock;
-import org.killbill.clock.DefaultClock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
-import org.killbill.killbill.osgi.libs.killbill.KillbillActivatorBase;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.osgi.framework.BundleContext;
@@ -102,8 +101,8 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
     @Deprecated
     @Override
-    public OSGIFrameworkEventHandler getOSGIFrameworkEventHandler() {
-        return new OSGIFrameworkEventHandler() {
+    public OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler getOSGIFrameworkEventHandler() {
+        return new OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler() {
             @Override
             public void started() {
                 analyticsListener.start();

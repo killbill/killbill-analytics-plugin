@@ -26,6 +26,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.killbill.billing.ObjectType;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.api.BusinessAccount;
 import org.killbill.billing.plugin.analytics.api.BusinessAccountTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessBundle;
@@ -45,9 +48,6 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTrans
 import org.killbill.billing.plugin.analytics.dao.model.BusinessTagModelDao;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.TenantContext;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.killbill.osgi.libs.killbill.OSGIKillbillLogService;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
