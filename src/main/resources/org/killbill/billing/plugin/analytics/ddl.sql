@@ -517,7 +517,7 @@ create table analytics_payment_auths (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -594,7 +594,7 @@ create table analytics_payment_captures (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -671,7 +671,7 @@ create table analytics_payment_purchases (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -748,7 +748,7 @@ create table analytics_payment_refunds (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -825,7 +825,7 @@ create table analytics_payment_credits (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -902,7 +902,7 @@ create table analytics_payment_chargebacks (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -979,7 +979,7 @@ create table analytics_payment_voids (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
