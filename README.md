@@ -26,6 +26,7 @@ Default dashboards rely on reports that need to be installed by running the [see
 
 By default, the views will use the *converted* amount columns when applicable, which require the `analytics_currency_conversion` table to be populated with currency conversion rates. If you are only using one currency, use the non-converted columns instead (`next_mrr` instead of `converted_next_mrr` for example).
 
+When configuring refreshes via stored procedures, make sure to bump the connection timeout accordingly (`org.killbill.billing.osgi.dao.connectionTimeout`), as it will be used to set the read and query timeouts.
 
 API
 ---
