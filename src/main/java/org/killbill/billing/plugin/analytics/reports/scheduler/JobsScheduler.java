@@ -143,7 +143,8 @@ public class JobsScheduler {
         }
     }
 
-    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob, @Nullable Connection connection) {
+    @VisibleForTesting
+    Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob, @Nullable Connection connection) {
         final Integer eventJsonRecordId = reportJob.getRecordId();
         if (eventJsonRecordId != null) {
             // Fast search path
