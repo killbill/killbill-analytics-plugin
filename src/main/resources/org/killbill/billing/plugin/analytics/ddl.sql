@@ -517,7 +517,7 @@ create table analytics_payment_auths (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -594,7 +594,7 @@ create table analytics_payment_captures (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -671,7 +671,7 @@ create table analytics_payment_purchases (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -748,7 +748,7 @@ create table analytics_payment_refunds (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -825,7 +825,7 @@ create table analytics_payment_credits (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -902,7 +902,7 @@ create table analytics_payment_chargebacks (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -979,7 +979,7 @@ create table analytics_payment_voids (
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
-, plugin_gateway_error varchar(255) default null
+, plugin_gateway_error text default null
 , plugin_gateway_error_code varchar(255) default null
 , plugin_first_reference_id varchar(255) default null
 , plugin_second_reference_id varchar(255) default null
@@ -1113,7 +1113,7 @@ drop table if exists analytics_account_fields;
 create table analytics_account_fields (
   record_id serial unique
 , custom_field_record_id bigint /*! unsigned */ default null
-, name varchar(50) default null
+, name varchar(64) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
@@ -1137,7 +1137,7 @@ create table analytics_bundle_fields (
 , custom_field_record_id bigint /*! unsigned */ default null
 , bundle_id varchar(36) default null
 , bundle_external_key varchar(50) default null
-, name varchar(50) default null
+, name varchar(64) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
@@ -1162,7 +1162,7 @@ create table analytics_invoice_fields (
   record_id serial unique
 , custom_field_record_id bigint /*! unsigned */ default null
 , invoice_id varchar(36) default null
-, name varchar(50) default null
+, name varchar(64) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
@@ -1185,7 +1185,7 @@ create table analytics_payment_fields (
   record_id serial unique
 , custom_field_record_id bigint /*! unsigned */ default null
 , invoice_payment_id varchar(36) default null
-, name varchar(50) default null
+, name varchar(64) default null
 , value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
