@@ -83,7 +83,9 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);
+        registerHandlers();
     }
+
 
     @Override
     public void stop(final BundleContext context) throws Exception {
@@ -99,17 +101,16 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         super.stop(context);
     }
 
-    @Deprecated
-    @Override
-    public OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler getOSGIFrameworkEventHandler() {
-        return new OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler() {
+
+    private void registerHandlers() {
+        dispatcher.registerEventHandlers(new OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler() {
             @Override
             public void started() {
                 analyticsListener.start();
-                dispatcher.registerEventHandler(analyticsListener);
+                dispatcher.registerEventHandlers(analyticsListener);
                 jobsScheduler.start();
             }
-        };
+        });
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {
