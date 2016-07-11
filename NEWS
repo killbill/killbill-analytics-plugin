@@ -1,5 +1,8 @@
+4.0.0
+    Initial release for Kill Bill 0.17.x
+
 3.0.2
-    Fix issue in the scheduking for reporting
+    Fix issue in the scheduling for reporting
     Fix issue when hot-restarting plugin to ensure bus event notifications handler is correctly unregistered
 
 3.0.1
