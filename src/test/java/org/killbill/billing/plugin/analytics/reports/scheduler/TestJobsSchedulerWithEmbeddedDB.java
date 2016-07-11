@@ -39,20 +39,20 @@ public class TestJobsSchedulerWithEmbeddedDB extends AnalyticsTestSuiteWithEmbed
 
     private JobsScheduler jobsScheduler;
 
-    @BeforeMethod(groups = "slow")
+    @BeforeMethod(groups = "mysql")
     public void createScheduler() throws Exception {
         jobsScheduler = new JobsScheduler(logService, killbillDataSource, clock, notificationQueueService);
         jobsScheduler.start();
     }
 
-    @AfterMethod(groups = "slow")
+    @AfterMethod(groups = "mysql")
     public void stopScheduler() throws Exception {
         if (jobsScheduler != null) {
             jobsScheduler.shutdownNow();
         }
     }
 
-    @Test(groups = "slow")
+    @Test(groups = "mysql")
     public void testComputeNextRun() throws Exception {
         final ReportsConfigurationModelDao report = new ReportsConfigurationModelDao(1,
                                                                                      "testReport",
