@@ -440,14 +440,14 @@ public abstract class BusinessFactoryBase {
 
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
-            return paymentApi.getAccountPayments(accountId, true, PLUGIN_PROPERTIES, context);
+            return paymentApi.getAccountPayments(accountId, true, false, PLUGIN_PROPERTIES, context);
         } catch (PaymentApiException e) {
             error = e;
             if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
                 logService.log(LogService.LOG_WARNING, e.getMessage() + ". Analytics tables will be missing plugin specific information");
 
                 try {
-                    return paymentApi.getAccountPayments(accountId, false, PLUGIN_PROPERTIES, context);
+                    return paymentApi.getAccountPayments(accountId, false, false, PLUGIN_PROPERTIES, context);
                 } catch (PaymentApiException e1) {
                     error = e1;
                 }
