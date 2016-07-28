@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.115</version>
+        <version>0.119</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -78,6 +78,21 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>command</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>testing-postgresql-server</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>units</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
             <scope>test</scope>
@@ -98,17 +113,7 @@
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
             <artifactId>mysql-connector-mxj</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-mxj-db-files</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -180,11 +185,23 @@
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-embeddeddb-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr-runtime</artifactId>
+            <version>3.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-mysql</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-postgresql</artifactId>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -250,7 +267,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>org.killbill.billing.plugin.analytics.AnalyticsActivator</Bundle-Activator>
-                        <Export-Package />
+                        <Export-Package/>
                         <Private-Package>org.killbill.billing.plugin.analytics.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
                         <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
