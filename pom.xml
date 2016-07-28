@@ -24,7 +24,7 @@
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.1</version>
     <packaging>bundle</packaging>
     <name>Kill Bill OSGI Analytics bundle</name>
     <description>Kill Bill Analytics plugin</description>
@@ -267,7 +267,7 @@
                 <configuration>
                     <instructions>
                         <Bundle-Activator>org.killbill.billing.plugin.analytics.AnalyticsActivator</Bundle-Activator>
-                        <Export-Package/>
+                        <Export-Package />
                         <Private-Package>org.killbill.billing.plugin.analytics.*</Private-Package>
                         <!-- Optional resolution because exported by the Felix system bundle -->
                         <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
