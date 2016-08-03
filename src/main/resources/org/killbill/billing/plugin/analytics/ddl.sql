@@ -14,7 +14,7 @@ create table analytics_subscription_transitions (
 , prev_product_type varchar(50) default null
 , prev_product_category varchar(50) default null
 , prev_slug varchar(50) default null
-, prev_phase varchar(50) default null
+, prev_phase varchar(255) default null
 , prev_billing_period varchar(50) default null
 , prev_price numeric(10, 4) default 0
 , converted_prev_price numeric(10, 4) default null
@@ -30,7 +30,7 @@ create table analytics_subscription_transitions (
 , next_product_type varchar(50) default null
 , next_product_category varchar(50) default null
 , next_slug varchar(50) default null
-, next_phase varchar(50) default null
+, next_phase varchar(255) default null
 , next_billing_period varchar(50) default null
 , next_price numeric(10, 4) default 0
 , converted_next_price numeric(10, 4) default null
@@ -77,7 +77,7 @@ create table analytics_bundles (
 , current_product_type varchar(50) default null
 , current_product_category varchar(50) default null
 , current_slug varchar(50) default null
-, current_phase varchar(50) default null
+, current_phase varchar(255) default null
 , current_billing_period varchar(50) default null
 , current_price numeric(10, 4) default 0
 , converted_current_price numeric(10, 4) default null
@@ -265,7 +265,7 @@ create table analytics_invoice_adjustments (
 , product_type varchar(50) default null
 , product_category varchar(50) default null
 , slug varchar(50) default null
-, phase varchar(50) default null
+, phase varchar(255) default null
 , billing_period varchar(50) default null
 , start_date date default null
 , end_date date default null
@@ -326,7 +326,7 @@ create table analytics_invoice_items (
 , product_type varchar(50) default null
 , product_category varchar(50) default null
 , slug varchar(50) default null
-, phase varchar(50) default null
+, phase varchar(255) default null
 , billing_period varchar(50) default null
 , start_date date default null
 , end_date date default null
@@ -387,7 +387,7 @@ create table analytics_invoice_item_adjustments (
 , product_type varchar(50) default null
 , product_category varchar(50) default null
 , slug varchar(50) default null
-, phase varchar(50) default null
+, phase varchar(255) default null
 , billing_period varchar(50) default null
 , start_date date default null
 , end_date date default null
@@ -448,7 +448,7 @@ create table analytics_invoice_credits (
 , product_type varchar(50) default null
 , product_category varchar(50) default null
 , slug varchar(50) default null
-, phase varchar(50) default null
+, phase varchar(255) default null
 , billing_period varchar(50) default null
 , start_date date default null
 , end_date date default null
