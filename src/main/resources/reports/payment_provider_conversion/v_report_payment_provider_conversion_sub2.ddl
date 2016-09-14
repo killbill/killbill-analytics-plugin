@@ -4,6 +4,7 @@ SELECT
 , apc.tenant_record_id
 , sum(case when apc.payment_transaction_status='SUCCESS' then 1 else 0 end) as historical_success_count
 , count(1) as historical_transaction_count
+, count(distinct apc.account_id) as historical_customer_count
 FROM
     analytics_payment_captures apc
 WHERE 1=1
@@ -19,6 +20,7 @@ SELECT
 , app.tenant_record_id
 , sum(case when app.payment_transaction_status='SUCCESS' then 1 else 0 end) as historical_success_count
 , count(1) as historical_transaction_count
+, count(distinct app.account_id) as historical_customer_count
 FROM
     analytics_payment_purchases app
 WHERE 1=1
