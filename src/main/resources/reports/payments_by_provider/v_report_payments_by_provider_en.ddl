@@ -3,7 +3,7 @@ SELECT
   t1.plugin_name
 , t1.tenant_record_id
 , t2.timeframe
-, t1.transaction_type
+, transaction_type
 , case when t2.timeframe=1 then 'Total'
        when t2.timeframe=2 then 'Last 7 Days'
        when t2.timeframe=3 then 'Last 24 Hours'
@@ -38,4 +38,5 @@ ORDER BY
   tenant_record_id
 , plugin_name
 , timeframe
+, transaction_type
 ;
