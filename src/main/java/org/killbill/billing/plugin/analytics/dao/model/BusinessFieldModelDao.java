@@ -67,14 +67,6 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
                                                    tenantRecordId,
                                                    reportGroup);
         } else if (ObjectType.INVOICE_PAYMENT.equals(customField.getObjectType())) {
-            return new BusinessInvoiceFieldModelDao(account,
-                                                    accountRecordId,
-                                                    customField,
-                                                    customFieldRecordId,
-                                                    creationAuditLog,
-                                                    tenantRecordId,
-                                                    reportGroup);
-        } else if (ObjectType.INVOICE.equals(customField.getObjectType())) {
             return new BusinessInvoicePaymentFieldModelDao(account,
                                                            accountRecordId,
                                                            customField,
@@ -82,6 +74,14 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
                                                            creationAuditLog,
                                                            tenantRecordId,
                                                            reportGroup);
+        } else if (ObjectType.INVOICE.equals(customField.getObjectType())) {
+            return new BusinessInvoiceFieldModelDao(account,
+                                                    accountRecordId,
+                                                    customField,
+                                                    customFieldRecordId,
+                                                    creationAuditLog,
+                                                    tenantRecordId,
+                                                    reportGroup);
         } else {
             // We don't care
             return null;
