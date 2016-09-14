@@ -5,7 +5,7 @@ SELECT
 , a.tenant_record_id
 , 'AUTHORIZE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
@@ -20,7 +20,7 @@ SELECT
 , a.tenant_record_id
 , 'CAPTURE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
@@ -35,7 +35,7 @@ SELECT
 , a.tenant_record_id
 , 'CHARGEBACK' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
@@ -50,7 +50,7 @@ SELECT
 , a.tenant_record_id
 , 'CREDIT' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
@@ -65,7 +65,7 @@ SELECT
 , a.tenant_record_id
 , 'PURCHASE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
@@ -80,7 +80,7 @@ SELECT
 , a.tenant_record_id
 , 'REFUND' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
@@ -95,7 +95,7 @@ SELECT
 , a.tenant_record_id
 , 'VOID' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
@@ -111,7 +111,7 @@ SELECT
 , a.tenant_record_id
 , 'AUTHORIZE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
@@ -127,7 +127,7 @@ SELECT
 , a.tenant_record_id
 , 'CAPTURE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
@@ -143,7 +143,7 @@ SELECT
 , a.tenant_record_id
 , 'CHARGEBACK' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
@@ -159,7 +159,7 @@ SELECT
 , a.tenant_record_id
 , 'CREDIT' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
@@ -175,7 +175,7 @@ SELECT
 , a.tenant_record_id
 , 'PURCHASE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
@@ -191,7 +191,7 @@ SELECT
 , a.tenant_record_id
 , 'REFUND' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
@@ -207,7 +207,7 @@ SELECT
 , a.tenant_record_id
 , 'VOID' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
@@ -224,7 +224,7 @@ SELECT
 , a.tenant_record_id
 , 'AUTHORIZE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
@@ -240,7 +240,7 @@ SELECT
 , a.tenant_record_id
 , 'CAPTURE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
@@ -256,7 +256,7 @@ SELECT
 , a.tenant_record_id
 , 'CHARGEBACK' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
@@ -272,7 +272,7 @@ SELECT
 , a.tenant_record_id
 , 'CREDIT' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
@@ -288,7 +288,7 @@ SELECT
 , a.tenant_record_id
 , 'PURCHASE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
@@ -304,7 +304,7 @@ SELECT
 , a.tenant_record_id
 , 'REFUND' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
@@ -320,7 +320,7 @@ SELECT
 , a.tenant_record_id
 , 'VOID' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
@@ -337,7 +337,7 @@ SELECT
 , a.tenant_record_id
 , 'AUTHORIZE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
@@ -354,7 +354,7 @@ SELECT
 , a.tenant_record_id
 , 'CAPTURE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
@@ -371,7 +371,7 @@ SELECT
 , a.tenant_record_id
 , 'CHARGEBACK' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
@@ -388,7 +388,7 @@ SELECT
 , a.tenant_record_id
 , 'CREDIT' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
@@ -405,7 +405,7 @@ SELECT
 , a.tenant_record_id
 , 'PURCHASE' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
@@ -422,7 +422,7 @@ SELECT
 , a.tenant_record_id
 , 'REFUND' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
@@ -439,7 +439,7 @@ SELECT
 , a.tenant_record_id
 , 'VOID' as transaction_type
 , count(1) as total
-, sum(case when a.payment_transaction_status in ('UNKNOWN','FAILED','ERRORED') then 1 else 0 end) as failed
+, sum(case when a.payment_transaction_status in ('UNKNOWN','PAYMENT_FAILURE','PLUGIN_FAILURE') then 1 else 0 end) as failed
 , sum(case when a.payment_transaction_status = 'PENDING' then 1 else 0 end) as pending
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
