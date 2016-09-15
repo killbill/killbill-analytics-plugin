@@ -1,4 +1,4 @@
-create or replace view v_report_payments_by_provider_en as
+create or replace view v_report_payments_by_provider as
 SELECT
   t1.plugin_name
 , t1.tenant_record_id
