@@ -785,6 +785,8 @@ insert into analytics_payment_auths (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -851,6 +853,8 @@ insert into analytics_payment_auths (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus
@@ -921,6 +925,8 @@ insert into analytics_payment_captures (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -987,6 +993,8 @@ insert into analytics_payment_captures (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus
@@ -1057,6 +1065,8 @@ insert into analytics_payment_purchases (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -1123,6 +1133,8 @@ insert into analytics_payment_purchases (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus
@@ -1193,6 +1205,8 @@ insert into analytics_payment_refunds (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -1259,6 +1273,8 @@ insert into analytics_payment_refunds (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus
@@ -1329,6 +1345,8 @@ insert into analytics_payment_credits (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -1395,6 +1413,8 @@ insert into analytics_payment_credits (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus
@@ -1465,6 +1485,8 @@ insert into analytics_payment_chargebacks (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -1531,6 +1553,8 @@ insert into analytics_payment_chargebacks (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus
@@ -1601,6 +1625,8 @@ insert into analytics_payment_voids (
 , converted_amount
 , currency
 , plugin_name
+, payment_method_id
+, payment_method_external_key
 , plugin_created_date
 , plugin_effective_date
 , plugin_status
@@ -1667,6 +1693,8 @@ insert into analytics_payment_voids (
 , :convertedAmount
 , :currency
 , :pluginName
+, :paymentMethodId
+, :paymentMethodExternalKey
 , :pluginCreatedDate
 , :pluginEffectiveDate
 , :pluginStatus

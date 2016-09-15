@@ -59,6 +59,8 @@ public class BusinessPayment extends BusinessEntityBase {
     private final BigDecimal convertedAmount;
     private final String currency;
     private final String pluginName;
+    private final UUID paymentMethodId;
+    private final String paymentMethodExternalKey;
     private final DateTime pluginCreatedDate;
     private final DateTime pluginEffectiveDate;
     private final String pluginStatus;
@@ -123,6 +125,8 @@ public class BusinessPayment extends BusinessEntityBase {
         this.convertedAmount = businessPaymentBaseModelDao.getConvertedAmount();
         this.currency = businessPaymentBaseModelDao.getCurrency();
         this.pluginName = businessPaymentBaseModelDao.getPluginName();
+        this.paymentMethodId = businessPaymentBaseModelDao.getPaymentMethodId();
+        this.paymentMethodExternalKey = businessPaymentBaseModelDao.getPaymentMethodExternalKey();
         this.pluginCreatedDate = businessPaymentBaseModelDao.getPluginCreatedDate();
         this.pluginEffectiveDate = businessPaymentBaseModelDao.getPluginEffectiveDate();
         this.pluginStatus = businessPaymentBaseModelDao.getPluginStatus();
@@ -275,6 +279,14 @@ public class BusinessPayment extends BusinessEntityBase {
         return pluginName;
     }
 
+    public UUID getPaymentMethodId() {
+        return paymentMethodId;
+    }
+
+    public String getPaymentMethodExternalKey() {
+        return paymentMethodExternalKey;
+    }
+
     public DateTime getPluginCreatedDate() {
         return pluginCreatedDate;
     }
@@ -398,6 +410,8 @@ public class BusinessPayment extends BusinessEntityBase {
         sb.append(", convertedAmount=").append(convertedAmount);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", pluginName='").append(pluginName).append('\'');
+        sb.append(", paymentMethodId='").append(paymentMethodId).append('\'');
+        sb.append(", paymentMethodExternalKey='").append(paymentMethodExternalKey).append('\'');
         sb.append(", pluginCreatedDate=").append(pluginCreatedDate);
         sb.append(", pluginEffectiveDate=").append(pluginEffectiveDate);
         sb.append(", pluginStatus='").append(pluginStatus).append('\'');
@@ -549,6 +563,12 @@ public class BusinessPayment extends BusinessEntityBase {
         if (pluginName != null ? !pluginName.equals(that.pluginName) : that.pluginName != null) {
             return false;
         }
+        if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {
+            return false;
+        }
+        if (paymentMethodExternalKey != null ? !paymentMethodExternalKey.equals(that.paymentMethodExternalKey) : that.paymentMethodExternalKey != null) {
+            return false;
+        }
         if (pluginPmAddress1 != null ? !pluginPmAddress1.equals(that.pluginPmAddress1) : that.pluginPmAddress1 != null) {
             return false;
         }
@@ -639,6 +659,8 @@ public class BusinessPayment extends BusinessEntityBase {
         result = 31 * result + (convertedAmount != null ? convertedAmount.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (pluginName != null ? pluginName.hashCode() : 0);
+        result = 31 * result + (paymentMethodId != null ? paymentMethodId.hashCode() : 0);
+        result = 31 * result + (paymentMethodExternalKey != null ? paymentMethodExternalKey.hashCode() : 0);
         result = 31 * result + (pluginCreatedDate != null ? pluginCreatedDate.hashCode() : 0);
         result = 31 * result + (pluginEffectiveDate != null ? pluginEffectiveDate.hashCode() : 0);
         result = 31 * result + (pluginStatus != null ? pluginStatus.hashCode() : 0);

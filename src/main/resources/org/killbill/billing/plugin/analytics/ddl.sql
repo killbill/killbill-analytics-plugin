@@ -514,6 +514,8 @@ create table analytics_payment_auths (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
@@ -591,6 +593,8 @@ create table analytics_payment_captures (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
@@ -668,6 +672,8 @@ create table analytics_payment_purchases (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
@@ -745,6 +751,8 @@ create table analytics_payment_refunds (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
@@ -822,6 +830,8 @@ create table analytics_payment_credits (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
@@ -899,6 +909,8 @@ create table analytics_payment_chargebacks (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null
@@ -976,6 +988,8 @@ create table analytics_payment_voids (
 , converted_amount numeric(10, 4) default null
 , currency varchar(50) default null
 , plugin_name varchar(255) default null
+, payment_method_id varchar(36) default null
+, payment_method_external_key varchar(255) default null
 , plugin_created_date datetime default null
 , plugin_effective_date datetime default null
 , plugin_status varchar(255) default null

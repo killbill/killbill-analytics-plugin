@@ -86,6 +86,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
     private BigDecimal convertedAmount;
     private String currency;
     private String pluginName;
+    private UUID paymentMethodId;
+    private String paymentMethodExternalKey;
     private DateTime pluginCreatedDate;
     private DateTime pluginEffectiveDate;
     private String pluginStatus;
@@ -252,6 +254,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                        final BigDecimal invoiceAmountRefunded,
                                        final BigDecimal convertedInvoiceAmountRefunded,
                                        final String pluginName,
+                                       final UUID paymentMethodId,
+                                       final String paymentMethodExternalKey,
                                        final DateTime pluginCreatedDate,
                                        final DateTime pluginEffectiveDate,
                                        final String pluginStatus,
@@ -327,6 +331,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         this.convertedAmount = convertedAmount;
         this.currency = currency;
         this.pluginName = pluginName;
+        this.paymentMethodId = paymentMethodId;
+        this.paymentMethodExternalKey = paymentMethodExternalKey;
         this.pluginCreatedDate = pluginCreatedDate;
         this.pluginEffectiveDate = pluginEffectiveDate;
         this.pluginStatus = pluginStatus;
@@ -426,6 +432,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
              invoice == null ? null : invoice.getRefundedAmount(),
              invoice == null ? null : currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
              paymentMethod != null ? paymentMethod.getPluginName() : DEFAULT_PLUGIN_NAME,
+             paymentMethod != null ? paymentMethod.getId() : null,
+             paymentMethod != null ? paymentMethod.getExternalKey() : null,
              paymentTransaction.getPaymentInfoPlugin() != null ? paymentTransaction.getPaymentInfoPlugin().getCreatedDate() : null,
              paymentTransaction.getPaymentInfoPlugin() != null ? paymentTransaction.getPaymentInfoPlugin().getEffectiveDate() : null,
              paymentTransaction.getPaymentInfoPlugin() != null && paymentTransaction.getPaymentInfoPlugin().getStatus() != null ? paymentTransaction.getPaymentInfoPlugin().getStatus().toString() : null,
@@ -593,6 +601,14 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         return pluginName;
     }
 
+    public UUID getPaymentMethodId() {
+        return paymentMethodId;
+    }
+
+    public String getPaymentMethodExternalKey() {
+        return paymentMethodExternalKey;
+    }
+
     public DateTime getPluginCreatedDate() {
         return pluginCreatedDate;
     }
@@ -717,6 +733,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         sb.append(", convertedAmount=").append(convertedAmount);
         sb.append(", currency='").append(currency).append('\'');
         sb.append(", pluginName='").append(pluginName).append('\'');
+        sb.append(", paymentMethodId='").append(paymentMethodId).append('\'');
+        sb.append(", paymentMethodExternalKey='").append(paymentMethodExternalKey).append('\'');
         sb.append(", pluginCreatedDate=").append(pluginCreatedDate);
         sb.append(", pluginEffectiveDate=").append(pluginEffectiveDate);
         sb.append(", pluginStatus='").append(pluginStatus).append('\'');
@@ -871,6 +889,12 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         if (pluginName != null ? !pluginName.equals(that.pluginName) : that.pluginName != null) {
             return false;
         }
+        if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {
+            return false;
+        }
+        if (paymentMethodExternalKey != null ? !paymentMethodExternalKey.equals(that.paymentMethodExternalKey) : that.paymentMethodExternalKey != null) {
+            return false;
+        }
         if (pluginPmAddress1 != null ? !pluginPmAddress1.equals(that.pluginPmAddress1) : that.pluginPmAddress1 != null) {
             return false;
         }
@@ -962,6 +986,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         result = 31 * result + (convertedAmount != null ? convertedAmount.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
         result = 31 * result + (pluginName != null ? pluginName.hashCode() : 0);
+        result = 31 * result + (paymentMethodId != null ? paymentMethodId.hashCode() : 0);
+        result = 31 * result + (paymentMethodExternalKey != null ? paymentMethodExternalKey.hashCode() : 0);
         result = 31 * result + (pluginCreatedDate != null ? pluginCreatedDate.hashCode() : 0);
         result = 31 * result + (pluginEffectiveDate != null ? pluginEffectiveDate.hashCode() : 0);
         result = 31 * result + (pluginStatus != null ? pluginStatus.hashCode() : 0);

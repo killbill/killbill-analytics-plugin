@@ -1,0 +1,14 @@
+alter table analytics_payment_auths add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_auths add payment_method_external_key varchar(255) default null after plugin_name;
+alter table analytics_payment_captures add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_captures add payment_method_external_key varchar(255) default null after plugin_name;
+alter table analytics_payment_purchases add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_purchases add payment_method_external_key varchar(255) default null after plugin_name;
+alter table analytics_payment_refunds add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_refunds add payment_method_external_key varchar(255) default null after plugin_name;
+alter table analytics_payment_credits add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_credits add payment_method_external_key varchar(255) default null after plugin_name;
+alter table analytics_payment_chargebacks add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_chargebacks add payment_method_external_key varchar(255) default null after plugin_name;
+alter table analytics_payment_voids add payment_method_id varchar(36) default null after plugin_name;
+alter table analytics_payment_voids add payment_method_external_key varchar(255) default null after plugin_name;
