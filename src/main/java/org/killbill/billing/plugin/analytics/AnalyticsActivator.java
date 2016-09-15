@@ -28,12 +28,15 @@ import javax.servlet.http.HttpServlet;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.http.ServletRouter;
 import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
+import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.clock.Clock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.notificationq.DefaultNotificationQueueService;
@@ -50,6 +53,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     public static final String PLUGIN_NAME = "killbill-analytics";
     public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
 
+    private AnalyticsConfigurationHandler analyticsConfigurationHandler;
     private AnalyticsListener analyticsListener;
     private JobsScheduler jobsScheduler;
     private ReportsUserApi reportsUserApi;
@@ -71,15 +75,19 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, notificationQueueService);
+        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
 
         jobsScheduler = new JobsScheduler(logService, dataSource, killbillClock, notificationQueueService);
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final EmbeddedDB.DBEngine dbEngine = getDbEngine();
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, killbillClock);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
         reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
+
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+        final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
+        analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);
@@ -101,16 +109,18 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         super.stop(context);
     }
 
-
     private void registerHandlers() {
-        dispatcher.registerEventHandlers(new OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler() {
-            @Override
-            public void started() {
-                analyticsListener.start();
-                dispatcher.registerEventHandlers(analyticsListener);
-                jobsScheduler.start();
-            }
-        });
+        final PluginConfigurationEventHandler configHandler = new PluginConfigurationEventHandler(analyticsConfigurationHandler);
+
+        dispatcher.registerEventHandlers(configHandler,
+                                         new OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler() {
+                                             @Override
+                                             public void started() {
+                                                 analyticsListener.start();
+                                                 dispatcher.registerEventHandlers(analyticsListener);
+                                                 jobsScheduler.start();
+                                             }
+                                         });
     }
 
     private void registerServlet(final BundleContext context, final HttpServlet servlet) {

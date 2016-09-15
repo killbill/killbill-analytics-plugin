@@ -37,14 +37,23 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelD
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
+import com.google.common.collect.Iterables;
+
 public class BusinessPaymentFactory {
 
     public Collection<BusinessPaymentBaseModelDao> createBusinessPayments(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Iterable<Payment> paymentsForAccount = businessContextFactory.getAccountPayments();
+        final Collection<BusinessPaymentBaseModelDao> businessPayments = new LinkedList<BusinessPaymentBaseModelDao>();
+        if (Iterables.<Payment>isEmpty(paymentsForAccount)) {
+            return businessPayments;
+        }
+
         final Account account = businessContextFactory.getAccount();
         final Long accountRecordId = businessContextFactory.getAccountRecordId();
         final Long tenantRecordId = businessContextFactory.getTenantRecordId();
         final ReportGroup reportGroup = businessContextFactory.getReportGroup();
         final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
+        final PluginPropertiesManager pluginPropertiesManager = businessContextFactory.getPluginPropertiesManager();
 
         // Optimize invoice lookups by fetching all invoices at once
         final Iterable<Invoice> invoicesForAccount = businessContextFactory.getAccountInvoices();
@@ -56,9 +65,6 @@ public class BusinessPaymentFactory {
         // Optimize invoice payment lookups by fetching all invoice payments at once
         final Map<UUID, List<InvoicePayment>> allInvoicePaymentsByPaymentId = businessContextFactory.getAccountInvoicePayments();
 
-        final Iterable<Payment> paymentsForAccount = businessContextFactory.getAccountPayments();
-
-        final Collection<BusinessPaymentBaseModelDao> businessPayments = new LinkedList<BusinessPaymentBaseModelDao>();
         for (final Payment payment : paymentsForAccount) {
             final List<InvoicePayment> invoicePaymentsForPayment = allInvoicePaymentsByPaymentId.get(payment.getId());
             // TODO - we will remove invoicePayment information from payment tables, we only care about the associated invoice id
@@ -81,7 +87,8 @@ public class BusinessPaymentFactory {
                                                                                                        currencyConverter,
                                                                                                        creationAuditLog,
                                                                                                        tenantRecordId,
-                                                                                                       reportGroup);
+                                                                                                       reportGroup,
+                                                                                                       pluginPropertiesManager);
                 if (businessPayment != null) {
                     businessPayments.add(businessPayment);
                 }

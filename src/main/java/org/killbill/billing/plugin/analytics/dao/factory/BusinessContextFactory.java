@@ -39,6 +39,8 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
@@ -58,7 +60,9 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private final Long tenantRecordId;
     private final BusinessModelDaoBase.ReportGroup reportGroup;
     private final CallContext callContext;
+    private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
+    private PluginPropertiesManager pluginPropertiesManager;
     private CurrencyConverter currencyConverter;
     private Account account;
     private BigDecimal accountBalance;
@@ -102,10 +106,12 @@ public class BusinessContextFactory extends BusinessFactoryBase {
                                   final OSGIKillbillLogService logService,
                                   final OSGIKillbillAPI osgiKillbillAPI,
                                   final OSGIConfigPropertiesService osgiConfigPropertiesService,
-                                  final Clock clock) throws AnalyticsRefreshException {
+                                  final Clock clock,
+                                  final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws AnalyticsRefreshException {
         super(currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
         this.accountId = accountId;
         this.callContext = callContext;
+        this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
         // Always needed
         this.accountRecordId = getAccountRecordId(accountId, callContext);
@@ -136,6 +142,14 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public BusinessModelDaoBase.ReportGroup getReportGroup() {
         return reportGroup;
+    }
+
+    public synchronized PluginPropertiesManager getPluginPropertiesManager() {
+        if (pluginPropertiesManager == null) {
+            final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
+            pluginPropertiesManager = new PluginPropertiesManager(analyticsConfiguration);
+        }
+        return pluginPropertiesManager;
     }
 
     @Override

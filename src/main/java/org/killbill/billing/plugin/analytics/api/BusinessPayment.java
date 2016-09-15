@@ -68,6 +68,11 @@ public class BusinessPayment extends BusinessEntityBase {
     private final String pluginGatewayErrorCode;
     private final String pluginFirstReferenceId;
     private final String pluginSecondReferenceId;
+    private String pluginProperty1;
+    private String pluginProperty2;
+    private String pluginProperty3;
+    private String pluginProperty4;
+    private String pluginProperty5;
     private final String pluginPmId;
     private final Boolean pluginPmIsDefault;
     private final String pluginPmType;
@@ -134,6 +139,11 @@ public class BusinessPayment extends BusinessEntityBase {
         this.pluginGatewayErrorCode = businessPaymentBaseModelDao.getPluginGatewayErrorCode();
         this.pluginFirstReferenceId = businessPaymentBaseModelDao.getPluginFirstReferenceId();
         this.pluginSecondReferenceId = businessPaymentBaseModelDao.getPluginSecondReferenceId();
+        this.pluginProperty1 = businessPaymentBaseModelDao.getPluginProperty1();
+        this.pluginProperty2 = businessPaymentBaseModelDao.getPluginProperty2();
+        this.pluginProperty3 = businessPaymentBaseModelDao.getPluginProperty3();
+        this.pluginProperty4 = businessPaymentBaseModelDao.getPluginProperty4();
+        this.pluginProperty5 = businessPaymentBaseModelDao.getPluginProperty5();
         this.pluginPmId = businessPaymentBaseModelDao.getPluginPmId();
         this.pluginPmIsDefault = businessPaymentBaseModelDao.getPluginPmIsDefault();
         this.pluginPmType = businessPaymentBaseModelDao.getPluginPmType();
@@ -315,6 +325,26 @@ public class BusinessPayment extends BusinessEntityBase {
         return pluginSecondReferenceId;
     }
 
+    public String getPluginProperty1() {
+        return pluginProperty1;
+    }
+
+    public String getPluginProperty2() {
+        return pluginProperty2;
+    }
+
+    public String getPluginProperty3() {
+        return pluginProperty3;
+    }
+
+    public String getPluginProperty4() {
+        return pluginProperty4;
+    }
+
+    public String getPluginProperty5() {
+        return pluginProperty5;
+    }
+
     public String getPluginPmId() {
         return pluginPmId;
     }
@@ -419,6 +449,11 @@ public class BusinessPayment extends BusinessEntityBase {
         sb.append(", pluginGatewayErrorCode='").append(pluginGatewayErrorCode).append('\'');
         sb.append(", pluginFirstReferenceId='").append(pluginFirstReferenceId).append('\'');
         sb.append(", pluginSecondReferenceId='").append(pluginSecondReferenceId).append('\'');
+        sb.append(", pluginProperty1='").append(pluginProperty1).append('\'');
+        sb.append(", pluginProperty2='").append(pluginProperty2).append('\'');
+        sb.append(", pluginProperty3='").append(pluginProperty3).append('\'');
+        sb.append(", pluginProperty4='").append(pluginProperty4).append('\'');
+        sb.append(", pluginProperty5='").append(pluginProperty5).append('\'');
         sb.append(", pluginPmId='").append(pluginPmId).append('\'');
         sb.append(", pluginPmIsDefault=").append(pluginPmIsDefault);
         sb.append(", pluginPmType='").append(pluginPmType).append('\'');
@@ -554,6 +589,24 @@ public class BusinessPayment extends BusinessEntityBase {
         if (pluginFirstReferenceId != null ? !pluginFirstReferenceId.equals(that.pluginFirstReferenceId) : that.pluginFirstReferenceId != null) {
             return false;
         }
+        if (pluginSecondReferenceId != null ? !pluginSecondReferenceId.equals(that.pluginSecondReferenceId) : that.pluginSecondReferenceId != null) {
+            return false;
+        }
+        if (pluginProperty1 != null ? !pluginProperty1.equals(that.pluginProperty1) : that.pluginProperty1 != null) {
+            return false;
+        }
+        if (pluginProperty2 != null ? !pluginProperty2.equals(that.pluginProperty2) : that.pluginProperty2 != null) {
+            return false;
+        }
+        if (pluginProperty3 != null ? !pluginProperty3.equals(that.pluginProperty3) : that.pluginProperty3 != null) {
+            return false;
+        }
+        if (pluginProperty4 != null ? !pluginProperty4.equals(that.pluginProperty4) : that.pluginProperty4 != null) {
+            return false;
+        }
+        if (pluginProperty5 != null ? !pluginProperty5.equals(that.pluginProperty5) : that.pluginProperty5 != null) {
+            return false;
+        }
         if (pluginGatewayError != null ? !pluginGatewayError.equals(that.pluginGatewayError) : that.pluginGatewayError != null) {
             return false;
         }
@@ -611,9 +664,6 @@ public class BusinessPayment extends BusinessEntityBase {
         if (pluginPmZip != null ? !pluginPmZip.equals(that.pluginPmZip) : that.pluginPmZip != null) {
             return false;
         }
-        if (pluginSecondReferenceId != null ? !pluginSecondReferenceId.equals(that.pluginSecondReferenceId) : that.pluginSecondReferenceId != null) {
-            return false;
-        }
         if (pluginStatus != null ? !pluginStatus.equals(that.pluginStatus) : that.pluginStatus != null) {
             return false;
         }
@@ -668,6 +718,11 @@ public class BusinessPayment extends BusinessEntityBase {
         result = 31 * result + (pluginGatewayErrorCode != null ? pluginGatewayErrorCode.hashCode() : 0);
         result = 31 * result + (pluginFirstReferenceId != null ? pluginFirstReferenceId.hashCode() : 0);
         result = 31 * result + (pluginSecondReferenceId != null ? pluginSecondReferenceId.hashCode() : 0);
+        result = 31 * result + (pluginProperty1 != null ? pluginProperty1.hashCode() : 0);
+        result = 31 * result + (pluginProperty2 != null ? pluginProperty2.hashCode() : 0);
+        result = 31 * result + (pluginProperty3 != null ? pluginProperty3.hashCode() : 0);
+        result = 31 * result + (pluginProperty4 != null ? pluginProperty4.hashCode() : 0);
+        result = 31 * result + (pluginProperty5 != null ? pluginProperty5.hashCode() : 0);
         result = 31 * result + (pluginPmId != null ? pluginPmId.hashCode() : 0);
         result = 31 * result + (pluginPmIsDefault != null ? pluginPmIsDefault.hashCode() : 0);
         result = 31 * result + (pluginPmType != null ? pluginPmType.hashCode() : 0);

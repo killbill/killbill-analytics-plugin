@@ -25,6 +25,7 @@ import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentTransaction;
+import org.killbill.billing.plugin.analytics.dao.factory.PluginPropertiesManager;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
@@ -43,7 +44,8 @@ public class BusinessPaymentVoidModelDao extends BusinessPaymentBaseModelDao {
                                        final CurrencyConverter currencyConverter,
                                        @Nullable final AuditLog creationAuditLog,
                                        final Long tenantRecordId,
-                                       @Nullable final ReportGroup reportGroup) {
+                                       @Nullable final ReportGroup reportGroup,
+                                       final PluginPropertiesManager pluginPropertiesManager) {
         super(account,
               accountRecordId,
               invoice,
@@ -55,7 +57,8 @@ public class BusinessPaymentVoidModelDao extends BusinessPaymentBaseModelDao {
               currencyConverter,
               creationAuditLog,
               tenantRecordId,
-              reportGroup);
+              reportGroup,
+              pluginPropertiesManager);
     }
 
     @Override

@@ -21,7 +21,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import org.killbill.billing.ObjectType;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
 import org.killbill.billing.notification.plugin.api.ExtBusEventType;
 import org.mockito.Mockito;
@@ -34,7 +33,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
     @Test(groups = "slow")
     public void testSendOneEvent() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, analyticsConfigurationHandler, notificationQueueService);
         analyticsListener.start();
 
         // Verify the original state
@@ -59,7 +58,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
     @Test(groups = "slow")
     public void testVerifyNoDups() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, analyticsConfigurationHandler, notificationQueueService);
         // Don't start the dequeuer
         Assert.assertEquals(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId).size(), 0);
 

@@ -107,7 +107,8 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
                                                                                                               currencyConverter,
                                                                                                               auditLog,
                                                                                                               tenantRecordId,
-                                                                                                              reportGroup);
+                                                                                                              reportGroup,
+                                                                                                              pluginPropertiesManager);
         final BusinessPayment businessPayment = new BusinessPayment(invoicePaymentBaseModelDao);
 
         // Overdue

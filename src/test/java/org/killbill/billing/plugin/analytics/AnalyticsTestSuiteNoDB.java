@@ -60,8 +60,11 @@ import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.payment.api.TransactionStatus;
 import org.killbill.billing.payment.api.TransactionType;
 import org.killbill.billing.plugin.analytics.api.BusinessEntityBase;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.TestCallContext;
+import org.killbill.billing.plugin.analytics.dao.factory.PluginPropertiesManager;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.BusinessInvoiceItemType;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
@@ -111,6 +114,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final Long bundleRecordId = 10L;
 
     protected final ReportGroup reportGroup = ReportGroup.partner;
+    protected final PluginPropertiesManager pluginPropertiesManager = new PluginPropertiesManager(new AnalyticsConfiguration(new Properties()));
     protected final BusinessInvoiceItemType invoiceItemType = BusinessInvoiceItemType.INVOICE_ITEM_ADJUSTMENT;
     protected final ItemSource itemSource = ItemSource.user;
     protected final ClockMock clock = new ClockMock();
@@ -144,6 +148,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected AccountAuditLogs accountAuditLogs;
     protected AuditLog auditLog;
     protected CallContext callContext;
+    protected AnalyticsConfigurationHandler analyticsConfigurationHandler;
     protected OSGIKillbillLogService logService;
     protected OSGIKillbillAPI killbillAPI;
     protected OSGIKillbillDataSource killbillDataSource;
@@ -221,6 +226,8 @@ public abstract class AnalyticsTestSuiteNoDB {
                 return null;
             }
         }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
+
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(AnalyticsActivator.PLUGIN_NAME, killbillAPI, logService);
 
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);

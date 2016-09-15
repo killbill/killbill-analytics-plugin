@@ -240,7 +240,8 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
                                                                                                                   currencyConverter,
                                                                                                                   auditLog,
                                                                                                                   tenantRecordId,
-                                                                                                                  reportGroup);
+                                                                                                                  reportGroup,
+                                                                                                                  pluginPropertiesManager);
         // Check the record doesn't exist yet
         Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
@@ -268,7 +269,8 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
                                                                                                                         currencyConverter,
                                                                                                                         auditLog,
                                                                                                                         tenantRecordId,
-                                                                                                                        reportGroup);
+                                                                                                                        reportGroup,
+                                                                                                                        pluginPropertiesManager);
         // Check the record doesn't exist yet
         Assert.assertEquals(analyticsSqlDao.getPaymentPurchasesByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 

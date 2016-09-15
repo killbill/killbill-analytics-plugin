@@ -32,6 +32,7 @@ import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.payment.api.TransactionType;
+import org.killbill.billing.plugin.analytics.dao.factory.PluginPropertiesManager;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.plugin.analytics.utils.PaymentUtils;
 import org.killbill.billing.util.audit.AuditLog;
@@ -95,6 +96,11 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
     private String pluginGatewayErrorCode;
     private String pluginFirstReferenceId;
     private String pluginSecondReferenceId;
+    private String pluginProperty1;
+    private String pluginProperty2;
+    private String pluginProperty3;
+    private String pluginProperty4;
+    private String pluginProperty5;
     private String pluginPmId;
     private Boolean pluginPmIsDefault;
     private String pluginPmType;
@@ -122,7 +128,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                      final CurrencyConverter currencyConverter,
                                                      @Nullable final AuditLog creationAuditLog,
                                                      final Long tenantRecordId,
-                                                     @Nullable final ReportGroup reportGroup) {
+                                                     @Nullable final ReportGroup reportGroup,
+                                                     final PluginPropertiesManager pluginPropertiesManager) {
         if (paymentTransaction.getTransactionType().equals(TransactionType.AUTHORIZE)) {
             return new BusinessPaymentAuthModelDao(account,
                                                    accountRecordId,
@@ -135,7 +142,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                    currencyConverter,
                                                    creationAuditLog,
                                                    tenantRecordId,
-                                                   reportGroup);
+                                                   reportGroup,
+                                                   pluginPropertiesManager);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.CAPTURE)) {
             return new BusinessPaymentCaptureModelDao(account,
                                                       accountRecordId,
@@ -148,7 +156,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                       currencyConverter,
                                                       creationAuditLog,
                                                       tenantRecordId,
-                                                      reportGroup);
+                                                      reportGroup,
+                                                      pluginPropertiesManager);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.CHARGEBACK)) {
             return new BusinessPaymentChargebackModelDao(account,
                                                          accountRecordId,
@@ -161,7 +170,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                          currencyConverter,
                                                          creationAuditLog,
                                                          tenantRecordId,
-                                                         reportGroup);
+                                                         reportGroup,
+                                                         pluginPropertiesManager);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.CREDIT)) {
             return new BusinessPaymentCreditModelDao(account,
                                                      accountRecordId,
@@ -174,7 +184,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                      currencyConverter,
                                                      creationAuditLog,
                                                      tenantRecordId,
-                                                     reportGroup);
+                                                     reportGroup,
+                                                     pluginPropertiesManager);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.PURCHASE)) {
             return new BusinessPaymentPurchaseModelDao(account,
                                                        accountRecordId,
@@ -187,7 +198,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                        currencyConverter,
                                                        creationAuditLog,
                                                        tenantRecordId,
-                                                       reportGroup);
+                                                       reportGroup,
+                                                       pluginPropertiesManager);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.REFUND)) {
             return new BusinessPaymentRefundModelDao(account,
                                                      accountRecordId,
@@ -200,7 +212,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                      currencyConverter,
                                                      creationAuditLog,
                                                      tenantRecordId,
-                                                     reportGroup);
+                                                     reportGroup,
+                                                     pluginPropertiesManager);
         } else if (paymentTransaction.getTransactionType().equals(TransactionType.VOID)) {
             return new BusinessPaymentVoidModelDao(account,
                                                    accountRecordId,
@@ -213,7 +226,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                                    currencyConverter,
                                                    creationAuditLog,
                                                    tenantRecordId,
-                                                   reportGroup);
+                                                   reportGroup,
+                                                   pluginPropertiesManager);
         } else {
             throw new IllegalStateException("Unexpected transaction type: " + paymentTransaction.getTransactionType());
         }
@@ -263,6 +277,11 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                        final String pluginGatewayErrorCode,
                                        final String pluginFirstReferenceId,
                                        final String pluginSecondReferenceId,
+                                       final String pluginProperty1,
+                                       final String pluginProperty2,
+                                       final String pluginProperty3,
+                                       final String pluginProperty4,
+                                       final String pluginProperty5,
                                        final String pluginPmId,
                                        final Boolean pluginPmIsDefault,
                                        final String pluginPmType,
@@ -340,6 +359,11 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         this.pluginGatewayErrorCode = pluginGatewayErrorCode;
         this.pluginFirstReferenceId = pluginFirstReferenceId;
         this.pluginSecondReferenceId = pluginSecondReferenceId;
+        this.pluginProperty1 = pluginProperty1;
+        this.pluginProperty2 = pluginProperty2;
+        this.pluginProperty3 = pluginProperty3;
+        this.pluginProperty4 = pluginProperty4;
+        this.pluginProperty5 = pluginProperty5;
         this.pluginPmId = pluginPmId;
         this.pluginPmIsDefault = pluginPmIsDefault;
         this.pluginPmType = pluginPmType;
@@ -368,7 +392,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                           final CurrencyConverter currencyConverter,
                                           @Nullable final AuditLog creationAuditLog,
                                           final Long tenantRecordId,
-                                          @Nullable final ReportGroup reportGroup) {
+                                          @Nullable final ReportGroup reportGroup,
+                                          final PluginPropertiesManager pluginPropertiesManager) {
         this(account,
              accountRecordId,
              invoice,
@@ -382,7 +407,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
              currencyConverter,
              creationAuditLog,
              tenantRecordId,
-             reportGroup);
+             reportGroup,
+             pluginPropertiesManager);
     }
 
     private BusinessPaymentBaseModelDao(final Account account,
@@ -398,7 +424,8 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
                                         final CurrencyConverter currencyConverter,
                                         @Nullable final AuditLog creationAuditLog,
                                         final Long tenantRecordId,
-                                        @Nullable final ReportGroup reportGroup) {
+                                        @Nullable final ReportGroup reportGroup,
+                                        final PluginPropertiesManager pluginPropertiesManager) {
         this(invoicePaymentRecordId,
              invoicePayment == null ? null : invoicePayment.getId(),
              invoice == null ? null : invoice.getId(),
@@ -441,21 +468,26 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
              paymentTransaction.getPaymentInfoPlugin() != null ? paymentTransaction.getPaymentInfoPlugin().getGatewayErrorCode() : null,
              paymentTransaction.getPaymentInfoPlugin() != null ? paymentTransaction.getPaymentInfoPlugin().getFirstPaymentReferenceId() : null,
              paymentTransaction.getPaymentInfoPlugin() != null ? paymentTransaction.getPaymentInfoPlugin().getSecondPaymentReferenceId() : null,
+             pluginPropertiesManager.getPluginProperty(1, paymentMethod),
+             pluginPropertiesManager.getPluginProperty(2, paymentMethod),
+             pluginPropertiesManager.getPluginProperty(3, paymentMethod),
+             pluginPropertiesManager.getPluginProperty(4, paymentMethod),
+             pluginPropertiesManager.getPluginProperty(5, paymentMethod),
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? paymentMethod.getPluginDetail().getExternalPaymentMethodId() : null) : null,
              paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? paymentMethod.getPluginDetail().isDefaultPaymentMethod() : null) : null,
              // Magic from Killbill::Plugin::ActiveMerchant::PaymentPlugin
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "type") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "ccLastName") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "ccType") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "ccExpirationMonth") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "ccExpirationYear") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "ccVerificationValue") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "address1") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "address2") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "city") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "state") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "zip") : null) : null,
-             paymentMethod != null ? (paymentMethod.getPluginDetail() != null ? PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), "country") : null) : null,
+             pluginPropertiesManager.getPluginProperty("type", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("ccLastName", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("ccType", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("ccExpirationMonth", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("ccExpirationYear", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("ccVerificationValue", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("address1", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("address2", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("city", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("state", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("zip", paymentMethod),
+             pluginPropertiesManager.getPluginProperty("country", paymentMethod),
              currencyConverter.getConvertedCurrency(),
              invoicePayment == null ? paymentTransaction.getCreatedDate() : invoicePayment.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
@@ -637,6 +669,26 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         return pluginSecondReferenceId;
     }
 
+    public String getPluginProperty1() {
+        return pluginProperty1;
+    }
+
+    public String getPluginProperty2() {
+        return pluginProperty2;
+    }
+
+    public String getPluginProperty3() {
+        return pluginProperty3;
+    }
+
+    public String getPluginProperty4() {
+        return pluginProperty4;
+    }
+
+    public String getPluginProperty5() {
+        return pluginProperty5;
+    }
+
     public String getPluginPmId() {
         return pluginPmId;
     }
@@ -742,6 +794,11 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         sb.append(", pluginGatewayErrorCode='").append(pluginGatewayErrorCode).append('\'');
         sb.append(", pluginFirstReferenceId='").append(pluginFirstReferenceId).append('\'');
         sb.append(", pluginSecondReferenceId='").append(pluginSecondReferenceId).append('\'');
+        sb.append(", pluginProperty1='").append(pluginProperty1).append('\'');
+        sb.append(", pluginProperty2='").append(pluginProperty2).append('\'');
+        sb.append(", pluginProperty3='").append(pluginProperty3).append('\'');
+        sb.append(", pluginProperty4='").append(pluginProperty4).append('\'');
+        sb.append(", pluginProperty5='").append(pluginProperty5).append('\'');
         sb.append(", pluginPmId='").append(pluginPmId).append('\'');
         sb.append(", pluginPmIsDefault=").append(pluginPmIsDefault);
         sb.append(", pluginPmType='").append(pluginPmType).append('\'');
@@ -880,6 +937,24 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         if (pluginFirstReferenceId != null ? !pluginFirstReferenceId.equals(that.pluginFirstReferenceId) : that.pluginFirstReferenceId != null) {
             return false;
         }
+        if (pluginSecondReferenceId != null ? !pluginSecondReferenceId.equals(that.pluginSecondReferenceId) : that.pluginSecondReferenceId != null) {
+            return false;
+        }
+        if (pluginProperty1 != null ? !pluginProperty1.equals(that.pluginProperty1) : that.pluginProperty1 != null) {
+            return false;
+        }
+        if (pluginProperty2 != null ? !pluginProperty2.equals(that.pluginProperty2) : that.pluginProperty2 != null) {
+            return false;
+        }
+        if (pluginProperty3 != null ? !pluginProperty3.equals(that.pluginProperty3) : that.pluginProperty3 != null) {
+            return false;
+        }
+        if (pluginProperty4 != null ? !pluginProperty4.equals(that.pluginProperty4) : that.pluginProperty4 != null) {
+            return false;
+        }
+        if (pluginProperty5 != null ? !pluginProperty5.equals(that.pluginProperty5) : that.pluginProperty5 != null) {
+            return false;
+        }
         if (pluginGatewayError != null ? !pluginGatewayError.equals(that.pluginGatewayError) : that.pluginGatewayError != null) {
             return false;
         }
@@ -937,9 +1012,6 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         if (pluginPmZip != null ? !pluginPmZip.equals(that.pluginPmZip) : that.pluginPmZip != null) {
             return false;
         }
-        if (pluginSecondReferenceId != null ? !pluginSecondReferenceId.equals(that.pluginSecondReferenceId) : that.pluginSecondReferenceId != null) {
-            return false;
-        }
         if (pluginStatus != null ? !pluginStatus.equals(that.pluginStatus) : that.pluginStatus != null) {
             return false;
         }
@@ -995,6 +1067,11 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
         result = 31 * result + (pluginGatewayErrorCode != null ? pluginGatewayErrorCode.hashCode() : 0);
         result = 31 * result + (pluginFirstReferenceId != null ? pluginFirstReferenceId.hashCode() : 0);
         result = 31 * result + (pluginSecondReferenceId != null ? pluginSecondReferenceId.hashCode() : 0);
+        result = 31 * result + (pluginProperty1 != null ? pluginProperty1.hashCode() : 0);
+        result = 31 * result + (pluginProperty2 != null ? pluginProperty2.hashCode() : 0);
+        result = 31 * result + (pluginProperty3 != null ? pluginProperty3.hashCode() : 0);
+        result = 31 * result + (pluginProperty4 != null ? pluginProperty4.hashCode() : 0);
+        result = 31 * result + (pluginProperty5 != null ? pluginProperty5.hashCode() : 0);
         result = 31 * result + (pluginPmId != null ? pluginPmId.hashCode() : 0);
         result = 31 * result + (pluginPmIsDefault != null ? pluginPmIsDefault.hashCode() : 0);
         result = 31 * result + (pluginPmType != null ? pluginPmType.hashCode() : 0);

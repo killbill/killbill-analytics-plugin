@@ -35,6 +35,7 @@ import org.killbill.billing.plugin.analytics.api.BusinessPayment;
 import org.killbill.billing.plugin.analytics.api.BusinessSnapshot;
 import org.killbill.billing.plugin.analytics.api.BusinessSubscriptionTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessTag;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
 import org.killbill.billing.plugin.analytics.dao.AnalyticsDao;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
@@ -50,6 +51,7 @@ public class AnalyticsUserApi {
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final Clock clock;
+    private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
     private final AnalyticsDao analyticsDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
     private final CurrencyConversionDao currencyConversionDao;
@@ -59,11 +61,13 @@ public class AnalyticsUserApi {
                             final OSGIKillbillDataSource osgiKillbillDataSource,
                             final OSGIConfigPropertiesService osgiConfigPropertiesService,
                             final Executor executor,
-                            final Clock clock) {
+                            final Clock clock,
+                            final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
+        this.analyticsConfigurationHandler = analyticsConfigurationHandler;
         this.analyticsDao = new AnalyticsDao(logService, osgiKillbillAPI, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
         this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
@@ -103,7 +107,7 @@ public class AnalyticsUserApi {
     }
 
     public void rebuildAnalyticsForAccount(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         logService.log(LogService.LOG_INFO, "Starting Analytics refresh for account " + businessContextFactory.getAccountId());
         // TODO Should we take the account lock?
         allBusinessObjectsDao.update(businessContextFactory);

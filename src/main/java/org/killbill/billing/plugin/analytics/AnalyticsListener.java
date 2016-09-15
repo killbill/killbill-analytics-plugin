@@ -32,6 +32,7 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountTransitionDao;
@@ -88,6 +89,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private final CurrencyConversionDao currencyConversionDao;
     private final NotificationQueue jobQueue;
     private final Clock clock;
+    private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
     public AnalyticsListener(final OSGIKillbillLogService logService,
                              final OSGIKillbillAPI osgiKillbillAPI,
@@ -95,11 +97,13 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                              final OSGIConfigPropertiesService osgiConfigPropertiesService,
                              final Executor executor,
                              final Clock clock,
+                             AnalyticsConfigurationHandler analyticsConfigurationHandler,
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
         this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
+        this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
         final String refreshDelayMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_DELAY_PROPERTY));
         this.refreshDelaySeconds = refreshDelayMaybeNull == null ? 10 : Integer.valueOf(refreshDelayMaybeNull);
@@ -240,7 +244,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
 
         logService.log(LogService.LOG_INFO, "Refreshing Analytics data for account " + businessContextFactory.getAccountId());
         switch (AnalyticsJobHierarchy.fromEventType(job.getEventType())) {
