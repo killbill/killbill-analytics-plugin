@@ -55,9 +55,7 @@ public class BusinessInvoiceUtils {
             }
         });
 
-        // Either REFUND_ADJ
-        return InvoiceItemType.REFUND_ADJ.equals(invoiceItem.getInvoiceItemType()) ||
-               // Or invoice level credit, i.e. credit adj, but NOT on its on own invoice
+        return // Invoice level credit, i.e. credit adj, but NOT on its on own invoice
                // Note: the negative credit adj items (internal generation of account level credits) doesn't figure in analytics
                (InvoiceItemType.CREDIT_ADJ.equals(invoiceItem.getInvoiceItemType()) &&
                 !(otherInvoiceItems.size() == 1 &&

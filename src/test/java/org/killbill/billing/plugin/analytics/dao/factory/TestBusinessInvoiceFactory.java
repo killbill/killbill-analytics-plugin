@@ -125,24 +125,6 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoiceAdjustmentItem.getItemType(), InvoiceItemType.CREDIT_ADJ.toString());
         Assert.assertEquals(businessInvoiceAdjustmentItem.getItemSource(), ItemSource.user.toString());
 
-        // Invoice adjustment via refund
-        final BusinessInvoiceItemBaseModelDao businessRefundInvoiceAdjustmentItem = invoiceFactory.createBusinessInvoiceItem(account,
-                                                                                                                             invoice,
-                                                                                                                             createInvoiceItem(invoiceId, InvoiceItemType.REFUND_ADJ, new BigDecimal("-10")),
-                                                                                                                             ImmutableList.<InvoiceItem>of(createInvoiceItem(invoiceId, InvoiceItemType.RECURRING, new BigDecimal("10"))),
-                                                                                                                             null,
-                                                                                                                             null,
-                                                                                                                             null,
-                                                                                                                             invoiceItemRecordId,
-                                                                                                                             currencyConverter,
-                                                                                                                             auditLog,
-                                                                                                                             accountRecordId,
-                                                                                                                             tenantRecordId,
-                                                                                                                             reportGroup);
-        Assert.assertEquals(businessRefundInvoiceAdjustmentItem.getAmount().compareTo(new BigDecimal("-10")), 0);
-        Assert.assertEquals(businessRefundInvoiceAdjustmentItem.getItemType(), InvoiceItemType.REFUND_ADJ.toString());
-        Assert.assertEquals(businessRefundInvoiceAdjustmentItem.getItemSource(), ItemSource.user.toString());
-
         // Item adjustment
         final BusinessInvoiceItemBaseModelDao businessInvoiceItemAdjustmentItem = invoiceFactory.createBusinessInvoiceItem(account,
                                                                                                                            invoice,
@@ -189,8 +171,6 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
 
         Assert.assertFalse(BusinessInvoiceUtils.isInvoiceAdjustmentItem(createInvoiceItem(invoiceId, InvoiceItemType.RECURRING),
                                                                         ImmutableList.<InvoiceItem>of()));
-        Assert.assertTrue(BusinessInvoiceUtils.isInvoiceAdjustmentItem(createInvoiceItem(invoiceId, InvoiceItemType.REFUND_ADJ),
-                                                                       ImmutableList.<InvoiceItem>of()));
 
         final InvoiceItem creditAdj = createInvoiceItem(invoiceId, InvoiceItemType.CREDIT_ADJ);
 
