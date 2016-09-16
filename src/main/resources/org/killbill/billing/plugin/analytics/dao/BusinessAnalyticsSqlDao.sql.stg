@@ -2066,8 +2066,8 @@ insert into analytics_invoice_fields (
 );
 >>
 
-createAnalyticsPaymentFields() ::= <<
-insert into analytics_payment_fields (
+createAnalyticsInvoicePaymentFields() ::= <<
+insert into analytics_invoice_payment_fields (
   custom_field_record_id
 , invoice_payment_id
 , name
@@ -2085,6 +2085,108 @@ insert into analytics_payment_fields (
 ) values (
   :customFieldRecordId
 , :invoicePaymentId
+, :name
+, :value
+, :createdDate
+, :createdBy
+, :createdReasonCode
+, :createdComments
+, :accountId
+, :accountName
+, :accountExternalKey
+, :accountRecordId
+, :tenantRecordId
+, :reportGroup
+);
+>>
+
+createAnalyticsPaymentFields() ::= <<
+insert into analytics_payment_fields (
+  custom_field_record_id
+, payment_id
+, name
+, value
+, created_date
+, created_by
+, created_reason_code
+, created_comments
+, account_id
+, account_name
+, account_external_key
+, account_record_id
+, tenant_record_id
+, report_group
+) values (
+  :customFieldRecordId
+, :paymentId
+, :name
+, :value
+, :createdDate
+, :createdBy
+, :createdReasonCode
+, :createdComments
+, :accountId
+, :accountName
+, :accountExternalKey
+, :accountRecordId
+, :tenantRecordId
+, :reportGroup
+);
+>>
+
+createAnalyticsPaymentMethodFields() ::= <<
+insert into analytics_payment_method_fields (
+  custom_field_record_id
+, payment_method_id
+, name
+, value
+, created_date
+, created_by
+, created_reason_code
+, created_comments
+, account_id
+, account_name
+, account_external_key
+, account_record_id
+, tenant_record_id
+, report_group
+) values (
+  :customFieldRecordId
+, :paymentMethodId
+, :name
+, :value
+, :createdDate
+, :createdBy
+, :createdReasonCode
+, :createdComments
+, :accountId
+, :accountName
+, :accountExternalKey
+, :accountRecordId
+, :tenantRecordId
+, :reportGroup
+);
+>>
+
+createAnalyticsTransactionFields() ::= <<
+insert into analytics_transaction_fields (
+  custom_field_record_id
+, transaction_id
+, name
+, value
+, created_date
+, created_by
+, created_reason_code
+, created_comments
+, account_id
+, account_name
+, account_external_key
+, account_record_id
+, tenant_record_id
+, report_group
+) values (
+  :customFieldRecordId
+, :transactionId
 , :name
 , :value
 , :createdDate
@@ -2212,7 +2314,22 @@ getInvoiceFieldsByAccountRecordId() ::= <<
 >>
 
 getInvoicePaymentFieldsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_invoice_payment_fields")>
+;
+>>
+
+getPaymentFieldsByAccountRecordId() ::= <<
 <SELECT_STAR_FROM_TABLE("analytics_payment_fields")>
+;
+>>
+
+getPaymentMethodFieldsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_payment_method_fields")>
+;
+>>
+
+getTransactionFieldsByAccountRecordId() ::= <<
+<SELECT_STAR_FROM_TABLE("analytics_transaction_fields")>
 ;
 >>
 

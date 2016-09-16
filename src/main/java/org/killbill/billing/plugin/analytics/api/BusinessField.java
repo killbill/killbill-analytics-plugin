@@ -25,6 +25,9 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleFieldModelD
 import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoicePaymentFieldModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentFieldModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentMethodFieldModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessTransactionFieldModelDao;
 
 public class BusinessField extends BusinessEntityBase {
 
@@ -57,6 +60,12 @@ public class BusinessField extends BusinessEntityBase {
             return new BusinessField(ObjectType.INVOICE, businessFieldModelDao, ((BusinessInvoiceFieldModelDao) businessFieldModelDao).getInvoiceId());
         } else if (businessFieldModelDao instanceof BusinessInvoicePaymentFieldModelDao) {
             return new BusinessField(ObjectType.INVOICE_PAYMENT, businessFieldModelDao, ((BusinessInvoicePaymentFieldModelDao) businessFieldModelDao).getInvoicePaymentId());
+        } else if (businessFieldModelDao instanceof BusinessPaymentFieldModelDao) {
+            return new BusinessField(ObjectType.PAYMENT, businessFieldModelDao, ((BusinessPaymentFieldModelDao) businessFieldModelDao).getPaymentId());
+        } else if (businessFieldModelDao instanceof BusinessPaymentMethodFieldModelDao) {
+            return new BusinessField(ObjectType.PAYMENT_METHOD, businessFieldModelDao, ((BusinessPaymentMethodFieldModelDao) businessFieldModelDao).getPaymentMethodId());
+        } else if (businessFieldModelDao instanceof BusinessTransactionFieldModelDao) {
+            return new BusinessField(ObjectType.TRANSACTION, businessFieldModelDao, ((BusinessTransactionFieldModelDao) businessFieldModelDao).getTransactionId());
         } else {
             return null;
         }

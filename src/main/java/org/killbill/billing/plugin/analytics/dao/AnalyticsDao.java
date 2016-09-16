@@ -172,6 +172,9 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         businessFieldModelDaos.addAll(sqlDao.getBundleFieldsByAccountRecordId(accountRecordId, tenantRecordId, context));
         businessFieldModelDaos.addAll(sqlDao.getInvoiceFieldsByAccountRecordId(accountRecordId, tenantRecordId, context));
         businessFieldModelDaos.addAll(sqlDao.getInvoicePaymentFieldsByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessFieldModelDaos.addAll(sqlDao.getPaymentFieldsByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessFieldModelDaos.addAll(sqlDao.getPaymentMethodFieldsByAccountRecordId(accountRecordId, tenantRecordId, context));
+        businessFieldModelDaos.addAll(sqlDao.getTransactionFieldsByAccountRecordId(accountRecordId, tenantRecordId, context));
 
         return Lists.transform(businessFieldModelDaos, new Function<BusinessFieldModelDao, BusinessField>() {
             @Override

@@ -40,9 +40,12 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentAuthModelD
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentCaptureModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentChargebackModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentCreditModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentFieldModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentMethodFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentPurchaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentRefundModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessTransactionFieldModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.skife.jdbi.v2.sqlobject.Bind;
@@ -161,6 +164,21 @@ public interface BusinessAnalyticsSqlDao extends Transactional<BusinessAnalytics
     public List<BusinessInvoicePaymentFieldModelDao> getInvoicePaymentFieldsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
                                                                                               @Bind("tenantRecordId") final Long tenantRecordId,
                                                                                               final TenantContext tenantContext);
+
+    @SqlQuery
+    public List<BusinessPaymentFieldModelDao> getPaymentFieldsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
+                                                                                @Bind("tenantRecordId") final Long tenantRecordId,
+                                                                                final TenantContext tenantContext);
+
+    @SqlQuery
+    public List<BusinessPaymentMethodFieldModelDao> getPaymentMethodFieldsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
+                                                                                            @Bind("tenantRecordId") final Long tenantRecordId,
+                                                                                            final TenantContext tenantContext);
+
+    @SqlQuery
+    public List<BusinessTransactionFieldModelDao> getTransactionFieldsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,
+                                                                                        @Bind("tenantRecordId") final Long tenantRecordId,
+                                                                                        final TenantContext tenantContext);
 
     @SqlQuery
     public List<BusinessAccountTagModelDao> getAccountTagsByAccountRecordId(@Bind("accountRecordId") final Long accountRecordId,

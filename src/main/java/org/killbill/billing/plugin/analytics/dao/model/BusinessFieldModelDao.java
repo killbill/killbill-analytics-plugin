@@ -33,7 +33,10 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
     protected static final String ACCOUNT_FIELDS_TABLE_NAME = "analytics_account_fields";
     protected static final String BUNDLE_FIELDS_TABLE_NAME = "analytics_bundle_fields";
     protected static final String INVOICE_FIELDS_TABLE_NAME = "analytics_invoice_fields";
-    protected static final String INVOICE_PAYMENT_FIELDS_TABLE_NAME = "analytics_payment_fields";
+    protected static final String INVOICE_PAYMENT_FIELDS_TABLE_NAME = "analytics_invoice_payment_fields";
+    protected static final String PAYMENT_FIELDS_TABLE_NAME = "analytics_payment_fields";
+    protected static final String PAYMENT_METHOD_FIELDS_TABLE_NAME = "analytics_payment_method_fields";
+    protected static final String TRANSACTION_FIELDS_TABLE_NAME = "analytics_transaction_fields";
 
     public static final String[] ALL_FIELDS_TABLE_NAMES = new String[]{ACCOUNT_FIELDS_TABLE_NAME, BUNDLE_FIELDS_TABLE_NAME, INVOICE_FIELDS_TABLE_NAME, INVOICE_PAYMENT_FIELDS_TABLE_NAME};
 
@@ -66,14 +69,6 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
                                                    creationAuditLog,
                                                    tenantRecordId,
                                                    reportGroup);
-        } else if (ObjectType.INVOICE_PAYMENT.equals(customField.getObjectType())) {
-            return new BusinessInvoicePaymentFieldModelDao(account,
-                                                           accountRecordId,
-                                                           customField,
-                                                           customFieldRecordId,
-                                                           creationAuditLog,
-                                                           tenantRecordId,
-                                                           reportGroup);
         } else if (ObjectType.INVOICE.equals(customField.getObjectType())) {
             return new BusinessInvoiceFieldModelDao(account,
                                                     accountRecordId,
@@ -82,6 +77,38 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
                                                     creationAuditLog,
                                                     tenantRecordId,
                                                     reportGroup);
+        } else if (ObjectType.INVOICE_PAYMENT.equals(customField.getObjectType())) {
+            return new BusinessInvoicePaymentFieldModelDao(account,
+                                                           accountRecordId,
+                                                           customField,
+                                                           customFieldRecordId,
+                                                           creationAuditLog,
+                                                           tenantRecordId,
+                                                           reportGroup);
+        } else if (ObjectType.PAYMENT.equals(customField.getObjectType())) {
+            return new BusinessPaymentFieldModelDao(account,
+                                                    accountRecordId,
+                                                    customField,
+                                                    customFieldRecordId,
+                                                    creationAuditLog,
+                                                    tenantRecordId,
+                                                    reportGroup);
+        } else if (ObjectType.PAYMENT_METHOD.equals(customField.getObjectType())) {
+            return new BusinessPaymentMethodFieldModelDao(account,
+                                                          accountRecordId,
+                                                          customField,
+                                                          customFieldRecordId,
+                                                          creationAuditLog,
+                                                          tenantRecordId,
+                                                          reportGroup);
+        } else if (ObjectType.TRANSACTION.equals(customField.getObjectType())) {
+            return new BusinessTransactionFieldModelDao(account,
+                                                        accountRecordId,
+                                                        customField,
+                                                        customFieldRecordId,
+                                                        creationAuditLog,
+                                                        tenantRecordId,
+                                                        reportGroup);
         } else {
             // We don't care
             return null;
