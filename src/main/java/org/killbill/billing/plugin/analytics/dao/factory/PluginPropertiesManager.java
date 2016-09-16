@@ -20,6 +20,7 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 import javax.annotation.Nullable;
 
 import org.killbill.billing.payment.api.PaymentMethod;
+import org.killbill.billing.payment.api.PaymentTransaction;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.utils.PaymentUtils;
 
@@ -31,17 +32,24 @@ public class PluginPropertiesManager {
         this.analyticsConfiguration = analyticsConfiguration;
     }
 
-    public String getPluginProperty(final int position, @Nullable final PaymentMethod paymentMethod) {
-        if (paymentMethod == null) {
+    public String getPluginProperty(final int position, @Nullable final PaymentMethod paymentMethod, @Nullable final PaymentTransaction paymentTransaction) {
+        if (paymentMethod == null ||
+            paymentTransaction == null ||
+            paymentTransaction.getPaymentInfoPlugin() == null ||
+            paymentTransaction.getPaymentInfoPlugin().getProperties() == null) {
             return null;
         }
 
         final String pluginPropertyKey = analyticsConfiguration.getPluginPropertyKey(position, paymentMethod.getPluginName());
-        return getPluginProperty(pluginPropertyKey, paymentMethod);
+        if (pluginPropertyKey != null) {
+            return PaymentUtils.getPropertyValue(paymentTransaction.getPaymentInfoPlugin().getProperties(), pluginPropertyKey);
+        } else {
+            return null;
+        }
     }
 
-    public String getPluginProperty(final String key, @Nullable final PaymentMethod paymentMethod) {
-        if (paymentMethod != null && paymentMethod.getPluginDetail() != null) {
+    public String getPluginProperty(@Nullable final String key, @Nullable final PaymentMethod paymentMethod) {
+        if (key != null && paymentMethod != null && paymentMethod.getPluginDetail() != null) {
             return PaymentUtils.getPropertyValue(paymentMethod.getPluginDetail().getProperties(), key);
         } else {
             return null;
