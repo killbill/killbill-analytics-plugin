@@ -75,6 +75,10 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+        final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
+        analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
+
         analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
 
         jobsScheduler = new JobsScheduler(logService, dataSource, killbillClock, notificationQueueService);
@@ -84,10 +88,6 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final EmbeddedDB.DBEngine dbEngine = getDbEngine();
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
         reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
-
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
-        final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
-        analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);
