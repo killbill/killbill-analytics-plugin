@@ -38,7 +38,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
     protected static final String PAYMENT_METHOD_FIELDS_TABLE_NAME = "analytics_payment_method_fields";
     protected static final String TRANSACTION_FIELDS_TABLE_NAME = "analytics_transaction_fields";
 
-    public static final String[] ALL_FIELDS_TABLE_NAMES = new String[]{ACCOUNT_FIELDS_TABLE_NAME, BUNDLE_FIELDS_TABLE_NAME, INVOICE_FIELDS_TABLE_NAME, INVOICE_PAYMENT_FIELDS_TABLE_NAME};
+    public static final String[] ALL_FIELDS_TABLE_NAMES = new String[]{ACCOUNT_FIELDS_TABLE_NAME, BUNDLE_FIELDS_TABLE_NAME, INVOICE_FIELDS_TABLE_NAME, INVOICE_PAYMENT_FIELDS_TABLE_NAME, PAYMENT_FIELDS_TABLE_NAME, PAYMENT_METHOD_FIELDS_TABLE_NAME, TRANSACTION_FIELDS_TABLE_NAME};
 
     private Long customFieldRecordId;
     private String name;
