@@ -46,6 +46,7 @@ import org.killbill.billing.plugin.analytics.json.CounterChart;
 import org.killbill.billing.plugin.analytics.json.DataMarker;
 import org.killbill.billing.plugin.analytics.json.NamedXYTimeSeries;
 import org.killbill.billing.plugin.analytics.json.ReportConfigurationJson;
+import org.killbill.billing.plugin.analytics.json.TableDataSeries;
 import org.killbill.billing.plugin.analytics.json.XY;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother.SmootherType;
@@ -65,6 +66,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -251,6 +253,12 @@ public class ReportsUserApi {
                             final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, reportConfiguration, startDate, endDate, tenantRecordId);
                             timeSeriesData.put(reportName, data);
                             break;
+
+                        case TABLE:
+                            List<DataMarker> tables = getTablesData(tableName, tenantRecordId);
+                            result.add(new Chart(ReportType.TABLE, prettyName, tables));
+                            break;
+
                         default:
                             throw new RuntimeException("Unknown reportType " + reportType);
                     }
@@ -387,6 +395,35 @@ public class ReportsUserApi {
                     counters.add(counter);
                 }
                 return counters;
+            }
+        });
+    }
+
+    private List<DataMarker> getTablesData(final String tableName, final Long tenantRecordId) {
+        return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
+            @Override
+            public List<DataMarker> withHandle(final Handle handle) throws Exception {
+                final List<Map<String, Object>> results = handle.select("select * from " + tableName + " where tenant_record_id = " + tenantRecordId);
+                if (results.size() == 0) {
+                    return Collections.emptyList();
+                }
+
+                // Keep the original ordering of the view
+                final List<String> header = new LinkedList<String>();
+                final List<Map<String, Object>> schemaResults = handle.select("select column_name from information_schema.columns where table_schema = schema() and table_name = '" + tableName + "' order by ordinal_position");
+                for (final Map<String, Object> row : schemaResults) {
+                    header.add(String.valueOf(row.get("column_name")));
+                }
+
+                final List<List<Object>> values = new LinkedList<List<Object>>();
+                for (final Map<String, Object> row : results) {
+                    final List<Object> tableRow = new LinkedList<Object>();
+                    for (final String headerName : header) {
+                        tableRow.add(row.get(headerName));
+                    }
+                    values.add(tableRow);
+                }
+                return ImmutableList.<DataMarker>of(new TableDataSeries(tableName, header, values));
             }
         });
     }

@@ -32,7 +32,8 @@ public class ReportsConfigurationModelDao {
 
     public static enum ReportType {
         TIMELINE,
-        COUNTERS
+        COUNTERS,
+        TABLE
     }
 
     // Used as a search key in the notification queue

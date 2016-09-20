@@ -37,6 +37,7 @@ import org.killbill.billing.plugin.analytics.json.Chart;
 import org.killbill.billing.plugin.analytics.json.DataMarker;
 import org.killbill.billing.plugin.analytics.json.NamedXYTimeSeries;
 import org.killbill.billing.plugin.analytics.json.ReportConfigurationJson;
+import org.killbill.billing.plugin.analytics.json.TableDataSeries;
 import org.killbill.billing.plugin.analytics.json.XY;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother;
@@ -199,6 +200,15 @@ public class ReportsServlet extends BaseServlet {
                     }
                     break;
                 case COUNTERS:
+                    break;
+                case TABLE:
+                    for (final DataMarker marker : cur.getData()) {
+                        final TableDataSeries tableDataSeries = (TableDataSeries) marker;
+                        out.write(csvMapper.writeValueAsBytes(tableDataSeries.getHeader()));
+                        for (final List<Object> row : tableDataSeries.getValues()) {
+                            out.write(csvMapper.writeValueAsBytes(row));
+                        }
+                    }
                     break;
             }
         }
