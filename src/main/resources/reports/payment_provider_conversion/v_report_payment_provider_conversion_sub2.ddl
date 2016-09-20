@@ -1,8 +1,8 @@
 create or replace view v_report_payment_provider_conversion_sub2 as
 SELECT
   apc.plugin_name
-, apc.plugin_property_4 as merchant_account
-, apc.plugin_property_5 as payment_method
+, ifnull(apc.plugin_property_4,'unknown') as merchant_account
+, ifnull(apc.plugin_property_5,'unknown') as payment_method
 , apc.tenant_record_id
 , sum(case when apc.payment_transaction_status='SUCCESS' then 1 else 0 end) as historical_success_count
 , count(1) as historical_transaction_count
@@ -15,14 +15,14 @@ AND cast(FROM_UNIXTIME(UNIX_TIMESTAMP(apc.created_date) - UNIX_TIMESTAMP(apc.cre
 AND apc.created_date >= sysdate() - interval '14' day
 GROUP BY
   apc.plugin_name
-, apc.plugin_property_4
-, apc.plugin_property_5
+, ifnull(apc.plugin_property_4,'unknown')
+, ifnull(apc.plugin_property_5,'unknown')
 , apc.tenant_record_id
 UNION
 SELECT
   app.plugin_name
-, app.plugin_property_4 as merchant_account
-, app.plugin_property_5 as payment_method
+, ifnull(app.plugin_property_4,'unknown') as merchant_account
+, ifnull(app.plugin_property_5,'unknown') as payment_method
 , app.tenant_record_id
 , sum(case when app.payment_transaction_status='SUCCESS' then 1 else 0 end) as historical_success_count
 , count(1) as historical_transaction_count
@@ -35,7 +35,7 @@ AND cast(FROM_UNIXTIME(UNIX_TIMESTAMP(app.created_date) - UNIX_TIMESTAMP(app.cre
 AND app.created_date >= sysdate() - interval '14' day
 GROUP BY
   app.plugin_name
-, app.plugin_property_4
-, app.plugin_property_5
+, ifnull(app.plugin_property_4,'unknown')
+, ifnull(app.plugin_property_5,'unknown')
 , app.tenant_record_id
 ;
