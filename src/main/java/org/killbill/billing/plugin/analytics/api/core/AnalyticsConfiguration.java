@@ -30,7 +30,8 @@ public class AnalyticsConfiguration {
     private final Map<Integer, String> defaultPluginPropertyKeys = ImmutableMap.<Integer, String>of(1, "processorResponse",
                                                                                                     2, "avsResultCode",
                                                                                                     3, "cvvResultCode",
-                                                                                                    4, "payment_processor_account_id");
+                                                                                                    4, "payment_processor_account_id",
+                                                                                                    5, "paymentMethod");
 
     public AnalyticsConfiguration(final Properties properties) {
         this.properties = properties;
