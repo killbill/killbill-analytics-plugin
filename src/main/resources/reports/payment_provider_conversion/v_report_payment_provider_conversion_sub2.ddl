@@ -8,7 +8,7 @@ SELECT
 , count(1) as historical_transaction_count
 , count(distinct apa.account_id) as historical_customer_count
 FROM
-    analytics_payment_auths apc
+    analytics_payment_auths apa
 WHERE 1=1
 AND apa.created_date < FROM_UNIXTIME(UNIX_TIMESTAMP(NOW()) - 15*60 - (UNIX_TIMESTAMP(NOW()) - 15*60)%(15*60))
 AND cast(FROM_UNIXTIME(UNIX_TIMESTAMP(apa.created_date) - UNIX_TIMESTAMP(apa.created_date)%(15*60)) as time) = cast(FROM_UNIXTIME(UNIX_TIMESTAMP(NOW()) - 15*60 - (UNIX_TIMESTAMP(NOW()) - 15*60)%(15*60)) as time)
