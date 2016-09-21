@@ -1,4 +1,9 @@
+4.0.3
+    Add new TABLE report type
+
 4.0.2
+    Add payment method fields to analytics_payment_*
+    Add dynamic payment fields for plugin specific information
     Update reports (cleanup stage)
 
 4.0.1
