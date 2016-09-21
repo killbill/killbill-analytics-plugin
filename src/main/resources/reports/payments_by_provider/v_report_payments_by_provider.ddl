@@ -24,8 +24,7 @@ SELECT
 , case when failed is not null and total is not null then concat(round(((sum(good)/sum(total))*100),2),'%')
        else '0%'
   end as pct_good
-, date_format(sysdate(), '%Y-%m-%d') as day
-, 1 as count
+, sysdate() as refresh_date
 FROM v_report_payments_by_provider_sub2 t1
 INNER JOIN v_report_payments_by_provider_sub3 t2
 LEFT OUTER JOIN v_report_payments_by_provider_sub1 v1 on v1.plugin_name=t1.plugin_name
