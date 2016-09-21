@@ -1,11 +1,23 @@
-These are all views to support the Payments By Provider report which shows the number of payments by 
-transaction state over different timeframes for each payment service provder (plugin).
+# Payments By Provider report
 
-These are subqueries implemented as separate views because MySQL does not permit subqueries within a view:
-v_report_payments_by_provider_sub1.ddl
-v_report_payments_by_provider_sub2.ddl
-v_report_payments_by_provider_sub3.ddl
+Compute the number of payments by  transaction state over different timeframes for each payment service provider (plugin).
 
-These views provide the same output, with labels either in English (_en) or Spanish (_es):
-v_report_payments_by_provider_en.ddl
-v_report_payments_by_provider_es.ddl
+The snapshot view is: `v_report_payments_by_provider`
+
+## History table configuration
+
+```
+curl -v \
+     -X POST \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     -H 'Content-Type: application/json' \
+     -d '{"reportName": "report_payments_by_provider",
+          "reportType": "TABLE",
+          "reportPrettyName": "Payments By Provider",
+          "sourceTableName": "report_payments_by_provider_history",
+          "refreshProcedureName": "refresh_report_payments_by_provider_history",
+          "refreshFrequency": "HOURLY"}' \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
+```
