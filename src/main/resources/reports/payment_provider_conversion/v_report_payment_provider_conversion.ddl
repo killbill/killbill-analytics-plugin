@@ -22,8 +22,7 @@ select
        then concat(round((((sum(rpccs1.current_customer_count)-sum(rpccs2.historical_customer_count))/sum(rpccs2.historical_customer_count))*100),2),'%')
        else '0%'
   end customer_delta
-, date_format(sysdate(), '%Y-%m-%d') as day
-, 1 as count
+, sysdate() as refresh_date
 from v_report_payment_provider_conversion_sub2 rpccs2
 LEFT OUTER JOIN v_report_payment_provider_conversion_sub1 rpccs1 ON
     rpccs1.plugin_name=rpccs2.plugin_name
