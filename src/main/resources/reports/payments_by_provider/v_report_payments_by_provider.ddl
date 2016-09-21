@@ -1,6 +1,8 @@
 create or replace view v_report_payments_by_provider as
 SELECT
   t1.plugin_name
+, t1.merchant_account
+, t1.payment_method
 , t1.tenant_record_id
 , t2.timeframe
 , transaction_type
@@ -27,15 +29,21 @@ SELECT
 FROM v_report_payments_by_provider_sub2 t1
 INNER JOIN v_report_payments_by_provider_sub3 t2
 LEFT OUTER JOIN v_report_payments_by_provider_sub1 v1 on v1.plugin_name=t1.plugin_name
+AND v1.merchant_account=t1.merchant_account
+AND v1.payment_method=t1.payment_method
 AND v1.timeframe=t2.timeframe
 AND v1.tenant_record_id=t1.tenant_record_id
 GROUP BY
   plugin_name
+, merchant_account
+, payment_method
 , timeframe
 , transaction_type
 , tenant_record_id
 ORDER BY
   tenant_record_id
+, merchant_account
+, payment_method
 , plugin_name
 , timeframe
 , transaction_type
