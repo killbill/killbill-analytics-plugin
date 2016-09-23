@@ -556,6 +556,7 @@ create table analytics_payment_auths (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_auths_created_date on analytics_payment_auths(created_date);
+create index analytics_payment_auths_date_trid_plugin_name on analytics_payment_auths(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_auths_invoice_payment_record_id on analytics_payment_auths(invoice_payment_record_id);
 create index analytics_payment_auths_invoice_payment_id on analytics_payment_auths(invoice_payment_id);
 create index analytics_payment_auths_invoice_id on analytics_payment_auths(invoice_id);
@@ -641,6 +642,7 @@ create table analytics_payment_captures (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_captures_created_date on analytics_payment_captures(created_date);
+create index analytics_payment_captures_date_trid_plugin_name on analytics_payment_captures(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_captures_invoice_payment_record_id on analytics_payment_captures(invoice_payment_record_id);
 create index analytics_payment_captures_invoice_payment_id on analytics_payment_captures(invoice_payment_id);
 create index analytics_payment_captures_invoice_id on analytics_payment_captures(invoice_id);
@@ -726,6 +728,7 @@ create table analytics_payment_purchases (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_purchases_created_date on analytics_payment_purchases(created_date);
+create index analytics_payment_purchases_date_trid_plugin_name on analytics_payment_purchases(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_purchases_invoice_payment_record_id on analytics_payment_purchases(invoice_payment_record_id);
 create index analytics_payment_purchases_invoice_payment_id on analytics_payment_purchases(invoice_payment_id);
 create index analytics_payment_purchases_invoice_id on analytics_payment_purchases(invoice_id);
@@ -811,6 +814,7 @@ create table analytics_payment_refunds (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_refunds_created_date on analytics_payment_refunds(created_date);
+create index analytics_payment_refunds_date_trid_plugin_name on analytics_payment_refunds(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_refunds_invoice_payment_record_id on analytics_payment_refunds(invoice_payment_record_id);
 create index analytics_payment_refunds_invoice_payment_id on analytics_payment_refunds(invoice_payment_id);
 create index analytics_payment_refunds_invoice_id on analytics_payment_refunds(invoice_id);
@@ -896,6 +900,7 @@ create table analytics_payment_credits (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_credits_created_date on analytics_payment_credits(created_date);
+create index analytics_payment_credits_date_trid_plugin_name on analytics_payment_credits(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_credits_invoice_payment_record_id on analytics_payment_credits(invoice_payment_record_id);
 create index analytics_payment_credits_invoice_payment_id on analytics_payment_credits(invoice_payment_id);
 create index analytics_payment_credits_invoice_id on analytics_payment_credits(invoice_id);
@@ -981,6 +986,7 @@ create table analytics_payment_chargebacks (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_chargebacks_created_date on analytics_payment_chargebacks(created_date);
+create index analytics_payment_chargebacks_date_trid_plugin_name on analytics_payment_chargebacks(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_chargebacks_invoice_payment_record_id on analytics_payment_chargebacks(invoice_payment_record_id);
 create index analytics_payment_chargebacks_invoice_payment_id on analytics_payment_chargebacks(invoice_payment_id);
 create index analytics_payment_chargebacks_invoice_id on analytics_payment_chargebacks(invoice_id);
@@ -1066,6 +1072,7 @@ create table analytics_payment_voids (
 , primary key(record_id)
 ) /*! CHARACTER SET utf8 COLLATE utf8_bin */;
 create index analytics_payment_voids_created_date on analytics_payment_voids(created_date);
+create index analytics_payment_voids_date_trid_plugin_name on analytics_payment_voids(created_date, tenant_record_id, plugin_name);
 create index analytics_payment_voids_invoice_payment_record_id on analytics_payment_voids(invoice_payment_record_id);
 create index analytics_payment_voids_invoice_payment_id on analytics_payment_voids(invoice_payment_id);
 create index analytics_payment_voids_invoice_id on analytics_payment_voids(invoice_id);
