@@ -6,7 +6,7 @@ SELECT distinct
 , apa.tenant_record_id
 FROM analytics_payment_auths apa
 WHERE 1=1
-AND apa.created_date > sysdate() - interval '7' day
+AND apa.created_date > now() - interval '7' day
 UNION
 SELECT distinct
   app.plugin_name
@@ -15,5 +15,5 @@ SELECT distinct
 , app.tenant_record_id
 FROM analytics_payment_purchases app
 WHERE 1=1
-AND app.created_date > sysdate() - interval '7' day
+AND app.created_date > now() - interval '7' day
 ;
