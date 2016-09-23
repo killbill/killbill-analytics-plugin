@@ -6,9 +6,9 @@ SELECT
 , t1.tenant_record_id
 , t2.timeframe
 , transaction_type
-, case when t2.timeframe=1 then 'Total'
-       when t2.timeframe=2 then 'Last 7 Days'
-       when t2.timeframe=3 then 'Last 24 Hours'
+, case when t2.timeframe=1 then 'Last 30 days'
+       when t2.timeframe=2 then 'Last 7 days'
+       when t2.timeframe=3 then 'Last 24 hours'
        when t2.timeframe=4 then 'Last 30 min'
   end as period
 , sum(ifnull(total,0)) as total
