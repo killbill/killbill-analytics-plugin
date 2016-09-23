@@ -12,7 +12,6 @@ FROM
 WHERE 1=1
 AND apa.created_date >= FROM_UNIXTIME(UNIX_TIMESTAMP(NOW()) - 15*60 - (UNIX_TIMESTAMP(NOW()) - 15*60)%(15*60))
 AND cast(FROM_UNIXTIME(UNIX_TIMESTAMP(apa.created_date) - UNIX_TIMESTAMP(apa.created_date)%(15*60)) as time) = cast(FROM_UNIXTIME(UNIX_TIMESTAMP(NOW()) - 15*60 - (UNIX_TIMESTAMP(NOW()) - 15*60)%(15*60)) as time)
-AND apa.created_date >= sysdate() - interval '14' day
 GROUP BY
   apa.plugin_name
 , ifnull(apa.plugin_property_4,'unknown')
@@ -32,7 +31,6 @@ FROM
 WHERE 1=1
 AND app.created_date >= FROM_UNIXTIME(UNIX_TIMESTAMP(NOW()) - 15*60 - (UNIX_TIMESTAMP(NOW()) - 15*60)%(15*60))
 AND cast(FROM_UNIXTIME(UNIX_TIMESTAMP(app.created_date) - UNIX_TIMESTAMP(app.created_date)%(15*60)) as time) = cast(FROM_UNIXTIME(UNIX_TIMESTAMP(NOW()) - 15*60 - (UNIX_TIMESTAMP(NOW()) - 15*60)%(15*60)) as time)
-AND app.created_date >= sysdate() - interval '14' day
 GROUP BY
   app.plugin_name
 , ifnull(app.plugin_property_4,'unknown')
