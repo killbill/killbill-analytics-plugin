@@ -12,6 +12,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -31,6 +32,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -50,6 +52,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -69,6 +72,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -88,6 +92,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -107,6 +112,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -126,6 +132,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
 WHERE 1=1
+AND a.created_date>date_sub(now(),interval 30 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -146,7 +153,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -166,7 +173,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -186,7 +193,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -206,7 +213,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -226,7 +233,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -246,7 +253,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -266,7 +273,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 7 day)
+AND a.created_date>date_sub(now(),interval 7 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -287,7 +294,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -307,7 +314,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -327,7 +334,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -347,7 +354,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -367,7 +374,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -387,7 +394,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -407,7 +414,7 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 1 day)
+AND a.created_date>date_sub(now(),interval 1 day)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -428,8 +435,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_auths a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -449,8 +456,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_captures a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -470,8 +477,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_chargebacks a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -491,8 +498,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_credits a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -512,8 +519,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_purchases a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -533,8 +540,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_refunds a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
@@ -554,8 +561,8 @@ SELECT
 , sum(case when a.payment_transaction_status = 'SUCCESS' then 1 else 0 end) as good
 FROM analytics_payment_voids a
 WHERE 1=1
-AND a.created_date>date_sub(sysdate(),interval 34 minute)
-AND a.created_date<=date_sub(sysdate(),interval 4 minute)
+AND a.created_date>date_sub(now(),interval 34 minute)
+AND a.created_date<=date_sub(now(),interval 4 minute)
 GROUP BY
   a.plugin_name
 , ifnull(a.plugin_property_4,'unknown')
