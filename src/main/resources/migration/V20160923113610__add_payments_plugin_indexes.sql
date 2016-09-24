@@ -1,0 +1,7 @@
+alter table analytics_payment_auths add index analytics_payment_auths_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);
+alter table analytics_payment_captures add index analytics_payment_captures_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);
+alter table analytics_payment_chargebacks add index analytics_payment_chargebacks_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);
+alter table analytics_payment_credits add index analytics_payment_credits_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);
+alter table analytics_payment_purchases add index analytics_payment_purchases_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);
+alter table analytics_payment_refunds add index analytics_payment_refunds_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);
+alter table analytics_payment_voids add index analytics_payment_voids_date_trid_plugin_name (created_date, tenant_record_id, plugin_name);

@@ -21,3 +21,19 @@ curl -v \
           "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
+
+## Summary pie charts configuration
+
+```
+curl -v \
+     -X POST \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     -H 'Content-Type: application/json' \
+     -d '{"reportName": "report_payments_by_provider_last_24h_summary",
+          "reportType": "COUNTERS",
+          "reportPrettyName": "Payments By Provider Summary (last 24hrs)",
+          "sourceTableName": "v_report_payments_by_provider_last_24h_summary"}' \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
+```
