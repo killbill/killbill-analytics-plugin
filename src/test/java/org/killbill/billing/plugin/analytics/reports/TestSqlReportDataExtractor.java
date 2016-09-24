@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2016 Groupon, Inc
+ * Copyright 2014-2016 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -19,6 +20,7 @@ package org.killbill.billing.plugin.analytics.reports;
 
 import javax.annotation.Nullable;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
@@ -188,7 +190,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testStartDate() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", new LocalDate(2012, 11, 10), null);
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(), null);
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -199,7 +201,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testEndDate() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", null, new LocalDate(2013, 11, 10));
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", null, new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay());
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -210,7 +212,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testStartAndEndDate() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", new LocalDate(2012, 11, 10), new LocalDate(2013, 11, 10));
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day", new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(), new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay());
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select *\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -223,8 +225,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testFullThing() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency!=EUR^filter:state=PROCESSED^filter:state=PROCESSING^dimension:currency^dimension:state^metric:amount^metric:fee",
-                                                                                          new LocalDate(2012, 11, 10),
-                                                                                          new LocalDate(2013, 11, 10));
+                                                                                          new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(),
+                                                                                          new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay());
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
@@ -247,8 +249,8 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testFullThingWithComplicatedWhereClause() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does')^dimension:currency^dimension:state^metric:avg(amount)^metric:avg(fee)^metric:100*sum(fee)/amount",
-                                                                                          new LocalDate(2012, 11, 10),
-                                                                                          new LocalDate(2013, 11, 10));
+                                                                                          new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(),
+                                                                                          new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay());
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
@@ -286,7 +288,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         return buildSqlReportDataExtractor(rawReportName, null, null);
     }
 
-    private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName, @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
+    private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName, @Nullable final DateTime startDate, @Nullable final DateTime endDate) {
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
         return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate, EmbeddedDB.DBEngine.MYSQL, 1234L);
     }

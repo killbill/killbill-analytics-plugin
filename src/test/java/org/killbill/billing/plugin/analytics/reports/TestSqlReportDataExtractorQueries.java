@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2016 Groupon, Inc
+ * Copyright 2014-2016 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -45,7 +46,12 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
                              "metric:avg(fee);" +
                              "metric:100*sum(fee)/amount";
         final ReportSpecification reportSpecification = new ReportSpecification(query);
-        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName, reportSpecification, new LocalDate(2012, 10, 10), new LocalDate(2014, 11, 11), embeddedDB.getDBEngine(), 1234L);
+        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName,
+                                                                                         reportSpecification,
+                                                                                         new LocalDate(2012, 10, 10).toDateTimeAtStartOfDay(),
+                                                                                         new LocalDate(2014, 11, 11).toDateTimeAtStartOfDay(),
+                                                                                         embeddedDB.getDBEngine(),
+                                                                                         1234L);
 
         final List<Map<String, Object>> results = dbi.withHandle(new HandleCallback<List<Map<String, Object>>>() {
             @Override

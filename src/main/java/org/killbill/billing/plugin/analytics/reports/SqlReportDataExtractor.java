@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2016 Groupon, Inc
+ * Copyright 2014-2016 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,7 +23,8 @@ import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -45,15 +46,15 @@ import com.bpodgursky.jbool_expressions.Expression;
 import com.bpodgursky.jbool_expressions.Variable;
 import com.google.common.collect.ImmutableList;
 
-public class SqlReportDataExtractor {
+import static org.killbill.billing.plugin.analytics.reports.ReportsUserApi.DAY_COLUMN_NAME;
+import static org.killbill.billing.plugin.analytics.reports.ReportsUserApi.TS_COLUMN_NAME;
 
-    // Part of the public API
-    private static final String DAY_COLUMN_NAME = "day";
+public class SqlReportDataExtractor {
 
     private final String tableName;
     private final ReportSpecification reportSpecification;
-    private final LocalDate startDate;
-    private final LocalDate endDate;
+    private final DateTime startDate;
+    private final DateTime endDate;
     private final DSLContext context;
     private final Long tenantRecordId;
 
@@ -65,8 +66,8 @@ public class SqlReportDataExtractor {
 
     public SqlReportDataExtractor(final String tableName,
                                   final ReportSpecification reportSpecification,
-                                  @Nullable final LocalDate startDate,
-                                  @Nullable final LocalDate endDate,
+                                  @Nullable final DateTime startDate,
+                                  @Nullable final DateTime endDate,
                                   final EmbeddedDB.DBEngine dbEngine,
                                   final Long tenantRecordId) {
         this(tableName, reportSpecification, startDate, endDate, SQLDialectFromDBEngine(dbEngine), tenantRecordId);
@@ -74,8 +75,8 @@ public class SqlReportDataExtractor {
 
     public SqlReportDataExtractor(final String tableName,
                                   final ReportSpecification reportSpecification,
-                                  @Nullable final LocalDate startDate,
-                                  @Nullable final LocalDate endDate,
+                                  @Nullable final DateTime startDate,
+                                  @Nullable final DateTime endDate,
                                   final SQLDialect sqlDialect,
                                   final Long tenantRecordId) {
         this.tableName = tableName;
@@ -133,7 +134,7 @@ public class SqlReportDataExtractor {
         dimensions = new LinkedList<Field<Object>>();
 
         // Add the special "day" column if needed
-        if (!reportSpecification.getDimensions().contains(DAY_COLUMN_NAME)) {
+        if (!reportSpecification.getDimensions().contains(DAY_COLUMN_NAME) && !reportSpecification.getDimensions().contains(TS_COLUMN_NAME)) {
             dimensions.add(DSL.fieldByName(DAY_COLUMN_NAME));
         }
 
@@ -162,11 +163,21 @@ public class SqlReportDataExtractor {
 
         // Deal with dates (as yet another, specific, filter)
         if (startDate != null) {
-            final Variable<String> dateCheck = Variable.of(String.format("%s>=%s", DAY_COLUMN_NAME, startDate));
+            final Variable<String> dateCheck;
+            if (!reportSpecification.getDimensions().contains(TS_COLUMN_NAME) && startDate.compareTo(startDate.toLocalDate().toDateTimeAtStartOfDay(DateTimeZone.UTC)) == 0) {
+                dateCheck = Variable.of(String.format("%s>=%s", DAY_COLUMN_NAME, startDate.toLocalDate()));
+            } else {
+                dateCheck = Variable.of(String.format("%s>=%s", TS_COLUMN_NAME, startDate));
+            }
             filters = filters == null ? dateCheck : And.of(filters, dateCheck);
         }
         if (endDate != null) {
-            final Variable<String> dateCheck = Variable.of(String.format("%s<=%s", DAY_COLUMN_NAME, endDate));
+            final Variable<String> dateCheck;
+            if (!reportSpecification.getDimensions().contains(TS_COLUMN_NAME) && endDate.compareTo(endDate.toLocalDate().toDateTimeAtStartOfDay(DateTimeZone.UTC)) == 0) {
+                dateCheck = Variable.of(String.format("%s<=%s", DAY_COLUMN_NAME, endDate.toLocalDate()));
+            } else {
+                dateCheck = Variable.of(String.format("%s<=%s", TS_COLUMN_NAME, endDate));
+            }
             filters = filters == null ? dateCheck : And.of(filters, dateCheck);
         }
     }

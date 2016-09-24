@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2016 Groupon, Inc
+ * Copyright 2014-2016 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -33,7 +33,10 @@ import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
@@ -78,8 +81,10 @@ public class ReportsUserApi {
 
     // Part of the public API
     public static final String DAY_COLUMN_NAME = "day";
+    public static final String TS_COLUMN_NAME = "ts";
     public static final String LABEL = "label";
     public static final String COUNT_COLUMN_NAME = "count";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
 
     private final OSGIKillbillAPI killbillAPI;
     private final IDBI dbi;
@@ -189,8 +194,8 @@ public class ReportsUserApi {
 
     // Useful for testing
     public List<String> getSQLForReport(final String[] rawReportNames,
-                                        @Nullable final LocalDate startDate,
-                                        @Nullable final LocalDate endDate,
+                                        @Nullable final DateTime startDate,
+                                        @Nullable final DateTime endDate,
                                         final TenantContext context) {
         final Long tenantRecordId = getTenantRecordId(context);
 
@@ -214,8 +219,8 @@ public class ReportsUserApi {
     }
 
     public List<Chart> getDataForReport(final String[] rawReportNames,
-                                        @Nullable final LocalDate startDate,
-                                        @Nullable final LocalDate endDate,
+                                        @Nullable final DateTime startDate,
+                                        @Nullable final DateTime endDate,
                                         @Nullable final SmootherType smootherType,
                                         final TenantContext context) {
         final Long tenantRecordId = getTenantRecordId(context);
@@ -301,13 +306,13 @@ public class ReportsUserApi {
     }
 
     // TODO PIERRE Naive implementation
-    private void normalizeAndSortXValues(final Map<String, Map<String, List<XY>>> dataForReports, @Nullable final LocalDate startDate, @Nullable final LocalDate endDate) {
-        LocalDate minDate = null;
+    private void normalizeAndSortXValues(final Map<String, Map<String, List<XY>>> dataForReports, @Nullable final DateTime startDate, @Nullable final DateTime endDate) {
+        DateTime minDate = null;
         if (startDate != null) {
             minDate = startDate;
         }
 
-        LocalDate maxDate = null;
+        DateTime maxDate = null;
         if (endDate != null) {
             maxDate = endDate;
         }
@@ -333,7 +338,7 @@ public class ReportsUserApi {
         }
 
         // Add 0 for missing days
-        LocalDate curDate = minDate;
+        DateTime curDate = minDate;
         while (!curDate.isAfter(maxDate)) {
             for (final Map<String, List<XY>> dataForReport : dataForReports.values()) {
                 for (final List<XY> dataForPivot : dataForReport.values()) {
@@ -358,7 +363,7 @@ public class ReportsUserApi {
         }
     }
 
-    private void addMissingValueForDateIfNeeded(final LocalDate curDate, final List<XY> dataForPivot) {
+    private void addMissingValueForDateIfNeeded(final DateTime curDate, final List<XY> dataForPivot) {
         final XY valueForCurrentDate = Iterables.tryFind(dataForPivot, new Predicate<XY>() {
             @Override
             public boolean apply(final XY xy) {
@@ -431,8 +436,8 @@ public class ReportsUserApi {
     private Map<String, List<XY>> getTimeSeriesData(final String tableName,
                                                     final ReportSpecification reportSpecification,
                                                     final ReportsConfigurationModelDao reportsConfiguration,
-                                                    @Nullable final LocalDate startDate,
-                                                    @Nullable final LocalDate endDate,
+                                                    @Nullable final DateTime startDate,
+                                                    @Nullable final DateTime endDate,
                                                     final Long tenantRecordId) {
         final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName,
                                                                                          reportSpecification,
@@ -450,9 +455,15 @@ public class ReportsUserApi {
 
                 final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
                 for (final Map<String, Object> row : results) {
-                    final Object dateObject = row.get(DAY_COLUMN_NAME);
+                    // Day
+                    Object dateObject = row.get(DAY_COLUMN_NAME);
                     if (dateObject == null) {
-                        continue;
+                        // Timestamp
+                        dateObject = row.get(TS_COLUMN_NAME);
+                        if (dateObject == null) {
+                            continue;
+                        }
+                        dateObject = DATE_TIME_FORMATTER.parseDateTime(dateObject.toString()).toString();
                     }
                     final String date = dateObject.toString();
 

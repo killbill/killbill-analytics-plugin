@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2016 Groupon, Inc
+ * Copyright 2014-2016 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -23,8 +24,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
-import org.joda.time.LocalDate;
 import org.killbill.billing.plugin.analytics.json.XY;
 
 import com.google.common.base.Function;
@@ -90,18 +91,18 @@ public abstract class Smoother {
         switch (dateGranularity) {
             case WEEKLY:
                 return smooth(inputData,
-                              new Function<XY, LocalDate>() {
+                              new Function<XY, DateTime>() {
                                   @Override
-                                  public LocalDate apply(final XY input) {
+                                  public DateTime apply(final XY input) {
                                       return input.getxDate().withDayOfWeek(DateTimeConstants.MONDAY);
                                   }
                               }
                              );
             case MONTHLY:
                 return smooth(inputData,
-                              new Function<XY, LocalDate>() {
+                              new Function<XY, DateTime>() {
                                   @Override
-                                  public LocalDate apply(final XY input) {
+                                  public DateTime apply(final XY input) {
                                       return input.getxDate().withDayOfMonth(1);
                                   }
                               }
@@ -111,14 +112,14 @@ public abstract class Smoother {
         }
     }
 
-    private List<XY> smooth(final List<XY> inputData, final Function<XY, LocalDate> truncator) {
+    private List<XY> smooth(final List<XY> inputData, final Function<XY, DateTime> truncator) {
         final List<XY> smoothedData = new LinkedList<XY>();
 
-        LocalDate currentTruncatedDate = truncator.apply(inputData.get(0));
+        DateTime currentTruncatedDate = truncator.apply(inputData.get(0));
         Float accumulator = (float) 0;
         int accumulatorSize = 0;
         for (final XY xy : inputData) {
-            final LocalDate zeTruncatedDate = truncator.apply(xy);
+            final DateTime zeTruncatedDate = truncator.apply(xy);
             //noinspection ConstantConditions
             if (zeTruncatedDate.compareTo(currentTruncatedDate) != 0) {
                 smoothedData.add(new XY(currentTruncatedDate, computeSmoothedValue(accumulator, accumulatorSize)));

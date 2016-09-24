@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2016 Groupon, Inc
+ * Copyright 2014-2016 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -28,9 +28,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.json.CSVNamedXYTimeSeries;
 import org.killbill.billing.plugin.analytics.json.Chart;
@@ -58,6 +60,7 @@ public class ReportsServlet extends BaseServlet {
 
     @VisibleForTesting
     static final DateTimeFormatter DATE_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DATE_TIME_FORMAT = ISODateTimeFormat.basicDateTime();
 
     private static final String REPORTS_QUERY_NAME = "name";
     private static final String REPORTS_QUERY_START_DATE = "startDate";
@@ -154,8 +157,26 @@ public class ReportsServlet extends BaseServlet {
             return;
         }
 
-        final LocalDate startDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_START_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_START_DATE)) : null;
-        final LocalDate endDate = Strings.emptyToNull(req.getParameter(REPORTS_QUERY_END_DATE)) != null ? DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_END_DATE)) : null;
+        DateTime startDate;
+        if (Strings.emptyToNull(req.getParameter(REPORTS_QUERY_START_DATE)) != null) {
+            try {
+                startDate = DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_START_DATE)).toDateTimeAtStartOfDay(DateTimeZone.UTC);
+            } catch (final IllegalArgumentException e) {
+                startDate = DATE_TIME_FORMAT.parseDateTime(req.getParameter(REPORTS_QUERY_START_DATE));
+            }
+        } else {
+            startDate = null;
+        }
+        DateTime endDate;
+        if (Strings.emptyToNull(req.getParameter(REPORTS_QUERY_END_DATE)) != null) {
+            try {
+                endDate = DATE_FORMAT.parseLocalDate(req.getParameter(REPORTS_QUERY_END_DATE)).toDateTimeAtStartOfDay(DateTimeZone.UTC);
+            } catch (final IllegalArgumentException e) {
+                endDate = DATE_TIME_FORMAT.parseDateTime(req.getParameter(REPORTS_QUERY_END_DATE));
+            }
+        } else {
+            endDate = null;
+        }
 
         final boolean sqlOnly = req.getParameter(REPORT_QUERY_SQL_ONLY) != null;
 
