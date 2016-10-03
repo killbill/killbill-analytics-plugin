@@ -116,10 +116,11 @@ public class CurrencyConverter {
     }
 
     public BigDecimal getConvertedValue(@Nullable final InvoicePayment invoicePayment, final PaymentTransaction transaction, final Invoice invoice) {
-        if (invoicePayment == null || invoicePayment.getCurrency() == null) {
-            return transaction.getAmount();
+        if (invoicePayment != null && invoicePayment.getAmount() != null) {
+            // Use the invoice date as the effective date for consistency - invoice payment payment date could also be a candidate
+            return getConvertedValue(invoicePayment.getAmount(), invoicePayment.getCurrency().toString(), invoice.getInvoiceDate());
+        } else {
+            return getConvertedValue(transaction.getAmount(), transaction.getCurrency().toString(), transaction.getEffectiveDate().toLocalDate());
         }
-        // Use the invoice date as the effective date for consistency - invoice payment payment date could also be a candidate
-        return getConvertedValue(invoicePayment.getAmount(), invoicePayment.getCurrency().toString(), invoice.getInvoiceDate());
     }
 }
