@@ -7,7 +7,21 @@ BEGIN
      *
      *  Convenience method to set the currency conversion rates for the month
      *
-     *  Kevin Postlewaite, March 2014
+     *  Initialization:
+     *    insert into analytics_currency_conversion values (1, 'AUD', date_sub(str_to_date(concat(cast(year(now()) as char(4)),'-',cast(month(now()) as char(2)),'-01'),'%Y-%m-%d'), interval 1 month), '2020-01-01', 0.77, 'USD');
+     *    insert into analytics_currency_conversion values (2, 'BRL', date_sub(str_to_date(concat(cast(year(now()) as char(4)),'-',cast(month(now()) as char(2)),'-01'),'%Y-%m-%d'), interval 1 month), '2020-01-01', 0.31, 'USD');
+     *    insert into analytics_currency_conversion values (3, 'EUR', date_sub(str_to_date(concat(cast(year(now()) as char(4)),'-',cast(month(now()) as char(2)),'-01'),'%Y-%m-%d'), interval 1 month), '2020-01-01', 1.12, 'USD');
+     *    insert into analytics_currency_conversion values (4, 'GBP', date_sub(str_to_date(concat(cast(year(now()) as char(4)),'-',cast(month(now()) as char(2)),'-01'),'%Y-%m-%d'), interval 1 month), '2020-01-01', 1.29, 'USD');
+     *    insert into analytics_currency_conversion values (5, 'MXN', date_sub(str_to_date(concat(cast(year(now()) as char(4)),'-',cast(month(now()) as char(2)),'-01'),'%Y-%m-%d'), interval 1 month), '2020-01-01', 0.052, 'USD');
+     *
+     *  Usage:
+     *    call updateAnalyticsCurrConvMonth(month(now()),
+     *                                      year(now()),
+     *                                      0.77, # AUD
+     *                                      0.31, # BRL
+     *                                      1.12, # EUR
+     *                                      1.29, # GBP
+     *                                      0.052); # MXN
      *
      ***********************/
 
