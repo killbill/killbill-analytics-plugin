@@ -1,3 +1,7 @@
+4.0.4
+    Add support for time-based timeseries
+    Fix currency conversion for payment tables
+
 4.0.3
     Add new TABLE report type
 
