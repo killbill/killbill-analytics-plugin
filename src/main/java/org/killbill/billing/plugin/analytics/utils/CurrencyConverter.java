@@ -119,8 +119,10 @@ public class CurrencyConverter {
         if (invoicePayment != null && invoicePayment.getAmount() != null) {
             // Use the invoice date as the effective date for consistency - invoice payment payment date could also be a candidate
             return getConvertedValue(invoicePayment.getAmount(), invoicePayment.getCurrency().toString(), invoice.getInvoiceDate());
-        } else {
+        } else if (transaction.getCurrency() != null) {
             return getConvertedValue(transaction.getAmount(), transaction.getCurrency().toString(), transaction.getEffectiveDate().toLocalDate());
+        } else {
+            return null;
         }
     }
 }
