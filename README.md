@@ -11,7 +11,6 @@ Kill Bill compatibility
 | Plugin version | Kill Bill version |
 | -------------: | ----------------: |
 | 1.x.y          | 0.14.z            |
-| 2.x.y          | 0.15.z            |
 | 3.x.y          | 0.16.z            |
 | 4.x.y          | 0.18.z            |
 
