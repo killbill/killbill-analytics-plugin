@@ -1,4 +1,4 @@
-/*! SET storage_engine=INNODB */;
+/*! SET default_storage_engine=INNODB */;
 
 -- Subscription events
 drop table if exists analytics_subscription_transitions;
