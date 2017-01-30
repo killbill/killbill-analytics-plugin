@@ -74,6 +74,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
     private String productType;
     private String productCategory;
     private String slug;
+    private String usageName;
     private String phase;
     private String billingPeriod;
     private LocalDate startDate;
@@ -214,6 +215,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final String productType,
                                            final String productCategory,
                                            final String slug,
+                                           final String usageName,
                                            final String phase,
                                            final String billingPeriod,
                                            final LocalDate startDate,
@@ -272,6 +274,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         this.productType = productType;
         this.productCategory = productCategory;
         this.slug = slug;
+        this.usageName = usageName;
         this.phase = phase;
         this.billingPeriod = billingPeriod;
         this.startDate = startDate;
@@ -326,6 +329,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              (plan != null && plan.getProduct() != null) ? plan.getProduct().getCatalogName() : null,
              (plan != null && plan.getProduct().getCategory() != null) ? plan.getProduct().getCategory().toString() : null,
              planPhase != null ? planPhase.getName() : null,
+             invoiceItem.getUsageName(),
              (planPhase != null && planPhase.getPhaseType() != null) ? planPhase.getPhaseType().toString() : null,
              (planPhase != null && planPhase.getRecurring() != null && planPhase.getRecurring().getBillingPeriod() != null) ? planPhase.getRecurring().getBillingPeriod().toString() : null,
              invoiceItem.getStartDate(),
@@ -464,6 +468,10 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         return slug;
     }
 
+    public String getUsageName() {
+        return usageName;
+    }
+
     public String getPhase() {
         return phase;
     }
@@ -532,6 +540,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         sb.append(", productType='").append(productType).append('\'');
         sb.append(", productCategory='").append(productCategory).append('\'');
         sb.append(", slug='").append(slug).append('\'');
+        sb.append(", usageName='").append(usageName).append('\'');
         sb.append(", phase='").append(phase).append('\'');
         sb.append(", billingPeriod='").append(billingPeriod).append('\'');
         sb.append(", startDate=").append(startDate);
@@ -673,6 +682,9 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         if (startDate != null ? startDate.compareTo(that.startDate) != 0 : that.startDate != null) {
             return false;
         }
+        if(usageName != null ? !usageName.equals(that.usageName) : that.usageName != null) {
+            return false;
+        }
 
         return true;
     }
@@ -709,6 +721,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         result = 31 * result + (productType != null ? productType.hashCode() : 0);
         result = 31 * result + (productCategory != null ? productCategory.hashCode() : 0);
         result = 31 * result + (slug != null ? slug.hashCode() : 0);
+        result = 31 * result + (usageName != null ? usageName.hashCode() : 0);
         result = 31 * result + (phase != null ? phase.hashCode() : 0);
         result = 31 * result + (billingPeriod != null ? billingPeriod.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);

@@ -53,6 +53,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
     private final String productType;
     private final String productCategory;
     private final String slug;
+    private final String usageName;
     private final String phase;
     private final String billingPeriod;
     private final LocalDate startDate;
@@ -99,6 +100,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         this.productType = businessInvoiceItemBaseModelDao.getProductType();
         this.productCategory = businessInvoiceItemBaseModelDao.getProductCategory();
         this.slug = businessInvoiceItemBaseModelDao.getSlug();
+        this.usageName = businessInvoiceItemBaseModelDao.getUsageName();
         this.phase = businessInvoiceItemBaseModelDao.getPhase();
         this.billingPeriod = businessInvoiceItemBaseModelDao.getBillingPeriod();
         this.startDate = businessInvoiceItemBaseModelDao.getStartDate();
@@ -218,6 +220,10 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         return slug;
     }
 
+    public String getUsageName() {
+        return usageName;
+    }
+
     public String getPhase() {
         return phase;
     }
@@ -284,6 +290,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         sb.append(", productType='").append(productType).append('\'');
         sb.append(", productCategory='").append(productCategory).append('\'');
         sb.append(", slug='").append(slug).append('\'');
+        sb.append(", usageName='").append(usageName).append('\'');
         sb.append(", phase='").append(phase).append('\'');
         sb.append(", billingPeriod='").append(billingPeriod).append('\'');
         sb.append(", startDate=").append(startDate);
@@ -419,6 +426,9 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         if (startDate != null ? startDate.compareTo(that.startDate) != 0 : that.startDate != null) {
             return false;
         }
+        if (usageName != null ? !usageName.equals(that.usageName) : that.usageName != null) {
+            return false;
+        }
 
         return true;
     }
@@ -453,6 +463,7 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         result = 31 * result + (productType != null ? productType.hashCode() : 0);
         result = 31 * result + (productCategory != null ? productCategory.hashCode() : 0);
         result = 31 * result + (slug != null ? slug.hashCode() : 0);
+        result = 31 * result + (usageName != null ? usageName.hashCode() : 0);
         result = 31 * result + (phase != null ? phase.hashCode() : 0);
         result = 31 * result + (billingPeriod != null ? billingPeriod.hashCode() : 0);
         result = 31 * result + (startDate != null ? startDate.hashCode() : 0);
