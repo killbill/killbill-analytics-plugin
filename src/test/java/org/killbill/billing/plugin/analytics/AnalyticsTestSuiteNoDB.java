@@ -209,6 +209,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoiceItem.getSubscriptionId()).thenReturn(subscriptionId);
         Mockito.when(invoiceItem.getPlanName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(invoiceItem.getPhaseName()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(invoiceItem.getUsageName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(invoiceItem.getRate()).thenReturn(new BigDecimal("1203"));
         Mockito.when(invoiceItem.getLinkedItemId()).thenReturn(linkedItemId);
         Mockito.when(invoiceItem.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);

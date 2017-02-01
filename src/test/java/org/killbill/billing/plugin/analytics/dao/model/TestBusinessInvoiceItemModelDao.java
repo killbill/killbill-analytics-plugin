@@ -101,5 +101,6 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceItemModelDao.getCurrency(), invoiceItem.getCurrency().toString());
         Assert.assertEquals(invoiceItemModelDao.getLinkedItemId(), invoiceItem.getLinkedItemId());
         Assert.assertEquals(invoiceItemModelDao.getEndDate(), invoiceItem.getEndDate());
+        Assert.assertEquals(invoiceItemModelDao.getUsageName(), invoiceItem.getUsageName());
     }
 }

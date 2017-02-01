@@ -326,6 +326,7 @@ create table analytics_invoice_items (
 , product_type varchar(50) default null
 , product_category varchar(50) default null
 , slug varchar(50) default null
+, usage_name varchar(255) default null
 , phase varchar(255) default null
 , billing_period varchar(50) default null
 , start_date date default null

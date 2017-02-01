@@ -475,6 +475,7 @@ insert into analytics_invoice_items (
 , product_type
 , product_category
 , slug
+, usage_name
 , phase
 , billing_period
 , start_date
@@ -524,6 +525,7 @@ insert into analytics_invoice_items (
 , :productType
 , :productCategory
 , :slug
+, :usageName
 , :phase
 , :billingPeriod
 , :startDate
