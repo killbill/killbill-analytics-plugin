@@ -164,6 +164,7 @@ create index analytics_accounts_account_external_key on analytics_accounts(accou
 create index analytics_accounts_account_id on analytics_accounts(account_id);
 create index analytics_accounts_account_record_id on analytics_accounts(account_record_id);
 create index analytics_accounts_tenant_account_record_id on analytics_accounts(tenant_record_id, account_record_id);
+create index analytics_accounts_created_date_tenant_record_id_report_group on analytics_accounts(created_date, tenant_record_id, report_group);
 
 drop table if exists analytics_account_transitions;
 create table analytics_account_transitions (
@@ -564,6 +565,8 @@ create index analytics_payment_auths_invoice_id on analytics_payment_auths(invoi
 create index analytics_payment_auths_account_id on analytics_payment_auths(account_id);
 create index analytics_payment_auths_account_record_id on analytics_payment_auths(account_record_id);
 create index analytics_payment_auths_tenant_account_record_id on analytics_payment_auths(tenant_record_id, account_record_id);
+create index analytics_payment_auths_cdate_trid_crcy_status_rgroup_camount on analytics_payment_auths(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_auths_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_auths(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 drop table if exists analytics_payment_captures;
 create table analytics_payment_captures (
@@ -650,6 +653,8 @@ create index analytics_payment_captures_invoice_id on analytics_payment_captures
 create index analytics_payment_captures_account_id on analytics_payment_captures(account_id);
 create index analytics_payment_captures_account_record_id on analytics_payment_captures(account_record_id);
 create index analytics_payment_captures_tenant_account_record_id on analytics_payment_captures(tenant_record_id, account_record_id);
+create index analytics_payment_captures_cdate_trid_crcy_status_rgroup_camount on analytics_payment_captures(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_captures_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_captures(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 drop table if exists analytics_payment_purchases;
 create table analytics_payment_purchases (
@@ -736,6 +741,8 @@ create index analytics_payment_purchases_invoice_id on analytics_payment_purchas
 create index analytics_payment_purchases_account_id on analytics_payment_purchases(account_id);
 create index analytics_payment_purchases_account_record_id on analytics_payment_purchases(account_record_id);
 create index analytics_payment_purchases_tenant_account_record_id on analytics_payment_purchases(tenant_record_id, account_record_id);
+create index analytics_payment_prchses_cdate_trid_crcy_status_rgroup_camount on analytics_payment_purchases(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_prchses_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_purchases(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 drop table if exists analytics_payment_refunds;
 create table analytics_payment_refunds (
@@ -822,6 +829,8 @@ create index analytics_payment_refunds_invoice_id on analytics_payment_refunds(i
 create index analytics_payment_refunds_account_id on analytics_payment_refunds(account_id);
 create index analytics_payment_refunds_account_record_id on analytics_payment_refunds(account_record_id);
 create index analytics_payment_refunds_tenant_account_record_id on analytics_payment_refunds(tenant_record_id, account_record_id);
+create index analytics_payment_refunds_cdate_trid_crcy_status_rgroup_camount on analytics_payment_refunds(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_refunds_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_refunds(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 drop table if exists analytics_payment_credits;
 create table analytics_payment_credits (
@@ -908,6 +917,8 @@ create index analytics_payment_credits_invoice_id on analytics_payment_credits(i
 create index analytics_payment_credits_account_id on analytics_payment_credits(account_id);
 create index analytics_payment_credits_account_record_id on analytics_payment_credits(account_record_id);
 create index analytics_payment_credits_tenant_account_record_id on analytics_payment_credits(tenant_record_id, account_record_id);
+create index analytics_payment_credits_cdate_trid_crcy_status_rgroup_camount on analytics_payment_credits(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_credits_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_credits(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 drop table if exists analytics_payment_chargebacks;
 create table analytics_payment_chargebacks (
@@ -994,6 +1005,8 @@ create index analytics_payment_chargebacks_invoice_id on analytics_payment_charg
 create index analytics_payment_chargebacks_account_id on analytics_payment_chargebacks(account_id);
 create index analytics_payment_chargebacks_account_record_id on analytics_payment_chargebacks(account_record_id);
 create index analytics_payment_chargebacks_tenant_account_record_id on analytics_payment_chargebacks(tenant_record_id, account_record_id);
+create index analytics_payment_cbacks_cdate_trid_crcy_status_rgroup_camount on analytics_payment_chargebacks(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_cbacks_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_chargebacks(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 drop table if exists analytics_payment_voids;
 create table analytics_payment_voids (
@@ -1080,6 +1093,8 @@ create index analytics_payment_voids_invoice_id on analytics_payment_voids(invoi
 create index analytics_payment_voids_account_id on analytics_payment_voids(account_id);
 create index analytics_payment_voids_account_record_id on analytics_payment_voids(account_record_id);
 create index analytics_payment_voids_tenant_account_record_id on analytics_payment_voids(tenant_record_id, account_record_id);
+create index analytics_payment_voids_cdate_trid_crcy_status_rgroup_camount on analytics_payment_voids(created_date, tenant_record_id, currency, payment_transaction_status, report_group, converted_amount);
+create index ap_voids_cdate_trid_crcy_status_rgroup_camount_pname_perror on analytics_payment_voids(created_date, tenant_record_id, currency, payment_transaction_status, report_group, plugin_name, plugin_gateway_error(80));
 
 -- Tags
 
