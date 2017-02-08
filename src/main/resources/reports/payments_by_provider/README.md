@@ -1,6 +1,6 @@
 # Payments By Provider report
 
-Compute the number of payments by  transaction state over different timeframes for each payment service provider (plugin).
+Compute the number of payments by transaction state over different timeframes for each payment service provider (plugin).
 
 The snapshot view is: `v_report_payments_by_provider`
 
