@@ -4,6 +4,7 @@ drop procedure if exists refresh_report_new_accounts_daily;
 DELIMITER //
 CREATE PROCEDURE refresh_report_new_accounts_daily()
 BEGIN
+truncate report_new_accounts_daily;
 insert into report_new_accounts_daily select * from v_report_new_accounts_daily;
 END;
 //
