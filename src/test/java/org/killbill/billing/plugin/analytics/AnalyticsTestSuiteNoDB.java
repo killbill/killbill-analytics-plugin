@@ -86,6 +86,7 @@ import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
 import org.killbill.notificationq.DefaultNotificationQueueService;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -128,6 +129,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final UUID blackListedAccountId = UUID.randomUUID();
 
     protected Account account;
+    protected Account parentAccount;
     protected SubscriptionBundle bundle;
     protected Plan plan;
     protected PlanPhase phase;
@@ -262,6 +264,14 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(account.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 47, DateTimeZone.UTC));
         Mockito.when(account.getUpdatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 48, DateTimeZone.UTC));
         final UUID accountId = account.getId();
+
+        parentAccount = Mockito.mock(Account.class);
+        Mockito.when(parentAccount.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(parentAccount.getName()).thenReturn(UUID.randomUUID().toString());
+        Mockito.when(parentAccount.getExternalKey()).thenReturn(UUID.randomUUID().toString());
+        final UUID parentAccountId = parentAccount.getId();
+
+        Mockito.when(account.getParentAccountId()).thenReturn(parentAccountId);
 
         bundle = Mockito.mock(SubscriptionBundle.class);
         Mockito.when(bundle.getId()).thenReturn(UUID.randomUUID());

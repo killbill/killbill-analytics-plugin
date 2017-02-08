@@ -20,6 +20,7 @@ package org.killbill.billing.plugin.analytics.dao.model;
 import java.math.BigDecimal;
 
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
+import org.killbill.billing.plugin.analytics.api.BusinessAccount;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -28,6 +29,7 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testConstructorWithNulls() throws Exception {
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    null,
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     null,
@@ -50,11 +52,15 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(accountModelDao.getLastInvoiceId());
         Assert.assertNull(accountModelDao.getLastPaymentDate());
         Assert.assertNull(accountModelDao.getLastPaymentStatus());
+        Assert.assertNull(accountModelDao.getParentAccountId());
+        Assert.assertNull(accountModelDao.getParentAccountName());
+        Assert.assertNull(accountModelDao.getParentAccountExternalKey());
     }
 
     @Test(groups = "fast")
     public void testConstructorWithoutNulls() throws Exception {
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    parentAccount,
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
@@ -66,6 +72,7 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
                                                                                     tenantRecordId,
                                                                                     reportGroup);
         verifyAccountFields(accountModelDao);
+        verifyParentAccountFields(accountModelDao);
         Assert.assertEquals(accountModelDao.getBalance(), BigDecimal.ONE);
         Assert.assertEquals(accountModelDao.getOldestUnpaidInvoiceDate().compareTo(invoice.getInvoiceDate()), 0);
         Assert.assertEquals(accountModelDao.getOldestUnpaidInvoiceBalance().compareTo(invoice.getBalance()), 0);
@@ -101,5 +108,12 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(accountModelDao.getMigrated(), account.isMigrated());
         Assert.assertEquals(accountModelDao.getNotifiedForInvoices(), account.isNotifiedForInvoices());
         Assert.assertEquals(accountModelDao.getNbActiveBundles(), (Integer) 3);
+    }
+
+    private void verifyParentAccountFields(final BusinessAccountModelDao accountModelDao) {
+        Assert.assertEquals(accountModelDao.getParentAccountId(), parentAccount.getId());
+        Assert.assertEquals(accountModelDao.getParentAccountName(), parentAccount.getName());
+        Assert.assertEquals(accountModelDao.getParentAccountExternalKey(), parentAccount.getExternalKey());
+
     }
 }

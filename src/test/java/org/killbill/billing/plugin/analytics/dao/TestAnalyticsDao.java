@@ -33,6 +33,7 @@ public class TestAnalyticsDao extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertNull(analyticsDao.getAccountById(account.getId(), callContext));
 
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    parentAccount,
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,

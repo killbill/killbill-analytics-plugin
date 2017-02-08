@@ -60,6 +60,9 @@ public class BusinessAccount extends BusinessEntityBase {
     private final String lastPaymentStatus;
     private final Integer nbActiveBundles;
     private final String convertedCurrency;
+    private final UUID parentAccountId;
+    private final String parentAccountName;
+    private final String parentAccountExternalKey;
 
     public BusinessAccount(final BusinessAccountModelDao businessAccountModelDao) {
         super(businessAccountModelDao.getCreatedDate(),
@@ -104,6 +107,9 @@ public class BusinessAccount extends BusinessEntityBase {
         this.lastPaymentStatus = businessAccountModelDao.getLastPaymentStatus();
         this.nbActiveBundles = businessAccountModelDao.getNbActiveBundles();
         this.convertedCurrency = businessAccountModelDao.getConvertedCurrency();
+        this.parentAccountId = businessAccountModelDao.getParentAccountId();
+        this.parentAccountName = businessAccountModelDao.getParentAccountName();
+        this.parentAccountExternalKey = businessAccountModelDao.getParentAccountExternalKey();
     }
 
     public String getEmail() {
@@ -242,6 +248,18 @@ public class BusinessAccount extends BusinessEntityBase {
         return convertedCurrency;
     }
 
+    public UUID getParentAccountId() {
+        return parentAccountId;
+    }
+
+    public String getParentAccountName() {
+        return parentAccountName;
+    }
+
+    public String getParentAccountExternalKey() {
+        return parentAccountExternalKey;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessAccount{");
@@ -279,6 +297,9 @@ public class BusinessAccount extends BusinessEntityBase {
         sb.append(", lastPaymentStatus='").append(lastPaymentStatus).append('\'');
         sb.append(", nbActiveBundles=").append(nbActiveBundles);
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
+        sb.append(", parentAccountId=").append(parentAccountId);
+        sb.append(", parentAccountName='").append(parentAccountName).append('\'');
+        sb.append(", parentAccountExternalKey='").append(parentAccountExternalKey).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -381,6 +402,15 @@ public class BusinessAccount extends BusinessEntityBase {
         if (oldestUnpaidInvoiceId != null ? !oldestUnpaidInvoiceId.equals(that.oldestUnpaidInvoiceId) : that.oldestUnpaidInvoiceId != null) {
             return false;
         }
+        if (parentAccountExternalKey != null ? !parentAccountExternalKey.equals(that.parentAccountExternalKey) : that.parentAccountExternalKey != null) {
+            return false;
+        }
+        if (parentAccountId != null ? !parentAccountId.equals(that.parentAccountId) : that.parentAccountId != null) {
+            return false;
+        }
+        if (parentAccountName != null ? !parentAccountName.equals(that.parentAccountName) : that.parentAccountName != null) {
+            return false;
+        }
         if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {
             return false;
         }
@@ -440,6 +470,9 @@ public class BusinessAccount extends BusinessEntityBase {
         result = 31 * result + (lastPaymentStatus != null ? lastPaymentStatus.hashCode() : 0);
         result = 31 * result + (nbActiveBundles != null ? nbActiveBundles.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
+        result = 31 * result + (parentAccountId != null ? parentAccountId.hashCode() : 0);
+        result = 31 * result + (parentAccountName != null ? parentAccountName.hashCode() : 0);
+        result = 31 * result + (parentAccountExternalKey != null ? parentAccountExternalKey.hashCode() : 0);
         return result;
     }
 }

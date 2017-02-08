@@ -68,6 +68,9 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
     private String lastPaymentStatus;
     private Integer nbActiveBundles;
     private String convertedCurrency;
+    private UUID parentAccountId;
+    private String parentAccountName;
+    private String parentAccountExternalKey;
 
     public BusinessAccountModelDao() { /* When reading from the database */ }
 
@@ -112,6 +115,9 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
                                    final UUID accountId,
                                    final String accountName,
                                    final String accountExternalKey,
+                                   final UUID parentAccountId,
+                                   final String parentAccountName,
+                                   final String parentAccountExternalKey,
                                    final Long accountRecordId,
                                    final Long tenantRecordId,
                                    @Nullable final ReportGroup reportGroup) {
@@ -159,9 +165,13 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         this.lastPaymentStatus = lastPaymentStatus;
         this.nbActiveBundles = nbActiveBundles;
         this.convertedCurrency = convertedCurrency;
+        this.parentAccountId = parentAccountId;
+        this.parentAccountName = parentAccountName;
+        this.parentAccountExternalKey = parentAccountExternalKey;
     }
 
     public BusinessAccountModelDao(final Account account,
+                                   final Account parentAccount,
                                    final Long accountRecordId,
                                    final BigDecimal balance,
                                    @Nullable final Invoice oldestUnpaidInvoice,
@@ -213,6 +223,9 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
              account.getId(),
              account.getName(),
              account.getExternalKey(),
+             parentAccount != null ? parentAccount.getId() : null,
+             parentAccount != null ? parentAccount.getName() : null,
+             parentAccount != null ? parentAccount.getExternalKey() : null,
              accountRecordId,
              tenantRecordId,
              reportGroup);
@@ -359,6 +372,19 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         return convertedCurrency;
     }
 
+    public UUID getParentAccountId() {
+        return parentAccountId;
+    }
+
+    public String getParentAccountName() {
+        return parentAccountName;
+    }
+
+    public String getParentAccountExternalKey() {
+        return parentAccountExternalKey;
+    }
+
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessAccountModelDao{");
@@ -396,6 +422,9 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         sb.append(", lastPaymentStatus='").append(lastPaymentStatus).append('\'');
         sb.append(", nbActiveBundles=").append(nbActiveBundles);
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
+        sb.append(", parentAccountId=").append(parentAccountId);
+        sb.append(", parentAccountName='").append(parentAccountName).append('\'');
+        sb.append(", parentAccountExternalKey='").append(parentAccountExternalKey).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -498,6 +527,15 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (oldestUnpaidInvoiceId != null ? !oldestUnpaidInvoiceId.equals(that.oldestUnpaidInvoiceId) : that.oldestUnpaidInvoiceId != null) {
             return false;
         }
+        if (parentAccountExternalKey != null ? !parentAccountExternalKey.equals(that.parentAccountExternalKey) : that.stateOrProvince != null) {
+            return false;
+        }
+        if (parentAccountId != null ? !parentAccountId.equals(that.parentAccountId) : that.parentAccountId != null) {
+            return false;
+        }
+        if(parentAccountName != null ? !parentAccountName.equals(that.parentAccountName) : that.parentAccountName != null) {
+            return false;
+        }
         if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {
             return false;
         }
@@ -557,6 +595,9 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         result = 31 * result + (lastPaymentStatus != null ? lastPaymentStatus.hashCode() : 0);
         result = 31 * result + (nbActiveBundles != null ? nbActiveBundles.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
+        result = 31 * result + (parentAccountId != null ? parentAccountId.hashCode() : 0);
+        result = 31 * result + (parentAccountName != null ? parentAccountName.hashCode() : 0);
+        result = 31 * result + (parentAccountExternalKey != null ? parentAccountExternalKey.hashCode() : 0);
         return result;
     }
 }

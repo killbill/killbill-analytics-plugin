@@ -65,6 +65,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private PluginPropertiesManager pluginPropertiesManager;
     private CurrencyConverter currencyConverter;
     private Account account;
+    private Account parentAccount;
     private BigDecimal accountBalance;
     // Relatively cheap lookups, should be done by account_record_id
     private Iterable<SubscriptionBundle> accountBundles;
@@ -165,6 +166,13 @@ public class BusinessContextFactory extends BusinessFactoryBase {
             account = getAccount(accountId, callContext);
         }
         return account;
+    }
+
+    public synchronized Account getParentAccount() throws AnalyticsRefreshException {
+        if(account != null && account.getParentAccountId() != null && parentAccount == null) {
+            parentAccount = getAccount(account.getParentAccountId(), callContext);
+        }
+        return parentAccount;
     }
 
     public synchronized BigDecimal getAccountBalance() throws AnalyticsRefreshException {

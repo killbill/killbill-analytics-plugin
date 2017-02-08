@@ -46,6 +46,7 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
     public void testConstructor() throws Exception {
         // Account
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    parentAccount,
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
