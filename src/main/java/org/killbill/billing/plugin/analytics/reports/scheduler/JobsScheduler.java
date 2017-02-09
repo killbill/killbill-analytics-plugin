@@ -48,6 +48,7 @@ import org.skife.jdbi.v2.IDBI;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -73,7 +74,7 @@ public class JobsScheduler {
     private final Clock clock;
     private final NotificationQueue jobQueue;
 
-    private final ExecutorService proceduresService = Executors.newCachedThreadPool("proceduresService");
+    private ExecutorService proceduresService;
 
     public JobsScheduler(final OSGIKillbillLogService logService,
                          final OSGIKillbillDataSource osgiKillbillDataSource,
@@ -108,11 +109,16 @@ public class JobsScheduler {
                 notificationQueueHandler);
     }
 
-    public void start() {
+    public synchronized void start() {
+        proceduresService = Executors.newCachedThreadPool("proceduresService");
         jobQueue.startQueue();
     }
 
-    public void shutdownNow() {
+    public synchronized void shutdownNow() {
+        if (proceduresService != null) {
+            proceduresService.shutdownNow();
+            proceduresService = null;
+        }
         jobQueue.stopQueue();
     }
 
@@ -219,6 +225,8 @@ public class JobsScheduler {
         if (Strings.isNullOrEmpty(storedProcedureName)) {
             return;
         }
+
+        Preconditions.checkState(proceduresService != null, "proceduresService isn't started yet");
 
         // Execute the refresh in the background, to avoid having other notifications threads "steal" the IN_PROCESSING entry
         proceduresService.execute(new Runnable() {
