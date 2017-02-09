@@ -42,6 +42,7 @@ public class BusinessAccountFactory {
 
     public BusinessAccountModelDao createBusinessAccount(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         final Account account = businessContextFactory.getAccount();
+        final Account parentAccount = businessContextFactory.getParentAccount();
 
         // Retrieve the account creation audit log
         final AuditLog creationAuditLog = businessContextFactory.getAccountCreationAuditLog();
@@ -95,6 +96,7 @@ public class BusinessAccountFactory {
         final CurrencyConverter converter = businessContextFactory.getCurrencyConverter();
 
         return new BusinessAccountModelDao(account,
+                                           parentAccount,
                                            accountRecordId,
                                            accountBalance,
                                            oldestUnpaidInvoice,

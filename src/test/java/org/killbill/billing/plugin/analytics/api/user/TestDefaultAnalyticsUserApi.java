@@ -32,6 +32,7 @@ public class TestDefaultAnalyticsUserApi extends AnalyticsTestSuiteWithEmbeddedD
     @Test(groups = "slow")
     public void testAccountSnapshot() throws Exception {
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    parentAccount,
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,

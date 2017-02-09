@@ -155,6 +155,9 @@ create table analytics_accounts (
 , account_id varchar(36) default null
 , account_name varchar(100) default null
 , account_external_key varchar(50) default null
+, parent_account_id varchar(36) default null
+, parent_account_name varchar(100) default null
+, parent_account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null

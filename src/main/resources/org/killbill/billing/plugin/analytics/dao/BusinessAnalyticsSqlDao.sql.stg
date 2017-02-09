@@ -227,6 +227,9 @@ insert into analytics_accounts (
 , account_id
 , account_name
 , account_external_key
+, parent_account_id
+, parent_account_name
+, parent_account_external_key
 , account_record_id
 , tenant_record_id
 , report_group
@@ -272,6 +275,9 @@ insert into analytics_accounts (
 , :accountId
 , :accountName
 , :accountExternalKey
+, :parentAccountId
+, :parentAccountName
+, :parentAccountExternalKey
 , :accountRecordId
 , :tenantRecordId
 , :reportGroup

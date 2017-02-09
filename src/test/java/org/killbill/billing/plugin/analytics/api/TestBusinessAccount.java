@@ -29,6 +29,7 @@ public class TestBusinessAccount extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    parentAccount,
                                                                                     accountRecordId,
                                                                                     BigDecimal.ONE,
                                                                                     invoice,
@@ -77,5 +78,8 @@ public class TestBusinessAccount extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessAccount.getLastPaymentStatus(), accountModelDao.getLastPaymentStatus());
         Assert.assertEquals(businessAccount.getNbActiveBundles(), accountModelDao.getNbActiveBundles());
         Assert.assertEquals(businessAccount.getConvertedCurrency(), accountModelDao.getConvertedCurrency());
+        Assert.assertEquals(businessAccount.getParentAccountId(), accountModelDao.getParentAccountId());
+        Assert.assertEquals(businessAccount.getParentAccountName(), accountModelDao.getParentAccountName());
+        Assert.assertEquals(businessAccount.getParentAccountExternalKey(), accountModelDao.getParentAccountExternalKey());
     }
 }

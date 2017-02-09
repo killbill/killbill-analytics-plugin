@@ -52,6 +52,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
     @Test(groups = "slow")
     public void testSqlDaoForAccount() throws Exception {
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,
+                                                                                    parentAccount,
                                                                                     accountRecordId,
                                                                                     new BigDecimal("1.2345"),
                                                                                     invoice,
