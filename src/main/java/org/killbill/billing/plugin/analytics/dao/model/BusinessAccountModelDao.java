@@ -527,7 +527,7 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (oldestUnpaidInvoiceId != null ? !oldestUnpaidInvoiceId.equals(that.oldestUnpaidInvoiceId) : that.oldestUnpaidInvoiceId != null) {
             return false;
         }
-        if (parentAccountExternalKey != null ? !parentAccountExternalKey.equals(that.parentAccountExternalKey) : that.stateOrProvince != null) {
+        if (parentAccountExternalKey != null ? !parentAccountExternalKey.equals(that.parentAccountExternalKey) : that.parentAccountExternalKey != null) {
             return false;
         }
         if (parentAccountId != null ? !parentAccountId.equals(that.parentAccountId) : that.parentAccountId != null) {
