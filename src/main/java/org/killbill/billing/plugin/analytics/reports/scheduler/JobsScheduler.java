@@ -17,11 +17,16 @@
 
 package org.killbill.billing.plugin.analytics.reports.scheduler;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Ordering;
+import java.io.IOException;
+import java.sql.Connection;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+
+import javax.annotation.Nullable;
+
 import org.joda.time.DateTime;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
@@ -29,6 +34,7 @@ import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
 import org.killbill.clock.Clock;
+import org.killbill.commons.concurrent.Executors;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationEvent;
 import org.killbill.notificationq.api.NotificationEventWithMetadata;
@@ -40,13 +46,12 @@ import org.skife.jdbi.v2.Call;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.sql.Connection;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Predicate;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Ordering;
 
 import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS_QUEUE_SERVICE;
 
@@ -67,6 +72,8 @@ public class JobsScheduler {
     private final IDBI dbi;
     private final Clock clock;
     private final NotificationQueue jobQueue;
+
+    private final ExecutorService proceduresService = Executors.newCachedThreadPool("proceduresService");
 
     public JobsScheduler(final OSGIKillbillLogService logService,
                          final OSGIKillbillDataSource osgiKillbillDataSource,
@@ -209,15 +216,25 @@ public class JobsScheduler {
     }
 
     private void callStoredProcedure(final String storedProcedureName) {
-        Handle handle = null;
-        try {
-            handle = dbi.open();
-            final Call call = handle.createCall("call " + storedProcedureName);
-            call.invoke();
-        } finally {
-            if (handle != null) {
-                handle.close();
-            }
+        if (Strings.isNullOrEmpty(storedProcedureName)) {
+            return;
         }
+
+        // Execute the refresh in the background, to avoid having other notifications threads "steal" the IN_PROCESSING entry
+        proceduresService.execute(new Runnable() {
+            @Override
+            public void run() {
+                Handle handle = null;
+                try {
+                    handle = dbi.open();
+                    final Call call = handle.createCall("call " + storedProcedureName);
+                    call.invoke();
+                } finally {
+                    if (handle != null) {
+                        handle.close();
+                    }
+                }
+            }
+        });
     }
 }
