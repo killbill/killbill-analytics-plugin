@@ -6,7 +6,7 @@ create table analytics_subscription_transitions (
   record_id serial unique
 , subscription_event_record_id bigint /*! unsigned */ default null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , subscription_id varchar(36) default null
 , requested_timestamp date default null
 , event varchar(50) default null
@@ -50,7 +50,7 @@ create table analytics_subscription_transitions (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -68,7 +68,7 @@ create table analytics_bundles (
   record_id serial unique
 , bundle_record_id bigint /*! unsigned */ default null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , subscription_id varchar(36) default null
 , bundle_account_rank int default null
 , latest_for_bundle_external_key bool default false
@@ -98,7 +98,7 @@ create table analytics_bundles (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -154,7 +154,7 @@ create table analytics_accounts (
 , updated_date datetime default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , parent_account_id varchar(36) default null
 , parent_account_name varchar(100) default null
 , parent_account_external_key varchar(255) default null
@@ -183,7 +183,7 @@ create table analytics_account_transitions (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -224,7 +224,7 @@ create table analytics_invoices (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -264,7 +264,7 @@ create table analytics_invoice_adjustments (
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
 , product_category varchar(50) default null
@@ -284,7 +284,7 @@ create table analytics_invoice_adjustments (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -325,7 +325,7 @@ create table analytics_invoice_items (
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
 , product_category varchar(50) default null
@@ -346,7 +346,7 @@ create table analytics_invoice_items (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -387,7 +387,7 @@ create table analytics_invoice_item_adjustments (
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
 , product_category varchar(50) default null
@@ -407,7 +407,7 @@ create table analytics_invoice_item_adjustments (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -448,7 +448,7 @@ create table analytics_invoice_credits (
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , product_name varchar(50) default null
 , product_type varchar(50) default null
 , product_category varchar(50) default null
@@ -468,7 +468,7 @@ create table analytics_invoice_credits (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -554,7 +554,7 @@ create table analytics_payment_auths (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -642,7 +642,7 @@ create table analytics_payment_captures (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -730,7 +730,7 @@ create table analytics_payment_purchases (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -818,7 +818,7 @@ create table analytics_payment_refunds (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -906,7 +906,7 @@ create table analytics_payment_credits (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -994,7 +994,7 @@ create table analytics_payment_chargebacks (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1082,7 +1082,7 @@ create table analytics_payment_voids (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1112,7 +1112,7 @@ create table analytics_account_tags (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1127,7 +1127,7 @@ create table analytics_bundle_tags (
   record_id serial unique
 , tag_record_id bigint /*! unsigned */ default null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , name varchar(50) default null
 , created_date datetime default null
 , created_by varchar(50) default null
@@ -1135,7 +1135,7 @@ create table analytics_bundle_tags (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1159,7 +1159,7 @@ create table analytics_invoice_tags (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1181,7 +1181,7 @@ create table analytics_payment_tags (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1203,7 +1203,7 @@ create table analytics_account_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1218,7 +1218,7 @@ create table analytics_bundle_fields (
   record_id serial unique
 , custom_field_record_id bigint /*! unsigned */ default null
 , bundle_id varchar(36) default null
-, bundle_external_key varchar(50) default null
+, bundle_external_key varchar(255) default null
 , name varchar(64) default null
 , value varchar(255) default null
 , created_date datetime default null
@@ -1227,7 +1227,7 @@ create table analytics_bundle_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1252,7 +1252,7 @@ create table analytics_invoice_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1275,7 +1275,7 @@ create table analytics_invoice_payment_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1298,7 +1298,7 @@ create table analytics_payment_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1321,7 +1321,7 @@ create table analytics_payment_method_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
@@ -1344,7 +1344,7 @@ create table analytics_transaction_fields (
 , created_comments varchar(255) default null
 , account_id varchar(36) default null
 , account_name varchar(100) default null
-, account_external_key varchar(50) default null
+, account_external_key varchar(255) default null
 , account_record_id bigint /*! unsigned */ default null
 , tenant_record_id bigint /*! unsigned */ default null
 , report_group varchar(50) not null
