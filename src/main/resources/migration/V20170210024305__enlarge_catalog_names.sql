@@ -1,0 +1,14 @@
+alter table analytics_subscription_transitions modify prev_product_name varchar(255);
+alter table analytics_subscription_transitions modify prev_slug varchar(255);
+alter table analytics_subscription_transitions modify next_product_name varchar(255);
+alter table analytics_subscription_transitions modify next_slug varchar(255);
+alter table analytics_bundles modify current_product_name varchar(255);
+alter table analytics_bundles modify current_slug varchar(255);
+alter table analytics_invoice_adjustments modify product_name varchar(255);
+alter table analytics_invoice_adjustments modify slug varchar(255);
+alter table analytics_invoice_items modify product_name varchar(255);
+alter table analytics_invoice_items modify slug varchar(255);
+alter table analytics_invoice_item_adjustments modify product_name varchar(255);
+alter table analytics_invoice_item_adjustments modify slug varchar(255);
+alter table analytics_invoice_credits modify product_name varchar(255);
+alter table analytics_invoice_credits modify slug varchar(255);
