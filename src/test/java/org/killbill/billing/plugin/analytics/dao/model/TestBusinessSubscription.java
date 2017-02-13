@@ -22,7 +22,10 @@ import java.math.BigDecimal;
 import org.joda.time.LocalDate;
 import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.Currency;
+import org.killbill.billing.catalog.api.Duration;
+import org.killbill.billing.catalog.api.TimeUnit;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
+import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -137,6 +140,38 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithoutNulls() throws Exception {
+        final LocalDate startDate = new LocalDate(2019, 7, 4);
+        final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
+                                                                                   phase,
+                                                                                   priceList,
+                                                                                   Currency.GBP,
+                                                                                   startDate,
+                                                                                   serviceName,
+                                                                                   stateName,
+                                                                                   currencyConverter);
+        Assert.assertEquals(businessSubscription.getProductName(), plan.getProduct().getName());
+        Assert.assertEquals(businessSubscription.getProductType(), plan.getProduct().getCatalogName());
+        Assert.assertEquals(businessSubscription.getProductCategory(), plan.getProduct().getCategory().toString());
+        Assert.assertEquals(businessSubscription.getSlug(), phase.getName());
+        Assert.assertEquals(businessSubscription.getPhase(), phase.getPhaseType().toString());
+        Assert.assertEquals(businessSubscription.getBillingPeriod(), phase.getRecurring().getBillingPeriod().toString());
+        Assert.assertEquals(businessSubscription.getPrice(), phase.getRecurring().getRecurringPrice().getPrice(Currency.GBP));
+        Assert.assertEquals(businessSubscription.getPriceList(), priceList.getName());
+        Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
+        Assert.assertEquals(businessSubscription.getService(), serviceName);
+        Assert.assertEquals(businessSubscription.getState(), stateName);
+        //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
+        Assert.assertEquals(businessSubscription.getStartDate(), startDate);
+        Assert.assertNull(businessSubscription.getEndDate());
+    }
+
+    @Test(groups = "fast", description = "https://github.com/killbill/killbill/issues/644")
+    public void testUNLIMITEDDuration() throws Exception {
+        final Duration duration = Mockito.mock(Duration.class);
+        Mockito.when(duration.getUnit()).thenReturn(TimeUnit.UNLIMITED);
+        Mockito.when(duration.toJodaPeriod()).thenThrow(IllegalStateException.class);
+        Mockito.when(phase.getDuration()).thenReturn(duration);
+
         final LocalDate startDate = new LocalDate(2019, 7, 4);
         final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
                                                                                    phase,

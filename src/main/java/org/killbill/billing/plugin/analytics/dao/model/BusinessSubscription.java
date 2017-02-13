@@ -32,6 +32,7 @@ import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.PriceList;
 import org.killbill.billing.catalog.api.Product;
+import org.killbill.billing.catalog.api.TimeUnit;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.plugin.analytics.utils.Rounder;
 
@@ -136,7 +137,7 @@ public class BusinessSubscription {
         this.startDate = startDate;
         if (currentPhase != null) {
             final Duration duration = currentPhase.getDuration();
-            this.endDate = duration == null ? null : startDate.plus(duration.toJodaPeriod());
+            this.endDate = duration == null || duration.getUnit() == TimeUnit.UNLIMITED ? null : startDate.plus(duration.toJodaPeriod());
         } else {
             this.endDate = null;
         }
