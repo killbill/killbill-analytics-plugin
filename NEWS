@@ -1,5 +1,11 @@
+4.2.0
+    Fix issue with UNLIMITED phase duration
+    Support for MySQL 5.7.5+
+    [DDL change] Add usageName to the analytics_invoice_items
+    [DDL change] Add parent account fields to analytics_accounts
+    [DDL change] Default reports optimizations
+
 4.1.0
-    
     Update plugin to be compatible with 0.18.0
 
 4.0.5
