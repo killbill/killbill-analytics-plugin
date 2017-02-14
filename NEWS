@@ -4,6 +4,7 @@
     [DDL change] Add usageName to the analytics_invoice_items
     [DDL change] Add parent account fields to analytics_accounts
     [DDL change] Default reports optimizations
+    Update to killbill-oss-parent 0.140.10
 
 4.1.0
     Update plugin to be compatible with 0.18.0
