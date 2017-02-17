@@ -1,8 +1,8 @@
 create or replace view v_report_invoices_daily as
 select
   ai.tenant_record_id
-, ai.currency
 , date_format(ai.created_date,'%Y-%m-%d') as day
+, ai.currency
 , sum(ai.converted_original_amount_charged) as count
 from
   analytics_invoices ai
