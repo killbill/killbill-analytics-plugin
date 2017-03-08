@@ -34,6 +34,8 @@ curl -v \
      -d '{"reportName": "report_payments_by_provider_last_24h_summary",
           "reportType": "COUNTERS",
           "reportPrettyName": "Payments By Provider Summary (last 24hrs)",
-          "sourceTableName": "v_report_payments_by_provider_last_24h_summary"}' \
+          "sourceTableName": "report_payments_by_provider_last_24h_summary",
+          "refreshProcedureName": "refresh_report_payments_by_provider_last_24h_summary",
+          "refreshFrequency": "DAILY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
