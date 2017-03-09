@@ -9,7 +9,8 @@ select
 from analytics_payment_auths aa
 where 1=1
   and aa.payment_transaction_status not in ('PENDING', 'SUCCESS')
-  and aa.report_group='default'
+  and aa.report_group = 'default'
+  and aa.created_date > now() - interval '60' day
 union
 select
   ap.tenant_record_id
@@ -21,5 +22,6 @@ select
 from analytics_payment_purchases ap
 where 1=1
   and ap.payment_transaction_status not in ('PENDING', 'SUCCESS')
-  and ap.report_group='default'
+  and ap.report_group = 'default'
+  and ap.created_date > now() - interval '60' day
 ;
