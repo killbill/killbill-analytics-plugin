@@ -38,7 +38,7 @@ NOT : '!';
 TRUE : 'true';
 FALSE : 'false';
 WS : ( ' ' | '\t' | '\r' | '\n' )+ { $channel = HIDDEN; };
-SQL_EXPRESSION : ('A'..'Z' | 'a'..'z' | '0'..'9')+ ('=' | '!=' | '>' | '<' | '>=' | '<=' | '~' | '!~') ('"' | '\'')? ('A'..'Z' | 'a'..'z' | '0'..'9' | ' ' | '%')+ ('"' | '\'')?;
+SQL_EXPRESSION : ('A'..'Z' | 'a'..'z' | '0'..'9' | '_' | '-')+ ('=' | '!=' | '>' | '<' | '>=' | '<=' | '~' | '!~') ('"' | '\'')? ('A'..'Z' | 'a'..'z' | '0'..'9' | ' ' | '%' | '_' | '-')+ ('"' | '\'')?;
 
 expression : orexpression;
 orexpression : andexpression (OR^ andexpression)*;

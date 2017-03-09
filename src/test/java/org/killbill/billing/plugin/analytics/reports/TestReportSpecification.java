@@ -50,6 +50,18 @@ public class TestReportSpecification extends AnalyticsTestSuiteNoDB {
     }
 
     @Test(groups = "fast")
+    public void testParserWithSpecialCharacters() throws Exception {
+        final String rawReportName = "payments_per_day^filter:plugin_name=killbill-paypal-express";
+        final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
+        Assert.assertEquals(reportSpecification.getReportName(), "payments_per_day");
+
+        Assert.assertTrue(reportSpecification.getDimensions().isEmpty());
+        Assert.assertTrue(reportSpecification.getMetrics().isEmpty());
+
+        Assert.assertEquals(reportSpecification.getFilterExpression().toString(), "plugin_name=killbill-paypal-express");
+    }
+
+    @Test(groups = "fast")
     public void testParserComplexFilter() throws Exception {
         final String rawReportName = "payments_per_day(With a custom title, which supports sp3cial ch@racter$!)^" +
                                      "filter:(currency=USD&state!=ERRORED)|(currency=EUR&state=PROCESSED)^" +
