@@ -1,3 +1,7 @@
+4.2.1
+    Fix analytis reports
+    Fix issue with catalog use. See #70
+
 4.2.0
     Fix issue with UNLIMITED phase duration
     Support for MySQL 5.7.5+
