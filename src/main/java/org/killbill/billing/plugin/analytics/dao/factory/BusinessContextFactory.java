@@ -393,8 +393,8 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     // Simple pass-through
 
-    public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem) throws AnalyticsRefreshException {
-        return getPlanFromInvoiceItem(invoiceItem, callContext);
+    public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate) throws AnalyticsRefreshException {
+        return getPlanFromInvoiceItem(invoiceItem, subscriptionStartDate, callContext);
     }
 
     public PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate) throws AnalyticsRefreshException {

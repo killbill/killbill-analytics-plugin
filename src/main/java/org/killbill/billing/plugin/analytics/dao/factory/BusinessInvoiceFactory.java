@@ -228,24 +228,27 @@ public class BusinessInvoiceFactory {
             bundle = bundles.get(linkedInvoiceItem.getBundleId());
         }
 
+
+        final LocalDate subscriptionStartDate = bundle != null ? getSubscriptionStartDate(invoiceItem, bundle) : null;
         Plan plan = null;
         if (Strings.emptyToNull(invoiceItem.getPlanName()) != null) {
-            plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem);
+            if (subscriptionStartDate != null) {
+                plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem, subscriptionStartDate);
+            }
         }
         if (plan == null && linkedInvoiceItem != null && Strings.emptyToNull(linkedInvoiceItem.getPlanName()) != null) {
-            plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem);
+            if (subscriptionStartDate != null) {
+                plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate);
+            }
         }
 
         PlanPhase planPhase = null;
-
         if (invoiceItem.getSubscriptionId() != null && Strings.emptyToNull(invoiceItem.getPhaseName()) != null && bundle != null) {
-            final LocalDate subscriptionStartDate = getSubscriptionStartDate(invoiceItem, bundle);
             if (subscriptionStartDate != null) {
                 planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate);
             }
         }
         if (planPhase == null && linkedInvoiceItem != null && linkedInvoiceItem.getSubscriptionId() != null && Strings.emptyToNull(linkedInvoiceItem.getPhaseName()) != null && bundle != null) {
-            final LocalDate subscriptionStartDate = getSubscriptionStartDate(linkedInvoiceItem, bundle);
             if (subscriptionStartDate != null) {
                 planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate);
             }
