@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2017 Groupon, Inc
+ * Copyright 2014-2017 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -200,17 +201,18 @@ public class BusinessInvoiceFactory {
                                          reportGroup);
     }
 
-    private BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final BusinessContextFactory businessContextFactory,
-                                                                      final Account account,
-                                                                      final Invoice invoice,
-                                                                      final InvoiceItem invoiceItem,
-                                                                      final Collection<InvoiceItem> otherInvoiceItems,
-                                                                      final Map<UUID, SubscriptionBundle> bundles,
-                                                                      final CurrencyConverter currencyConverter,
-                                                                      final AuditLog creationAuditLog,
-                                                                      final Long accountRecordId,
-                                                                      final Long tenantRecordId,
-                                                                      @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
+    @VisibleForTesting
+    BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final BusinessContextFactory businessContextFactory,
+                                                              final Account account,
+                                                              final Invoice invoice,
+                                                              final InvoiceItem invoiceItem,
+                                                              final Collection<InvoiceItem> otherInvoiceItems,
+                                                              final Map<UUID, SubscriptionBundle> bundles,
+                                                              final CurrencyConverter currencyConverter,
+                                                              final AuditLog creationAuditLog,
+                                                              final Long accountRecordId,
+                                                              final Long tenantRecordId,
+                                                              @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
         // For convenience, populate empty columns using the linked item
         final InvoiceItem linkedInvoiceItem = Iterables.find(otherInvoiceItems, new Predicate<InvoiceItem>() {
             @Override
@@ -275,7 +277,7 @@ public class BusinessInvoiceFactory {
         final Subscription subscription = Iterables.find(bundle.getSubscriptions(), new Predicate<Subscription>() {
             @Override
             public boolean apply(final Subscription subscription) {
-                return invoiceItem.getSubscriptionId().equals(subscription.getId());
+                return subscription.getId().equals(invoiceItem.getSubscriptionId());
             }
         }, null);
         return subscription == null ? null : subscription.getEffectiveStartDate();

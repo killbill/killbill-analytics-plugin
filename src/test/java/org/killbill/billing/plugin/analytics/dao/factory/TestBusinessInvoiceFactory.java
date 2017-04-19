@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2017 Groupon, Inc
+ * Copyright 2014-2017 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -19,10 +20,14 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.killbill.billing.catalog.api.Currency;
+import org.killbill.billing.entitlement.api.Subscription;
+import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -40,6 +45,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
 
@@ -65,6 +71,53 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
         invoiceFactory = new BusinessInvoiceFactory(BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService));
+    }
+
+    @Test(groups = "fast", description = "Regression test for an NPE in a specific scenario")
+    public void testGenerateBusinessItemForAdjustmentWithTax() throws Exception {
+        final UUID invoiceId = UUID.randomUUID();
+
+        final BusinessContextFactory businessContextFactory = Mockito.mock(BusinessContextFactory.class);
+
+        final InvoiceItem recurringItem = createInvoiceItem(invoiceId, InvoiceItemType.RECURRING, BigDecimal.TEN);
+
+        final InvoiceItem adjustmentItem = Mockito.mock(InvoiceItem.class);
+        Mockito.when(adjustmentItem.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(adjustmentItem.getInvoiceItemType()).thenReturn(InvoiceItemType.ITEM_ADJ);
+        Mockito.when(adjustmentItem.getInvoiceId()).thenReturn(invoiceId);
+        final UUID recurringItemId = recurringItem.getId();
+        Mockito.when(adjustmentItem.getLinkedItemId()).thenReturn(recurringItemId);
+        Mockito.when(adjustmentItem.getAmount()).thenReturn(BigDecimal.ONE.negate());
+        Mockito.when(adjustmentItem.getCurrency()).thenReturn(Currency.EUR);
+
+        final InvoiceItem taxItem = Mockito.mock(InvoiceItem.class);
+        Mockito.when(taxItem.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(taxItem.getInvoiceItemType()).thenReturn(InvoiceItemType.TAX);
+        Mockito.when(taxItem.getInvoiceId()).thenReturn(invoiceId);
+        Mockito.when(taxItem.getAmount()).thenReturn(BigDecimal.ONE);
+        Mockito.when(taxItem.getCurrency()).thenReturn(Currency.EUR);
+
+        final Subscription subscription = Mockito.mock(Subscription.class);
+        final UUID subscriptionId = recurringItem.getSubscriptionId();
+        Mockito.when(subscription.getId()).thenReturn(subscriptionId);
+        final SubscriptionBundle bundle = Mockito.mock(SubscriptionBundle.class);
+        Mockito.when(bundle.getSubscriptions()).thenReturn(ImmutableList.<Subscription>of(subscription));
+        final Map<UUID, SubscriptionBundle> bundles = ImmutableMap.<UUID, SubscriptionBundle>of(recurringItem.getBundleId(), bundle);
+
+        final BusinessInvoiceItemBaseModelDao businessItem = invoiceFactory.createBusinessInvoiceItem(businessContextFactory,
+                                                                                                      account,
+                                                                                                      invoice,
+                                                                                                      adjustmentItem,
+                                                                                                      ImmutableList.<InvoiceItem>of(taxItem, recurringItem),
+                                                                                                      bundles,
+                                                                                                      currencyConverter,
+                                                                                                      auditLog,
+                                                                                                      accountRecordId,
+                                                                                                      tenantRecordId,
+                                                                                                      reportGroup);
+
+        Assert.assertEquals(businessItem.getAmount().compareTo(BigDecimal.ONE.negate()), 0);
+        Assert.assertEquals(businessItem.getItemType(), InvoiceItemType.ITEM_ADJ.toString());
     }
 
     @Test(groups = "fast")

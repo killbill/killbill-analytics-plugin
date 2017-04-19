@@ -1,5 +1,8 @@
+4.2.2
+    Fix NPE in BusinessInvoiceFactory
+
 4.2.1
-    Fix analytis reports
+    Fix analytics reports
     Fix issue with catalog use. See #70
 
 4.2.0
