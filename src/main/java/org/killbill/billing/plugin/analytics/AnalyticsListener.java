@@ -197,14 +197,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     // Is there already a future notification overlapping this new job?
     private boolean futureOverlappingJobAlreadyScheduled(final AnalyticsJob newJob, final Long accountRecordId, final Long tenantRecordId) {
         // We don't look at IN_PROCESSING notifications here, as we want to make sure the latest state is refreshed
-        final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
+        final Iterable<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
         final Iterable<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(newJob, futureNotificationForSearchKeys);
         return scheduledOverlappingJobs.iterator().hasNext();
     }
 
     // Should this IN_PROCESSING job actually run?
     private boolean shouldRun(final AnalyticsJob inProcessingJob, final UUID existingJobUserToken, final Long accountRecordId, final Long tenantRecordId) {
-        final List<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureOrInProcessingNotificationForSearchKeys(accountRecordId, tenantRecordId);
+        final Iterable<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureOrInProcessingNotificationForSearchKeys(accountRecordId, tenantRecordId);
         final Iterable<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(inProcessingJob, futureNotificationForSearchKeys);
 
         NotificationEventWithMetadata runningJobToRun = null;
@@ -217,7 +217,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         return runningJobToRun == null || runningJobToRun.getFutureUserToken().equals(existingJobUserToken);
     }
 
-    private Iterable<NotificationEventWithMetadata<AnalyticsJob>> findScheduledOverlappingJobs(final AnalyticsJob job, final List<NotificationEventWithMetadata<AnalyticsJob>> existingScheduledJobs) {
+    private Iterable<NotificationEventWithMetadata<AnalyticsJob>> findScheduledOverlappingJobs(final AnalyticsJob job, final Iterable<NotificationEventWithMetadata<AnalyticsJob>> existingScheduledJobs) {
         return Iterables.<NotificationEventWithMetadata<AnalyticsJob>>filter(existingScheduledJobs,
                                                                              new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
                                                                                  @Override

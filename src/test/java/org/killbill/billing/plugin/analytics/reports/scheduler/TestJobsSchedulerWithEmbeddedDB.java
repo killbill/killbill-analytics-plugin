@@ -33,7 +33,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Iterables;
-import com.jayway.awaitility.Awaitility;
+import org.awaitility.Awaitility;
 
 public class TestJobsSchedulerWithEmbeddedDB extends AnalyticsTestSuiteWithEmbeddedDB {
 

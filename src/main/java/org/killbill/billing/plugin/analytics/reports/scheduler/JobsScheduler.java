@@ -147,11 +147,11 @@ public class JobsScheduler {
         return ANALYTICS_REPORT_JOB_ORDERING.immutableSortedCopy(schedules);
     }
 
-    private List<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable Connection connection) {
+    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable Connection connection) {
         if (connection == null) {
-            return jobQueue.getFutureNotificationForSearchKey2(JOBS_SCHEDULER_VERSION);
+            return jobQueue.getFutureNotificationForSearchKey2(null, JOBS_SCHEDULER_VERSION);
         } else {
-            return jobQueue.getFutureNotificationFromTransactionForSearchKey2(JOBS_SCHEDULER_VERSION, connection);
+            return jobQueue.getFutureNotificationFromTransactionForSearchKey2(null, JOBS_SCHEDULER_VERSION, connection);
         }
     }
 

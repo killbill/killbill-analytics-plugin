@@ -174,7 +174,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "group by \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
-                                                               "  `state`");
+                                                               "  `state`\n");
     }
 
     @Test(groups = "fast")
@@ -281,7 +281,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "group by \n" +
                                                                "  `day`, \n" +
                                                                "  `currency`, \n" +
-                                                               "  `state`");
+                                                               "  `state`\n");
     }
 
     private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName) {
