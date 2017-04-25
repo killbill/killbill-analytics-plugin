@@ -50,7 +50,7 @@ import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.TenantContext;
 
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
@@ -138,7 +138,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessInvoiceModelDaos, new Function<BusinessInvoiceModelDao, BusinessInvoice>() {
             @Override
             public BusinessInvoice apply(final BusinessInvoiceModelDao input) {
-                return new BusinessInvoice(input, Objects.firstNonNull(itemsPerInvoice.get(input.getInvoiceId()), ImmutableList.<BusinessInvoiceItemBaseModelDao>of()));
+                return new BusinessInvoice(input, MoreObjects.firstNonNull(itemsPerInvoice.get(input.getInvoiceId()), ImmutableList.<BusinessInvoiceItemBaseModelDao>of()));
             }
         });
     }

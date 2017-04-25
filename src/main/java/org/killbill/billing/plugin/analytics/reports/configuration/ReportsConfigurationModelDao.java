@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 
 import org.killbill.billing.plugin.analytics.json.ReportConfigurationJson;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public class ReportsConfigurationModelDao {
 
@@ -64,7 +64,7 @@ public class ReportsConfigurationModelDao {
              currentReportsConfigurationModelDao.getReportName(), // Never override
              reportConfigurationJson.getReportPrettyName() != null ? reportConfigurationJson.getReportPrettyName() : currentReportsConfigurationModelDao.getReportPrettyName(),
              currentReportsConfigurationModelDao.getReportType(),
-             Objects.firstNonNull(reportConfigurationJson.getSourceTableName(), currentReportsConfigurationModelDao.getSourceTableName()),
+             MoreObjects.firstNonNull(reportConfigurationJson.getSourceTableName(), currentReportsConfigurationModelDao.getSourceTableName()),
              reportConfigurationJson.getRefreshProcedureName() != null ? reportConfigurationJson.getRefreshProcedureName() : currentReportsConfigurationModelDao.getRefreshProcedureName(),
              reportConfigurationJson.getRefreshFrequency() != null ? reportConfigurationJson.getRefreshFrequency() : currentReportsConfigurationModelDao.getRefreshFrequency(),
              reportConfigurationJson.getRefreshHourOfDayGmt() != null ? reportConfigurationJson.getRefreshHourOfDayGmt() : currentReportsConfigurationModelDao.getRefreshHourOfDayGmt());
@@ -80,7 +80,7 @@ public class ReportsConfigurationModelDao {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
-        this.reportType = Objects.firstNonNull(type, ReportType.TIMELINE);
+        this.reportType = MoreObjects.firstNonNull(type, ReportType.TIMELINE);
         this.sourceTableName = sourceTableName;
         this.refreshProcedureName = refreshProcedureName;
         this.refreshFrequency = refreshFrequency;

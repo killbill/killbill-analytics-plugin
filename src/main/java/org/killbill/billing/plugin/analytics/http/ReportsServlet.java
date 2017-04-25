@@ -49,7 +49,7 @@ import org.killbill.billing.util.callcontext.TenantContext;
 import org.osgi.service.log.LogService;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
 
 // Handle /plugins/killbill-analytics/reports/<reportName>
@@ -191,7 +191,7 @@ public class ReportsServlet extends BaseServlet {
             // TODO PIERRE Switch to an equivalent of StreamingOutputStream?
             final List<Chart> results = reportsUserApi.getDataForReport(rawReportNames, startDate, endDate, smootherType, context);
 
-            final String format = Objects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
+            final String format = MoreObjects.firstNonNull(Strings.emptyToNull(req.getParameter(REPORTS_DATA_FORMAT)), JSON_DATA_FORMAT);
             if (CSV_DATA_FORMAT.equals(format)) {
                 final OutputStream out = resp.getOutputStream();
                 writeAsCSV(results, out);

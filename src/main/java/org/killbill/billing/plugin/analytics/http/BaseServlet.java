@@ -33,7 +33,7 @@ import org.osgi.service.log.LogService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public abstract class BaseServlet extends HttpServlet {
 
@@ -70,9 +70,9 @@ public abstract class BaseServlet extends HttpServlet {
     }
 
     protected CallContext createCallContext(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
-        final String createdBy = Objects.firstNonNull(req.getHeader(HDR_CREATED_BY), req.getRemoteAddr());
+        final String createdBy = MoreObjects.firstNonNull(req.getHeader(HDR_CREATED_BY), req.getRemoteAddr());
         final String reason = req.getHeader(HDR_REASON);
-        final String comment = Objects.firstNonNull(req.getHeader(HDR_COMMENT), req.getRequestURI());
+        final String comment = MoreObjects.firstNonNull(req.getHeader(HDR_COMMENT), req.getRequestURI());
 
         // Set by the TenantFilter
         final Tenant tenant = (Tenant) req.getAttribute("killbill_tenant");
