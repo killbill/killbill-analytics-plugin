@@ -76,11 +76,13 @@ public abstract class BaseServlet extends HttpServlet {
 
         // Set by the TenantFilter
         final Tenant tenant = (Tenant) req.getAttribute("killbill_tenant");
+        final UUID kbAccountId = (UUID) req.getAttribute(KB_ACCOUNT_ID_ATTRIBUTE);
 
         UUID tenantId = null;
         if (tenant != null) {
             tenantId = tenant.getId();
         }
-        return new AnalyticsApiCallContext(createdBy, reason, comment, tenantId);
+
+        return new AnalyticsApiCallContext(createdBy, reason, comment, tenantId, kbAccountId);
     }
 }

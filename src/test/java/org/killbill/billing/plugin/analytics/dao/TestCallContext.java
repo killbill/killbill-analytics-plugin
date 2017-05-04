@@ -34,6 +34,7 @@ public class TestCallContext implements CallContext {
     private final DateTime createdDate = new DateTime(2010, 2, 4, 6, 8, 10, DateTimeZone.UTC);
     private final DateTime updatedDate = new DateTime(2011, 3, 5, 7, 9, 11, DateTimeZone.UTC);
     private final UUID tenantId = UUID.randomUUID();
+    private final UUID accountId = UUID.randomUUID();
 
     @Override
     public UUID getUserToken() {
@@ -73,6 +74,11 @@ public class TestCallContext implements CallContext {
     @Override
     public DateTime getUpdatedDate() {
         return updatedDate;
+    }
+
+    @Override
+    public UUID getAccountId() {
+        return accountId;
     }
 
     @Override
