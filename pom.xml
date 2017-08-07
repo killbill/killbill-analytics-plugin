@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.140.25</version>
+        <version>0.141.1-SNAPSHOT</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -119,7 +119,10 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>stringtemplate</artifactId>
-            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>ST4</artifactId>
         </dependency>
         <dependency>
             <groupId>org.bgee.log4jdbc-log4j2</groupId>
@@ -135,8 +138,8 @@
             <artifactId>org.apache.felix.framework</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jdbi</groupId>
-            <artifactId>jdbi</artifactId>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-jdbi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
@@ -200,7 +203,6 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr-runtime</artifactId>
-            <version>3.3</version>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
@@ -213,10 +215,6 @@
             <artifactId>killbill-embeddeddb-postgresql</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-jdbi</artifactId>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>

@@ -37,10 +37,13 @@ import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.bus.dao.BusEventModelDao;
 import org.killbill.clock.Clock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
+import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
+import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
@@ -73,6 +76,10 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final NotificationQueueConfig config = new ConfigurationObjectFactory(configProperties.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                       ImmutableMap.<String, String>of("instanceName", "analytics"));
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
+
+
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
         analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);

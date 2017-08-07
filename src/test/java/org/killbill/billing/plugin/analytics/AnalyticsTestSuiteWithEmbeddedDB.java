@@ -28,11 +28,14 @@ import org.killbill.billing.plugin.analytics.dao.BusinessAnalyticsSqlDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
+import org.killbill.bus.dao.BusEventModelDao;
 import org.killbill.clock.Clock;
 import org.killbill.clock.DefaultClock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
+import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
+import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
@@ -77,6 +80,9 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
         embeddedDB.cleanupAllTables();
 
         dbi = BusinessDBIProvider.get(embeddedDB.getDataSource());
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
+
         analyticsSqlDao = dbi.onDemand(BusinessAnalyticsSqlDao.class);
 
         final NotificationQueueConfig config = new ConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
