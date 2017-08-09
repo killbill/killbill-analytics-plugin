@@ -535,7 +535,7 @@ public abstract class BusinessFactoryBase {
 
     protected List<TagDefinition> getTagDefinitions(final TenantContext context) throws AnalyticsRefreshException {
         final TagUserApi tagUserApi = getTagUserApi();
-        return tagUserApi.getTagDefinitions(context);
+        return tagUserApi.getTagDefinitions(context, true);
     }
 
     protected AuditLog getTagCreationAuditLog(final UUID tagId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
