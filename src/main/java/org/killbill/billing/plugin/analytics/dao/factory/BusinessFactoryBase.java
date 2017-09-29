@@ -163,7 +163,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Account creation audit log for id " + accountId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Account creation audit log for id " + accountId);
         return null;
     }
 
@@ -243,7 +243,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Bundle creation audit log for id " + bundleId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Bundle creation audit log for id " + bundleId);
         return null;
     }
 
@@ -255,7 +255,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Subscription event creation audit log for id " + subscriptionEventId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Subscription event creation audit log for id " + subscriptionEventId);
         return null;
     }
 
@@ -308,7 +308,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Blocking state creation audit log for id " + blockingStateId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Blocking state creation audit log for id " + blockingStateId);
         return null;
     }
 
@@ -329,7 +329,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Invoice creation audit log for id " + invoiceId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Invoice creation audit log for id " + invoiceId);
         return null;
     }
 
@@ -346,7 +346,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Invoice item creation audit log for id " + invoiceItemId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Invoice item creation audit log for id " + invoiceItemId);
         return null;
     }
 
@@ -423,7 +423,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Invoice payment creation audit log for id " + invoicePaymentId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Invoice payment creation audit log for id " + invoicePaymentId);
         return null;
     }
 
@@ -492,7 +492,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find payment creation audit log for id " + paymentId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find payment creation audit log for id " + paymentId);
         return null;
     }
 
@@ -518,7 +518,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Field creation audit log for id " + fieldId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Field creation audit log for id " + fieldId);
         return null;
     }
 
@@ -549,7 +549,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Tag creation audit log for id " + tagId);
+        logService.log(LogService.LOG_DEBUG, "Unable to find Tag creation audit log for id " + tagId);
         return null;
     }
 
