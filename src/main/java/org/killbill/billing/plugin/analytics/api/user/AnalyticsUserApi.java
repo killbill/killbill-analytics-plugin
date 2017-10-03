@@ -107,7 +107,7 @@ public class AnalyticsUserApi {
     }
 
     public void rebuildAnalyticsForAccount(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         logService.log(LogService.LOG_INFO, "Starting Analytics refresh for account " + businessContextFactory.getAccountId());
         // TODO Should we take the account lock?
         allBusinessObjectsDao.update(businessContextFactory);
