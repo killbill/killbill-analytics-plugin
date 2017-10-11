@@ -35,7 +35,6 @@ import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
@@ -104,12 +103,11 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
                                   final CurrencyConversionDao currencyConversionDao,
-                                  final OSGIKillbillLogService logService,
                                   final OSGIKillbillAPI osgiKillbillAPI,
                                   final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                   final Clock clock,
                                   final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws AnalyticsRefreshException {
-        super(currencyConversionDao, logService, osgiKillbillAPI, osgiConfigPropertiesService, clock);
+        super(currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock);
         this.accountId = accountId;
         this.callContext = callContext;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
