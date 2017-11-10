@@ -333,6 +333,11 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         @Override
+        public UUID getAccountId() {
+            return job.getAccountId();
+        }
+
+        @Override
         public UUID getTenantId() {
             return job.getTenantId();
         }

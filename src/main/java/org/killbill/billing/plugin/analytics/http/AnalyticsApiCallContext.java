@@ -31,16 +31,19 @@ public class AnalyticsApiCallContext implements CallContext {
     private final String reason;
     private final String comment;
     private final UUID tenantId;
+    private final UUID accountId;
     private final DateTime now;
 
     public AnalyticsApiCallContext(final String createdBy,
                                    final String reason,
                                    final String comment,
-                                   final UUID tenantId) {
+                                   final UUID tenantId,
+                                   final UUID accountId) {
         this.createdBy = createdBy;
         this.reason = reason;
         this.comment = comment;
         this.tenantId = tenantId;
+        this.accountId = accountId;
 
         this.now = new DateTime(DateTimeZone.UTC);
     }
@@ -83,6 +86,11 @@ public class AnalyticsApiCallContext implements CallContext {
     @Override
     public DateTime getUpdatedDate() {
         return now;
+    }
+
+    @Override
+    public UUID getAccountId() {
+        return accountId;
     }
 
     @Override
