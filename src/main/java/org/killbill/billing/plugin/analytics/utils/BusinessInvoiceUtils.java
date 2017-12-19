@@ -19,6 +19,8 @@ package org.killbill.billing.plugin.analytics.utils;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 
@@ -36,6 +38,11 @@ public class BusinessInvoiceUtils {
             public boolean apply(final InvoiceItem input) {
                 return input.getInvoiceId().equals(invoiceItem.getInvoiceId());
             }
+
+            @Override
+            public boolean test(@Nullable final InvoiceItem input) {
+                return apply(input);
+            }
         });
 
         // All items are recognizable except user generated credit (CBA_ADJ and CREDIT_ADJ on their own invoice)
@@ -52,6 +59,11 @@ public class BusinessInvoiceUtils {
             @Override
             public boolean apply(final InvoiceItem input) {
                 return input.getInvoiceId().equals(invoiceItem.getInvoiceId());
+            }
+
+            @Override
+            public boolean test(@Nullable final InvoiceItem input) {
+                return apply(input);
             }
         });
 

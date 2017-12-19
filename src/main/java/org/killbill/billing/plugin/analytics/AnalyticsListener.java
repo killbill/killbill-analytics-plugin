@@ -18,7 +18,6 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -223,6 +222,11 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                                                                                  @Override
                                                                                  public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
                                                                                      return jobsOverlap(job, notificationEvent);
+                                                                                 }
+
+                                                                                 @Override
+                                                                                 public boolean test(@Nullable final NotificationEventWithMetadata<AnalyticsJob> input) {
+                                                                                     return apply(input);
                                                                                  }
                                                                              }
                                                                             );

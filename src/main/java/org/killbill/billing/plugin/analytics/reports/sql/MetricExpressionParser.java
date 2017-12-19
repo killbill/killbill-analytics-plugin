@@ -29,7 +29,7 @@ import org.jooq.impl.SQLDataType;
 import org.killbill.billing.plugin.analytics.reports.KillBillArithmeticExprLexer;
 import org.killbill.billing.plugin.analytics.reports.KillBillArithmeticExprParser;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 public class MetricExpressionParser {
 
@@ -55,7 +55,7 @@ public class MetricExpressionParser {
         } else if (tree.getType() == KillBillArithmeticExprParser.COLUMNNAME) {
             final Field function = Aggregates.of(tree.getText());
             final Field column = DSL.fieldByName(tree.getText());
-            final Field field = Objects.firstNonNull(function, column);
+            final Field field = MoreObjects.firstNonNull(function, column);
             return new FieldWithMetadata(field, function != null);
         } else {
             boolean hasAggregateFunction = false;

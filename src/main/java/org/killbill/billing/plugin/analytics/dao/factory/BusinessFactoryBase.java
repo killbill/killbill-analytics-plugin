@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import org.joda.time.LocalDate;
 import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
@@ -46,7 +48,6 @@ import org.killbill.billing.invoice.api.InvoicePaymentApi;
 import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
 import org.killbill.billing.payment.api.PaymentApiException;
@@ -75,7 +76,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -105,7 +106,7 @@ public abstract class BusinessFactoryBase {
                                final Clock clock) {
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.clock = clock;
-        this.referenceCurrency = Objects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
+        this.referenceCurrency = MoreObjects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
         this.currencyConversionDao = currencyConversionDao;
     }
 
@@ -290,6 +291,11 @@ public abstract class BusinessFactoryBase {
                                                                   // ...that are for any service but entitlement
                                                                   !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
                                                        }
+
+                                                       @Override
+                                                       public boolean test(@Nullable final SubscriptionEvent input) {
+                                                           return apply(input);
+                                                       }
                                                    }
                                                   );
     }
@@ -393,7 +399,7 @@ public abstract class BusinessFactoryBase {
         try {
             return catalogUserApi.getCatalog(null, context);
         } catch (CatalogApiException e) {
-           throw new AnalyticsRefreshException(e);
+            throw new AnalyticsRefreshException(e);
         }
     }
 

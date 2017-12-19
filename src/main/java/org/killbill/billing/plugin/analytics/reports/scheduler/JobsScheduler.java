@@ -173,6 +173,11 @@ public class JobsScheduler {
                         public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> existingJob) {
                             return existingJob.getEvent().equalsNoRecordId(reportJob);
                         }
+
+                        @Override
+                        public boolean test(@Nullable final NotificationEventWithMetadata<AnalyticsReportJob> input) {
+                            return apply(input);
+                        }
                     }
             );
         }

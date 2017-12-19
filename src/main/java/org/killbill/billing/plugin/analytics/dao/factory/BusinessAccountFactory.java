@@ -19,6 +19,8 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
 
+import javax.annotation.Nullable;
+
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.ProductCategory;
 import org.killbill.billing.entitlement.api.Entitlement.EntitlementState;
@@ -76,6 +78,11 @@ public class BusinessAccountFactory {
         final int nbActiveBundles = Iterables.size(Iterables.<SubscriptionBundle>filter(bundles,
                                                                                         new Predicate<SubscriptionBundle>() {
                                                                                             @Override
+                                                                                            public boolean test(@Nullable final SubscriptionBundle input) {
+                                                                                                return apply(input);
+                                                                                            }
+
+                                                                                            @Override
                                                                                             public boolean apply(final SubscriptionBundle bundle) {
                                                                                                 return Iterables.size(Iterables.<Subscription>filter(bundle.getSubscriptions(),
                                                                                                                                                      new Predicate<Subscription>() {
@@ -85,7 +92,13 @@ public class BusinessAccountFactory {
                                                                                                                                                              return ProductCategory.BASE.equals(subscription.getLastActiveProductCategory()) &&
                                                                                                                                                                     !subscription.getState().equals(EntitlementState.CANCELLED);
                                                                                                                                                          }
+
+                                                                                                                                                         @Override
+                                                                                                                                                         public boolean test(@Nullable final Subscription input) {
+                                                                                                                                                             return apply(input);
+                                                                                                                                                         }
                                                                                                                                                      }
+
                                                                                                                                                     )) > 0;
                                                                                             }
                                                                                         }

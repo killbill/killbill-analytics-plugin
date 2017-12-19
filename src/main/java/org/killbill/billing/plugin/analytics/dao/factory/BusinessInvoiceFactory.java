@@ -186,6 +186,11 @@ public class BusinessInvoiceFactory {
                                                                                   public boolean apply(final InvoiceItem input) {
                                                                                       return input.getId() != null && !input.getId().equals(invoiceItem.getId());
                                                                                   }
+
+                                                                                  @Override
+                                                                                  public boolean test(@Nullable final InvoiceItem input) {
+                                                                                      return apply(input);
+                                                                                  }
                                                                               }
                                                                              );
         return createBusinessInvoiceItem(businessContextFactory,
@@ -219,6 +224,11 @@ public class BusinessInvoiceFactory {
             public boolean apply(final InvoiceItem input) {
                 return invoiceItem.getLinkedItemId() != null && invoiceItem.getLinkedItemId().equals(input.getId());
             }
+
+            @Override
+            public boolean test(@Nullable final InvoiceItem input) {
+                return apply(input);
+            }
         }, null);
 
         SubscriptionBundle bundle = null;
@@ -229,7 +239,6 @@ public class BusinessInvoiceFactory {
         if (bundle == null && linkedInvoiceItem != null && linkedInvoiceItem.getBundleId() != null) {
             bundle = bundles.get(linkedInvoiceItem.getBundleId());
         }
-
 
         final LocalDate subscriptionStartDate = bundle != null ? getSubscriptionStartDate(invoiceItem, bundle) : null;
         Plan plan = null;
@@ -278,6 +287,11 @@ public class BusinessInvoiceFactory {
             @Override
             public boolean apply(final Subscription subscription) {
                 return subscription.getId().equals(invoiceItem.getSubscriptionId());
+            }
+
+            @Override
+            public boolean test(@Nullable final Subscription input) {
+                return apply(input);
             }
         }, null);
         return subscription == null ? null : subscription.getEffectiveStartDate();
