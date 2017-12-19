@@ -71,7 +71,8 @@ import org.killbill.billing.util.tag.ControlTagType;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -90,8 +91,8 @@ public abstract class BusinessFactoryBase {
 
     private static final String ANALYTICS_REFERENCE_CURRENCY_PROPERTY = "org.killbill.billing.plugin.analytics.referenceCurrency";
     private static final Iterable<PluginProperty> PLUGIN_PROPERTIES = ImmutableList.<PluginProperty>of();
+    private static final Logger logger = LoggerFactory.getLogger(BusinessFactoryBase.class);
 
-    protected final OSGIKillbillLogService logService;
     protected final OSGIKillbillAPI osgiKillbillAPI;
     protected final Clock clock;
 
@@ -99,11 +100,9 @@ public abstract class BusinessFactoryBase {
     private final CurrencyConversionDao currencyConversionDao;
 
     public BusinessFactoryBase(final CurrencyConversionDao currencyConversionDao,
-                               final OSGIKillbillLogService logService,
                                final OSGIKillbillAPI osgiKillbillAPI,
                                final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                final Clock clock) {
-        this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.clock = clock;
         this.referenceCurrency = Objects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
@@ -144,7 +143,7 @@ public abstract class BusinessFactoryBase {
         try {
             return accountUserApi.getAccountById(accountId, context);
         } catch (AccountApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving account for id " + accountId, e);
+            logger.warn("Error retrieving account for id " + accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -162,7 +161,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Account creation audit log for id " + accountId);
+        logger.warn("Unable to find Account creation audit log for id " + accountId);
         return null;
     }
 
@@ -209,7 +208,7 @@ public abstract class BusinessFactoryBase {
         try {
             return subscriptionApi.getSubscriptionBundlesForAccountId(accountId, context);
         } catch (SubscriptionApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving bundles for account id " + accountId, e);
+            logger.warn("Error retrieving bundles for account id " + accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -224,7 +223,7 @@ public abstract class BusinessFactoryBase {
             }
             return bundles.get(bundles.size() - 1);
         } catch (SubscriptionApiException e) {
-            logService.log(LogService.LOG_WARNING, "Error retrieving bundles for bundle external key " + bundleExternalKey, e);
+            logger.warn("Error retrieving bundles for bundle external key " + bundleExternalKey, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -242,7 +241,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Bundle creation audit log for id " + bundleId);
+        logger.warn("Unable to find Bundle creation audit log for id " + bundleId);
         return null;
     }
 
@@ -254,7 +253,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Subscription event creation audit log for id " + subscriptionEventId);
+        logger.warn("Unable to find Subscription event creation audit log for id " + subscriptionEventId);
         return null;
     }
 
@@ -307,7 +306,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Blocking state creation audit log for id " + blockingStateId);
+        logger.warn("Unable to find Blocking state creation audit log for id " + blockingStateId);
         return null;
     }
 
@@ -328,7 +327,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Invoice creation audit log for id " + invoiceId);
+        logger.warn("Unable to find Invoice creation audit log for id " + invoiceId);
         return null;
     }
 
@@ -345,7 +344,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Invoice item creation audit log for id " + invoiceItemId);
+        logger.warn("Unable to find Invoice item creation audit log for id " + invoiceItemId);
         return null;
     }
 
@@ -369,7 +368,7 @@ public abstract class BusinessFactoryBase {
             final Catalog catalog = getCatalog(context);
             return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
         } catch (CatalogApiException e) {
-            logService.log(LogService.LOG_INFO, "Unable to retrieve plan for invoice item " + invoiceItem.getId(), e);
+            logger.warn("Unable to retrieve plan for invoice item " + invoiceItem.getId(), e);
             return null;
         }
     }
@@ -380,7 +379,7 @@ public abstract class BusinessFactoryBase {
             // TODO - Inaccurate timing
             return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
         } catch (CatalogApiException e) {
-            logService.log(LogService.LOG_INFO, "Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
+            logger.warn("Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
             return null;
         }
     }
@@ -422,7 +421,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Invoice payment creation audit log for id " + invoicePaymentId);
+        logger.warn("Unable to find Invoice payment creation audit log for id " + invoicePaymentId);
         return null;
     }
 
@@ -444,7 +443,7 @@ public abstract class BusinessFactoryBase {
         } catch (PaymentApiException e) {
             error = e;
             if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
-                logService.log(LogService.LOG_WARNING, e.getMessage() + ". Analytics tables will be missing plugin specific information");
+                logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
 
                 try {
                     return paymentApi.getAccountPayments(accountId, false, false, PLUGIN_PROPERTIES, context);
@@ -454,7 +453,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Error retrieving payments for account id " + accountId, error);
+        logger.warn("Error retrieving payments for account id " + accountId, error);
         throw new AnalyticsRefreshException(error);
     }
 
@@ -467,7 +466,7 @@ public abstract class BusinessFactoryBase {
         } catch (PaymentApiException e) {
             error = e;
             if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
-                logService.log(LogService.LOG_WARNING, e.getMessage() + ". Analytics tables will be missing plugin specific information");
+                logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
 
                 try {
                     return paymentApi.getAccountPaymentMethods(accountId, true, false, PLUGIN_PROPERTIES, context);
@@ -477,7 +476,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Error retrieving payment methods for account id " + accountId, error);
+        logger.warn("Error retrieving payment methods for account id " + accountId, error);
         throw new AnalyticsRefreshException(error);
     }
 
@@ -489,7 +488,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find payment creation audit log for id " + paymentId);
+        logger.warn("Unable to find payment creation audit log for id " + paymentId);
         return null;
     }
 
@@ -515,7 +514,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Field creation audit log for id " + fieldId);
+        logger.warn("Unable to find Field creation audit log for id " + fieldId);
         return null;
     }
 
@@ -546,7 +545,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logService.log(LogService.LOG_WARNING, "Unable to find Tag creation audit log for id " + tagId);
+        logger.warn("Unable to find Tag creation audit log for id " + tagId);
         return null;
     }
 
