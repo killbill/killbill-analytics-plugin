@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -29,7 +30,7 @@ public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
     // jOOQ doesn't seem to be able to retrieve H2 metadata
     @Test(groups = {"mysql", "postgresql"})
     public void testTableRetrieval() throws Exception {
-        final String tableName = "payments_per_day";
+        final String tableName = "payments_per_day_metadata";
         embeddedDB.executeScript(String.format("create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int);", tableName));
 
         final Metadata metadata = new Metadata(Sets.<String>newHashSet(tableName), embeddedDB.getDataSource(), logService);
@@ -42,5 +43,11 @@ public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
         Assert.assertEquals(table.fields()[3].getName(), "state");
         Assert.assertEquals(table.fields()[4].getName(), "amount");
         Assert.assertEquals(table.fields()[5].getName(), "fee");
+    }
+
+    @Test(groups = {"mysql", "postgresql"})
+    public void testTableRetrievalNoReports() throws Exception {
+        final Metadata metadata = new Metadata(Sets.<String>newHashSet(), embeddedDB.getDataSource(), logService);
+        Assert.assertNull(metadata.getTable("payments_per_day"));
     }
 }
