@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -18,6 +19,7 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -60,6 +62,7 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Iterators;
 
 import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS_QUEUE_SERVICE;
 
@@ -198,27 +201,44 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private boolean futureOverlappingJobAlreadyScheduled(final AnalyticsJob newJob, final Long accountRecordId, final Long tenantRecordId) {
         // We don't look at IN_PROCESSING notifications here, as we want to make sure the latest state is refreshed
         final Iterable<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId);
-        final Iterable<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(newJob, futureNotificationForSearchKeys);
-        return scheduledOverlappingJobs.iterator().hasNext();
+        final Iterator<NotificationEventWithMetadata<AnalyticsJob>> iterator = futureNotificationForSearchKeys.iterator();
+        try {
+            final Iterator<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(newJob, iterator);
+            return scheduledOverlappingJobs.hasNext();
+        } finally {
+            // Go through all results to close the connection
+            while (iterator.hasNext()) {
+                iterator.next();
+            }
+        }
     }
 
     // Should this IN_PROCESSING job actually run?
     private boolean shouldRun(final AnalyticsJob inProcessingJob, final UUID existingJobUserToken, final Long accountRecordId, final Long tenantRecordId) {
         final Iterable<NotificationEventWithMetadata<AnalyticsJob>> futureNotificationForSearchKeys = jobQueue.getFutureOrInProcessingNotificationForSearchKeys(accountRecordId, tenantRecordId);
-        final Iterable<NotificationEventWithMetadata<AnalyticsJob>> scheduledOverlappingJobs = findScheduledOverlappingJobs(inProcessingJob, futureNotificationForSearchKeys);
+        final Iterator<NotificationEventWithMetadata<AnalyticsJob>> jobsIterator = futureNotificationForSearchKeys.iterator();
+        final Iterator<NotificationEventWithMetadata<AnalyticsJob>> iterator = findScheduledOverlappingJobs(inProcessingJob, jobsIterator);
 
-        NotificationEventWithMetadata runningJobToRun = null;
-        for (final NotificationEventWithMetadata<AnalyticsJob> runningJob : scheduledOverlappingJobs) {
-            if (runningJobToRun == null || runningJob.getRecordId() > runningJobToRun.getRecordId()) {
-                runningJobToRun = runningJob;
+        try {
+            NotificationEventWithMetadata runningJobToRun = null;
+            while (iterator.hasNext()) {
+                final NotificationEventWithMetadata<AnalyticsJob> runningJob = iterator.next();
+                if (runningJobToRun == null || runningJob.getRecordId() > runningJobToRun.getRecordId()) {
+                    runningJobToRun = runningJob;
+                }
+            }
+
+            return runningJobToRun == null || runningJobToRun.getFutureUserToken().equals(existingJobUserToken);
+        } finally {
+            // Go through all results to close the connection
+            while (iterator.hasNext()) {
+                iterator.next();
             }
         }
-
-        return runningJobToRun == null || runningJobToRun.getFutureUserToken().equals(existingJobUserToken);
     }
 
-    private Iterable<NotificationEventWithMetadata<AnalyticsJob>> findScheduledOverlappingJobs(final AnalyticsJob job, final Iterable<NotificationEventWithMetadata<AnalyticsJob>> existingScheduledJobs) {
-        return Iterables.<NotificationEventWithMetadata<AnalyticsJob>>filter(existingScheduledJobs,
+    private Iterator<NotificationEventWithMetadata<AnalyticsJob>> findScheduledOverlappingJobs(final AnalyticsJob job, final Iterator<NotificationEventWithMetadata<AnalyticsJob>> existingScheduledJobs) {
+        return Iterators.<NotificationEventWithMetadata<AnalyticsJob>>filter(existingScheduledJobs,
                                                                              new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
                                                                                  @Override
                                                                                  public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {

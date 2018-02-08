@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,6 +21,7 @@ package org.killbill.billing.plugin.analytics.reports.scheduler;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -105,8 +107,8 @@ public class JobsScheduler {
             }
         };
         jobQueue = notificationQueueService.createNotificationQueue(ANALYTICS_QUEUE_SERVICE,
-                "reports-jobs",
-                notificationQueueHandler);
+                                                                    "reports-jobs",
+                                                                    notificationQueueHandler);
     }
 
     public synchronized void start() {
@@ -134,15 +136,33 @@ public class JobsScheduler {
 
     public void unSchedule(final ReportsConfigurationModelDao report, final Connection connection) {
         final AnalyticsReportJob eventJson = new AnalyticsReportJob(report);
-        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotificationsForReportJob(eventJson, connection)) {
-            jobQueue.removeNotificationFromTransaction(connection, notification.getRecordId());
+        final Iterator<NotificationEventWithMetadata<AnalyticsReportJob>> iterator = getFutureNotificationsForReportJob(eventJson, connection).iterator();
+        try {
+            while (iterator.hasNext()) {
+                final NotificationEventWithMetadata<AnalyticsReportJob> notification = iterator.next();
+                jobQueue.removeNotificationFromTransaction(connection, notification.getRecordId());
+            }
+        } finally {
+            // Go through all results to close the connection
+            while (iterator.hasNext()) {
+                iterator.next();
+            }
         }
     }
 
     public List<AnalyticsReportJob> schedules() {
         final List<AnalyticsReportJob> schedules = new LinkedList<AnalyticsReportJob>();
-        for (final NotificationEventWithMetadata<AnalyticsReportJob> notification : getFutureNotifications(null)) {
-            schedules.add(notification.getEvent());
+        final Iterator<NotificationEventWithMetadata<AnalyticsReportJob>> iterator = getFutureNotifications(null).iterator();
+        try {
+            while (iterator.hasNext()) {
+                final NotificationEventWithMetadata<AnalyticsReportJob> notification = iterator.next();
+                schedules.add(notification.getEvent());
+            }
+        } finally {
+            // Go through all results to close the connection
+            while (iterator.hasNext()) {
+                iterator.next();
+            }
         }
         return ANALYTICS_REPORT_JOB_ORDERING.immutableSortedCopy(schedules);
     }
@@ -168,19 +188,21 @@ public class JobsScheduler {
         } else {
             // Slow search path
             return Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>filter(getFutureNotifications(connection),
-                    new Predicate<NotificationEventWithMetadata<AnalyticsReportJob>>() {
-                        @Override
-                        public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> existingJob) {
-                            return existingJob.getEvent().equalsNoRecordId(reportJob);
-                        }
-                    }
-            );
+                                                                                       new Predicate<NotificationEventWithMetadata<AnalyticsReportJob>>() {
+                                                                                           @Override
+                                                                                           public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> existingJob) {
+                                                                                               return existingJob.getEvent().equalsNoRecordId(reportJob);
+                                                                                           }
+                                                                                       }
+                                                                                      );
         }
     }
 
     private void schedule(final AnalyticsReportJob eventJson, @Nullable final Connection connection) {
         // Verify we don't already have a job for that report
-        if (getFutureNotificationsForReportJob(eventJson, connection).iterator().hasNext()) {
+        // This will go through all results to close the connection
+        final int nbFutureNotifications = Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>size(getFutureNotificationsForReportJob(eventJson, connection));
+        if (nbFutureNotifications > 0) {
             logService.log(LogService.LOG_DEBUG, "Skipping already present job for report " + eventJson.toString());
             return;
         }
