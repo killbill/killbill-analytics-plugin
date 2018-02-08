@@ -173,10 +173,14 @@
         <dependency>
             <groupId>org.kill-bill.billing.plugin.java</groupId>
             <artifactId>killbill-base-plugin</artifactId>
+            <!-- Pre 1.2.0 for 0.18 -->
+            <version>1.1.2</version>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing.plugin.java</groupId>
             <artifactId>killbill-base-plugin</artifactId>
+            <!-- Pre 1.2.0 for 0.18 -->
+            <version>1.1.2</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
