@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -47,11 +48,15 @@ import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableMap;
 
 public class AnalyticsActivator extends KillbillActivatorBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(AnalyticsActivator.class);
 
     public static final String PLUGIN_NAME = "killbill-analytics";
     public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
@@ -75,6 +80,13 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final NotificationQueueConfig config = new ConfigurationObjectFactory(configProperties.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                       ImmutableMap.<String, String>of("instanceName", "analytics"));
+        if ("notifications".equals(config.getTableName())) {
+            logger.warn("Analytics plugin mis-configured: you are probably missing the property org.killbill.notificationq.analytics.tableName=analytics_notifications");
+        }
+        if ("notifications_history".equals(config.getHistoryTableName())) {
+            logger.warn("Analytics plugin mis-configured: you are probably missing the property org.killbill.notificationq.analytics.historyTableName=analytics_notifications_history");
+        }
+
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));

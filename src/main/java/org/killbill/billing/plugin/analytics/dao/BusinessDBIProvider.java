@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -56,6 +56,7 @@ import org.killbill.commons.jdbi.mapper.UUIDMapper;
 import org.killbill.commons.jdbi.notification.DatabaseTransactionNotificationApi;
 import org.killbill.commons.jdbi.transaction.NotificationTransactionHandler;
 import org.killbill.commons.jdbi.transaction.RestartTransactionRunner;
+import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.skife.jdbi.v2.Binding;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.StatementContext;
@@ -71,6 +72,8 @@ public class BusinessDBIProvider {
 
     public static DBI get(final DataSource dataSource) {
         final DBI dbi = new DBI(dataSource);
+
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
 
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessAccountFieldModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusinessAccountModelDao.class));

@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,7 +21,6 @@ package org.killbill.billing.plugin.analytics.reports.sql;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sql.DataSource;
 
+import org.jooq.ConnectionCallable;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Meta;
@@ -39,7 +40,6 @@ import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.jooq.impl.DataSourceConnectionProvider;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.osgi.service.log.LogService;
@@ -52,7 +52,6 @@ public class Metadata {
     private static final int QUERY_TIMEOUT_SECONDS = 30;
 
     private final Set<String> reportsTables;
-    private final KludgeDataSourceConnectionProvider connectionProvider;
     private final DSLContext context;
     private final OSGIKillbillLogService logService;
 
@@ -66,8 +65,7 @@ public class Metadata {
 
     public Metadata(final Set<String> reportsTables, final DataSource dataSource, final SQLDialect sqlDialect, final OSGIKillbillLogService logService) {
         this.reportsTables = reportsTables;
-        this.connectionProvider = new KludgeDataSourceConnectionProvider(dataSource);
-        this.context = DSL.using(connectionProvider, sqlDialect);
+        this.context = DSL.using(dataSource, sqlDialect);
         this.logService = logService;
         primeCaches();
     }
@@ -82,38 +80,32 @@ public class Metadata {
         return table == null ? null : new TableMetadata(table, distinctValuesCache.get(tableName));
     }
 
-    private synchronized Table getTable(final String schemaName, final String tableName) throws SQLException {
+    private Table getTable(final String schemaName, final String tableName) throws SQLException {
         if (!tablesCache.isEmpty()) {
             return tablesCache.get(tableName);
         }
 
-        try {
-            // Open the connection
-            final Meta meta = context.meta();
+        final Meta meta = context.meta();
 
-            Schema analyticsSchema = null;
-            for (final Schema schema : meta.getSchemas()) {
-                if (schemaName.equalsIgnoreCase(schema.getName())) {
-                    analyticsSchema = schema;
-                    break;
-                }
+        Schema analyticsSchema = null;
+        for (final Schema schema : meta.getSchemas()) {
+            if (schemaName.equalsIgnoreCase(schema.getName())) {
+                analyticsSchema = schema;
+                break;
             }
+        }
 
-            if (analyticsSchema == null) {
-                return null;
-            }
+        if (analyticsSchema == null) {
+            return null;
+        }
 
-            // We still need the connection alive here!
-            for (final Table foundTable : analyticsSchema.getTables()) {
-                // Skip all but reports tables (e.g. skip Kill Bill tables if the database is shared)
-                if (reportsTables.contains(foundTable.getName())) {
-                    logService.log(LogService.LOG_INFO, "Caching metadata for table " + foundTable.getName());
-                    tablesCache.put(foundTable.getName(), foundTable);
-                    cacheDistinctValues(foundTable);
-                }
+        for (final Table foundTable : analyticsSchema.getTables()) {
+            // Skip all but reports tables (e.g. skip Kill Bill tables if the database is shared)
+            if (reportsTables.contains(foundTable.getName())) {
+                logService.log(LogService.LOG_INFO, "Caching metadata for table " + foundTable.getName());
+                tablesCache.put(foundTable.getName(), foundTable);
+                cacheDistinctValues(foundTable);
             }
-        } finally {
-            connectionProvider.releaseAll();
         }
 
         return tablesCache.get(tableName);
@@ -171,61 +163,20 @@ public class Metadata {
             // Maybe com.mysql.jdbc.exceptions.MySQLTimeoutException?
             logService.log(LogService.LOG_INFO, "Skipping column: " + e.getLocalizedMessage());
             logService.log(LogService.LOG_DEBUG, "Got exception trying to cache column " + tableName + "." + columnName, e);
-        } finally {
-            connectionProvider.releaseLast();
         }
     }
 
-    private String getSchemaName() throws SQLException {
+    private String getSchemaName() {
         if (schemaName == null) {
-            try {
-                final Connection connection = connectionProvider.acquire();
-                schemaName = connection.getCatalog();
-            } finally {
-                connectionProvider.releaseAll();
-            }
+            schemaName = context.connectionResult(new ConnectionCallable<String>() {
+                @Override
+                public String run(final Connection connection) throws Exception {
+                    return connection.getCatalog();
+                }
+            });
         }
 
         return schemaName;
-    }
-
-    // TODO Work around a bug in jOOQ where the connection is closed too early
-    private static class KludgeDataSourceConnectionProvider extends DataSourceConnectionProvider {
-
-        private final List<Connection> connections = new LinkedList<Connection>();
-
-        public KludgeDataSourceConnectionProvider(final DataSource dataSource) {
-            super(dataSource);
-        }
-
-        @Override
-        public void release(final Connection connection) {
-            connections.add(connection);
-            // No-op, we'll do it ourselves
-        }
-
-        public void releaseLast() {
-            final int lastIndex = connections.size() - 1;
-            releaseConnection(connections.get(lastIndex));
-            connections.remove(lastIndex);
-        }
-
-        public void releaseAll() {
-            final Iterator<Connection> iterator = connections.iterator();
-
-            while (iterator.hasNext()) {
-                releaseConnection(iterator.next());
-                iterator.remove();
-            }
-        }
-
-        private void releaseConnection(Connection connection) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                throw new DataAccessException("Error closing connection " + connection, e);
-            }
-        }
     }
 
     private void primeCaches() {
