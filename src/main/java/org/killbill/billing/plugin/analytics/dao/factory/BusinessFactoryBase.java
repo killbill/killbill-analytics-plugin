@@ -361,7 +361,7 @@ public abstract class BusinessFactoryBase {
 
     protected Collection<Invoice> getInvoicesByAccountId(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
         final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
-        return invoiceUserApi.getInvoicesByAccount(accountId, false, context);
+        return invoiceUserApi.getInvoicesByAccount(accountId, false, false, context);
     }
 
     protected BigDecimal getAccountBalance(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {

@@ -20,7 +20,7 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.141.28</version>
+        <version>0.141.33</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -47,7 +47,6 @@
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
-            <version>1.18</version>
         </dependency>
         <dependency>
             <groupId>com.bpodgursky</groupId>
@@ -136,10 +135,6 @@
             <artifactId>stringtemplate</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>ST4</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.bgee.log4jdbc-log4j2</groupId>
             <artifactId>log4jdbc-log4j2-jdbc4</artifactId>
             <scope>test</scope>
@@ -221,8 +216,18 @@
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-embeddeddb-h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-mysql</artifactId>
             <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-embeddeddb-mysql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
