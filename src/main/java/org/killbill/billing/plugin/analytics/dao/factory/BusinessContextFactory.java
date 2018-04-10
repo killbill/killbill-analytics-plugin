@@ -26,6 +26,7 @@ import java.util.UUID;
 import org.joda.time.LocalDate;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
+import org.killbill.billing.catalog.api.Catalog;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -99,6 +100,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Others
     private Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
     private Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
+    private Catalog catalog;
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
@@ -392,10 +394,17 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Simple pass-through
 
     public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate) throws AnalyticsRefreshException {
-        return getPlanFromInvoiceItem(invoiceItem, subscriptionStartDate, callContext);
+        return getPlanFromInvoiceItem(invoiceItem, subscriptionStartDate, getCatalog());
     }
 
     public PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate) throws AnalyticsRefreshException {
-        return getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate, callContext);
+        return getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate, getCatalog());
+    }
+
+    private Catalog getCatalog() throws AnalyticsRefreshException {
+        if (catalog == null) {
+            catalog = getCatalog(callContext);
+        }
+        return catalog;
     }
 }

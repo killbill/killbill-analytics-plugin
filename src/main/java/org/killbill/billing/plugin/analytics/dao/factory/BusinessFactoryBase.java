@@ -369,22 +369,20 @@ public abstract class BusinessFactoryBase {
         return invoiceUserApi.getAccountBalance(accountId, context);
     }
 
-    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final TenantContext context) throws AnalyticsRefreshException {
+    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final Catalog catalog) throws AnalyticsRefreshException {
         try {
-            final Catalog catalog = getCatalog(context);
             return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
-        } catch (CatalogApiException e) {
+        } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve plan for invoice item " + invoiceItem.getId(), e);
             return null;
         }
     }
 
-    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final TenantContext context) throws AnalyticsRefreshException {
+    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final Catalog catalog) throws AnalyticsRefreshException {
         try {
-            final Catalog catalog = getCatalog(context);
             // TODO - Inaccurate timing
             return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
-        } catch (CatalogApiException e) {
+        } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
             return null;
         }
