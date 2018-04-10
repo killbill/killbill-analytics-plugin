@@ -1,4 +1,5 @@
 5.0.4
+    Performance: cache catalog information
     performance: cache Catalog
     Update to killbill-oss-parent 0.141.54
 
