@@ -401,7 +401,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate, getCatalog());
     }
 
-    private Catalog getCatalog() throws AnalyticsRefreshException {
+    private synchronized Catalog getCatalog() throws AnalyticsRefreshException {
         if (catalog == null) {
             catalog = getCatalog(callContext);
         }
