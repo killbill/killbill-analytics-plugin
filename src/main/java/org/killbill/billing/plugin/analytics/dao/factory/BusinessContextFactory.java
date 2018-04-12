@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import org.joda.time.LocalDate;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
@@ -51,6 +53,10 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
 
@@ -191,7 +197,34 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public synchronized Iterable<SubscriptionEvent> getAccountBlockingStates() throws AnalyticsRefreshException {
         if (accountBlockingStates == null) {
-            accountBlockingStates = getBlockingHistory(accountId, callContext);
+            // Find all subscription events for that account
+            final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(getAccountBundles(),
+                                                                                                                                                                        new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
+                                                                                                                                                                            @Override
+                                                                                                                                                                            public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
+                                                                                                                                                                                return bundle.getTimeline().getSubscriptionEvents();
+                                                                                                                                                                            }
+                                                                                                                                                                        }
+                                                                                                                                                                       ));
+
+            // Filter all service state changes
+            accountBlockingStates = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
+                                                                        new Predicate<SubscriptionEvent>() {
+                                                                            @Override
+                                                                            public boolean apply(final SubscriptionEvent event) {
+                                                                                return event.getSubscriptionEventType() != null &&
+                                                                                       // We want events coming from the blocking states table...
+                                                                                       ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
+                                                                                       // ...that are for any service but entitlement
+                                                                                       !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
+                                                                            }
+
+                                                                            @Override
+                                                                            public boolean test(@Nullable final SubscriptionEvent input) {
+                                                                                return apply(input);
+                                                                            }
+                                                                        }
+                                                                       );
         }
         return accountBlockingStates;
     }
