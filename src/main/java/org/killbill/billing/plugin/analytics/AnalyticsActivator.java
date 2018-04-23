@@ -94,19 +94,19 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI, logService);
         final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
         analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
+        analyticsListener = new AnalyticsListener(logService, roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
 
         jobsScheduler = new JobsScheduler(logService, dataSource, killbillClock, notificationQueueService);
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final EmbeddedDB.DBEngine dbEngine = getDbEngine();
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
-        reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
+        reportsUserApi = new ReportsUserApi(logService, roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);
