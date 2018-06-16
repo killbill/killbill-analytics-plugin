@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2017 Groupon, Inc
- * Copyright 2014-2017 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -31,11 +31,9 @@ import java.util.concurrent.ExecutorCompletionService;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
-import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
@@ -135,9 +133,9 @@ public class BusinessInvoiceFactory {
                 if (businessInvoiceItemModelDao != null) {
                     businessInvoiceItemsForInvoiceId.get(businessInvoiceItemModelDao.getInvoiceId()).add(businessInvoiceItemModelDao);
                 }
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new AnalyticsRefreshException(e);
-            } catch (ExecutionException e) {
+            } catch (final ExecutionException e) {
                 throw new AnalyticsRefreshException(e);
             }
         }
@@ -240,29 +238,20 @@ public class BusinessInvoiceFactory {
             bundle = bundles.get(linkedInvoiceItem.getBundleId());
         }
 
-        final LocalDate subscriptionStartDate = bundle != null ? getSubscriptionStartDate(invoiceItem, bundle) : null;
         Plan plan = null;
         if (Strings.emptyToNull(invoiceItem.getPlanName()) != null) {
-            if (subscriptionStartDate != null) {
-                plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem, subscriptionStartDate);
-            }
+            plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem);
         }
         if (plan == null && linkedInvoiceItem != null && Strings.emptyToNull(linkedInvoiceItem.getPlanName()) != null) {
-            if (subscriptionStartDate != null) {
-                plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate);
-            }
+            plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem);
         }
 
         PlanPhase planPhase = null;
         if (invoiceItem.getSubscriptionId() != null && Strings.emptyToNull(invoiceItem.getPhaseName()) != null && bundle != null) {
-            if (subscriptionStartDate != null) {
-                planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate);
-            }
+            planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(invoiceItem);
         }
         if (planPhase == null && linkedInvoiceItem != null && linkedInvoiceItem.getSubscriptionId() != null && Strings.emptyToNull(linkedInvoiceItem.getPhaseName()) != null && bundle != null) {
-            if (subscriptionStartDate != null) {
-                planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(linkedInvoiceItem, subscriptionStartDate);
-            }
+            planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(linkedInvoiceItem);
         }
 
         final Long invoiceItemRecordId = invoiceItem.getId() != null ? businessContextFactory.getInvoiceItemRecordId(invoiceItem.getId()) : null;
@@ -280,21 +269,6 @@ public class BusinessInvoiceFactory {
                                          accountRecordId,
                                          tenantRecordId,
                                          reportGroup);
-    }
-
-    private LocalDate getSubscriptionStartDate(final InvoiceItem invoiceItem, final SubscriptionBundle bundle) {
-        final Subscription subscription = Iterables.find(bundle.getSubscriptions(), new Predicate<Subscription>() {
-            @Override
-            public boolean apply(final Subscription subscription) {
-                return subscription.getId().equals(invoiceItem.getSubscriptionId());
-            }
-
-            @Override
-            public boolean test(@Nullable final Subscription input) {
-                return apply(input);
-            }
-        }, null);
-        return subscription == null ? null : subscription.getEffectiveStartDate();
     }
 
     @VisibleForTesting

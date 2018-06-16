@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.joda.time.LocalDate;
 import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
@@ -327,19 +326,25 @@ public abstract class BusinessFactoryBase {
         return invoiceUserApi.getAccountBalance(accountId, context);
     }
 
-    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final Catalog catalog) throws AnalyticsRefreshException {
+    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final Catalog catalog) throws AnalyticsRefreshException {
         try {
-            return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
+            // Find the catalog when the invoice item was created (same logic as InvoiceItemFactory)
+            return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getCreatedDate());
         } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve plan for invoice item " + invoiceItem.getId(), e);
             return null;
         }
     }
 
-    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final Catalog catalog) throws AnalyticsRefreshException {
+    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final Catalog catalog) throws AnalyticsRefreshException {
+        // Find the phase via the plan (same implementation logic as Catalog.findPhase, but without having to pass the subscription start date)
+        final Plan plan = getPlanFromInvoiceItem(invoiceItem, catalog);
+        if (plan == null) {
+            return null;
+        }
+
         try {
-            // TODO - Inaccurate timing
-            return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
+            return plan.findPhase(invoiceItem.getPhaseName());
         } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
             return null;
