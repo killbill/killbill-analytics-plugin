@@ -1,4 +1,9 @@
-5.0.7
+5.1.1
+    Fix catalog APIs invocation
+    Add healthcheck
+    Update to killbill-oss-parent 0.141.85
+
+5.1.0
     Update base pom.xml
 
 5.0.6

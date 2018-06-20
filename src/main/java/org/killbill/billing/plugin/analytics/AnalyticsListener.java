@@ -157,6 +157,10 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         jobQueue.stopQueue();
     }
 
+    public boolean isStarted() {
+        return jobQueue.isStarted();
+    }
+
     @Override
     public void handleKillbillEvent(final ExtBusEvent killbillEvent) {
         // Ignore non account-specific events (e.g. TENANT_CONFIG_CHANGE)
