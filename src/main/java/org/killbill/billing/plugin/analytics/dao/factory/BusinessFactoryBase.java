@@ -358,7 +358,7 @@ public abstract class BusinessFactoryBase {
     protected Catalog getCatalog(final TenantContext context) throws AnalyticsRefreshException {
         final CatalogUserApi catalogUserApi = getCatalogUserApi();
         try {
-            return catalogUserApi.getCatalog(null, context);
+            return catalogUserApi.getCatalog(null, null, context);
         } catch (CatalogApiException e) {
             throw new AnalyticsRefreshException(e);
         }
