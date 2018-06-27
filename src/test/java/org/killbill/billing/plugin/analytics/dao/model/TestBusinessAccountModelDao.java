@@ -106,7 +106,6 @@ public class TestBusinessAccountModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(accountModelDao.getPostalCode(), account.getPostalCode());
         Assert.assertEquals(accountModelDao.getPhone(), account.getPhone());
         Assert.assertEquals(accountModelDao.getMigrated(), account.isMigrated());
-        Assert.assertEquals(accountModelDao.getNotifiedForInvoices(), account.isNotifiedForInvoices());
         Assert.assertEquals(accountModelDao.getNbActiveBundles(), (Integer) 3);
     }
 
