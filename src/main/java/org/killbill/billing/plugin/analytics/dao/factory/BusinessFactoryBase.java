@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -24,9 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
-import org.joda.time.LocalDate;
 import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
@@ -40,14 +38,13 @@ import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
-import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
-import org.killbill.billing.invoice.api.InvoicePaymentApi;
 import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
+import org.killbill.billing.payment.api.InvoicePaymentApi;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
 import org.killbill.billing.payment.api.PaymentApiException;
@@ -75,12 +72,9 @@ import org.killbill.clock.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 /**
  * Wrapper around Kill Bill APIs
@@ -264,43 +258,6 @@ public abstract class BusinessFactoryBase {
     }
 
     //
-    // OVERDUE
-    //
-
-    protected Iterable<SubscriptionEvent> getBlockingHistory(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final List<SubscriptionBundle> bundles = getSubscriptionBundlesForAccount(accountId, context);
-
-        // Find all subscription events for that account
-        final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(bundles,
-                                                                                                                                                                    new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
-                                                                                                                                                                        @Override
-                                                                                                                                                                        public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
-                                                                                                                                                                            return bundle.getTimeline().getSubscriptionEvents();
-                                                                                                                                                                        }
-                                                                                                                                                                    }
-                                                                                                                                                                   ));
-
-        // Filter all service state changes
-        return Iterables.<SubscriptionEvent>filter(subscriptionEvents,
-                                                   new Predicate<SubscriptionEvent>() {
-                                                       @Override
-                                                       public boolean apply(final SubscriptionEvent event) {
-                                                           return event.getSubscriptionEventType() != null &&
-                                                                  // We want events coming from the blocking states table...
-                                                                  ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
-                                                                  // ...that are for any service but entitlement
-                                                                  !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
-                                                       }
-
-                                                       @Override
-                                                       public boolean test(@Nullable final SubscriptionEvent input) {
-                                                           return apply(input);
-                                                       }
-                                                   }
-                                                  );
-    }
-
-    //
     // BLOCKING STATES
     //
 
@@ -369,22 +326,26 @@ public abstract class BusinessFactoryBase {
         return invoiceUserApi.getAccountBalance(accountId, context);
     }
 
-    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final TenantContext context) throws AnalyticsRefreshException {
+    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final Catalog catalog) throws AnalyticsRefreshException {
         try {
-            final Catalog catalog = getCatalog(context);
-            return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
-        } catch (CatalogApiException e) {
+            // Find the catalog when the invoice item was created (same logic as InvoiceItemFactory)
+            return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getCreatedDate());
+        } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve plan for invoice item " + invoiceItem.getId(), e);
             return null;
         }
     }
 
-    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate, final TenantContext context) throws AnalyticsRefreshException {
+    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final Catalog catalog) throws AnalyticsRefreshException {
+        // Find the phase via the plan (same implementation logic as Catalog.findPhase, but without having to pass the subscription start date)
+        final Plan plan = getPlanFromInvoiceItem(invoiceItem, catalog);
+        if (plan == null) {
+            return null;
+        }
+
         try {
-            final Catalog catalog = getCatalog(context);
-            // TODO - Inaccurate timing
-            return catalog.findPhase(invoiceItem.getPhaseName(), invoiceItem.getStartDate().toDateTimeAtStartOfDay(), subscriptionStartDate.toDateTimeAtStartOfDay());
-        } catch (CatalogApiException e) {
+            return plan.findPhase(invoiceItem.getPhaseName());
+        } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
             return null;
         }
@@ -397,7 +358,7 @@ public abstract class BusinessFactoryBase {
     protected Catalog getCatalog(final TenantContext context) throws AnalyticsRefreshException {
         final CatalogUserApi catalogUserApi = getCatalogUserApi();
         try {
-            return catalogUserApi.getCatalog(null, context);
+            return catalogUserApi.getCatalog(null, null, context);
         } catch (CatalogApiException e) {
             throw new AnalyticsRefreshException(e);
         }

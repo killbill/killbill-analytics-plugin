@@ -20,11 +20,11 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.141.49</version>
+        <version>0.141.90</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
-    <version>5.0.4-SNAPSHOT</version>
+    <version>5.1.3-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Kill Bill OSGI Analytics bundle</name>
     <description>Kill Bill Analytics plugin</description>
@@ -41,7 +41,7 @@
     <properties>
         <!-- More recent versions than the core (JDK1.8+) -->
         <guava.version>21.0</guava.version>
-        <jackson.version>2.9.2</jackson.version>
+        <jackson.version>2.9.5</jackson.version>
     </properties>
     <dependencies>
         <dependency>
