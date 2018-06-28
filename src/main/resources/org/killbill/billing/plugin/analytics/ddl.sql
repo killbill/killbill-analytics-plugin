@@ -130,7 +130,6 @@ create table analytics_accounts (
 , postal_code varchar(16) default null
 , phone varchar(25) default null
 , migrated bool default false
-, notified_for_invoices boolean default null
 , balance numeric(10, 4) default 0
 , converted_balance numeric(10, 4) default null
 , oldest_unpaid_invoice_date date default null

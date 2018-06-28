@@ -260,7 +260,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(account.getCountry()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(account.getPhone()).thenReturn(UUID.randomUUID().toString().substring(0, 25));
         Mockito.when(account.isMigrated()).thenReturn(true);
-        Mockito.when(account.isNotifiedForInvoices()).thenReturn(true);
         Mockito.when(account.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 47, DateTimeZone.UTC));
         Mockito.when(account.getUpdatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 48, DateTimeZone.UTC));
         final UUID accountId = account.getId();
