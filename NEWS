@@ -1,4 +1,5 @@
 5.1.3
+    Cleanup unused Account#isNotifiedForInvoices field
     Update to killbill-oss-parent 0.141.94
 
 5.1.2
