@@ -40,6 +40,10 @@
 5.0.0
     Initial release for Kill Bill 0.19.x
 
+4.2.5
+    Update to killbill-oss-parent 0.140.53
+    Fix potential JDBC leaks
+
 4.2.4
     Remove use of logService for BusinessContextFactory
 
