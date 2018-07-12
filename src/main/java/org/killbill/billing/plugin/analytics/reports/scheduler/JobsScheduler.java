@@ -124,6 +124,10 @@ public class JobsScheduler {
         jobQueue.stopQueue();
     }
 
+    public boolean isStarted() {
+        return jobQueue.isStarted();
+    }
+
     public void scheduleNow(final ReportsConfigurationModelDao report) {
         final AnalyticsReportJob eventJson = new AnalyticsReportJob(report);
         schedule(eventJson, clock.getUTCNow(), null);

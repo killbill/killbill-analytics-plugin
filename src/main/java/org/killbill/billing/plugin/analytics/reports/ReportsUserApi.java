@@ -36,7 +36,6 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.joda.time.format.ISODateTimeFormat;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
@@ -66,7 +65,7 @@ import org.skife.jdbi.v2.IDBI;
 import org.skife.jdbi.v2.tweak.HandleCallback;
 
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
@@ -369,6 +368,11 @@ public class ReportsUserApi {
             public boolean apply(final XY xy) {
                 return xy.getxDate().compareTo(curDate) == 0;
             }
+
+            @Override
+            public boolean test(@Nullable final XY input) {
+                return apply(input);
+            }
         }).orNull();
 
         if (valueForCurrentDate == null) {
@@ -471,7 +475,7 @@ public class ReportsUserApi {
                     for (final String column : row.keySet()) {
                         if (isMetric(column, reportSpecification)) {
                             // Create a unique name for that result set
-                            final String seriesName = Objects.firstNonNull(reportSpecification.getLegend(), column) + (legendWithDimensions == null ? "" : (": " + legendWithDimensions));
+                            final String seriesName = MoreObjects.firstNonNull(reportSpecification.getLegend(), column) + (legendWithDimensions == null ? "" : (": " + legendWithDimensions));
                             if (timeSeries.get(seriesName) == null) {
                                 timeSeries.put(seriesName, new LinkedList<XY>());
                             }

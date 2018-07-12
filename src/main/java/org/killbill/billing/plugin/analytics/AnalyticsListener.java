@@ -20,7 +20,6 @@ package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -34,6 +33,7 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
+import org.killbill.billing.plugin.analytics.AnalyticsJobHierarchy.Group;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountDao;
@@ -157,6 +157,10 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         jobQueue.stopQueue();
     }
 
+    public boolean isStarted() {
+        return jobQueue.isStarted();
+    }
+
     @Override
     public void handleKillbillEvent(final ExtBusEvent killbillEvent) {
         // Ignore non account-specific events (e.g. TENANT_CONFIG_CHANGE)
@@ -266,8 +270,9 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         final CallContext callContext = new AnalyticsCallContext(job, clock);
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
 
-        logService.log(LogService.LOG_INFO, "Refreshing Analytics data for account " + businessContextFactory.getAccountId());
-        switch (AnalyticsJobHierarchy.fromEventType(job.getEventType())) {
+        final Group group = AnalyticsJobHierarchy.fromEventType(job.getEventType());
+        logService.log(LogService.LOG_INFO, "Starting " + group + " Analytics refresh for account " + businessContextFactory.getAccountId());
+        switch (group) {
             case ALL:
                 allBusinessObjectsDao.update(businessContextFactory);
                 break;
@@ -287,6 +292,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
             default:
                 break;
         }
+        logService.log(LogService.LOG_INFO, "Finished Analytics refresh for account " + businessContextFactory.getAccountId());
     }
 
     private DateTime computeFutureNotificationTime() {
@@ -350,6 +356,11 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         @Override
         public DateTime getUpdatedDate() {
             return now;
+        }
+
+        @Override
+        public UUID getAccountId() {
+            return job.getAccountId();
         }
 
         @Override

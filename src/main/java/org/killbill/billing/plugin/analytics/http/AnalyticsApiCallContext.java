@@ -86,6 +86,11 @@ public class AnalyticsApiCallContext implements CallContext {
     }
 
     @Override
+    public UUID getAccountId() {
+        return null;
+    }
+
+    @Override
     public UUID getTenantId() {
         return tenantId;
     }

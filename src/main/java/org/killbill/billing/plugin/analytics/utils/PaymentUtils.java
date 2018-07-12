@@ -79,9 +79,13 @@ public class PaymentUtils {
                                                             }
                                                             return false;
                                                         }
+
+                                                        @Override
+                                                        public boolean test(@Nullable final PaymentTransaction input) {
+                                                            return apply(input);
+                                                        }
                                                     });
     }
-
 
     public static String getPropertyValue(@Nullable final Iterable<PluginProperty> properties, final String key) {
         if (properties == null) {
@@ -92,6 +96,11 @@ public class PaymentUtils {
                                                                                         @Override
                                                                                         public boolean apply(@Nullable final PluginProperty pluginProperty) {
                                                                                             return pluginProperty != null && key.equals(pluginProperty.getKey());
+                                                                                        }
+
+                                                                                        @Override
+                                                                                        public boolean test(@Nullable final PluginProperty input) {
+                                                                                            return apply(input);
                                                                                         }
                                                                                     }).orNull();
 

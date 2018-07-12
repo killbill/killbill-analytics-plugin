@@ -23,9 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import org.joda.time.LocalDate;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
+import org.killbill.billing.catalog.api.Catalog;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -50,6 +53,10 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
 
@@ -99,6 +106,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Others
     private Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
     private Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
+    private Catalog catalog;
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
@@ -189,7 +197,34 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public synchronized Iterable<SubscriptionEvent> getAccountBlockingStates() throws AnalyticsRefreshException {
         if (accountBlockingStates == null) {
-            accountBlockingStates = getBlockingHistory(accountId, callContext);
+            // Find all subscription events for that account
+            final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(getAccountBundles(),
+                                                                                                                                                                        new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
+                                                                                                                                                                            @Override
+                                                                                                                                                                            public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
+                                                                                                                                                                                return bundle.getTimeline().getSubscriptionEvents();
+                                                                                                                                                                            }
+                                                                                                                                                                        }
+                                                                                                                                                                       ));
+
+            // Filter all service state changes
+            accountBlockingStates = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
+                                                                        new Predicate<SubscriptionEvent>() {
+                                                                            @Override
+                                                                            public boolean apply(final SubscriptionEvent event) {
+                                                                                return event.getSubscriptionEventType() != null &&
+                                                                                       // We want events coming from the blocking states table...
+                                                                                       ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
+                                                                                       // ...that are for any service but entitlement
+                                                                                       !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
+                                                                            }
+
+                                                                            @Override
+                                                                            public boolean test(@Nullable final SubscriptionEvent input) {
+                                                                                return apply(input);
+                                                                            }
+                                                                        }
+                                                                       );
         }
         return accountBlockingStates;
     }
@@ -391,11 +426,18 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     // Simple pass-through
 
-    public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate) throws AnalyticsRefreshException {
-        return getPlanFromInvoiceItem(invoiceItem, subscriptionStartDate, callContext);
+    public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem) throws AnalyticsRefreshException {
+        return getPlanFromInvoiceItem(invoiceItem, getCatalog());
     }
 
-    public PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final LocalDate subscriptionStartDate) throws AnalyticsRefreshException {
-        return getPlanPhaseFromInvoiceItem(invoiceItem, subscriptionStartDate, callContext);
+    public PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem) throws AnalyticsRefreshException {
+        return getPlanPhaseFromInvoiceItem(invoiceItem, getCatalog());
+    }
+
+    private synchronized Catalog getCatalog() throws AnalyticsRefreshException {
+        if (catalog == null) {
+            catalog = getCatalog(callContext);
+        }
+        return catalog;
     }
 }

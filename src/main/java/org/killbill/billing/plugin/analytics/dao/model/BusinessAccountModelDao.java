@@ -50,7 +50,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
     private String postalCode;
     private String phone;
     private Boolean migrated;
-    private Boolean notifiedForInvoices;
     private DateTime updatedDate;
     private BigDecimal balance;
     private BigDecimal convertedBalance;
@@ -90,7 +89,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
                                    final String postalCode,
                                    final String phone,
                                    final Boolean isMigrated,
-                                   final Boolean notifiedForInvoices,
                                    final DateTime updatedDate,
                                    final BigDecimal balance,
                                    final BigDecimal convertedBalance,
@@ -147,7 +145,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         this.postalCode = postalCode;
         this.phone = phone;
         this.migrated = isMigrated;
-        this.notifiedForInvoices = notifiedForInvoices;
         this.updatedDate = updatedDate;
         this.balance = balance;
         this.convertedBalance = convertedBalance;
@@ -198,7 +195,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
              account.getPostalCode(),
              account.getPhone(),
              account.isMigrated(),
-             account.isNotifiedForInvoices(),
              account.getUpdatedDate(),
              balance,
              currencyConverter.getConvertedValue(balance, account),
@@ -298,10 +294,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
 
     public Boolean getMigrated() {
         return migrated;
-    }
-
-    public Boolean getNotifiedForInvoices() {
-        return notifiedForInvoices;
     }
 
     public DateTime getUpdatedDate() {
@@ -404,7 +396,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         sb.append(", postalCode='").append(postalCode).append('\'');
         sb.append(", phone='").append(phone).append('\'');
         sb.append(", migrated=").append(migrated);
-        sb.append(", notifiedForInvoices=").append(notifiedForInvoices);
         sb.append(", updatedDate=").append(updatedDate);
         sb.append(", balance=").append(balance);
         sb.append(", convertedBalance=").append(convertedBalance);
@@ -512,9 +503,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (nbActiveBundles != null ? !nbActiveBundles.equals(that.nbActiveBundles) : that.nbActiveBundles != null) {
             return false;
         }
-        if (notifiedForInvoices != null ? !notifiedForInvoices.equals(that.notifiedForInvoices) : that.notifiedForInvoices != null) {
-            return false;
-        }
         if (oldestUnpaidInvoiceBalance != null ? oldestUnpaidInvoiceBalance.compareTo(that.oldestUnpaidInvoiceBalance) != 0 : that.oldestUnpaidInvoiceBalance != null) {
             return false;
         }
@@ -577,7 +565,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         result = 31 * result + (postalCode != null ? postalCode.hashCode() : 0);
         result = 31 * result + (phone != null ? phone.hashCode() : 0);
         result = 31 * result + (migrated != null ? migrated.hashCode() : 0);
-        result = 31 * result + (notifiedForInvoices != null ? notifiedForInvoices.hashCode() : 0);
         result = 31 * result + (updatedDate != null ? updatedDate.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
         result = 31 * result + (convertedBalance != null ? convertedBalance.hashCode() : 0);

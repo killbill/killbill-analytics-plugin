@@ -59,6 +59,11 @@ public class BusinessInvoiceItemUtils {
                                                                                                               // planPhase can't be null here (prev phase can be for the first event)
                                                                                                               planPhase.equals(input.getPrevPhase());
                                                                                                    }
+
+                                                                                                   @Override
+                                                                                                   public boolean test(@Nullable final SubscriptionEvent input) {
+                                                                                                       return apply(input);
+                                                                                                   }
                                                                                                }
                                                                                               );
             if (nextEvent.isPresent()) {

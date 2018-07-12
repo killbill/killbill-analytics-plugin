@@ -60,7 +60,6 @@ public class TestBusinessAccount extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessAccount.getPostalCode(), accountModelDao.getPostalCode());
         Assert.assertEquals(businessAccount.getPhone(), accountModelDao.getPhone());
         Assert.assertEquals(businessAccount.getMigrated(), accountModelDao.getMigrated());
-        Assert.assertEquals(businessAccount.getNotifiedForInvoices(), accountModelDao.getNotifiedForInvoices());
         Assert.assertEquals(businessAccount.getUpdatedDate().compareTo(accountModelDao.getUpdatedDate()), 0);
         Assert.assertEquals(businessAccount.getBalance().compareTo(accountModelDao.getBalance()), 0);
         Assert.assertEquals(businessAccount.getConvertedBalance().compareTo(accountModelDao.getConvertedBalance()), 0);

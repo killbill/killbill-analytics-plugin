@@ -26,22 +26,27 @@ import java.util.concurrent.Executor;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
+import org.killbill.billing.plugin.analytics.core.AnalyticsHealthcheck;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.http.ServletRouter;
 import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.bus.dao.BusEventModelDao;
 import org.killbill.clock.Clock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
+import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
+import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.osgi.framework.BundleContext;
 import org.skife.config.ConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
@@ -85,25 +90,30 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         }
 
         final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
+        dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
+
+
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, killbillAPI, logService);
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI, logService);
         final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
         analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
+        analyticsListener = new AnalyticsListener(logService, roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
 
         jobsScheduler = new JobsScheduler(logService, dataSource, killbillClock, notificationQueueService);
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final EmbeddedDB.DBEngine dbEngine = getDbEngine();
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, killbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
-        reportsUserApi = new ReportsUserApi(logService, killbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
+        reportsUserApi = new ReportsUserApi(logService, roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
         final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
         registerServlet(context, servletRouter);
         registerHandlers();
+        registerHealthcheck(context, new AnalyticsHealthcheck(analyticsListener, jobsScheduler));
     }
 
 
@@ -139,6 +149,12 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, Servlet.class, servlet, props);
+    }
+
+    private void registerHealthcheck(final BundleContext context, final AnalyticsHealthcheck healthcheck) {
+        final Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
+        registrar.registerService(context, Healthcheck.class, healthcheck, props);
     }
 
     private EmbeddedDB.DBEngine getDbEngine() throws SQLException {

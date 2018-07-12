@@ -42,7 +42,6 @@ public class BusinessAccount extends BusinessEntityBase {
     private final String postalCode;
     private final String phone;
     private final Boolean isMigrated;
-    private final Boolean isNotifiedForInvoices;
     private final DateTime updatedDate;
     private final BigDecimal balance;
     private final BigDecimal convertedBalance;
@@ -89,7 +88,6 @@ public class BusinessAccount extends BusinessEntityBase {
         this.postalCode = businessAccountModelDao.getPostalCode();
         this.phone = businessAccountModelDao.getPhone();
         this.isMigrated = businessAccountModelDao.getMigrated();
-        this.isNotifiedForInvoices = businessAccountModelDao.getNotifiedForInvoices();
         this.updatedDate = businessAccountModelDao.getUpdatedDate();
         this.balance = businessAccountModelDao.getBalance();
         this.convertedBalance = businessAccountModelDao.getConvertedBalance();
@@ -174,10 +172,6 @@ public class BusinessAccount extends BusinessEntityBase {
 
     public Boolean getMigrated() {
         return isMigrated;
-    }
-
-    public Boolean getNotifiedForInvoices() {
-        return isNotifiedForInvoices;
     }
 
     public DateTime getUpdatedDate() {
@@ -279,7 +273,6 @@ public class BusinessAccount extends BusinessEntityBase {
         sb.append(", postalCode='").append(postalCode).append('\'');
         sb.append(", phone='").append(phone).append('\'');
         sb.append(", isMigrated=").append(isMigrated);
-        sb.append(", isNotifiedForInvoices=").append(isNotifiedForInvoices);
         sb.append(", updatedDate=").append(updatedDate);
         sb.append(", balance=").append(balance);
         sb.append(", convertedBalance=").append(convertedBalance);
@@ -361,9 +354,6 @@ public class BusinessAccount extends BusinessEntityBase {
             return false;
         }
         if (isMigrated != null ? !isMigrated.equals(that.isMigrated) : that.isMigrated != null) {
-            return false;
-        }
-        if (isNotifiedForInvoices != null ? !isNotifiedForInvoices.equals(that.isNotifiedForInvoices) : that.isNotifiedForInvoices != null) {
             return false;
         }
         if (lastInvoiceBalance != null ? !(lastInvoiceBalance.compareTo(that.lastInvoiceBalance) == 0) : that.lastInvoiceBalance != null) {
@@ -452,7 +442,6 @@ public class BusinessAccount extends BusinessEntityBase {
         result = 31 * result + (postalCode != null ? postalCode.hashCode() : 0);
         result = 31 * result + (phone != null ? phone.hashCode() : 0);
         result = 31 * result + (isMigrated != null ? isMigrated.hashCode() : 0);
-        result = 31 * result + (isNotifiedForInvoices != null ? isNotifiedForInvoices.hashCode() : 0);
         result = 31 * result + (updatedDate != null ? updatedDate.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
         result = 31 * result + (convertedBalance != null ? convertedBalance.hashCode() : 0);

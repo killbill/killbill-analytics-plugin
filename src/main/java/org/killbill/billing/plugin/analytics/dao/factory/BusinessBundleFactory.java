@@ -30,6 +30,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 
+import javax.annotation.Nullable;
+
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.ProductCategory;
@@ -159,6 +161,11 @@ public class BusinessBundleFactory {
                                                                   @Override
                                                                   public boolean apply(final Subscription subscription) {
                                                                       return ProductCategory.BASE.equals(subscription.getLastActiveProductCategory());
+                                                                  }
+
+                                                                  @Override
+                                                                  public boolean test(@Nullable final Subscription input) {
+                                                                      return apply(input);
                                                                   }
                                                               }
                                                              );
