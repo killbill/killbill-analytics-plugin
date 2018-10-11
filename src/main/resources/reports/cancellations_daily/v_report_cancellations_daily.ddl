@@ -1,4 +1,4 @@
-create or replace view v_report_cancellations_count_daily as
+create or replace view v_report_cancellations_daily as
 select
   ast.tenant_record_id
 , ast.prev_phase phase
