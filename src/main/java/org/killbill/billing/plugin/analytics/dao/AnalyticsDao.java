@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -28,7 +29,6 @@ import java.util.UUID;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.api.BusinessAccount;
 import org.killbill.billing.plugin.analytics.api.BusinessAccountTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessBundle;
@@ -58,10 +58,9 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
 
     private final OSGIKillbillAPI osgiKillbillAPI;
 
-    public AnalyticsDao(final OSGIKillbillLogService logService,
-                        final OSGIKillbillAPI osgiKillbillAPI,
+    public AnalyticsDao(final OSGIKillbillAPI osgiKillbillAPI,
                         final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(logService, osgiKillbillDataSource);
+        super(osgiKillbillDataSource);
         this.osgiKillbillAPI = osgiKillbillAPI;
     }
 

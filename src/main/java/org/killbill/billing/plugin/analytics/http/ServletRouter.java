@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -28,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
-import org.osgi.service.log.LogService;
 
 public class ServletRouter extends BaseServlet {
 
@@ -43,11 +43,11 @@ public class ServletRouter extends BaseServlet {
     private final ReportsServlet reportsServlet;
     private final AnalyticsServlet analyticsServlet;
 
-    public ServletRouter(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
-        super(analyticsUserApi, reportsUserApi, logService);
-        this.staticServlet = new StaticServlet(analyticsUserApi, reportsUserApi, logService);
-        this.reportsServlet = new ReportsServlet(analyticsUserApi, reportsUserApi, logService);
-        this.analyticsServlet = new AnalyticsServlet(analyticsUserApi, reportsUserApi, logService);
+    public ServletRouter(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi) {
+        super(analyticsUserApi, reportsUserApi);
+        this.staticServlet = new StaticServlet(analyticsUserApi, reportsUserApi);
+        this.reportsServlet = new ReportsServlet(analyticsUserApi, reportsUserApi);
+        this.analyticsServlet = new AnalyticsServlet(analyticsUserApi, reportsUserApi);
     }
 
     @Override

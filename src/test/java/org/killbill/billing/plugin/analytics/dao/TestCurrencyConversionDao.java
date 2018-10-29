@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -29,7 +30,7 @@ public class TestCurrencyConversionDao extends AnalyticsTestSuiteWithEmbeddedDB 
 
     @Test(groups = "slow")
     public void testLookup() throws Exception {
-        final CurrencyConversionDao dao = new CurrencyConversionDao(logService, killbillDataSource);
+        final CurrencyConversionDao dao = new CurrencyConversionDao(killbillDataSource);
 
         final LocalDate effectiveDate = new LocalDate(2012, 1, 1);
         final CurrencyConversionModelDao notFound = dao.getCurrencyConversion("USD", "EUR", effectiveDate);

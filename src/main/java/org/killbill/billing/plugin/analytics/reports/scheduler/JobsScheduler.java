@@ -31,7 +31,6 @@ import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
@@ -43,10 +42,11 @@ import org.killbill.notificationq.api.NotificationEventWithMetadata;
 import org.killbill.notificationq.api.NotificationQueue;
 import org.killbill.notificationq.api.NotificationQueueService.NotificationQueueAlreadyExists;
 import org.killbill.notificationq.api.NotificationQueueService.NotificationQueueHandler;
-import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Call;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -60,29 +60,28 @@ import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS
 
 public class JobsScheduler {
 
+    private static final Logger logger = LoggerFactory.getLogger(JobsScheduler.class);
+
     // Current version of the jobs in the notification queue
     // This is useful to retrieve all currently scheduled ones
     private static final Long JOBS_SCHEDULER_VERSION = 1L;
 
     private static final Ordering<AnalyticsReportJob> ANALYTICS_REPORT_JOB_ORDERING = Ordering.from(new Comparator<AnalyticsReportJob>() {
         @Override
-        public int compare(AnalyticsReportJob o1, AnalyticsReportJob o2) {
+        public int compare(final AnalyticsReportJob o1, final AnalyticsReportJob o2) {
             return o1.getRecordId().compareTo(o2.getRecordId());
         }
     });
 
-    private final OSGIKillbillLogService logService;
     private final IDBI dbi;
     private final Clock clock;
     private final NotificationQueue jobQueue;
 
     private ExecutorService proceduresService;
 
-    public JobsScheduler(final OSGIKillbillLogService logService,
-                         final OSGIKillbillDataSource osgiKillbillDataSource,
+    public JobsScheduler(final OSGIKillbillDataSource osgiKillbillDataSource,
                          final Clock clock,
                          final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
-        this.logService = logService;
         this.clock = clock;
 
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
@@ -91,18 +90,18 @@ public class JobsScheduler {
             @Override
             public void handleReadyNotification(final NotificationEvent eventJson, final DateTime eventDateTime, final UUID userToken, final Long searchKey1, final Long searchKey2) {
                 if (eventJson == null || !(eventJson instanceof AnalyticsReportJob)) {
-                    logService.log(LogService.LOG_ERROR, "Analytics report service received an unexpected event: " + eventJson);
+                    logger.error("Analytics report service received an unexpected event: {}", eventJson);
                     return;
                 }
 
                 final AnalyticsReportJob job = (AnalyticsReportJob) eventJson;
-                logService.log(LogService.LOG_INFO, "Starting job for " + job.getReportName());
+                logger.info("Starting job for {}", job.getReportName());
 
                 try {
                     callStoredProcedure(job.getRefreshProcedureName());
                 } finally {
                     schedule(job, null);
-                    logService.log(LogService.LOG_INFO, "Ending job for " + job.getReportName());
+                    logger.info("Ending job for {}", job.getReportName());
                 }
             }
         };
@@ -171,7 +170,7 @@ public class JobsScheduler {
         return ANALYTICS_REPORT_JOB_ORDERING.immutableSortedCopy(schedules);
     }
 
-    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable Connection connection) {
+    private Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotifications(@Nullable final Connection connection) {
         if (connection == null) {
             return jobQueue.getFutureNotificationForSearchKey2(null, JOBS_SCHEDULER_VERSION);
         } else {
@@ -180,7 +179,7 @@ public class JobsScheduler {
     }
 
     @VisibleForTesting
-    Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob, @Nullable Connection connection) {
+    Iterable<NotificationEventWithMetadata<AnalyticsReportJob>> getFutureNotificationsForReportJob(final AnalyticsReportJob reportJob, @Nullable final Connection connection) {
         final Integer eventJsonRecordId = reportJob.getRecordId();
         if (eventJsonRecordId != null) {
             // Fast search path
@@ -207,12 +206,12 @@ public class JobsScheduler {
         // This will go through all results to close the connection
         final int nbFutureNotifications = Iterables.<NotificationEventWithMetadata<AnalyticsReportJob>>size(getFutureNotificationsForReportJob(eventJson, connection));
         if (nbFutureNotifications > 0) {
-            logService.log(LogService.LOG_DEBUG, "Skipping already present job for report " + eventJson.toString());
+            logger.debug("Skipping already present job for report {}", eventJson.toString());
             return;
         }
 
         final DateTime nextRun = computeNextRun(eventJson);
-        logService.log(LogService.LOG_INFO, "Next run for report " + eventJson.getReportName() + " will be at " + nextRun);
+        logger.info("Next run for report {} will be at {}", eventJson.getReportName(), nextRun);
         schedule(eventJson, nextRun, connection);
     }
 
@@ -223,8 +222,8 @@ public class JobsScheduler {
             } else {
                 jobQueue.recordFutureNotificationFromTransaction(connection, nextRun, eventJson, UUID.randomUUID(), Long.valueOf(eventJson.getRecordId()), JOBS_SCHEDULER_VERSION);
             }
-        } catch (IOException e) {
-            logService.log(LogService.LOG_WARNING, "Unable to record notification for report " + eventJson.toString());
+        } catch (final IOException e) {
+            logger.warn("Unable to record notification for report {}", eventJson.toString());
         }
     }
 

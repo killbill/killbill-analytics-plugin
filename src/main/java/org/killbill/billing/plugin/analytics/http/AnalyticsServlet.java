@@ -30,13 +30,16 @@ import org.killbill.billing.plugin.analytics.api.BusinessSnapshot;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // Handle /plugins/killbill-analytics/<kbAccountId>
 public class AnalyticsServlet extends BaseServlet {
 
-    public AnalyticsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
-        super(analyticsUserApi, reportsUserApi, logService);
+    private static final Logger logger = LoggerFactory.getLogger(AnalyticsServlet.class);
+
+    public AnalyticsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi) {
+        super(analyticsUserApi, reportsUserApi);
     }
 
     @Override
@@ -65,8 +68,8 @@ public class AnalyticsServlet extends BaseServlet {
         try {
             analyticsUserApi.rebuildAnalyticsForAccount(kbAccountId, context);
             resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        } catch (AnalyticsRefreshException e) {
-            logService.log(LogService.LOG_ERROR, "Error refreshing account " + kbAccountId, e);
+        } catch (final AnalyticsRefreshException e) {
+            logger.error("Error refreshing account {}", kbAccountId, e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

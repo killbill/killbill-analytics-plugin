@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -19,41 +20,35 @@ package org.killbill.billing.plugin.analytics.dao;
 
 import java.util.concurrent.Executor;
 
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
-import org.killbill.clock.Clock;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AllBusinessObjectsDao {
 
-    private final LogService logService;
+    private static final Logger logger = LoggerFactory.getLogger(AllBusinessObjectsDao.class);
+
     private final BusinessSubscriptionTransitionDao bstDao;
     private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
     private final BusinessTagDao bTagDao;
 
-    public AllBusinessObjectsDao(final OSGIKillbillLogService logService,
-                                 final OSGIKillbillAPI osgiKillbillAPI,
-                                 final OSGIKillbillDataSource osgiKillbillDataSource,
-                                 final Executor executor,
-                                 final Clock clock) {
-        this.logService = logService;
-
-        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillDataSource);
-        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillDataSource, bacDao, executor);
-        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillDataSource, bacDao, executor);
-        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillDataSource);
-        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillDataSource);
-        this.bTagDao = new BusinessTagDao(logService, osgiKillbillDataSource);
+    public AllBusinessObjectsDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                 final Executor executor) {
+        final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
+        this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, bacDao, executor);
+        this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource);
+        this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource);
+        this.bTagDao = new BusinessTagDao(osgiKillbillDataSource);
     }
 
     // TODO: each refresh is done in a transaction - do we want to share a long running transaction across all refreshes?
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics for account " + businessContextFactory.getAccountId());
+        logger.debug("Starting rebuild of Analytics for account {}", businessContextFactory.getAccountId());
 
         // Refresh invoices and payments. This will automatically trigger a refresh of account
         binAndBipDao.update(businessContextFactory);
@@ -70,6 +65,6 @@ public class AllBusinessObjectsDao {
         // Refresh account transitions
         bosDao.update(businessContextFactory);
 
-        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics for account " + businessContextFactory.getAccountId());
+        logger.debug("Finished rebuild of Analytics for account {}", businessContextFactory.getAccountId());
     }
 }

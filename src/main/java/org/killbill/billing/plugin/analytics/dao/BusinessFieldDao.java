@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -18,29 +19,30 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessFieldFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessFieldModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
 
+    private static final Logger logger = LoggerFactory.getLogger(BusinessAnalyticsDaoBase.class);
+
     private final BusinessFieldFactory bFieldFactory;
 
-    public BusinessFieldDao(final OSGIKillbillLogService logService,
-                            final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(logService, osgiKillbillDataSource);
+    public BusinessFieldDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
+        super(osgiKillbillDataSource);
         bFieldFactory = new BusinessFieldFactory();
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
+        logger.debug("Starting rebuild of Analytics custom fields for account {}", businessContextFactory.getAccountId());
 
         final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos = bFieldFactory.createBusinessFields(businessContextFactory);
 
@@ -52,7 +54,7 @@ public class BusinessFieldDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics custom fields for account " + businessContextFactory.getAccountId());
+        logger.debug("Finished rebuild of Analytics custom fields for account {}", businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessFieldModelDao> fieldModelDaos,

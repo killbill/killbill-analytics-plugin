@@ -1,6 +1,6 @@
 /*
- * Copyright 2016 Groupon, Inc
- * Copyright 2016 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -20,6 +20,7 @@ package org.killbill.billing.plugin.analytics.reports.scheduler;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
@@ -33,7 +34,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.Iterables;
-import org.awaitility.Awaitility;
 
 public class TestJobsSchedulerWithEmbeddedDB extends AnalyticsTestSuiteWithEmbeddedDB {
 
@@ -41,7 +41,7 @@ public class TestJobsSchedulerWithEmbeddedDB extends AnalyticsTestSuiteWithEmbed
 
     @BeforeMethod(groups = "mysql")
     public void createScheduler() throws Exception {
-        jobsScheduler = new JobsScheduler(logService, killbillDataSource, clock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(killbillDataSource, clock, notificationQueueService);
         jobsScheduler.start();
     }
 

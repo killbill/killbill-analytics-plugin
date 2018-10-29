@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,30 +21,29 @@ package org.killbill.billing.plugin.analytics.dao;
 import java.util.Collection;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountTransitionFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountTransitionModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BusinessAccountTransitionDao extends BusinessAnalyticsDaoBase {
 
-    private final LogService logService;
+    private static final Logger logger = LoggerFactory.getLogger(BusinessAccountTransitionDao.class);
+
     private final BusinessAccountTransitionFactory bosFactory;
 
-    public BusinessAccountTransitionDao(final OSGIKillbillLogService logService,
-                                        final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(logService, osgiKillbillDataSource);
-        this.logService = logService;
+    public BusinessAccountTransitionDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
+        super(osgiKillbillDataSource);
         bosFactory = new BusinessAccountTransitionFactory();
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics account transitions for account " + businessContextFactory.getAccountId());
+        logger.debug("Starting rebuild of Analytics account transitions for account {}", businessContextFactory.getAccountId());
 
         final Collection<BusinessAccountTransitionModelDao> businessAccountTransitions = bosFactory.createBusinessAccountTransitions(businessContextFactory);
 
@@ -55,7 +55,7 @@ public class BusinessAccountTransitionDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics account transitions for account " + businessContextFactory.getAccountId());
+        logger.debug("Finished rebuild of Analytics account transitions for account {}", businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final Collection<BusinessAccountTransitionModelDao> businessAccountTransitionModelDaos,

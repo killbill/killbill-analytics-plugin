@@ -26,15 +26,14 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
-import org.osgi.service.log.LogService;
 
 import com.google.common.io.Resources;
 
 // Handle /plugins/killbill-analytics/static/<resourceName>
 public class StaticServlet extends BaseServlet {
 
-    public StaticServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
-        super(analyticsUserApi, reportsUserApi, logService);
+    public StaticServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi) {
+        super(analyticsUserApi, reportsUserApi);
     }
 
     @Override
