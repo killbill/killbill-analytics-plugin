@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -29,7 +29,6 @@ import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.tenant.api.Tenant;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.osgi.service.log.LogService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -55,12 +54,10 @@ public abstract class BaseServlet extends HttpServlet {
 
     protected final AnalyticsUserApi analyticsUserApi;
     protected final ReportsUserApi reportsUserApi;
-    protected final LogService logService;
 
-    public BaseServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
+    public BaseServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi) {
         this.analyticsUserApi = analyticsUserApi;
         this.reportsUserApi = reportsUserApi;
-        this.logService = logService;
     }
 
     protected void setCrossSiteScriptingHeaders(final HttpServletResponse resp) {

@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -18,29 +19,30 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessTagFactory;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaosWithAccountAndTenantRecordId;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessTagModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
-import org.osgi.service.log.LogService;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BusinessTagDao extends BusinessAnalyticsDaoBase {
 
+    private static final Logger logger = LoggerFactory.getLogger(BusinessTagDao.class);
+
     private final BusinessTagFactory bTagFactory;
 
-    public BusinessTagDao(final OSGIKillbillLogService logService,
-                          final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(logService, osgiKillbillDataSource);
+    public BusinessTagDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
+        super(osgiKillbillDataSource);
         bTagFactory = new BusinessTagFactory();
     }
 
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        logService.log(LogService.LOG_DEBUG, "Starting rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
+        logger.debug("Starting rebuild of Analytics tags for account {}", businessContextFactory.getAccountId());
 
         final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos = bTagFactory.createBusinessTags(businessContextFactory);
 
@@ -52,7 +54,7 @@ public class BusinessTagDao extends BusinessAnalyticsDaoBase {
             }
         });
 
-        logService.log(LogService.LOG_DEBUG, "Finished rebuild of Analytics tags for account " + businessContextFactory.getAccountId());
+        logger.debug("Finished rebuild of Analytics tags for account {}", businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessModelDaosWithAccountAndTenantRecordId<BusinessTagModelDao> tagModelDaos,

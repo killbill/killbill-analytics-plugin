@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -30,7 +31,7 @@ public class TestJobsScheduler extends AnalyticsTestSuiteNoDB {
 
     @BeforeMethod(groups = "fast")
     public void createScheduler() throws Exception {
-        jobsScheduler = new JobsScheduler(logService, killbillDataSource, clock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(killbillDataSource, clock, notificationQueueService);
     }
 
     @Test(groups = "fast")
@@ -51,14 +52,12 @@ public class TestJobsScheduler extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(computeNextRun(Frequency.DAILY, 15).compareTo(new DateTime(2012, 10, 6, 15, 0, 0)), 0);
     }
 
-
     @Test(groups = "fast")
     public void testComputeHourlyNextRun() throws Exception {
         clock.setTime(new DateTime(2012, 10, 5, 18, 33, 46));
         Assert.assertEquals(computeNextRun(Frequency.HOURLY, 1).compareTo(new DateTime(2012, 10, 5, 19, 5, 0)), 0);
         Assert.assertEquals(computeNextRun(Frequency.HOURLY, null).compareTo(new DateTime(2012, 10, 5, 19, 5, 0)), 0);
     }
-
 
     private DateTime computeNextRun(final Frequency frequency, final Integer refreshHourOfDayGmt) {
         return jobsScheduler.computeNextRun(new AnalyticsReportJob(null, null, null, null, null, frequency, refreshHourOfDayGmt));

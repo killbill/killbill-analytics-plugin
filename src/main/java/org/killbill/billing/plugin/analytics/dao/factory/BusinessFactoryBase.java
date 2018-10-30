@@ -137,8 +137,8 @@ public abstract class BusinessFactoryBase {
 
         try {
             return accountUserApi.getAccountById(accountId, context);
-        } catch (AccountApiException e) {
-            logger.warn("Error retrieving account for id " + accountId, e);
+        } catch (final AccountApiException e) {
+            logger.warn("Error retrieving account for id {}", accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -156,7 +156,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Account creation audit log for id " + accountId);
+        logger.warn("Unable to find Account creation audit log for id {}", accountId);
         return null;
     }
 
@@ -202,8 +202,8 @@ public abstract class BusinessFactoryBase {
 
         try {
             return subscriptionApi.getSubscriptionBundlesForAccountId(accountId, context);
-        } catch (SubscriptionApiException e) {
-            logger.warn("Error retrieving bundles for account id " + accountId, e);
+        } catch (final SubscriptionApiException e) {
+            logger.warn("Error retrieving bundles for account id {}",  accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -217,8 +217,8 @@ public abstract class BusinessFactoryBase {
                 throw new AnalyticsRefreshException("Unable to retrieve latest bundle for bundle external key " + bundleExternalKey);
             }
             return bundles.get(bundles.size() - 1);
-        } catch (SubscriptionApiException e) {
-            logger.warn("Error retrieving bundles for bundle external key " + bundleExternalKey, e);
+        } catch (final SubscriptionApiException e) {
+            logger.warn("Error retrieving bundles for bundle external key {}",  bundleExternalKey, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -236,7 +236,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Bundle creation audit log for id " + bundleId);
+        logger.warn("Unable to find Bundle creation audit log for id {}", bundleId);
         return null;
     }
 
@@ -248,7 +248,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Subscription event creation audit log for id " + subscriptionEventId);
+        logger.warn("Unable to find Subscription event creation audit log for id {}", subscriptionEventId);
         return null;
     }
 
@@ -269,7 +269,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Blocking state creation audit log for id " + blockingStateId);
+        logger.warn("Unable to find Blocking state creation audit log for id {}", blockingStateId);
         return null;
     }
 
@@ -290,7 +290,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Invoice creation audit log for id " + invoiceId);
+        logger.warn("Unable to find Invoice creation audit log for id {}", invoiceId);
         return null;
     }
 
@@ -307,7 +307,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Invoice item creation audit log for id " + invoiceItemId);
+        logger.warn("Unable to find Invoice item creation audit log for id {}", invoiceItemId);
         return null;
     }
 
@@ -331,7 +331,7 @@ public abstract class BusinessFactoryBase {
             // Find the catalog when the invoice item was created (same logic as InvoiceItemFactory)
             return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getCreatedDate());
         } catch (final CatalogApiException e) {
-            logger.warn("Unable to retrieve plan for invoice item " + invoiceItem.getId(), e);
+            logger.warn("Unable to retrieve plan for invoice item {}",  invoiceItem.getId(), e);
             return null;
         }
     }
@@ -346,7 +346,7 @@ public abstract class BusinessFactoryBase {
         try {
             return plan.findPhase(invoiceItem.getPhaseName());
         } catch (final CatalogApiException e) {
-            logger.warn("Unable to retrieve phase for invoice item " + invoiceItem.getId(), e);
+            logger.warn("Unable to retrieve phase for invoice item {}",  invoiceItem.getId(), e);
             return null;
         }
     }
@@ -359,7 +359,7 @@ public abstract class BusinessFactoryBase {
         final CatalogUserApi catalogUserApi = getCatalogUserApi();
         try {
             return catalogUserApi.getCatalog(null, null, context);
-        } catch (CatalogApiException e) {
+        } catch (final CatalogApiException e) {
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -388,7 +388,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Invoice payment creation audit log for id " + invoicePaymentId);
+        logger.warn("Unable to find Invoice payment creation audit log for id {}", invoicePaymentId);
         return null;
     }
 
@@ -407,20 +407,20 @@ public abstract class BusinessFactoryBase {
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
             return paymentApi.getAccountPayments(accountId, true, false, PLUGIN_PROPERTIES, context);
-        } catch (PaymentApiException e) {
+        } catch (final PaymentApiException e) {
             error = e;
             if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
                 logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
 
                 try {
                     return paymentApi.getAccountPayments(accountId, false, false, PLUGIN_PROPERTIES, context);
-                } catch (PaymentApiException e1) {
+                } catch (final PaymentApiException e1) {
                     error = e1;
                 }
             }
         }
 
-        logger.warn("Error retrieving payments for account id " + accountId, error);
+        logger.warn("Error retrieving payments for account id {}",  accountId, error);
         throw new AnalyticsRefreshException(error);
     }
 
@@ -430,20 +430,20 @@ public abstract class BusinessFactoryBase {
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
             return paymentApi.getAccountPaymentMethods(accountId, true, true, PLUGIN_PROPERTIES, context);
-        } catch (PaymentApiException e) {
+        } catch (final PaymentApiException e) {
             error = e;
             if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
                 logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
 
                 try {
                     return paymentApi.getAccountPaymentMethods(accountId, true, false, PLUGIN_PROPERTIES, context);
-                } catch (PaymentApiException e1) {
+                } catch (final PaymentApiException e1) {
                     error = e1;
                 }
             }
         }
 
-        logger.warn("Error retrieving payment methods for account id " + accountId, error);
+        logger.warn("Error retrieving payment methods for account id {}",  accountId, error);
         throw new AnalyticsRefreshException(error);
     }
 
@@ -455,7 +455,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find payment creation audit log for id " + paymentId);
+        logger.warn("Unable to find payment creation audit log for id {}", paymentId);
         return null;
     }
 
@@ -481,7 +481,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Field creation audit log for id " + fieldId);
+        logger.warn("Unable to find Field creation audit log for id {}", fieldId);
         return null;
     }
 
@@ -512,7 +512,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Unable to find Tag creation audit log for id " + tagId);
+        logger.warn("Unable to find Tag creation audit log for id {}", tagId);
         return null;
     }
 

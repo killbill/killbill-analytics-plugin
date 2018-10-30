@@ -100,17 +100,17 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
         analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
-        analyticsListener = new AnalyticsListener(logService, roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
+        analyticsListener = new AnalyticsListener(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
 
-        jobsScheduler = new JobsScheduler(logService, dataSource, killbillClock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(dataSource, killbillClock, notificationQueueService);
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final EmbeddedDB.DBEngine dbEngine = getDbEngine();
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(logService, roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
-        reportsUserApi = new ReportsUserApi(logService, roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
+        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
-        final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi, logService);
+        final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi);
         registerServlet(context, servletRouter);
         registerHandlers();
         registerHealthcheck(context, new AnalyticsHealthcheck(analyticsListener, jobsScheduler));

@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
@@ -32,8 +31,8 @@ import com.google.common.collect.Multimap;
 
 public class BusinessInvoiceDao extends BusinessAnalyticsDaoBase {
 
-    public BusinessInvoiceDao(final OSGIKillbillLogService logService, final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(logService, osgiKillbillDataSource);
+    public BusinessInvoiceDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
+        super(osgiKillbillDataSource);
     }
 
     /**

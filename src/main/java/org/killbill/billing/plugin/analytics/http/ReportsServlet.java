@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 Groupon, Inc
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -46,7 +46,6 @@ import org.killbill.billing.plugin.analytics.reports.analysis.Smoother;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother.SmootherType;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
-import org.osgi.service.log.LogService;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -69,8 +68,8 @@ public class ReportsServlet extends BaseServlet {
     private static final String REPORTS_DATA_FORMAT = "format";
     private static final String REPORT_QUERY_SQL_ONLY = "sqlOnly";
 
-    public ReportsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi, final LogService logService) {
-        super(analyticsUserApi, reportsUserApi, logService);
+    public ReportsServlet(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi) {
+        super(analyticsUserApi, reportsUserApi);
     }
 
     @Override
@@ -82,7 +81,7 @@ public class ReportsServlet extends BaseServlet {
             final ReportConfigurationJson reportConfigurationJson;
             try {
                 reportConfigurationJson = reportsUserApi.getReportConfiguration(reportName, context);
-            } catch (SQLException e) {
+            } catch (final SQLException e) {
                 resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
                 return;
             }
@@ -106,7 +105,7 @@ public class ReportsServlet extends BaseServlet {
         final ReportConfigurationJson existingReportConfiguration;
         try {
             existingReportConfiguration = reportsUserApi.getReportConfiguration(reportConfigurationJson.getReportName(), context);
-        } catch (SQLException e) {
+        } catch (final SQLException e) {
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
             return;
         }
@@ -210,7 +209,7 @@ public class ReportsServlet extends BaseServlet {
     }
 
     static void writeAsCSV(final List<Chart> charts, final OutputStream out) throws IOException {
-        for (Chart cur : charts) {
+        for (final Chart cur : charts) {
             switch (cur.getType()) {
                 case TIMELINE:
                     for (final DataMarker marker : cur.getData()) {

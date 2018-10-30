@@ -33,7 +33,7 @@ public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
         final String tableName = "payments_per_day_metadata";
         embeddedDB.executeScript(String.format("create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int);", tableName));
 
-        final Metadata metadata = new Metadata(Sets.<String>newHashSet(tableName), embeddedDB.getDataSource(), logService);
+        final Metadata metadata = new Metadata(Sets.<String>newHashSet(tableName), embeddedDB.getDataSource());
         final Table table = metadata.getTable(tableName).getTable();
 
         Assert.assertEquals(table.fields().length, 6);
@@ -47,7 +47,7 @@ public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
 
     @Test(groups = {"mysql", "postgresql"})
     public void testTableRetrievalNoReports() throws Exception {
-        final Metadata metadata = new Metadata(Sets.<String>newHashSet(), embeddedDB.getDataSource(), logService);
+        final Metadata metadata = new Metadata(Sets.<String>newHashSet(), embeddedDB.getDataSource());
         Assert.assertNull(metadata.getTable("payments_per_day"));
     }
 }

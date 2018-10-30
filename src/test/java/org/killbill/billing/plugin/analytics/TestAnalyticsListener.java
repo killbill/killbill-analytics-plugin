@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -26,12 +27,12 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testBlacklist() throws Exception {
-        AnalyticsListener analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
+        AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
 
         // No account is blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
 
-        analyticsListener = new AnalyticsListener(logService, killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
+        analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
 
         // Other accounts are blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));

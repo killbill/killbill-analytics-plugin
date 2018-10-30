@@ -40,33 +40,33 @@ import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Ordering;
 
 public class Metadata {
+
+    private static final Logger logger = LoggerFactory.getLogger(Metadata.class);
 
     private static final int MAX_NUMBER_OF_DISTINCT_ITEMS_TO_FETCH = 6;
     private static final int QUERY_TIMEOUT_SECONDS = 30;
 
     private final Set<String> reportsTables;
     private final DSLContext context;
-    private final OSGIKillbillLogService logService;
 
     private String schemaName = null;
     private final Map<String, Table> tablesCache = new ConcurrentHashMap<String, Table>();
     private final Map<String, Map<String, List<Object>>> distinctValuesCache = new ConcurrentHashMap<String, Map<String, List<Object>>>();
 
-    public Metadata(final Set<String> reportsTables, final DataSource dataSource, final OSGIKillbillLogService logService) {
-        this(reportsTables, dataSource, SQLDialect.MYSQL, logService);
+    public Metadata(final Set<String> reportsTables, final DataSource dataSource) {
+        this(reportsTables, dataSource, SQLDialect.MYSQL);
     }
 
-    public Metadata(final Set<String> reportsTables, final DataSource dataSource, final SQLDialect sqlDialect, final OSGIKillbillLogService logService) {
+    public Metadata(final Set<String> reportsTables, final DataSource dataSource, final SQLDialect sqlDialect) {
         this.reportsTables = reportsTables;
         this.context = DSL.using(dataSource, sqlDialect);
-        this.logService = logService;
         primeCaches();
     }
 
@@ -102,7 +102,7 @@ public class Metadata {
         for (final Table foundTable : analyticsSchema.getTables()) {
             // Skip all but reports tables (e.g. skip Kill Bill tables if the database is shared)
             if (reportsTables.contains(foundTable.getName())) {
-                logService.log(LogService.LOG_INFO, "Caching metadata for table " + foundTable.getName());
+                logger.info("Caching metadata for table {}", foundTable.getName());
                 tablesCache.put(foundTable.getName(), foundTable);
                 cacheDistinctValues(foundTable);
             }
@@ -122,7 +122,7 @@ public class Metadata {
     }
 
     private void cacheDistinctValues(final String columnName, final String tableName) {
-        logService.log(LogService.LOG_INFO, "Caching distinct values for column " + tableName + "." + columnName);
+        logger.info("Caching distinct values for column {}.{}", tableName, columnName);
 
         if (distinctValuesCache.get(tableName) == null) {
             distinctValuesCache.put(tableName, new ConcurrentHashMap<String, List<Object>>());
@@ -161,8 +161,8 @@ public class Metadata {
             }
         } catch (final DataAccessException e) {
             // Maybe com.mysql.jdbc.exceptions.MySQLTimeoutException?
-            logService.log(LogService.LOG_INFO, "Skipping column: " + e.getLocalizedMessage());
-            logService.log(LogService.LOG_DEBUG, "Got exception trying to cache column " + tableName + "." + columnName, e);
+            logger.info("Skipping column: {}", e.getLocalizedMessage());
+            logger.debug("Got exception trying to cache column {}.{}", tableName, columnName, e);
         }
     }
 
@@ -185,16 +185,16 @@ public class Metadata {
             public void run() {
                 final long startTime = System.currentTimeMillis();
 
-                logService.log(LogService.LOG_INFO, "Started priming caches...");
+                logger.info("Started priming caches...");
                 try {
                     // Retrieving one table will load the full catalog
                     getTable("DoesNotMatter");
 
                     final long secondsToStart = (System.currentTimeMillis() - startTime) / 1000;
-                    logService.log(LogService.LOG_INFO, String.format("Primed caches in %d:%02d", secondsToStart / 60, secondsToStart % 60));
+                    logger.info(String.format("Primed caches in %d:%02d", secondsToStart / 60, secondsToStart % 60));
                 } catch (final SQLException e) {
                     // Ignored
-                    logService.log(LogService.LOG_WARNING, "Error while priming caches", e);
+                    logger.warn("Error while priming caches", e);
                 }
             }
         };

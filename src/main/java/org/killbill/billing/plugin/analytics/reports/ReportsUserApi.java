@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 Groupon, Inc
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -40,7 +40,6 @@ import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.json.Chart;
@@ -63,6 +62,8 @@ import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
 import org.skife.jdbi.v2.tweak.HandleCallback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
@@ -75,6 +76,8 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
 public class ReportsUserApi {
+
+    private static final Logger logger = LoggerFactory.getLogger(ReportsUserApi.class);
 
     private static final String ANALYTICS_REPORTS_NB_THREADS_PROPERTY = "org.killbill.billing.plugin.analytics.dashboard.nbThreads";
 
@@ -93,8 +96,7 @@ public class ReportsUserApi {
     private final JobsScheduler jobsScheduler;
     private final Metadata sqlMetadata;
 
-    public ReportsUserApi(final OSGIKillbillLogService logService,
-                          final OSGIKillbillAPI killbillAPI,
+    public ReportsUserApi(final OSGIKillbillAPI killbillAPI,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
                           final OSGIConfigPropertiesService osgiConfigPropertiesService,
                           final EmbeddedDB.DBEngine dbEngine,
@@ -117,9 +119,7 @@ public class ReportsUserApi {
                                                                                         }
                                                                                     }
                                                                                    )),
-                                        osgiKillbillDataSource.getDataSource(),
-                                        logService
-        );
+                                        osgiKillbillDataSource.getDataSource());
     }
 
     public void shutdownNow() {

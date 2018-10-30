@@ -32,7 +32,6 @@ import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsJobHierarchy.Group;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
@@ -54,7 +53,8 @@ import org.killbill.notificationq.api.NotificationEventWithMetadata;
 import org.killbill.notificationq.api.NotificationQueue;
 import org.killbill.notificationq.api.NotificationQueueService.NotificationQueueAlreadyExists;
 import org.killbill.notificationq.api.NotificationQueueService.NotificationQueueHandler;
-import org.osgi.service.log.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
@@ -68,20 +68,20 @@ import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS
 
 public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbillEventHandler {
 
-    // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
-    // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
-    // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
-    private static final String ANALYTICS_REFRESH_DELAY_PROPERTY = "org.killbill.billing.plugin.analytics.refreshDelay";
+    private static final Logger logger = LoggerFactory.getLogger(AnalyticsListener.class);
 
     // List of account ids to ignore
     @VisibleForTesting
     static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "org.killbill.billing.plugin.analytics.blacklist";
+    // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
+    // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
+    // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
+    private static final String ANALYTICS_REFRESH_DELAY_PROPERTY = "org.killbill.billing.plugin.analytics.refreshDelay";
     private static final Splitter BLACKLIST_SPLITTER = Splitter.on(',')
                                                                .trimResults()
                                                                .omitEmptyStrings();
     private final Iterable<String> accountsBlacklist;
     private final int refreshDelaySeconds;
-    private final OSGIKillbillLogService logService;
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
@@ -94,15 +94,13 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private final Clock clock;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
-    public AnalyticsListener(final OSGIKillbillLogService logService,
-                             final OSGIKillbillAPI osgiKillbillAPI,
+    public AnalyticsListener(final OSGIKillbillAPI osgiKillbillAPI,
                              final OSGIKillbillDataSource osgiKillbillDataSource,
                              final OSGIConfigPropertiesService osgiConfigPropertiesService,
                              final Executor executor,
                              final Clock clock,
-                             AnalyticsConfigurationHandler analyticsConfigurationHandler,
+                             final AnalyticsConfigurationHandler analyticsConfigurationHandler,
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
-        this.logService = logService;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
@@ -111,20 +109,20 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         final String refreshDelayMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_DELAY_PROPERTY));
         this.refreshDelaySeconds = refreshDelayMaybeNull == null ? 10 : Integer.valueOf(refreshDelayMaybeNull);
 
-        final BusinessAccountDao bacDao = new BusinessAccountDao(logService, osgiKillbillDataSource);
-        this.bstDao = new BusinessSubscriptionTransitionDao(logService, osgiKillbillDataSource, bacDao, executor);
-        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(logService, osgiKillbillDataSource, bacDao, executor);
-        this.bosDao = new BusinessAccountTransitionDao(logService, osgiKillbillDataSource);
-        this.bFieldDao = new BusinessFieldDao(logService, osgiKillbillDataSource);
-        this.allBusinessObjectsDao = new AllBusinessObjectsDao(logService, osgiKillbillAPI, osgiKillbillDataSource, executor, clock);
-        this.currencyConversionDao = new CurrencyConversionDao(logService, osgiKillbillDataSource);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
+        this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, bacDao, executor);
+        this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource);
+        this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource);
+        this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, executor);
+        this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource);
 
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 
             @Override
             public void handleReadyNotification(final NotificationEvent eventJson, final DateTime eventDateTime, final UUID futureUserToken, final Long searchKey1, final Long searchKey2) {
                 if (eventJson == null || !(eventJson instanceof AnalyticsJob)) {
-                    logService.log(LogService.LOG_ERROR, "Analytics service received an unexpected event: " + eventJson);
+                    logger.error("Analytics service received an unexpected event: {}", eventJson);
                     return;
                 }
 
@@ -132,14 +130,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
                 // We need to check again if there is a duplicate because it's possible that 2 events were processed at the same time in handleKillbillEvent (e.g. ACCOUNT_CREATION and ACCOUNT_CHANGE)
                 if (!shouldRun(job, futureUserToken, searchKey1, searchKey2)) {
-                    logService.log(LogService.LOG_DEBUG, "Skipping already present notification for job " + job.toString());
+                    logger.debug("Skipping already present notification for job {}", job);
                     return;
                 }
 
                 try {
                     handleAnalyticsJob(job);
-                } catch (AnalyticsRefreshException e) {
-                    logService.log(LogService.LOG_ERROR, "Unable to process event", e);
+                } catch (final AnalyticsRefreshException e) {
+                    logger.error("Unable to process event", e);
                 }
             }
         };
@@ -179,7 +177,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         Long tenantRecordId = null;
         final RecordIdApi recordIdApi = osgiKillbillAPI.getRecordIdApi();
         if (recordIdApi == null) {
-            logService.log(LogService.LOG_WARNING, "Unable to retrieve the recordIdApi");
+            logger.warn("Unable to retrieve the recordIdApi");
         } else {
             final CallContext callContext = new AnalyticsCallContext(job, clock);
             accountRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(killbillEvent.getAccountId(), ObjectType.ACCOUNT, callContext);
@@ -190,14 +188,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         // are calling handleKillbillEvent in parallel, there is a small chance that this check will miss some, so we will check again
         // before processing the job (see handleReadyNotification above)
         if (accountRecordId != null && futureOverlappingJobAlreadyScheduled(job, accountRecordId, tenantRecordId)) {
-            logService.log(LogService.LOG_DEBUG, "Skipping already present notification for event " + killbillEvent.toString());
+            logger.debug("Skipping already present notification for event {}", killbillEvent.toString());
             return;
         }
 
         try {
             jobQueue.recordFutureNotification(computeFutureNotificationTime(), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
-        } catch (IOException e) {
-            logService.log(LogService.LOG_WARNING, "Unable to record notification for event " + killbillEvent.toString());
+        } catch (final IOException e) {
+            logger.warn("Unable to record notification for event {}", killbillEvent);
         }
     }
 
@@ -271,7 +269,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
 
         final Group group = AnalyticsJobHierarchy.fromEventType(job.getEventType());
-        logService.log(LogService.LOG_INFO, "Starting " + group + " Analytics refresh for account " + businessContextFactory.getAccountId());
+        logger.info("Starting {} Analytics refresh for account {}", group, businessContextFactory.getAccountId());
         switch (group) {
             case ALL:
                 allBusinessObjectsDao.update(businessContextFactory);
@@ -292,7 +290,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
             default:
                 break;
         }
-        logService.log(LogService.LOG_INFO, "Finished Analytics refresh for account " + businessContextFactory.getAccountId());
+        logger.info("Finished Analytics refresh for account {}", businessContextFactory.getAccountId());
     }
 
     private DateTime computeFutureNotificationTime() {
@@ -302,6 +300,11 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     @VisibleForTesting
     protected boolean isAccountBlacklisted(@Nullable final UUID accountId) {
         return accountId != null && Iterables.find(accountsBlacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
+    }
+
+    @VisibleForTesting
+    NotificationQueue getJobQueue() {
+        return jobQueue;
     }
 
     private static final class AnalyticsCallContext implements CallContext {
@@ -367,10 +370,5 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         public UUID getTenantId() {
             return job.getTenantId();
         }
-    }
-
-    @VisibleForTesting
-    NotificationQueue getJobQueue() {
-        return jobQueue;
     }
 }

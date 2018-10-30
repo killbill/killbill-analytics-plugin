@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2018 Groupon, Inc
+ * Copyright 2014-2018 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -26,17 +27,14 @@ import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
 import org.skife.jdbi.v2.DBI;
 
 public class CurrencyConversionDao {
 
-    private final OSGIKillbillLogService logService;
     private final CurrencyConversionSqlDao sqlDao;
 
-    public CurrencyConversionDao(final OSGIKillbillLogService logService, final OSGIKillbillDataSource osgiKillbillDataSource) {
-        this.logService = logService;
+    public CurrencyConversionDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
         final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
         this.sqlDao = dbi.onDemand(CurrencyConversionSqlDao.class);
     }
