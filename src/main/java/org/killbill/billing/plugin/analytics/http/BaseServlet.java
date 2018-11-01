@@ -60,12 +60,6 @@ public abstract class BaseServlet extends HttpServlet {
         this.reportsUserApi = reportsUserApi;
     }
 
-    protected void setCrossSiteScriptingHeaders(final HttpServletResponse resp) {
-        resp.setHeader("Access-Control-Allow-Origin", "*");
-        resp.setHeader("Access-Control-Request-Method", "GET");
-        resp.setHeader("Access-Control-Allow-Headers", "accept, origin, content-type");
-    }
-
     protected CallContext createCallContext(final HttpServletRequest req, final HttpServletResponse resp) throws IOException {
         final String createdBy = MoreObjects.firstNonNull(req.getHeader(HDR_CREATED_BY), req.getRemoteAddr());
         final String reason = req.getHeader(HDR_REASON);

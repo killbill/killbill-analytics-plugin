@@ -32,51 +32,42 @@ import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 
 public class ServletRouter extends BaseServlet {
 
-    private static final String STATIC_RESOURCES = "static";
     private static final String REPORTS_RESOURCES = "reports";
 
-    private final Pattern STATIC_PATTERN = Pattern.compile("/" + STATIC_RESOURCES + "/(" + ANYTHING_PATTERN + ")");
     private final Pattern REPORTS_PATTERN = Pattern.compile("/" + REPORTS_RESOURCES + "(/(" + STRING_PATTERN + "))?" + "(/refresh)?");
     private final Pattern ANALYTICS_PATTERN = Pattern.compile("/(" + UUID_PATTERN + ")");
 
-    private final StaticServlet staticServlet;
     private final ReportsServlet reportsServlet;
     private final AnalyticsServlet analyticsServlet;
 
     public ServletRouter(final AnalyticsUserApi analyticsUserApi, final ReportsUserApi reportsUserApi) {
         super(analyticsUserApi, reportsUserApi);
-        this.staticServlet = new StaticServlet(analyticsUserApi, reportsUserApi);
         this.reportsServlet = new ReportsServlet(analyticsUserApi, reportsUserApi);
         this.analyticsServlet = new AnalyticsServlet(analyticsUserApi, reportsUserApi);
     }
 
     @Override
     protected void doOptions(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doGet(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doPost(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doPut(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
     @Override
     protected void doDelete(final HttpServletRequest req, final HttpServletResponse resp) throws ServletException, IOException {
-        setCrossSiteScriptingHeaders(resp);
         forward(req, resp);
     }
 
@@ -85,13 +76,6 @@ public class ServletRouter extends BaseServlet {
     private void forward(final HttpServletRequest req, final HttpServletResponse resp) throws IOException, ServletException {
         final String pathInfo = req.getPathInfo();
         Matcher matcher;
-
-        matcher = STATIC_PATTERN.matcher(pathInfo);
-        if (matcher.matches()) {
-            req.setAttribute(RESOURCE_NAME_ATTRIBUTE, matcher.group(1));
-            staticServlet.service(req, resp);
-            return;
-        }
 
         matcher = REPORTS_PATTERN.matcher(pathInfo);
         if (matcher.matches()) {
@@ -121,5 +105,4 @@ public class ServletRouter extends BaseServlet {
 
         resp.sendError(404, "Resource " + pathInfo + " not found");
     }
-
 }
