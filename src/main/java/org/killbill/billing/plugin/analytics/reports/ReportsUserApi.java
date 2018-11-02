@@ -192,7 +192,7 @@ public class ReportsUserApi {
     }
 
     // Useful for testing
-    public List<String> getSQLForReport(final String[] rawReportNames,
+    public List<String> getSQLForReport(final Iterable<String> rawReportNames,
                                         @Nullable final DateTime startDate,
                                         @Nullable final DateTime endDate,
                                         final TenantContext context) {
@@ -217,7 +217,7 @@ public class ReportsUserApi {
         return sqlQueries;
     }
 
-    public List<Chart> getDataForReport(final String[] rawReportNames,
+    public List<Chart> getDataForReport(final Iterable<String> rawReportNames,
                                         @Nullable final DateTime startDate,
                                         @Nullable final DateTime endDate,
                                         @Nullable final SmootherType smootherType,

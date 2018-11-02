@@ -43,7 +43,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testDateFormatter() {
-        final LocalDate localDate = ReportsServlet.DATE_FORMAT.parseLocalDate("2013-01-07");
+        final LocalDate localDate = ReportsResource.DATE_FORMAT.parseLocalDate("2013-01-07");
         Assert.assertEquals(localDate.getYear(), 2013);
         Assert.assertEquals(localDate.getMonthOfYear(), 1);
         Assert.assertEquals(localDate.getDayOfMonth(), 7);
@@ -74,7 +74,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
 
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        ReportsServlet.writeAsCSV(Collections.singletonList(new Chart(ReportType.TIMELINE, "foo", res)), out);
+        ReportsResource.writeAsCSV(Collections.singletonList(new Chart(ReportType.TIMELINE, "foo", res)), out);
         Assert.assertEquals(out.toString(),
                             "serie1,2013-01-01,11.0\n" +
                             "serie1,2013-01-02,7.0\n" +

@@ -33,10 +33,13 @@ When configuring refreshes via stored procedures, make sure to bump the connecti
 API
 ---
 
+### Data
+
 To retrieve all data for a given account:
 
 ```
-curl -u admin:password \
+curl -v \
+     -u admin:password \
      -H "X-Killbill-ApiKey:bob" \
      -H "X-Killbill-ApiSecret:lazar" \
      "http://127.0.0.1:8080/plugins/killbill-analytics/<ACCOUNT_ID>"
@@ -69,4 +72,82 @@ curl -v \
      -H "X-Killbill-ApiKey:bob" \
      -H "X-Killbill-ApiSecret:lazar" \
     "http://127.0.0.1:8080/plugins/killbill-analytics/accountId"
+```
+
+### Reports
+
+To create a report:
+
+```
+curl -v \
+     -X POST \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     -H 'Content-Type: application/json' \
+     -d '{"reportName": "report_accounts_summary",
+          "reportType": "COUNTERS",
+          "reportPrettyName": "Accounts summary",
+          "sourceTableName": "report_accounts_summary",
+          "refreshProcedureName": "refresh_report_accounts_summary",
+          "refreshFrequency": "HOURLY"}' \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
+```
+
+To retrieve a report configuration by name:
+
+```
+curl -v \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports/report_accounts_summary"
+```
+
+To retrieve a report SQL query:
+
+```
+curl -v \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports?name=report_accounts_summary&startDate=2018-01-01&endDate=2018-05-01&sqlOnly=true"
+```
+
+To retrieve report data:
+
+```
+curl -v \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports?name=report_accounts_summary&startDate=2018-01-01&endDate=2018-05-01&smooth=SUM_WEEKLY&format=csv"
+```
+
+### Healthcheck
+
+Status:
+
+```
+curl -v \
+     -u admin:password \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
+```
+
+Put out of rotation:
+
+```
+curl -v \
+     -X DELETE \
+     -u admin:password \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
+```
+
+Put in rotation:
+
+```
+curl -v \
+     -X PUT \
+     -u admin:password \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
 ```

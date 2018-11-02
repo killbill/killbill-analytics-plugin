@@ -35,11 +35,15 @@ import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHand
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.core.AnalyticsHealthcheck;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
-import org.killbill.billing.plugin.analytics.http.ServletRouter;
+import org.killbill.billing.plugin.analytics.http.AnalyticsHealthcheckResource;
+import org.killbill.billing.plugin.analytics.http.AnalyticsAccountResource;
+import org.killbill.billing.plugin.analytics.http.ReportsResource;
 import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
+import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.killbill.bus.dao.BusEventModelDao;
 import org.killbill.clock.Clock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
@@ -58,19 +62,15 @@ import com.google.common.collect.ImmutableMap;
 
 public class AnalyticsActivator extends KillbillActivatorBase {
 
-    private static final Logger logger = LoggerFactory.getLogger(AnalyticsActivator.class);
-
     public static final String PLUGIN_NAME = "killbill-analytics";
     public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
-
+    private static final Logger logger = LoggerFactory.getLogger(AnalyticsActivator.class);
+    private final MetricRegistry metricRegistry = new MetricRegistry();
     private AnalyticsConfigurationHandler analyticsConfigurationHandler;
     private AnalyticsListener analyticsListener;
     private JobsScheduler jobsScheduler;
     private ReportsUserApi reportsUserApi;
-
     private Clock killbillClock;
-
-    private final MetricRegistry metricRegistry = new MetricRegistry();
 
     @Override
     public void start(final BundleContext context) throws Exception {
@@ -93,7 +93,6 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
 
-
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
         analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI, logService);
@@ -110,12 +109,27 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
         reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
-        final ServletRouter servletRouter = new ServletRouter(analyticsUserApi, reportsUserApi);
-        registerServlet(context, servletRouter);
-        registerHandlers();
-        registerHealthcheck(context, new AnalyticsHealthcheck(analyticsListener, jobsScheduler));
-    }
+        final AnalyticsHealthcheck healthcheck = new AnalyticsHealthcheck(analyticsListener, jobsScheduler);
+        registerHealthcheck(context, healthcheck);
 
+        final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
+                                                         killbillAPI,
+                                                         logService,
+                                                         dataSource,
+                                                         clock,
+                                                         configProperties).withRouteClass(AnalyticsHealthcheckResource.class)
+                                                                          .withRouteClass(ReportsResource.class)
+                                                                          .withRouteClass(AnalyticsAccountResource.class) // Needs to be last (to avoid matching /healthcheck or /reports)!
+                                                                          .withService(analyticsUserApi)
+                                                                          .withService(reportsUserApi)
+                                                                          .withService(clock)
+                                                                          .withService(healthcheck)
+                                                                          .build();
+        final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
+        registerServlet(context, httpServlet);
+
+        registerHandlers();
+    }
 
     @Override
     public void stop(final BundleContext context) throws Exception {

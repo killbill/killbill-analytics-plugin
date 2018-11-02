@@ -41,6 +41,10 @@
     </issueManagement>
     <dependencies>
         <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
         </dependency>
@@ -100,7 +104,12 @@
         <dependency>
             <groupId>com.google.inject</groupId>
             <artifactId>guice</artifactId>
-            <scope>test</scope>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.inject.extensions</groupId>
+            <artifactId>guice-multibindings</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
@@ -296,16 +305,66 @@
                         <!-- Optional resolution because exported by the Felix system bundle -->
                         <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
                         <Import-Package>
+                            org.killbill.billing.account.api;
+                            org.killbill.billing.catalog.api;
+                            org.killbill.billing.invoice.api;
+                            org.killbill.billing.entitlement.api;
+                            org.killbill.billing.notification.api;
+                            org.killbill.billing.notification.plugin.api;
+                            org.killbill.billing.notification.plugin;
+                            org.killbill.billing.osgi.api;
+                            org.killbill.billing.osgi.api.config;
+                            org.killbill.billing.payment.api;
+                            org.killbill.billing.payment.plugin.api;
+                            org.killbill.billing.control.plugin.api;
+                            org.killbill.billing.tenant.api;
+                            org.killbill.billing.usage.api;
+                            org.killbill.billing.util.api;
+                            org.killbill.billing.currency.plugin.api;
+                            org.killbill.billing.currency.api;
+                            org.killbill.billing.security.api;
                             org.xml.sax.helpers;
                             org.xml.sax;
                             org.w3c.dom;
-                            org.w3c.dom.ls,
-                            org.killbill.billing.osgi.api;
-                            org.killbill.billing.osgi.api.config;
+                            org.w3c.dom.ls;
                             sun.misc;
+                            javax.net.ssl;
                             javax.management;
+                            javax.jws;
+                            javax.jws.soap;
+                            javax.annotation;
+                            javax.activation;
+                            javax.xml.soap;
+                            javax.xml.ws;
+                            javax.xml.ws.spi;
+                            javax.xml.ws.handler.soap;
+                            javax.xml.ws.handler;
+                            javax.xml.ws.http;
+                            javax.xml.ws.soap;
+                            javax.xml.ws.wsaddressing;
+                            javax.xml.stream;
+                            javax.xml.stream.events;
+                            javax.xml.stream.util;
+                            javax.xml.bind.annotation.adapters;
+                            javax.xml.bind;
+                            javax.xml.bind.helpers;
+                            javax.xml.bind.annotation;
+                            javax.xml.bind.attachment;
+                            javax.xml.datatype;
+                            javax.xml.namespace;
                             javax.xml.parsers;
+                            javax.xml.transform;
+                            javax.xml.transform.sax;
+                            javax.xml.transform.dom;
+                            javax.xml.transform.stream;
+                            javax.xml.xpath;
+                            javax.naming.directory;
+                            javax.naming.event;
+                            javax.naming.ldap;
+                            javax.naming.spi;
+                            javax.naming;
                             org.osgi.service.log;
+                            version="[0,3)",
                             *;resolution:=optional
                         </Import-Package>
                     </instructions>
