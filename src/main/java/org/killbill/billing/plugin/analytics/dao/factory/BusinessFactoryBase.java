@@ -402,7 +402,7 @@ public abstract class BusinessFactoryBase {
     //
 
     protected Collection<Payment> getPaymentsWithPluginInfoByAccountId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        PaymentApiException error;
+        Exception error;
 
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
@@ -418,6 +418,15 @@ public abstract class BusinessFactoryBase {
                     error = e1;
                 }
             }
+        } catch (final RuntimeException e) {
+            // Plugin exception?
+            error = e;
+            try {
+                final List<Payment> accountPayments = paymentApi.getAccountPayments(accountId, false, false, PLUGIN_PROPERTIES, context);
+                logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
+                return accountPayments;
+            } catch (final PaymentApiException ignored) {
+            }
         }
 
         logger.warn("Error retrieving payments for account id {}",  accountId, error);
@@ -425,7 +434,7 @@ public abstract class BusinessFactoryBase {
     }
 
     protected List<PaymentMethod> getPaymentMethodsForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        PaymentApiException error;
+        Exception error;
 
         final PaymentApi paymentApi = getPaymentUserApi();
         try {
@@ -440,6 +449,15 @@ public abstract class BusinessFactoryBase {
                 } catch (final PaymentApiException e1) {
                     error = e1;
                 }
+            }
+        } catch (final RuntimeException e) {
+            // Plugin exception?
+            error = e;
+            try {
+                final List<PaymentMethod> accountPaymentMethods = paymentApi.getAccountPaymentMethods(accountId, true, false, PLUGIN_PROPERTIES, context);
+                logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
+                return accountPaymentMethods;
+            } catch (final PaymentApiException ignored) {
             }
         }
 
