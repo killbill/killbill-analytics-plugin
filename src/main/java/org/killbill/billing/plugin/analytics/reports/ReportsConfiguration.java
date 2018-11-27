@@ -84,8 +84,12 @@ public class ReportsConfiguration {
                 // Re-read the record to optimize the schedule deletion path
                 final ReportsConfigurationModelDao reportsConfigurationModelDao = transactional.getReportConfigurationForReport(reportName);
 
-                transactional.deleteReportConfiguration(reportName);
-                scheduler.unSchedule(reportsConfigurationModelDao, connection);
+                // Make deletion idempotent
+                if (reportsConfigurationModelDao != null) {
+                    transactional.deleteReportConfiguration(reportName);
+                    scheduler.unSchedule(reportsConfigurationModelDao, connection);
+                }
+
                 return null;
             }
         });

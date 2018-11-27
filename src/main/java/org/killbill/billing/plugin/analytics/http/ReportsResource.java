@@ -237,7 +237,7 @@ public class ReportsResource extends BaseResource {
     @Path("/{reportName}")
     @Consumes("application/json")
     public Result doPut(@Named("reportName") final String reportName,
-                        @Named("shouldRefresh") final Boolean shouldRefresh, // TODO in path?
+                        @Named("shouldRefresh") final Optional<Boolean> shouldRefresh,
                         @Body final ReportConfigurationJson reportConfigurationJson,
                         @Header(HDR_CREATED_BY) final Optional<String> createdBy,
                         @Header(HDR_REASON) final Optional<String> reason,
@@ -245,11 +245,23 @@ public class ReportsResource extends BaseResource {
                         @Local @Named("killbill_tenant") final Tenant tenant) {
         final CallContext context = createCallContext(createdBy, reason, comment, null, tenant);
 
-        if (Boolean.TRUE.equals(shouldRefresh)) {
+        if (Boolean.TRUE.equals(shouldRefresh.orElse(Boolean.FALSE))) {
             reportsUserApi.refreshReport(reportName, context);
         } else {
             reportsUserApi.updateReport(reportName, reportConfigurationJson, context);
         }
+
+        return Results.ok();
+    }
+
+    @DELETE
+    public Result doDelete(@Header(HDR_CREATED_BY) final Optional<String> createdBy,
+                           @Header(HDR_REASON) final Optional<String> reason,
+                           @Header(HDR_COMMENT) final Optional<String> comment,
+                           @Local @Named("killbill_tenant") final Tenant tenant) {
+        final CallContext context = createCallContext(createdBy, reason, comment, null, tenant);
+
+        reportsUserApi.clearCaches(context);
 
         return Results.ok();
     }
@@ -263,11 +275,7 @@ public class ReportsResource extends BaseResource {
                            @Local @Named("killbill_tenant") final Tenant tenant) {
         final CallContext context = createCallContext(createdBy, reason, comment, null, tenant);
 
-        if (reportName == null) {
-            reportsUserApi.clearCaches(context);
-        } else {
-            reportsUserApi.deleteReport(reportName, context);
-        }
+        reportsUserApi.deleteReport(reportName, context);
 
         return Results.ok();
     }

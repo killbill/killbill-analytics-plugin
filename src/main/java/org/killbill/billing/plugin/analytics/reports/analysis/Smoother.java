@@ -29,6 +29,7 @@ import org.joda.time.DateTimeConstants;
 import org.killbill.billing.plugin.analytics.json.XY;
 
 import com.google.common.base.Function;
+import com.google.common.base.Strings;
 
 public abstract class Smoother {
 
@@ -58,7 +59,7 @@ public abstract class Smoother {
     }
 
     public static SmootherType fromString(@Nullable final String smootherName) {
-        if (smootherName == null) {
+        if (Strings.isNullOrEmpty(smootherName)) {
             return null;
         } else {
             return SmootherType.valueOf(smootherName.toUpperCase());
