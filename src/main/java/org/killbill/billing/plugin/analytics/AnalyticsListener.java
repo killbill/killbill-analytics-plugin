@@ -57,6 +57,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Splitter;
@@ -77,11 +78,15 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
     // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
     private static final String ANALYTICS_REFRESH_DELAY_PROPERTY = "org.killbill.billing.plugin.analytics.refreshDelay";
-    private static final Splitter BLACKLIST_SPLITTER = Splitter.on(',')
-                                                               .trimResults()
-                                                               .omitEmptyStrings();
+    // Groups to ignore for refresh, see https://github.com/killbill/killbill-analytics-plugin/issues/87
+    @VisibleForTesting
+    static final String ANALYTICS_IGNORED_GROUPS_PROPERTY = "org.killbill.billing.plugin.analytics.ignoredGroups";
+    private static final Splitter PROPERTY_SPLITTER = Splitter.on(',')
+                                                              .trimResults()
+                                                              .omitEmptyStrings();
     private final Iterable<String> accountsBlacklist;
     private final int refreshDelaySeconds;
+    private final Iterable<Group> ignoredGroups;
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
@@ -144,7 +149,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         jobQueue = notificationQueueService.createNotificationQueue(ANALYTICS_QUEUE_SERVICE,
                                                                     "refresh-queue",
                                                                     notificationQueueHandler);
-        accountsBlacklist = BLACKLIST_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY)));
+        accountsBlacklist = PROPERTY_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY)));
+        ignoredGroups = Iterables.<String, Group>transform(PROPERTY_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_IGNORED_GROUPS_PROPERTY))),
+                                                           new Function<String, Group>() {
+                                                               @Override
+                                                               public Group apply(final String input) {
+                                                                   return Group.valueOf(input.toUpperCase());
+                                                               }
+                                                           });
     }
 
     public void start() {
@@ -168,6 +180,11 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
         // Don't mirror accounts in the blacklist
         if (isAccountBlacklisted(killbillEvent.getAccountId())) {
+            return;
+        }
+
+        // Events we don't care about
+        if (shouldIgnoreEvent(killbillEvent)) {
             return;
         }
 
@@ -300,6 +317,11 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     @VisibleForTesting
     protected boolean isAccountBlacklisted(@Nullable final UUID accountId) {
         return accountId != null && Iterables.find(accountsBlacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
+    }
+
+    @VisibleForTesting
+    protected boolean shouldIgnoreEvent(final ExtBusEvent event) {
+        return Iterables.find(ignoredGroups, Predicates.<Group>equalTo(AnalyticsJobHierarchy.fromEventType(event.getEventType())), null) != null;
     }
 
     @VisibleForTesting

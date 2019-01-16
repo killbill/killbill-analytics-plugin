@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -18,8 +18,15 @@
 
 package org.killbill.billing.plugin.analytics;
 
+import java.util.Properties;
 import java.util.UUID;
 
+import org.killbill.billing.notification.plugin.api.ExtBusEvent;
+import org.killbill.billing.notification.plugin.api.ExtBusEventType;
+import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -27,17 +34,37 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testBlacklist() throws Exception {
-        AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
-
-        // No account is blacklisted
-        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
-
-        analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
 
         // Other accounts are blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
 
         // Blacklist
         Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId));
+    }
+
+    @Test(groups = "fast")
+    public void testIgnoredGroups() throws Exception {
+        final ExtBusEvent cfEvent = Mockito.mock(ExtBusEvent.class);
+        Mockito.when(cfEvent.getEventType()).thenReturn(ExtBusEventType.CUSTOM_FIELD_CREATION);
+
+        final ExtBusEvent accountEvent = Mockito.mock(ExtBusEvent.class);
+        Mockito.when(accountEvent.getEventType()).thenReturn(ExtBusEventType.ACCOUNT_CREATION);
+
+        final Properties properties = new Properties();
+        properties.setProperty(AnalyticsListener.ANALYTICS_IGNORED_GROUPS_PROPERTY, "FIELDS");
+        final OSGIConfigPropertiesService osgiConfigPropertiesService = Mockito.mock(OSGIConfigPropertiesService.class);
+        Mockito.when(osgiConfigPropertiesService.getProperties()).thenReturn(properties);
+        Mockito.when(osgiConfigPropertiesService.getString(Mockito.<String>any())).thenAnswer(new Answer<Object>() {
+            @Override
+            public Object answer(InvocationOnMock invocation) throws Throwable {
+                return properties.getProperty((String) invocation.getArguments()[0]);
+            }
+        });
+
+        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
+
+        Assert.assertTrue(analyticsListener.shouldIgnoreEvent(cfEvent));
+        Assert.assertFalse(analyticsListener.shouldIgnoreEvent(accountEvent));
     }
 }
