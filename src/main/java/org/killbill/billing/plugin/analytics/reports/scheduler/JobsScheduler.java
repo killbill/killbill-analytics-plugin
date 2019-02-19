@@ -95,13 +95,11 @@ public class JobsScheduler {
                 }
 
                 final AnalyticsReportJob job = (AnalyticsReportJob) eventJson;
-                logger.info("Starting job for {}", job.getReportName());
 
                 try {
                     callStoredProcedure(job.getRefreshProcedureName());
                 } finally {
                     schedule(job, null);
-                    logger.info("Ending job for {}", job.getReportName());
                 }
             }
         };
@@ -257,11 +255,13 @@ public class JobsScheduler {
         proceduresService.execute(new Runnable() {
             @Override
             public void run() {
+                logger.info("Starting job for {}", storedProcedureName);
                 Handle handle = null;
                 try {
                     handle = dbi.open();
                     final Call call = handle.createCall("call " + storedProcedureName);
                     call.invoke();
+                    logger.info("Ending job for {}", storedProcedureName);
                 } finally {
                     if (handle != null) {
                         handle.close();
