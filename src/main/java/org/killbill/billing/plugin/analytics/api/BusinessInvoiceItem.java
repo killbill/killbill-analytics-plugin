@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -33,6 +34,8 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
     private final LocalDate invoiceDate;
     private final LocalDate invoiceTargetDate;
     private final String invoiceCurrency;
+    private final BigDecimal rawInvoiceBalance;
+    private final BigDecimal convertedRawInvoiceBalance;
     private final BigDecimal invoiceBalance;
     private final BigDecimal convertedInvoiceBalance;
     private final BigDecimal invoiceAmountPaid;
@@ -80,6 +83,8 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         this.invoiceDate = businessInvoiceItemBaseModelDao.getInvoiceDate();
         this.invoiceTargetDate = businessInvoiceItemBaseModelDao.getInvoiceTargetDate();
         this.invoiceCurrency = businessInvoiceItemBaseModelDao.getInvoiceCurrency();
+        this.rawInvoiceBalance = businessInvoiceItemBaseModelDao.getRawInvoiceBalance();
+        this.convertedRawInvoiceBalance = businessInvoiceItemBaseModelDao.getConvertedRawInvoiceBalance();
         this.invoiceBalance = businessInvoiceItemBaseModelDao.getInvoiceBalance();
         this.convertedInvoiceBalance = businessInvoiceItemBaseModelDao.getConvertedInvoiceBalance();
         this.invoiceAmountPaid = businessInvoiceItemBaseModelDao.getInvoiceAmountPaid();
@@ -138,6 +143,14 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
 
     public String getInvoiceCurrency() {
         return invoiceCurrency;
+    }
+
+    public BigDecimal getRawInvoiceBalance() {
+        return rawInvoiceBalance;
+    }
+
+    public BigDecimal getConvertedRawInvoiceBalance() {
+        return convertedRawInvoiceBalance;
     }
 
     public BigDecimal getInvoiceBalance() {
@@ -270,6 +283,8 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         sb.append(", invoiceDate=").append(invoiceDate);
         sb.append(", invoiceTargetDate=").append(invoiceTargetDate);
         sb.append(", invoiceCurrency='").append(invoiceCurrency).append('\'');
+        sb.append(", rawInvoiceBalance=").append(rawInvoiceBalance);
+        sb.append(", convertedRawInvoiceBalance=").append(convertedRawInvoiceBalance);
         sb.append(", invoiceBalance=").append(invoiceBalance);
         sb.append(", convertedInvoiceBalance=").append(convertedInvoiceBalance);
         sb.append(", invoiceAmountPaid=").append(invoiceAmountPaid);
@@ -354,6 +369,9 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         if (convertedInvoiceOriginalAmountCharged != null ? !(convertedInvoiceOriginalAmountCharged.compareTo(that.convertedInvoiceOriginalAmountCharged) == 0) : that.convertedInvoiceOriginalAmountCharged != null) {
             return false;
         }
+        if (convertedRawInvoiceBalance != null ? !(convertedRawInvoiceBalance.compareTo(that.convertedRawInvoiceBalance) == 0) : that.convertedRawInvoiceBalance != null) {
+            return false;
+        }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
@@ -420,6 +438,9 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         if (productType != null ? !productType.equals(that.productType) : that.productType != null) {
             return false;
         }
+        if (rawInvoiceBalance != null ? !rawInvoiceBalance.equals(that.rawInvoiceBalance) : that.rawInvoiceBalance != null) {
+            return false;
+        }
         if (slug != null ? !slug.equals(that.slug) : that.slug != null) {
             return false;
         }
@@ -443,6 +464,8 @@ public class BusinessInvoiceItem extends BusinessEntityBase {
         result = 31 * result + (invoiceDate != null ? invoiceDate.hashCode() : 0);
         result = 31 * result + (invoiceTargetDate != null ? invoiceTargetDate.hashCode() : 0);
         result = 31 * result + (invoiceCurrency != null ? invoiceCurrency.hashCode() : 0);
+        result = 31 * result + (rawInvoiceBalance != null ? rawInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (convertedRawInvoiceBalance != null ? convertedRawInvoiceBalance.hashCode() : 0);
         result = 31 * result + (invoiceBalance != null ? invoiceBalance.hashCode() : 0);
         result = 31 * result + (convertedInvoiceBalance != null ? convertedInvoiceBalance.hashCode() : 0);
         result = 31 * result + (invoiceAmountPaid != null ? invoiceAmountPaid.hashCode() : 0);

@@ -290,6 +290,8 @@ insert into analytics_invoices (
 , invoice_date
 , target_date
 , currency
+, raw_balance
+, converted_raw_balance
 , balance
 , converted_balance
 , amount_paid
@@ -320,6 +322,8 @@ insert into analytics_invoices (
 , :invoiceDate
 , :targetDate
 , :currency
+, :rawBalance
+, :convertedRawBalance
 , :balance
 , :convertedBalance
 , :amountPaid
@@ -357,6 +361,8 @@ insert into analytics_invoice_adjustments (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -406,6 +412,8 @@ insert into analytics_invoice_adjustments (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -459,6 +467,8 @@ insert into analytics_invoice_items (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -509,6 +519,8 @@ insert into analytics_invoice_items (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -563,6 +575,8 @@ insert into analytics_invoice_item_adjustments (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -612,6 +626,8 @@ insert into analytics_invoice_item_adjustments (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -665,6 +681,8 @@ insert into analytics_invoice_credits (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -714,6 +732,8 @@ insert into analytics_invoice_credits (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid

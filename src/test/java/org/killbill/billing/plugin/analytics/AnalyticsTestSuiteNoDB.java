@@ -370,7 +370,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoice.getChargedAmount()).thenReturn(new BigDecimal("100293"));
         Mockito.when(invoice.getCreditedAmount()).thenReturn(new BigDecimal("283"));
         Mockito.when(invoice.getRefundedAmount()).thenReturn(new BigDecimal("384"));
-        Mockito.when(invoice.getBalance()).thenReturn(new BigDecimal("18376"));
+        Mockito.when(invoice.getBalance()).thenReturn(new BigDecimal("12000"));
         Mockito.when(invoice.isMigrationInvoice()).thenReturn(false);
         Mockito.when(invoice.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);
 

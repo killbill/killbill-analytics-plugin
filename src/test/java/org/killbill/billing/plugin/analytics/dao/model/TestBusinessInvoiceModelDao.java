@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -16,6 +17,8 @@
  */
 
 package org.killbill.billing.plugin.analytics.dao.model;
+
+import java.math.BigDecimal;
 
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.testng.Assert;
@@ -42,7 +45,10 @@ public class TestBusinessInvoiceModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceModelDao.getInvoiceDate(), invoice.getInvoiceDate());
         Assert.assertEquals(invoiceModelDao.getTargetDate(), invoice.getTargetDate());
         Assert.assertEquals(invoiceModelDao.getCurrency(), invoice.getCurrency().toString());
+        Assert.assertEquals(invoiceModelDao.getRawBalance().compareTo(invoice.getBalance()), 0);
+        Assert.assertEquals(invoiceModelDao.getConvertedRawBalance(), BigDecimal.TEN);
         Assert.assertEquals(invoiceModelDao.getBalance(), invoice.getBalance());
+        Assert.assertEquals(invoiceModelDao.getConvertedBalance(), BigDecimal.TEN);
         Assert.assertEquals(invoiceModelDao.getAmountPaid(), invoice.getPaidAmount());
         Assert.assertEquals(invoiceModelDao.getAmountCharged(), invoice.getChargedAmount());
         Assert.assertEquals(invoiceModelDao.getOriginalAmountCharged(), invoice.getOriginalChargedAmount());

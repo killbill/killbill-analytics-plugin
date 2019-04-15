@@ -204,6 +204,8 @@ create table analytics_invoices (
 , invoice_date date default null
 , target_date date default null
 , currency varchar(50) default null
+, raw_balance numeric(10, 4) default 0
+, converted_raw_balance numeric(10, 4) default null
 , balance numeric(10, 4) default 0
 , converted_balance numeric(10, 4) default null
 , amount_paid numeric(10, 4) default 0
@@ -248,6 +250,8 @@ create table analytics_invoice_adjustments (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -309,6 +313,8 @@ create table analytics_invoice_items (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -371,6 +377,8 @@ create table analytics_invoice_item_adjustments (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -432,6 +440,8 @@ create table analytics_invoice_credits (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
