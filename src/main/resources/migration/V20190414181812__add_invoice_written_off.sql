@@ -1,0 +1,5 @@
+alter table analytics_invoices add written_off bool default false after converted_currency;
+alter table analytics_invoice_adjustments add invoice_written_off bool default false after converted_invoice_amount_refunded;
+alter table analytics_invoice_items add invoice_written_off bool default false after converted_invoice_amount_refunded;
+alter table analytics_invoice_item_adjustments add invoice_written_off bool default false after converted_invoice_amount_refunded;
+alter table analytics_invoice_credits add invoice_written_off bool default false after converted_invoice_amount_refunded;

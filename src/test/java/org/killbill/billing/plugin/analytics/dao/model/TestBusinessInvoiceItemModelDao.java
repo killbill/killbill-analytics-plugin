@@ -33,6 +33,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 invoice,
                                                                                                 invoiceItem,
                                                                                                 itemSource,
+                                                                                                false,
                                                                                                 invoiceItemRecordId,
                                                                                                 secondInvoiceItemRecordId,
                                                                                                 null,
@@ -51,6 +52,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(invoiceItemModelDao.getSlug());
         Assert.assertNull(invoiceItemModelDao.getPhase());
         Assert.assertNull(invoiceItemModelDao.getBillingPeriod());
+        Assert.assertFalse(invoiceItemModelDao.isInvoiceWrittenOff());
     }
 
     @Test(groups = "fast")
@@ -60,6 +62,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 invoice,
                                                                                                 invoiceItem,
                                                                                                 itemSource,
+                                                                                                true,
                                                                                                 invoiceItemRecordId,
                                                                                                 secondInvoiceItemRecordId,
                                                                                                 bundle,
@@ -78,6 +81,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceItemModelDao.getSlug(), phase.getName());
         Assert.assertEquals(invoiceItemModelDao.getPhase(), phase.getPhaseType().toString());
         Assert.assertEquals(invoiceItemModelDao.getBillingPeriod(), phase.getRecurring().getBillingPeriod().toString());
+        Assert.assertTrue(invoiceItemModelDao.isInvoiceWrittenOff());
     }
 
     private void verifyInvoiceItemFields(final BusinessInvoiceItemModelDao invoiceItemModelDao) {

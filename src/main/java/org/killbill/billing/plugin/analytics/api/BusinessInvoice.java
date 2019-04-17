@@ -49,6 +49,7 @@ public class BusinessInvoice extends BusinessEntityBase {
     private final BigDecimal convertedAmountCredited;
     private final BigDecimal amountRefunded;
     private final BigDecimal convertedAmountRefunded;
+    private final boolean writtenOff;
     private final String convertedCurrency;
     private final List<BusinessInvoiceItem> invoiceItems = new LinkedList<BusinessInvoiceItem>();
 
@@ -82,6 +83,7 @@ public class BusinessInvoice extends BusinessEntityBase {
         this.amountRefunded = businessInvoiceModelDao.getAmountRefunded();
         this.convertedAmountRefunded = businessInvoiceModelDao.getConvertedAmountRefunded();
         this.convertedCurrency = businessInvoiceModelDao.getConvertedCurrency();
+        this.writtenOff = businessInvoiceModelDao.isWrittenOff();
         for (final BusinessInvoiceItemBaseModelDao businessInvoiceItemModelDao : businessInvoiceItemModelDaos) {
             invoiceItems.add(new BusinessInvoiceItem(businessInvoiceItemModelDao));
         }
@@ -163,6 +165,10 @@ public class BusinessInvoice extends BusinessEntityBase {
         return convertedAmountRefunded;
     }
 
+    public boolean isWrittenOff() {
+        return writtenOff;
+    }
+
     public String getConvertedCurrency() {
         return convertedCurrency;
     }
@@ -193,6 +199,7 @@ public class BusinessInvoice extends BusinessEntityBase {
         sb.append(", convertedAmountCredited=").append(convertedAmountCredited);
         sb.append(", amountRefunded=").append(amountRefunded);
         sb.append(", convertedAmountRefunded=").append(convertedAmountRefunded);
+        sb.append(", writtenOff=").append(writtenOff);
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append(", invoiceItems=").append(invoiceItems);
         sb.append('}');
@@ -276,6 +283,9 @@ public class BusinessInvoice extends BusinessEntityBase {
         if (targetDate != null ? targetDate.compareTo(that.targetDate) != 0 : that.targetDate != null) {
             return false;
         }
+        if (writtenOff != that.writtenOff) {
+            return false;
+        }
 
         return true;
     }
@@ -304,6 +314,7 @@ public class BusinessInvoice extends BusinessEntityBase {
         result = 31 * result + (convertedAmountRefunded != null ? convertedAmountRefunded.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         result = 31 * result + (invoiceItems != null ? invoiceItems.hashCode() : 0);
+        result = 31 * result + (writtenOff ? 1 : 0);
         return result;
     }
 }

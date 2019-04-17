@@ -70,6 +70,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
     private BigDecimal convertedInvoiceAmountCredited;
     private BigDecimal invoiceAmountRefunded;
     private BigDecimal convertedInvoiceAmountRefunded;
+    private boolean invoiceWrittenOff;
     private String itemType;
     private String itemSource;
     private UUID bundleId;
@@ -112,6 +113,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                          final Invoice invoice,
                                                          final InvoiceItem invoiceItem,
                                                          @Nullable final ItemSource itemSource,
+                                                         final boolean invoiceWrittenOff,
                                                          final BusinessInvoiceItemType businessInvoiceItemType,
                                                          final Long invoiceItemRecordId,
                                                          final Long secondInvoiceItemRecordId,
@@ -128,6 +130,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                          invoice,
                                                          invoiceItem,
                                                          itemSource,
+                                                         invoiceWrittenOff,
                                                          invoiceItemRecordId,
                                                          secondInvoiceItemRecordId,
                                                          bundle,
@@ -143,6 +146,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                    invoice,
                                                    invoiceItem,
                                                    itemSource,
+                                                   invoiceWrittenOff,
                                                    invoiceItemRecordId,
                                                    secondInvoiceItemRecordId,
                                                    bundle,
@@ -158,6 +162,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                              invoice,
                                                              invoiceItem,
                                                              itemSource,
+                                                             invoiceWrittenOff,
                                                              invoiceItemRecordId,
                                                              secondInvoiceItemRecordId,
                                                              bundle,
@@ -173,6 +178,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                          invoice,
                                                          invoiceItem,
                                                          itemSource,
+                                                         invoiceWrittenOff,
                                                          invoiceItemRecordId,
                                                          secondInvoiceItemRecordId,
                                                          bundle,
@@ -213,6 +219,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final BigDecimal convertedInvoiceAmountCredited,
                                            final BigDecimal invoiceAmountRefunded,
                                            final BigDecimal convertedInvoiceAmountRefunded,
+                                           final boolean invoiceWrittenOff,
                                            final String itemType,
                                            @Nullable final ItemSource itemSource,
                                            final UUID bundleId,
@@ -274,6 +281,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         this.convertedInvoiceAmountCredited = convertedInvoiceAmountCredited;
         this.invoiceAmountRefunded = invoiceAmountRefunded;
         this.convertedInvoiceAmountRefunded = convertedInvoiceAmountRefunded;
+        this.invoiceWrittenOff = invoiceWrittenOff;
         this.itemType = itemType;
         this.itemSource = itemSource == null ? DEFAULT_ITEM_SOURCE : itemSource.toString();
         this.bundleId = bundleId;
@@ -299,6 +307,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final Invoice invoice,
                                            final InvoiceItem invoiceItem,
                                            @Nullable final ItemSource itemSource,
+                                           final boolean invoiceWrittenOff,
                                            final Long invoiceItemRecordId,
                                            final Long secondInvoiceItemRecordId,
                                            @Nullable final SubscriptionBundle bundle,
@@ -331,6 +340,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              currencyConverter.getConvertedValue(invoice.getCreditedAmount(), invoice),
              invoice.getRefundedAmount(),
              currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
+             invoiceWrittenOff,
              invoiceItem.getInvoiceItemType().toString(),
              itemSource,
              bundle == null ? null : bundle.getId(),
@@ -454,6 +464,10 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         return convertedInvoiceAmountRefunded;
     }
 
+    public boolean isInvoiceWrittenOff() {
+        return invoiceWrittenOff;
+    }
+
     public String getItemType() {
         return itemType;
     }
@@ -552,6 +566,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         sb.append(", convertedInvoiceAmountCredited=").append(convertedInvoiceAmountCredited);
         sb.append(", invoiceAmountRefunded=").append(invoiceAmountRefunded);
         sb.append(", convertedInvoiceAmountRefunded=").append(convertedInvoiceAmountRefunded);
+        sb.append(", invoiceWrittenOff='").append(invoiceWrittenOff).append('\'');
         sb.append(", itemType='").append(itemType).append('\'');
         sb.append(", itemSource='").append(itemSource).append('\'');
         sb.append(", bundleId=").append(bundleId);
@@ -672,6 +687,9 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         if (invoiceTargetDate != null ? invoiceTargetDate.compareTo(that.invoiceTargetDate) != 0 : that.invoiceTargetDate != null) {
             return false;
         }
+        if (invoiceWrittenOff != that.invoiceWrittenOff) {
+            return false;
+        }
         if (itemId != null ? !itemId.equals(that.itemId) : that.itemId != null) {
             return false;
         }
@@ -741,6 +759,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         result = 31 * result + (convertedInvoiceAmountCredited != null ? convertedInvoiceAmountCredited.hashCode() : 0);
         result = 31 * result + (invoiceAmountRefunded != null ? invoiceAmountRefunded.hashCode() : 0);
         result = 31 * result + (convertedInvoiceAmountRefunded != null ? convertedInvoiceAmountRefunded.hashCode() : 0);
+        result = 31 * result + (invoiceWrittenOff ? 1 : 0);
         result = 31 * result + (itemType != null ? itemType.hashCode() : 0);
         result = 31 * result + (itemSource != null ? itemSource.hashCode() : 0);
         result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);

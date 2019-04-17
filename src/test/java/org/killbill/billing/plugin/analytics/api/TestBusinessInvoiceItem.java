@@ -32,6 +32,7 @@ public class TestBusinessInvoiceItem extends AnalyticsTestSuiteNoDB {
                                                                                                                invoice,
                                                                                                                invoiceItem,
                                                                                                                itemSource,
+                                                                                                               false,
                                                                                                                invoiceItemType,
                                                                                                                invoiceItemRecordId,
                                                                                                                secondInvoiceItemRecordId,
@@ -66,6 +67,7 @@ public class TestBusinessInvoiceItem extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceAmountCredited().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceAmountCredited()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceAmountRefunded().compareTo(invoiceItemBaseModelDao.getInvoiceAmountRefunded()), 0);
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceAmountRefunded().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceAmountRefunded()), 0);
+        Assert.assertFalse(businessInvoiceItem.isInvoiceWrittenOff());
         Assert.assertEquals(businessInvoiceItem.getItemType(), invoiceItemBaseModelDao.getItemType());
         Assert.assertEquals(businessInvoiceItem.getItemSource(), invoiceItemBaseModelDao.getItemSource());
         Assert.assertEquals(businessInvoiceItem.getBundleId(), invoiceItemBaseModelDao.getBundleId());

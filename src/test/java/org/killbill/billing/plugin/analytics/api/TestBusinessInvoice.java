@@ -33,6 +33,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         final BusinessInvoiceModelDao invoiceModelDao = new BusinessInvoiceModelDao(account,
                                                                                     accountRecordId,
                                                                                     invoice,
+                                                                                    true,
                                                                                     invoiceRecordId,
                                                                                     currencyConverter,
                                                                                     auditLog,
@@ -43,6 +44,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
                                                                                                                invoice,
                                                                                                                invoiceItem,
                                                                                                                itemSource,
+                                                                                                               true,
                                                                                                                invoiceItemType,
                                                                                                                invoiceItemRecordId,
                                                                                                                secondInvoiceItemRecordId,
@@ -76,6 +78,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoice.getConvertedAmountCredited().compareTo(invoiceModelDao.getConvertedAmountCredited()), 0);
         Assert.assertEquals(businessInvoice.getAmountRefunded().compareTo(invoiceModelDao.getAmountRefunded()), 0);
         Assert.assertEquals(businessInvoice.getConvertedAmountRefunded().compareTo(invoiceModelDao.getConvertedAmountRefunded()), 0);
+        Assert.assertTrue(businessInvoice.isWrittenOff());
         Assert.assertEquals(businessInvoice.getConvertedCurrency(), invoiceModelDao.getConvertedCurrency());
 
         Assert.assertEquals(businessInvoice.getInvoiceItems().size(), 1);
@@ -104,6 +107,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceAmountCredited().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceAmountCredited()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceAmountRefunded().compareTo(invoiceItemBaseModelDao.getInvoiceAmountRefunded()), 0);
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceAmountRefunded().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceAmountRefunded()), 0);
+        Assert.assertTrue(businessInvoiceItem.isInvoiceWrittenOff());
         Assert.assertEquals(businessInvoiceItem.getItemType(), invoiceItemBaseModelDao.getItemType());
         Assert.assertEquals(businessInvoiceItem.getItemSource(), invoiceItemBaseModelDao.getItemSource());
         Assert.assertEquals(businessInvoiceItem.getBundleId(), invoiceItemBaseModelDao.getBundleId());
