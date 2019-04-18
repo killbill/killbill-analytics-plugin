@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,6 +21,7 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -31,14 +33,22 @@ import org.joda.time.LocalDate;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.Product;
+import org.killbill.billing.entitlement.api.Subscription;
+import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
+import org.killbill.billing.entitlement.api.SubscriptionEvent;
+import org.killbill.billing.entitlement.api.SubscriptionEventType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
+import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscription;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionEvent;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
+import org.killbill.billing.util.callcontext.TenantContext;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -52,6 +62,8 @@ import com.google.common.collect.ImmutableSet;
 public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
 
     private BusinessBundleFactory bundleFactory;
+    private BusinessSubscriptionTransitionFactory subscriptionFactory;
+    private BusinessContextFactory businessContextFactory;
 
     @Override
     @BeforeMethod(groups = "fast")
@@ -73,6 +85,140 @@ public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
         }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
         bundleFactory = new BusinessBundleFactory(BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService));
+
+        final UUID subscriptionId = UUID.randomUUID();
+        final Subscription subscription = Mockito.mock(Subscription.class);
+        Mockito.when(subscription.getBaseEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(subscription.getId()).thenReturn(subscriptionId);
+
+        Mockito.when(bundle.getSubscriptions()).thenReturn(ImmutableList.<Subscription>of(subscription));
+
+        final SubscriptionApi subscriptionApi = killbillAPI.getSubscriptionApi();
+        Mockito.when(subscriptionApi.getSubscriptionBundlesForAccountId(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
+        Mockito.when(subscriptionApi.getSubscriptionBundlesForExternalKey(Mockito.<String>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
+
+        businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyConversionDao, killbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
+        subscriptionFactory = new BusinessSubscriptionTransitionFactory();
+    }
+
+    @Test(groups = "fast", description = "https://github.com/killbill/killbill-analytics-plugin/issues/89")
+    public void testBundleStarted() throws AnalyticsRefreshException {
+        final UUID subscriptionId = bundle.getSubscriptions().get(0).getId();
+
+        final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
+        // Start entitlement
+        final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event1.getEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(event1.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_ENTITLEMENT);
+        Mockito.when(event1.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 1));
+        Mockito.when(event1.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        events.add(event1);
+        // Start billing
+        final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event2.getEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(event2.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_BILLING);
+        Mockito.when(event2.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 1));
+        Mockito.when(event2.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        events.add(event2);
+
+        final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(subscriptionFactory.buildTransitionsForBundle(businessContextFactory, account, bundle, events, currencyConverter, accountRecordId, tenantRecordId, ReportGroup.test));
+        Assert.assertEquals(result.size(), 2);
+
+        Assert.assertEquals(result.get(0).getEvent(), "START_ENTITLEMENT_UNSPECIFIED");
+        Assert.assertEquals(result.get(0).getSubscriptionId(), subscriptionId);
+        Assert.assertNull(result.get(0).getPrevStartDate());
+        Assert.assertNull(result.get(0).getPrevService());
+        Assert.assertEquals(result.get(0).getNextStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(result.get(0).getNextService(), BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        Assert.assertNull(result.get(0).getNextEndDate());
+
+        Assert.assertEquals(result.get(1).getEvent(), "START_BILLING_UNSPECIFIED");
+        Assert.assertEquals(result.get(1).getSubscriptionId(), subscriptionId);
+        Assert.assertNull(result.get(1).getPrevStartDate());
+        Assert.assertNull(result.get(1).getPrevService());
+        Assert.assertEquals(result.get(1).getNextStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(result.get(1).getNextService(), BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        Assert.assertNull(result.get(1).getNextEndDate());
+
+        final Collection<BusinessBundleModelDao> bundles = bundleFactory.createBusinessBundles(businessContextFactory, result);
+        Assert.assertEquals(bundles.size(), 1);
+        final BusinessBundleModelDao bBundle = bundles.iterator().next();
+        Assert.assertEquals(bBundle.getCurrentStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertNull(bBundle.getCurrentEndDate());
+    }
+
+    @Test(groups = "fast", description = "https://github.com/killbill/killbill-analytics-plugin/issues/89")
+    public void testBundleCancelled() throws AnalyticsRefreshException {
+        final UUID subscriptionId = bundle.getSubscriptions().get(0).getId();
+
+        final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
+        // Start entitlement
+        final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event1.getEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(event1.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_ENTITLEMENT);
+        Mockito.when(event1.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 1));
+        Mockito.when(event1.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        events.add(event1);
+        // Start billing
+        final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event2.getEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(event2.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_BILLING);
+        Mockito.when(event2.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 1));
+        Mockito.when(event2.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        events.add(event2);
+        // Cancel entitlement
+        final SubscriptionEvent event3 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event3.getEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(event3.getSubscriptionEventType()).thenReturn(SubscriptionEventType.STOP_ENTITLEMENT);
+        Mockito.when(event3.getEffectiveDate()).thenReturn(new LocalDate(2012, 6, 1));
+        Mockito.when(event3.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        events.add(event3);
+        // Cancel billing
+        final SubscriptionEvent event4 = Mockito.mock(SubscriptionEvent.class);
+        Mockito.when(event4.getEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(event4.getSubscriptionEventType()).thenReturn(SubscriptionEventType.STOP_BILLING);
+        Mockito.when(event4.getEffectiveDate()).thenReturn(new LocalDate(2012, 6, 1));
+        Mockito.when(event4.getServiceName()).thenReturn(BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        events.add(event4);
+
+        final List<BusinessSubscriptionTransitionModelDao> result = ImmutableList.<BusinessSubscriptionTransitionModelDao>copyOf(subscriptionFactory.buildTransitionsForBundle(businessContextFactory, account, bundle, events, currencyConverter, accountRecordId, tenantRecordId, ReportGroup.test));
+        Assert.assertEquals(result.size(), 4);
+
+        Assert.assertEquals(result.get(0).getEvent(), "START_ENTITLEMENT_UNSPECIFIED");
+        Assert.assertEquals(result.get(0).getSubscriptionId(), subscriptionId);
+        Assert.assertNull(result.get(0).getPrevStartDate());
+        Assert.assertNull(result.get(0).getPrevService());
+        Assert.assertEquals(result.get(0).getNextStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(result.get(0).getNextService(), BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        Assert.assertEquals(result.get(0).getNextEndDate(), new LocalDate(2012, 6, 1));
+
+        Assert.assertEquals(result.get(1).getEvent(), "START_BILLING_UNSPECIFIED");
+        Assert.assertEquals(result.get(1).getSubscriptionId(), subscriptionId);
+        Assert.assertNull(result.get(1).getPrevStartDate());
+        Assert.assertNull(result.get(1).getPrevService());
+        Assert.assertEquals(result.get(1).getNextStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(result.get(1).getNextService(), BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        Assert.assertEquals(result.get(1).getNextEndDate(), new LocalDate(2012, 6, 1));
+
+        Assert.assertEquals(result.get(2).getEvent(), "STOP_ENTITLEMENT_UNSPECIFIED");
+        Assert.assertEquals(result.get(2).getPrevStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(result.get(2).getPrevService(), BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        Assert.assertEquals(result.get(2).getNextStartDate(), new LocalDate(2012, 6, 1));
+        Assert.assertEquals(result.get(2).getNextService(), BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME);
+        Assert.assertNull(result.get(2).getNextEndDate());
+
+        Assert.assertEquals(result.get(3).getEvent(), "STOP_BILLING_UNSPECIFIED");
+        Assert.assertEquals(result.get(3).getPrevStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(result.get(3).getPrevService(), BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        Assert.assertEquals(result.get(3).getNextStartDate(), new LocalDate(2012, 6, 1));
+        Assert.assertEquals(result.get(3).getNextService(), BusinessSubscriptionTransitionFactory.BILLING_SERVICE_NAME);
+        Assert.assertNull(result.get(3).getNextEndDate());
+
+        final Collection<BusinessBundleModelDao> bundles = bundleFactory.createBusinessBundles(businessContextFactory, result);
+        Assert.assertEquals(bundles.size(), 1);
+        final BusinessBundleModelDao bBundle = bundles.iterator().next();
+        Assert.assertEquals(bBundle.getCurrentStartDate(), new LocalDate(2012, 5, 1));
+        Assert.assertEquals(bBundle.getCurrentEndDate(), new LocalDate(2012, 6, 1));
     }
 
     @Test(groups = "fast")

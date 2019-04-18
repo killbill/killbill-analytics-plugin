@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,6 +21,7 @@ package org.killbill.billing.plugin.analytics.dao.model;
 import java.math.BigDecimal;
 
 import org.joda.time.LocalDate;
+import org.joda.time.Period;
 import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.catalog.api.Duration;
@@ -195,5 +197,38 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
         Assert.assertEquals(businessSubscription.getStartDate(), startDate);
         Assert.assertNull(businessSubscription.getEndDate());
+    }
+
+    @Test(groups = "fast")
+    public void testFiniteDuration() throws Exception {
+        final Duration duration = Mockito.mock(Duration.class);
+        Mockito.when(duration.getUnit()).thenReturn(TimeUnit.MONTHS);
+        Mockito.when(duration.getNumber()).thenReturn(3);
+        Mockito.when(duration.toJodaPeriod()).thenReturn(new Period().withMonths(3));
+        Mockito.when(phase.getDuration()).thenReturn(duration);
+
+        final LocalDate startDate = new LocalDate(2019, 7, 4);
+        final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
+                                                                                   phase,
+                                                                                   priceList,
+                                                                                   Currency.GBP,
+                                                                                   startDate,
+                                                                                   serviceName,
+                                                                                   stateName,
+                                                                                   currencyConverter);
+        Assert.assertEquals(businessSubscription.getProductName(), plan.getProduct().getName());
+        Assert.assertEquals(businessSubscription.getProductType(), plan.getProduct().getCatalogName());
+        Assert.assertEquals(businessSubscription.getProductCategory(), plan.getProduct().getCategory().toString());
+        Assert.assertEquals(businessSubscription.getSlug(), phase.getName());
+        Assert.assertEquals(businessSubscription.getPhase(), phase.getPhaseType().toString());
+        Assert.assertEquals(businessSubscription.getBillingPeriod(), phase.getRecurring().getBillingPeriod().toString());
+        Assert.assertEquals(businessSubscription.getPrice(), phase.getRecurring().getRecurringPrice().getPrice(Currency.GBP));
+        Assert.assertEquals(businessSubscription.getPriceList(), priceList.getName());
+        Assert.assertEquals(businessSubscription.getCurrency(), Currency.GBP.toString());
+        Assert.assertEquals(businessSubscription.getService(), serviceName);
+        Assert.assertEquals(businessSubscription.getState(), stateName);
+        //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
+        Assert.assertEquals(businessSubscription.getStartDate(), startDate);
+        Assert.assertEquals(businessSubscription.getEndDate(), new LocalDate(2019, 10, 4));
     }
 }
