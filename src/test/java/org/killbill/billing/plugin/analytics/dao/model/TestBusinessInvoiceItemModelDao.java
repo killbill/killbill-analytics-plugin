@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -17,6 +18,8 @@
 
 package org.killbill.billing.plugin.analytics.dao.model;
 
+import java.math.BigDecimal;
+
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -30,6 +33,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 invoice,
                                                                                                 invoiceItem,
                                                                                                 itemSource,
+                                                                                                false,
                                                                                                 invoiceItemRecordId,
                                                                                                 secondInvoiceItemRecordId,
                                                                                                 null,
@@ -48,6 +52,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertNull(invoiceItemModelDao.getSlug());
         Assert.assertNull(invoiceItemModelDao.getPhase());
         Assert.assertNull(invoiceItemModelDao.getBillingPeriod());
+        Assert.assertFalse(invoiceItemModelDao.isInvoiceWrittenOff());
     }
 
     @Test(groups = "fast")
@@ -57,6 +62,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
                                                                                                 invoice,
                                                                                                 invoiceItem,
                                                                                                 itemSource,
+                                                                                                true,
                                                                                                 invoiceItemRecordId,
                                                                                                 secondInvoiceItemRecordId,
                                                                                                 bundle,
@@ -75,6 +81,7 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceItemModelDao.getSlug(), phase.getName());
         Assert.assertEquals(invoiceItemModelDao.getPhase(), phase.getPhaseType().toString());
         Assert.assertEquals(invoiceItemModelDao.getBillingPeriod(), phase.getRecurring().getBillingPeriod().toString());
+        Assert.assertTrue(invoiceItemModelDao.isInvoiceWrittenOff());
     }
 
     private void verifyInvoiceItemFields(final BusinessInvoiceItemModelDao invoiceItemModelDao) {
@@ -89,7 +96,10 @@ public class TestBusinessInvoiceItemModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceItemModelDao.getInvoiceDate(), invoice.getInvoiceDate());
         Assert.assertEquals(invoiceItemModelDao.getInvoiceTargetDate(), invoice.getTargetDate());
         Assert.assertEquals(invoiceItemModelDao.getInvoiceCurrency(), invoice.getCurrency().toString());
+        Assert.assertEquals(invoiceItemModelDao.getRawInvoiceBalance().compareTo(invoice.getBalance()), 0);
+        Assert.assertEquals(invoiceItemModelDao.getConvertedRawInvoiceBalance().compareTo(BigDecimal.TEN), 0);
         Assert.assertEquals(invoiceItemModelDao.getInvoiceBalance(), invoice.getBalance());
+        Assert.assertEquals(invoiceItemModelDao.getConvertedInvoiceBalance().compareTo(BigDecimal.TEN), 0);
         Assert.assertEquals(invoiceItemModelDao.getInvoiceAmountPaid(), invoice.getPaidAmount());
         Assert.assertEquals(invoiceItemModelDao.getInvoiceAmountCharged(), invoice.getChargedAmount());
         Assert.assertEquals(invoiceItemModelDao.getInvoiceOriginalAmountCharged(), invoice.getOriginalChargedAmount());

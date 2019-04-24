@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -26,6 +27,7 @@ import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.invoice.api.Invoice;
+import org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
@@ -39,6 +41,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
     private LocalDate invoiceDate;
     private LocalDate targetDate;
     private String currency;
+    private BigDecimal rawBalance;
+    private BigDecimal convertedRawBalance;
     private BigDecimal balance;
     private BigDecimal convertedBalance;
     private BigDecimal amountPaid;
@@ -52,6 +56,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
     private BigDecimal amountRefunded;
     private BigDecimal convertedAmountRefunded;
     private String convertedCurrency;
+    private boolean writtenOff;
 
     public BusinessInvoiceModelDao() { /* When reading from the database */ }
 
@@ -61,6 +66,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
                                    final LocalDate invoiceDate,
                                    final LocalDate targetDate,
                                    final String currency,
+                                   final BigDecimal rawBalance,
+                                   final BigDecimal convertedRawBalance,
                                    final BigDecimal balance,
                                    final BigDecimal convertedBalance,
                                    final BigDecimal amountPaid,
@@ -74,6 +81,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
                                    final BigDecimal amountRefunded,
                                    final BigDecimal convertedAmountRefunded,
                                    final String convertedCurrency,
+                                   final boolean writtenOff,
                                    final DateTime createdDate,
                                    final String createdBy,
                                    final String createdReasonCode,
@@ -100,6 +108,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         this.invoiceDate = invoiceDate;
         this.targetDate = targetDate;
         this.currency = currency;
+        this.rawBalance = rawBalance;
+        this.convertedRawBalance = convertedRawBalance;
         this.balance = balance;
         this.convertedBalance = convertedBalance;
         this.amountPaid = amountPaid;
@@ -113,11 +123,13 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         this.amountRefunded = amountRefunded;
         this.convertedAmountRefunded = convertedAmountRefunded;
         this.convertedCurrency = convertedCurrency;
+        this.writtenOff = writtenOff;
     }
 
     public BusinessInvoiceModelDao(final Account account,
                                    final Long accountRecordId,
                                    final Invoice invoice,
+                                   final boolean writtenOff,
                                    final Long invoiceRecordId,
                                    final CurrencyConverter currencyConverter,
                                    @Nullable final AuditLog creationAuditLog,
@@ -129,6 +141,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
              invoice.getInvoiceDate(),
              invoice.getTargetDate(),
              invoice.getCurrency() == null ? null : invoice.getCurrency().toString(),
+             BusinessInvoiceUtils.computeRawInvoiceBalance(invoice.getCurrency(), invoice.getInvoiceItems(), invoice.getPayments()),
+             currencyConverter.getConvertedValue(BusinessInvoiceUtils.computeRawInvoiceBalance(invoice.getCurrency(), invoice.getInvoiceItems(), invoice.getPayments()), invoice),
              invoice.getBalance(),
              currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
              invoice.getPaidAmount(),
@@ -142,6 +156,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
              invoice.getRefundedAmount(),
              currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
              currencyConverter.getConvertedCurrency(),
+             writtenOff,
              invoice.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
@@ -181,6 +196,14 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
 
     public String getCurrency() {
         return currency;
+    }
+
+    public BigDecimal getRawBalance() {
+        return rawBalance;
+    }
+
+    public BigDecimal getConvertedRawBalance() {
+        return convertedRawBalance;
     }
 
     public BigDecimal getBalance() {
@@ -235,6 +258,10 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         return convertedCurrency;
     }
 
+    public boolean isWrittenOff() {
+        return writtenOff;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessInvoiceModelDao{");
@@ -244,6 +271,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         sb.append(", invoiceDate=").append(invoiceDate);
         sb.append(", targetDate=").append(targetDate);
         sb.append(", currency='").append(currency).append('\'');
+        sb.append(", rawBalance=").append(rawBalance);
+        sb.append(", convertedRawBalance=").append(convertedRawBalance);
         sb.append(", balance=").append(balance);
         sb.append(", convertedBalance=").append(convertedBalance);
         sb.append(", amountPaid=").append(amountPaid);
@@ -257,6 +286,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         sb.append(", amountRefunded=").append(amountRefunded);
         sb.append(", convertedAmountRefunded=").append(convertedAmountRefunded);
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
+        sb.append(", writtenOff='").append(writtenOff).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -311,6 +341,9 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         if (convertedOriginalAmountCharged != null ? !(convertedOriginalAmountCharged.compareTo(that.convertedOriginalAmountCharged) == 0) : that.convertedOriginalAmountCharged != null) {
             return false;
         }
+        if (convertedRawBalance != null ? !(convertedRawBalance.compareTo(that.convertedRawBalance) == 0) : that.convertedRawBalance != null) {
+            return false;
+        }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
@@ -329,7 +362,13 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         if (originalAmountCharged != null ? !(originalAmountCharged.compareTo(that.originalAmountCharged) == 0) : that.originalAmountCharged != null) {
             return false;
         }
+        if (rawBalance != null ? rawBalance.compareTo(that.rawBalance) != 0 : that.rawBalance != null) {
+            return false;
+        }
         if (targetDate != null ? targetDate.compareTo(that.targetDate) != 0 : that.targetDate != null) {
+            return false;
+        }
+        if (writtenOff != that.writtenOff) {
             return false;
         }
 
@@ -345,6 +384,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         result = 31 * result + (invoiceDate != null ? invoiceDate.hashCode() : 0);
         result = 31 * result + (targetDate != null ? targetDate.hashCode() : 0);
         result = 31 * result + (currency != null ? currency.hashCode() : 0);
+        result = 31 * result + (rawBalance != null ? rawBalance.hashCode() : 0);
+        result = 31 * result + (convertedRawBalance != null ? convertedRawBalance.hashCode() : 0);
         result = 31 * result + (balance != null ? balance.hashCode() : 0);
         result = 31 * result + (convertedBalance != null ? convertedBalance.hashCode() : 0);
         result = 31 * result + (amountPaid != null ? amountPaid.hashCode() : 0);
@@ -358,6 +399,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         result = 31 * result + (amountRefunded != null ? amountRefunded.hashCode() : 0);
         result = 31 * result + (convertedAmountRefunded != null ? convertedAmountRefunded.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
+        result = 31 * result + (writtenOff ? 1 : 0);
         return result;
     }
 }

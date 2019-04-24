@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -179,6 +180,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
         final BusinessInvoiceModelDao businessInvoiceModelDao = new BusinessInvoiceModelDao(account,
                                                                                             accountRecordId,
                                                                                             invoice,
+                                                                                            true,
                                                                                             invoiceRecordId,
                                                                                             currencyConverter,
                                                                                             auditLog,
@@ -204,6 +206,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
                                                                                                                    invoice,
                                                                                                                    invoiceItem,
                                                                                                                    itemSource,
+                                                                                                                   false,
                                                                                                                    // ITEM_ADJ
                                                                                                                    invoiceItemType,
                                                                                                                    invoiceItemRecordId,

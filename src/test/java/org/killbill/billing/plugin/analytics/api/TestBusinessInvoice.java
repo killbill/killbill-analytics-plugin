@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -32,6 +33,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         final BusinessInvoiceModelDao invoiceModelDao = new BusinessInvoiceModelDao(account,
                                                                                     accountRecordId,
                                                                                     invoice,
+                                                                                    true,
                                                                                     invoiceRecordId,
                                                                                     currencyConverter,
                                                                                     auditLog,
@@ -42,6 +44,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
                                                                                                                invoice,
                                                                                                                invoiceItem,
                                                                                                                itemSource,
+                                                                                                               true,
                                                                                                                invoiceItemType,
                                                                                                                invoiceItemRecordId,
                                                                                                                secondInvoiceItemRecordId,
@@ -61,6 +64,8 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoice.getInvoiceDate().compareTo(invoiceModelDao.getInvoiceDate()), 0);
         Assert.assertEquals(businessInvoice.getTargetDate().compareTo(invoiceModelDao.getTargetDate()), 0);
         Assert.assertEquals(businessInvoice.getCurrency(), invoiceModelDao.getCurrency());
+        Assert.assertEquals(businessInvoice.getRawBalance().compareTo(invoiceModelDao.getRawBalance()), 0);
+        Assert.assertEquals(businessInvoice.getConvertedRawBalance().compareTo(invoiceModelDao.getConvertedRawBalance()), 0);
         Assert.assertEquals(businessInvoice.getBalance().compareTo(invoiceModelDao.getBalance()), 0);
         Assert.assertEquals(businessInvoice.getConvertedBalance().compareTo(invoiceModelDao.getConvertedBalance()), 0);
         Assert.assertEquals(businessInvoice.getAmountPaid().compareTo(invoiceModelDao.getAmountPaid()), 0);
@@ -73,6 +78,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoice.getConvertedAmountCredited().compareTo(invoiceModelDao.getConvertedAmountCredited()), 0);
         Assert.assertEquals(businessInvoice.getAmountRefunded().compareTo(invoiceModelDao.getAmountRefunded()), 0);
         Assert.assertEquals(businessInvoice.getConvertedAmountRefunded().compareTo(invoiceModelDao.getConvertedAmountRefunded()), 0);
+        Assert.assertTrue(businessInvoice.isWrittenOff());
         Assert.assertEquals(businessInvoice.getConvertedCurrency(), invoiceModelDao.getConvertedCurrency());
 
         Assert.assertEquals(businessInvoice.getInvoiceItems().size(), 1);
@@ -87,6 +93,8 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoiceItem.getInvoiceDate().compareTo(invoiceItemBaseModelDao.getInvoiceDate()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceTargetDate().compareTo(invoiceItemBaseModelDao.getInvoiceTargetDate()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceCurrency(), invoiceItemBaseModelDao.getInvoiceCurrency());
+        Assert.assertEquals(businessInvoiceItem.getRawInvoiceBalance().compareTo(invoiceItemBaseModelDao.getRawInvoiceBalance()), 0);
+        Assert.assertEquals(businessInvoiceItem.getConvertedRawInvoiceBalance().compareTo(invoiceItemBaseModelDao.getConvertedRawInvoiceBalance()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceBalance().compareTo(invoiceItemBaseModelDao.getInvoiceBalance()), 0);
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceBalance().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceBalance()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceAmountPaid().compareTo(invoiceItemBaseModelDao.getInvoiceAmountPaid()), 0);
@@ -99,6 +107,7 @@ public class TestBusinessInvoice extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceAmountCredited().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceAmountCredited()), 0);
         Assert.assertEquals(businessInvoiceItem.getInvoiceAmountRefunded().compareTo(invoiceItemBaseModelDao.getInvoiceAmountRefunded()), 0);
         Assert.assertEquals(businessInvoiceItem.getConvertedInvoiceAmountRefunded().compareTo(invoiceItemBaseModelDao.getConvertedInvoiceAmountRefunded()), 0);
+        Assert.assertTrue(businessInvoiceItem.isInvoiceWrittenOff());
         Assert.assertEquals(businessInvoiceItem.getItemType(), invoiceItemBaseModelDao.getItemType());
         Assert.assertEquals(businessInvoiceItem.getItemSource(), invoiceItemBaseModelDao.getItemSource());
         Assert.assertEquals(businessInvoiceItem.getBundleId(), invoiceItemBaseModelDao.getBundleId());

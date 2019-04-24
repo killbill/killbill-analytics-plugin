@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -20,8 +20,10 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -46,6 +48,8 @@ import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
+import org.killbill.billing.util.tag.ControlTagType;
+import org.killbill.billing.util.tag.Tag;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
@@ -102,6 +106,14 @@ public class BusinessInvoiceFactory {
             bundles.put(bundle.getId(), bundle);
         }
 
+        final Iterable<Tag> tags = businessContextFactory.getAccountTags();
+        final Set<UUID> writtenOffInvoices = new HashSet<UUID>();
+        for (final Tag cur : tags) {
+            if (cur.getTagDefinitionId().equals(ControlTagType.WRITTEN_OFF.getId())) {
+                writtenOffInvoices.add(cur.getObjectId());
+            }
+        }
+
         // Create the business invoice items
         // We build them in parallel as invoice items are directly proportional to subscriptions (@see BusinessSubscriptionTransitionFactory)
         final CompletionService<BusinessInvoiceItemBaseModelDao> completionService = new ExecutorCompletionService<BusinessInvoiceItemBaseModelDao>(executor);
@@ -113,10 +125,12 @@ public class BusinessInvoiceFactory {
             completionService.submit(new Callable<BusinessInvoiceItemBaseModelDao>() {
                 @Override
                 public BusinessInvoiceItemBaseModelDao call() throws Exception {
+                    final boolean isWrittenOff = writtenOffInvoices.contains(invoiceItem.getInvoiceId());
                     return createBusinessInvoiceItem(businessContextFactory,
                                                      invoiceItem,
                                                      allInvoiceItems,
                                                      invoiceIdToInvoiceMappings,
+                                                     isWrittenOff,
                                                      account,
                                                      bundles,
                                                      currencyConverter,
@@ -148,12 +162,15 @@ public class BusinessInvoiceFactory {
                 continue;
             }
 
+            final boolean isWrittenOff = writtenOffInvoices.contains(invoice.getId());
+
             final Long invoiceRecordId = businessContextFactory.getInvoiceRecordId(invoice.getId());
             final AuditLog creationAuditLog = businessContextFactory.getInvoiceCreationAuditLog(invoice.getId());
 
             final BusinessInvoiceModelDao businessInvoice = new BusinessInvoiceModelDao(account,
                                                                                         accountRecordId,
                                                                                         invoice,
+                                                                                        isWrittenOff,
                                                                                         invoiceRecordId,
                                                                                         currencyConverter,
                                                                                         creationAuditLog,
@@ -170,6 +187,7 @@ public class BusinessInvoiceFactory {
                                                                       final InvoiceItem invoiceItem,
                                                                       final Multimap<UUID, InvoiceItem> allInvoiceItems,
                                                                       final Map<UUID, Invoice> invoiceIdToInvoiceMappings,
+                                                                      final boolean isWrittenOff,
                                                                       final Account account,
                                                                       final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
@@ -196,6 +214,7 @@ public class BusinessInvoiceFactory {
                                          invoice,
                                          invoiceItem,
                                          otherInvoiceItems,
+                                         isWrittenOff,
                                          bundles,
                                          currencyConverter,
                                          creationAuditLog,
@@ -210,6 +229,7 @@ public class BusinessInvoiceFactory {
                                                               final Invoice invoice,
                                                               final InvoiceItem invoiceItem,
                                                               final Collection<InvoiceItem> otherInvoiceItems,
+                                                              final boolean isWrittenOff,
                                                               final Map<UUID, SubscriptionBundle> bundles,
                                                               final CurrencyConverter currencyConverter,
                                                               final AuditLog creationAuditLog,
@@ -260,6 +280,7 @@ public class BusinessInvoiceFactory {
                                          invoice,
                                          invoiceItem,
                                          otherInvoiceItems,
+                                         isWrittenOff,
                                          bundle,
                                          plan,
                                          planPhase,
@@ -276,6 +297,7 @@ public class BusinessInvoiceFactory {
                                                               final Invoice invoice,
                                                               final InvoiceItem invoiceItem,
                                                               final Collection<InvoiceItem> otherInvoiceItems,
+                                                              final boolean isWrittenOff,
                                                               @Nullable final SubscriptionBundle bundle,
                                                               @Nullable final Plan plan,
                                                               @Nullable final PlanPhase planPhase,
@@ -309,6 +331,7 @@ public class BusinessInvoiceFactory {
                                                       invoice,
                                                       invoiceItem,
                                                       itemSource,
+                                                      isWrittenOff,
                                                       businessInvoiceItemType,
                                                       invoiceItemRecordId,
                                                       secondInvoiceItemRecordId,

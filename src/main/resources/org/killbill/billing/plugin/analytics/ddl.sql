@@ -204,6 +204,8 @@ create table analytics_invoices (
 , invoice_date date default null
 , target_date date default null
 , currency varchar(50) default null
+, raw_balance numeric(10, 4) default 0
+, converted_raw_balance numeric(10, 4) default null
 , balance numeric(10, 4) default 0
 , converted_balance numeric(10, 4) default null
 , amount_paid numeric(10, 4) default 0
@@ -217,6 +219,7 @@ create table analytics_invoices (
 , amount_refunded numeric(10, 4) default 0
 , converted_amount_refunded numeric(10, 4) default null
 , converted_currency varchar(3) default null
+, written_off bool default false
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
@@ -248,6 +251,8 @@ create table analytics_invoice_adjustments (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -260,6 +265,7 @@ create table analytics_invoice_adjustments (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_written_off bool default false
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
@@ -309,6 +315,8 @@ create table analytics_invoice_items (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -321,6 +329,7 @@ create table analytics_invoice_items (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_written_off bool default false
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
@@ -371,6 +380,8 @@ create table analytics_invoice_item_adjustments (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -383,6 +394,7 @@ create table analytics_invoice_item_adjustments (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_written_off bool default false
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null
@@ -432,6 +444,8 @@ create table analytics_invoice_credits (
 , invoice_date date default null
 , invoice_target_date date default null
 , invoice_currency varchar(50) default null
+, raw_invoice_balance numeric(10, 4) default 0
+, converted_raw_invoice_balance numeric(10, 4) default null
 , invoice_balance numeric(10, 4) default 0
 , converted_invoice_balance numeric(10, 4) default null
 , invoice_amount_paid numeric(10, 4) default 0
@@ -444,6 +458,7 @@ create table analytics_invoice_credits (
 , converted_invoice_amount_credited numeric(10, 4) default null
 , invoice_amount_refunded numeric(10, 4) default 0
 , converted_invoice_amount_refunded numeric(10, 4) default null
+, invoice_written_off bool default false
 , item_type varchar(50) default null
 , item_source varchar(50) not null
 , bundle_id varchar(36) default null

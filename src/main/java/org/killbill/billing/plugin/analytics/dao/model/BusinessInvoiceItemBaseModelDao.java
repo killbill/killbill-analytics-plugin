@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -31,6 +32,7 @@ import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.plugin.analytics.utils.BusinessInvoiceItemUtils;
+import org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
@@ -54,6 +56,8 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
     private LocalDate invoiceDate;
     private LocalDate invoiceTargetDate;
     private String invoiceCurrency;
+    private BigDecimal rawInvoiceBalance;
+    private BigDecimal convertedRawInvoiceBalance;
     private BigDecimal invoiceBalance;
     private BigDecimal convertedInvoiceBalance;
     private BigDecimal invoiceAmountPaid;
@@ -66,6 +70,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
     private BigDecimal convertedInvoiceAmountCredited;
     private BigDecimal invoiceAmountRefunded;
     private BigDecimal convertedInvoiceAmountRefunded;
+    private boolean invoiceWrittenOff;
     private String itemType;
     private String itemSource;
     private UUID bundleId;
@@ -108,6 +113,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                          final Invoice invoice,
                                                          final InvoiceItem invoiceItem,
                                                          @Nullable final ItemSource itemSource,
+                                                         final boolean invoiceWrittenOff,
                                                          final BusinessInvoiceItemType businessInvoiceItemType,
                                                          final Long invoiceItemRecordId,
                                                          final Long secondInvoiceItemRecordId,
@@ -124,6 +130,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                          invoice,
                                                          invoiceItem,
                                                          itemSource,
+                                                         invoiceWrittenOff,
                                                          invoiceItemRecordId,
                                                          secondInvoiceItemRecordId,
                                                          bundle,
@@ -139,6 +146,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                    invoice,
                                                    invoiceItem,
                                                    itemSource,
+                                                   invoiceWrittenOff,
                                                    invoiceItemRecordId,
                                                    secondInvoiceItemRecordId,
                                                    bundle,
@@ -154,6 +162,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                              invoice,
                                                              invoiceItem,
                                                              itemSource,
+                                                             invoiceWrittenOff,
                                                              invoiceItemRecordId,
                                                              secondInvoiceItemRecordId,
                                                              bundle,
@@ -169,6 +178,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                                          invoice,
                                                          invoiceItem,
                                                          itemSource,
+                                                         invoiceWrittenOff,
                                                          invoiceItemRecordId,
                                                          secondInvoiceItemRecordId,
                                                          bundle,
@@ -195,6 +205,8 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final LocalDate invoiceDate,
                                            final LocalDate invoiceTargetDate,
                                            final String invoiceCurrency,
+                                           final BigDecimal rawInvoiceBalance,
+                                           final BigDecimal convertedRawInvoiceBalance,
                                            final BigDecimal invoiceBalance,
                                            final BigDecimal convertedInvoiceBalance,
                                            final BigDecimal invoiceAmountPaid,
@@ -207,6 +219,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final BigDecimal convertedInvoiceAmountCredited,
                                            final BigDecimal invoiceAmountRefunded,
                                            final BigDecimal convertedInvoiceAmountRefunded,
+                                           final boolean invoiceWrittenOff,
                                            final String itemType,
                                            @Nullable final ItemSource itemSource,
                                            final UUID bundleId,
@@ -254,6 +267,8 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         this.invoiceDate = invoiceDate;
         this.invoiceTargetDate = invoiceTargetDate;
         this.invoiceCurrency = invoiceCurrency;
+        this.rawInvoiceBalance = rawInvoiceBalance;
+        this.convertedRawInvoiceBalance = convertedRawInvoiceBalance;
         this.invoiceBalance = invoiceBalance;
         this.convertedInvoiceBalance = convertedInvoiceBalance;
         this.invoiceAmountPaid = invoiceAmountPaid;
@@ -266,6 +281,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         this.convertedInvoiceAmountCredited = convertedInvoiceAmountCredited;
         this.invoiceAmountRefunded = invoiceAmountRefunded;
         this.convertedInvoiceAmountRefunded = convertedInvoiceAmountRefunded;
+        this.invoiceWrittenOff = invoiceWrittenOff;
         this.itemType = itemType;
         this.itemSource = itemSource == null ? DEFAULT_ITEM_SOURCE : itemSource.toString();
         this.bundleId = bundleId;
@@ -291,6 +307,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
                                            final Invoice invoice,
                                            final InvoiceItem invoiceItem,
                                            @Nullable final ItemSource itemSource,
+                                           final boolean invoiceWrittenOff,
                                            final Long invoiceItemRecordId,
                                            final Long secondInvoiceItemRecordId,
                                            @Nullable final SubscriptionBundle bundle,
@@ -309,6 +326,8 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              invoice.getInvoiceDate(),
              invoice.getTargetDate(),
              invoice.getCurrency() == null ? null : invoice.getCurrency().toString(),
+             BusinessInvoiceUtils.computeRawInvoiceBalance(invoice.getCurrency(), invoice.getInvoiceItems(), invoice.getPayments()),
+             currencyConverter.getConvertedValue(BusinessInvoiceUtils.computeRawInvoiceBalance(invoice.getCurrency(), invoice.getInvoiceItems(), invoice.getPayments()), invoice),
              invoice.getBalance(),
              currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
              invoice.getPaidAmount(),
@@ -321,6 +340,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
              currencyConverter.getConvertedValue(invoice.getCreditedAmount(), invoice),
              invoice.getRefundedAmount(),
              currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
+             invoiceWrittenOff,
              invoiceItem.getInvoiceItemType().toString(),
              itemSource,
              bundle == null ? null : bundle.getId(),
@@ -388,6 +408,14 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         return invoiceCurrency;
     }
 
+    public BigDecimal getRawInvoiceBalance() {
+        return rawInvoiceBalance;
+    }
+
+    public BigDecimal getConvertedRawInvoiceBalance() {
+        return convertedRawInvoiceBalance;
+    }
+
     public BigDecimal getInvoiceBalance() {
         return invoiceBalance;
     }
@@ -434,6 +462,10 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
 
     public BigDecimal getConvertedInvoiceAmountRefunded() {
         return convertedInvoiceAmountRefunded;
+    }
+
+    public boolean isInvoiceWrittenOff() {
+        return invoiceWrittenOff;
     }
 
     public String getItemType() {
@@ -520,6 +552,8 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         sb.append(", invoiceDate=").append(invoiceDate);
         sb.append(", invoiceTargetDate=").append(invoiceTargetDate);
         sb.append(", invoiceCurrency='").append(invoiceCurrency).append('\'');
+        sb.append(", rawInvoiceBalance=").append(rawInvoiceBalance);
+        sb.append(", convertedRawInvoiceBalance=").append(convertedRawInvoiceBalance);
         sb.append(", invoiceBalance=").append(invoiceBalance);
         sb.append(", convertedInvoiceBalance=").append(convertedInvoiceBalance);
         sb.append(", invoiceAmountPaid=").append(invoiceAmountPaid);
@@ -532,6 +566,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         sb.append(", convertedInvoiceAmountCredited=").append(convertedInvoiceAmountCredited);
         sb.append(", invoiceAmountRefunded=").append(invoiceAmountRefunded);
         sb.append(", convertedInvoiceAmountRefunded=").append(convertedInvoiceAmountRefunded);
+        sb.append(", invoiceWrittenOff='").append(invoiceWrittenOff).append('\'');
         sb.append(", itemType='").append(itemType).append('\'');
         sb.append(", itemSource='").append(itemSource).append('\'');
         sb.append(", bundleId=").append(bundleId);
@@ -604,6 +639,9 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         if (convertedInvoiceOriginalAmountCharged != null ? !(convertedInvoiceOriginalAmountCharged.compareTo(that.convertedInvoiceOriginalAmountCharged) == 0) : that.convertedInvoiceOriginalAmountCharged != null) {
             return false;
         }
+        if (convertedRawInvoiceBalance != null ? !(convertedRawInvoiceBalance.compareTo(that.convertedRawInvoiceBalance) == 0) : that.convertedRawInvoiceBalance != null) {
+            return false;
+        }
         if (currency != null ? !currency.equals(that.currency) : that.currency != null) {
             return false;
         }
@@ -649,6 +687,9 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         if (invoiceTargetDate != null ? invoiceTargetDate.compareTo(that.invoiceTargetDate) != 0 : that.invoiceTargetDate != null) {
             return false;
         }
+        if (invoiceWrittenOff != that.invoiceWrittenOff) {
+            return false;
+        }
         if (itemId != null ? !itemId.equals(that.itemId) : that.itemId != null) {
             return false;
         }
@@ -671,6 +712,9 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
             return false;
         }
         if (productType != null ? !productType.equals(that.productType) : that.productType != null) {
+            return false;
+        }
+        if (rawInvoiceBalance != null ? !(rawInvoiceBalance.compareTo(that.rawInvoiceBalance) == 0) : that.rawInvoiceBalance != null) {
             return false;
         }
         if (secondInvoiceItemRecordId != null ? !secondInvoiceItemRecordId.equals(that.secondInvoiceItemRecordId) : that.secondInvoiceItemRecordId != null) {
@@ -701,6 +745,8 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         result = 31 * result + (invoiceDate != null ? invoiceDate.hashCode() : 0);
         result = 31 * result + (invoiceTargetDate != null ? invoiceTargetDate.hashCode() : 0);
         result = 31 * result + (invoiceCurrency != null ? invoiceCurrency.hashCode() : 0);
+        result = 31 * result + (rawInvoiceBalance != null ? rawInvoiceBalance.hashCode() : 0);
+        result = 31 * result + (convertedRawInvoiceBalance != null ? convertedRawInvoiceBalance.hashCode() : 0);
         result = 31 * result + (invoiceBalance != null ? invoiceBalance.hashCode() : 0);
         result = 31 * result + (convertedInvoiceBalance != null ? convertedInvoiceBalance.hashCode() : 0);
         result = 31 * result + (invoiceAmountPaid != null ? invoiceAmountPaid.hashCode() : 0);
@@ -713,6 +759,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
         result = 31 * result + (convertedInvoiceAmountCredited != null ? convertedInvoiceAmountCredited.hashCode() : 0);
         result = 31 * result + (invoiceAmountRefunded != null ? invoiceAmountRefunded.hashCode() : 0);
         result = 31 * result + (convertedInvoiceAmountRefunded != null ? convertedInvoiceAmountRefunded.hashCode() : 0);
+        result = 31 * result + (invoiceWrittenOff ? 1 : 0);
         result = 31 * result + (itemType != null ? itemType.hashCode() : 0);
         result = 31 * result + (itemSource != null ? itemSource.hashCode() : 0);
         result = 31 * result + (bundleId != null ? bundleId.hashCode() : 0);
