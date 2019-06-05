@@ -1,6 +1,6 @@
 /*
- * Copyright 2014 Groupon, Inc
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.LocalDate;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Catalog;
@@ -76,6 +75,8 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Relatively cheap lookups, should be done by account_record_id
     private Iterable<SubscriptionBundle> accountBundles;
     private Iterable<SubscriptionEvent> accountBlockingStates;
+    private Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
+    private Map<UUID, Invoice> invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
     private Iterable<Invoice> accountInvoices;
     private Map<UUID, List<InvoicePayment>> accountInvoicePayments;
     private Iterable<Payment> accountPayments;
@@ -175,7 +176,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     }
 
     public synchronized Account getParentAccount() throws AnalyticsRefreshException {
-        if(account != null && account.getParentAccountId() != null && parentAccount == null) {
+        if (account != null && account.getParentAccountId() != null && parentAccount == null) {
             parentAccount = getAccount(account.getParentAccountId(), callContext);
         }
         return parentAccount;
@@ -229,9 +230,59 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return accountBlockingStates;
     }
 
-    public synchronized Iterable<Invoice> getAccountInvoices() throws AnalyticsRefreshException {
+    public Invoice getInvoice(final UUID invoiceId) throws AnalyticsRefreshException {
+        if (invoices.get(invoiceId) == null) {
+            synchronized (this) {
+                if (invoices.get(invoiceId) == null) {
+                    final Invoice invoice = getInvoice(invoiceId, callContext);
+                    invoices.put(invoiceId, invoice);
+
+                    for (final InvoiceItem invoiceItem : invoice.getInvoiceItems()) {
+                        invoicesByInvoiceItem.put(invoiceItem.getId(), invoice);
+                    }
+                }
+            }
+        }
+        return invoices.get(invoiceId);
+    }
+
+    public Invoice getInvoiceByInvoiceItemId(final UUID invoiceItemId) throws AnalyticsRefreshException {
+        if (invoicesByInvoiceItem.get(invoiceItemId) == null) {
+            synchronized (this) {
+                if (invoicesByInvoiceItem.get(invoiceItemId) == null) {
+                    final Invoice invoice = getInvoiceByInvoiceItemId(invoiceItemId, callContext);
+                    invoicesByInvoiceItem.put(invoiceItemId, invoice);
+
+                    invoices.put(invoice.getId(), invoice);
+                }
+            }
+        }
+        return invoicesByInvoiceItem.get(invoiceItemId);
+    }
+
+    public Iterable<Invoice> getAccountInvoices() throws AnalyticsRefreshException {
         if (accountInvoices == null) {
-            accountInvoices = getInvoicesByAccountId(accountId, callContext);
+            synchronized (this) {
+                if (accountInvoices == null) {
+                    accountInvoices = getInvoicesByAccountId(accountId, callContext);
+
+                    if (invoicesByInvoiceItem == null) {
+                        invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
+                    }
+                    for (final Invoice invoice : accountInvoices) {
+                        for (final InvoiceItem invoiceItem : invoice.getInvoiceItems()) {
+                            invoicesByInvoiceItem.put(invoiceItem.getId(), invoice);
+                        }
+                    }
+
+                    if (invoices == null) {
+                        invoices = new HashMap<UUID, Invoice>();
+                    }
+                    for (final Invoice invoice : accountInvoices) {
+                        invoices.put(invoice.getId(), invoice);
+                    }
+                }
+            }
         }
         return accountInvoices;
     }

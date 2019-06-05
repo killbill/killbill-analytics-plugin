@@ -376,7 +376,6 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         return parentAccountExternalKey;
     }
 
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessAccountModelDao{");
@@ -521,7 +520,7 @@ public class BusinessAccountModelDao extends BusinessModelDaoBase {
         if (parentAccountId != null ? !parentAccountId.equals(that.parentAccountId) : that.parentAccountId != null) {
             return false;
         }
-        if(parentAccountName != null ? !parentAccountName.equals(that.parentAccountName) : that.parentAccountName != null) {
+        if (parentAccountName != null ? !parentAccountName.equals(that.parentAccountName) : that.parentAccountName != null) {
             return false;
         }
         if (paymentMethodId != null ? !paymentMethodId.equals(that.paymentMethodId) : that.paymentMethodId != null) {

@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -39,6 +39,7 @@ import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.invoice.api.Invoice;
+import org.killbill.billing.invoice.api.InvoiceApiException;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.invoice.api.InvoiceUserApi;
@@ -203,7 +204,7 @@ public abstract class BusinessFactoryBase {
         try {
             return subscriptionApi.getSubscriptionBundlesForAccountId(accountId, context);
         } catch (final SubscriptionApiException e) {
-            logger.warn("Error retrieving bundles for account id {}",  accountId, e);
+            logger.warn("Error retrieving bundles for account id {}", accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -218,7 +219,7 @@ public abstract class BusinessFactoryBase {
             }
             return bundles.get(bundles.size() - 1);
         } catch (final SubscriptionApiException e) {
-            logger.warn("Error retrieving bundles for bundle external key {}",  bundleExternalKey, e);
+            logger.warn("Error retrieving bundles for bundle external key {}", bundleExternalKey, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -316,6 +317,26 @@ public abstract class BusinessFactoryBase {
         return recordIdUserApi.getRecordId(invoiceItemId, ObjectType.INVOICE_ITEM, context);
     }
 
+    protected Invoice getInvoice(final UUID invoiceId, final TenantContext context) throws AnalyticsRefreshException {
+        final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
+        try {
+            return invoiceUserApi.getInvoice(invoiceId, context);
+        } catch (final InvoiceApiException e) {
+            logger.warn("Unable to retrieve invoice for {}", invoiceId, e);
+            return null;
+        }
+    }
+
+    protected Invoice getInvoiceByInvoiceItemId(final UUID invoiceItemId, final TenantContext context) throws AnalyticsRefreshException {
+        final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
+        try {
+            return invoiceUserApi.getInvoiceByInvoiceItem(invoiceItemId, context);
+        } catch (final InvoiceApiException e) {
+            logger.warn("Unable to retrieve invoice for invoice item {}", invoiceItemId, e);
+            return null;
+        }
+    }
+
     protected Collection<Invoice> getInvoicesByAccountId(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
         final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
         return invoiceUserApi.getInvoicesByAccount(accountId, false, false, context);
@@ -331,7 +352,7 @@ public abstract class BusinessFactoryBase {
             // Find the catalog when the invoice item was created (same logic as InvoiceItemFactory)
             return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getCreatedDate());
         } catch (final CatalogApiException e) {
-            logger.warn("Unable to retrieve plan for invoice item {}",  invoiceItem.getId(), e);
+            logger.warn("Unable to retrieve plan for invoice item {}", invoiceItem.getId(), e);
             return null;
         }
     }
@@ -346,7 +367,7 @@ public abstract class BusinessFactoryBase {
         try {
             return plan.findPhase(invoiceItem.getPhaseName());
         } catch (final CatalogApiException e) {
-            logger.warn("Unable to retrieve phase for invoice item {}",  invoiceItem.getId(), e);
+            logger.warn("Unable to retrieve phase for invoice item {}", invoiceItem.getId(), e);
             return null;
         }
     }
@@ -429,7 +450,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Error retrieving payments for account id {}",  accountId, error);
+        logger.warn("Error retrieving payments for account id {}", accountId, error);
         throw new AnalyticsRefreshException(error);
     }
 
@@ -461,7 +482,7 @@ public abstract class BusinessFactoryBase {
             }
         }
 
-        logger.warn("Error retrieving payment methods for account id {}",  accountId, error);
+        logger.warn("Error retrieving payment methods for account id {}", accountId, error);
         throw new AnalyticsRefreshException(error);
     }
 
