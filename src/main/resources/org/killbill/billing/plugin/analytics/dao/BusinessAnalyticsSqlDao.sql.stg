@@ -2238,12 +2238,16 @@ insert into analytics_transaction_fields (
 );
 >>
 
-CHECK_TENANT_AND_ACCOUNT(prefix) ::= <<
+CHECK_TENANT(prefix) ::= <<
 case
     when <prefix>tenant_record_id is null and :tenantRecordId is null then true
     when <prefix>tenant_record_id is null or  :tenantRecordId is null then false
     else <prefix>tenant_record_id = :tenantRecordId
 end
+>>
+
+CHECK_TENANT_AND_ACCOUNT(prefix) ::= <<
+<CHECK_TENANT(prefix)>
 and <prefix>account_record_id = :accountRecordId
 >>
 
@@ -2251,6 +2255,13 @@ SELECT_STAR_FROM_TABLE(table) ::= <<
 select *
 from <table> t
 where <CHECK_TENANT_AND_ACCOUNT("t.")>
+>>
+
+deleteByInvoiceId(tableName) ::= <<
+delete from <tableName>
+where <CHECK_TENANT("")>
+and invoice_id = :invoiceId
+;
 >>
 
 deleteByAccountRecordId(tableName) ::= <<

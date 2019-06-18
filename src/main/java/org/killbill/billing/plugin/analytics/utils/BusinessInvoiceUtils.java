@@ -24,6 +24,7 @@ import java.util.Collection;
 import javax.annotation.Nullable;
 
 import org.killbill.billing.catalog.api.Currency;
+import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.invoice.api.InvoicePayment;
@@ -39,19 +40,7 @@ import com.google.common.collect.Iterables;
  */
 public class BusinessInvoiceUtils {
 
-    public static boolean isRevenueRecognizable(final InvoiceItem invoiceItem, final Collection<InvoiceItem> otherInvoiceItemsOnAllInvoices) {
-        final Collection<InvoiceItem> otherInvoiceItems = Collections2.filter(otherInvoiceItemsOnAllInvoices, new Predicate<InvoiceItem>() {
-            @Override
-            public boolean apply(final InvoiceItem input) {
-                return input.getInvoiceId().equals(invoiceItem.getInvoiceId());
-            }
-
-            @Override
-            public boolean test(@Nullable final InvoiceItem input) {
-                return apply(input);
-            }
-        });
-
+    public static boolean isRevenueRecognizable(final InvoiceItem invoiceItem, final Collection<InvoiceItem> otherInvoiceItems) {
         // All items are recognizable except user generated credit (CBA_ADJ and CREDIT_ADJ on their own invoice)
         return !(InvoiceItemType.CBA_ADJ.equals(invoiceItem.getInvoiceItemType()) &&
                  (otherInvoiceItems.size() == 1 &&
@@ -61,19 +50,7 @@ public class BusinessInvoiceUtils {
     }
 
     // Invoice adjustments
-    public static boolean isInvoiceAdjustmentItem(final InvoiceItem invoiceItem, final Collection<InvoiceItem> otherInvoiceItemsOnAllInvoices) {
-        final Collection<InvoiceItem> otherInvoiceItems = Collections2.filter(otherInvoiceItemsOnAllInvoices, new Predicate<InvoiceItem>() {
-            @Override
-            public boolean apply(final InvoiceItem input) {
-                return input.getInvoiceId().equals(invoiceItem.getInvoiceId());
-            }
-
-            @Override
-            public boolean test(@Nullable final InvoiceItem input) {
-                return apply(input);
-            }
-        });
-
+    public static boolean isInvoiceAdjustmentItem(final InvoiceItem invoiceItem, final Iterable<InvoiceItem> otherInvoiceItems) {
         // Invoice level credit, i.e. credit adj, but NOT on its on own invoice
         // Note: the negative credit adj items (internal generation of account level credits) doesn't figure in analytics
         return (InvoiceItemType.CREDIT_ADJ.equals(invoiceItem.getInvoiceItemType()) &&

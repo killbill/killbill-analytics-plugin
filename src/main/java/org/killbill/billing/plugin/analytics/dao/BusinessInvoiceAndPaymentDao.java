@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -67,7 +67,7 @@ public class BusinessInvoiceAndPaymentDao extends BusinessAnalyticsDaoBase {
                                         final Executor executor) {
         super(osgiKillbillDataSource);
         this.businessAccountDao = businessAccountDao;
-        this.businessInvoiceDao = new BusinessInvoiceDao(osgiKillbillDataSource);
+        this.businessInvoiceDao = new BusinessInvoiceDao(osgiKillbillDataSource, businessAccountDao, executor);
         this.businessPaymentDao = new BusinessPaymentDao(osgiKillbillDataSource);
         bacFactory = new BusinessAccountFactory();
         binFactory = new BusinessInvoiceFactory(executor);
@@ -98,11 +98,10 @@ public class BusinessInvoiceAndPaymentDao extends BusinessAnalyticsDaoBase {
         logger.debug("Finished rebuild of Analytics invoices and payments for account {}", businessContextFactory.getAccountId());
     }
 
-    @VisibleForTesting
-    void createBusinessPojos(final BusinessContextFactory businessContextFactory,
-                             final Map<UUID, BusinessInvoiceModelDao> invoices,
-                             final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems,
-                             final Multimap<UUID, BusinessPaymentBaseModelDao> invoicePayments) throws AnalyticsRefreshException {
+    private void createBusinessPojos(final BusinessContextFactory businessContextFactory,
+                                     final Map<UUID, BusinessInvoiceModelDao> invoices,
+                                     final Multimap<UUID, BusinessInvoiceItemBaseModelDao> invoiceItems,
+                                     final Multimap<UUID, BusinessPaymentBaseModelDao> invoicePayments) throws AnalyticsRefreshException {
         // Recompute all invoices and invoice items
         final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessInvoices = binFactory.createBusinessInvoicesAndInvoiceItems(businessContextFactory);
 

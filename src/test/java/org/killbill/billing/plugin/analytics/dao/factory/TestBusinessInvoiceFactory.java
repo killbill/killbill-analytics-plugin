@@ -109,6 +109,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                       invoice,
                                                                                                       adjustmentItem,
                                                                                                       ImmutableList.<InvoiceItem>of(taxItem, recurringItem),
+                                                                                                      recurringItem,
                                                                                                       false,
                                                                                                       bundles,
                                                                                                       currencyConverter,

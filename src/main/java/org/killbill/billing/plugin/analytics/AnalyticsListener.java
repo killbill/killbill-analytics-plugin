@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -39,6 +39,7 @@ import org.killbill.billing.plugin.analytics.dao.BusinessAccountDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountTransitionDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessFieldDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessInvoiceAndPaymentDao;
+import org.killbill.billing.plugin.analytics.dao.BusinessInvoiceDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessSubscriptionTransitionDao;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
@@ -90,6 +91,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
+    private final BusinessInvoiceDao binDao;
     private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
@@ -116,6 +118,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
         final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
         this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
+        this.binDao = new BusinessInvoiceDao(osgiKillbillDataSource, bacDao, executor);
         this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, bacDao, executor);
         this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource);
         this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource);
@@ -296,6 +299,9 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                 break;
             case OVERDUE:
                 bosDao.update(businessContextFactory);
+                break;
+            case INVOICES:
+                binDao.update(job.getObjectId(), businessContextFactory);
                 break;
             case INVOICE_AND_PAYMENTS:
                 binAndBipDao.update(businessContextFactory);

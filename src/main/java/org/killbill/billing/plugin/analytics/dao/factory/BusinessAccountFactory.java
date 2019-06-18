@@ -42,6 +42,7 @@ import com.google.common.collect.Iterables;
 
 public class BusinessAccountFactory {
 
+    // Always needs to be refreshed (depends on bundles, invoices and payments)
     public BusinessAccountModelDao createBusinessAccount(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         final Account account = businessContextFactory.getAccount();
         final Account parentAccount = businessContextFactory.getParentAccount();

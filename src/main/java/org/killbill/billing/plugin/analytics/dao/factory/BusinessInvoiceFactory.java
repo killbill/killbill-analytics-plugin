@@ -74,10 +74,113 @@ public class BusinessInvoiceFactory {
     }
 
     /**
+     * Create current business invoice and invoice items.
+     *
+     * @return business invoice and associated invoice items to create
+     */
+    public Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> createBusinessInvoiceAndInvoiceItems(final UUID invoiceId,
+                                                                                                                          final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        // Pre-fetch these, to avoid contention on BusinessContextFactory
+        final Account account = businessContextFactory.getAccount();
+        final Long accountRecordId = businessContextFactory.getAccountRecordId();
+        final Long tenantRecordId = businessContextFactory.getTenantRecordId();
+        final ReportGroup reportGroup = businessContextFactory.getReportGroup();
+        final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
+
+        // Lookup the invoice
+        final Invoice invoice = businessContextFactory.getInvoice(invoiceId);
+
+        // Lookup all SubscriptionBundle for that account (this avoids expensive lookups for each item)
+        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
+        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
+        for (final SubscriptionBundle bundle : bundlesForAccount) {
+            bundles.put(bundle.getId(), bundle);
+        }
+
+        final Iterable<Tag> tags = businessContextFactory.getAccountTags();
+        final Set<UUID> writtenOffInvoices = new HashSet<UUID>();
+        for (final Tag cur : tags) {
+            if (cur.getTagDefinitionId().equals(ControlTagType.WRITTEN_OFF.getId())) {
+                writtenOffInvoices.add(cur.getObjectId());
+            }
+        }
+
+        // Create the business invoice items
+        final Multimap<UUID, BusinessInvoiceItemBaseModelDao> businessInvoiceItemsForInvoiceId = ArrayListMultimap.<UUID, BusinessInvoiceItemBaseModelDao>create();
+        for (final InvoiceItem invoiceItem : invoice.getInvoiceItems()) {
+            final AuditLog creationAuditLog = invoiceItem.getId() != null ? businessContextFactory.getInvoiceItemCreationAuditLog(invoiceItem.getId()) : null;
+            final boolean isWrittenOff = writtenOffInvoices.contains(invoiceItem.getInvoiceId());
+
+            final Collection<InvoiceItem> otherInvoiceItems = Collections2.filter(invoice.getInvoiceItems(),
+                                                                                  new Predicate<InvoiceItem>() {
+                                                                                      @Override
+                                                                                      public boolean apply(final InvoiceItem input) {
+                                                                                          return !input.getId().equals(invoiceItem.getId());
+                                                                                      }
+                                                                                  }
+                                                                                 );
+            InvoiceItem linkedInvoiceItem = null;
+            if (invoiceItem.getLinkedItemId() != null) {
+                // Try to find the linked item on that invoice first
+                linkedInvoiceItem = Iterables.tryFind(invoice.getInvoiceItems(),
+                                                      new Predicate<InvoiceItem>() {
+                                                          @Override
+                                                          public boolean apply(final InvoiceItem input) {
+                                                              return input.getId().equals(invoiceItem.getLinkedItemId());
+                                                          }
+                                                      })
+                                             .orNull();
+                if (linkedInvoiceItem == null) {
+                    // We need to go back to the database
+                    final Invoice linkedInvoice = businessContextFactory.getInvoiceByInvoiceItemId(invoiceItem.getLinkedItemId());
+                    for (final InvoiceItem invoiceItemOnLinkedInvoice : linkedInvoice.getInvoiceItems()) {
+                        if (invoiceItem.getLinkedItemId().equals(invoiceItemOnLinkedInvoice.getId())) {
+                            linkedInvoiceItem = invoiceItemOnLinkedInvoice;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            final BusinessInvoiceItemBaseModelDao businessInvoiceItemModelDao = createBusinessInvoiceItem(businessContextFactory,
+                                                                                                          account,
+                                                                                                          invoice,
+                                                                                                          invoiceItem,
+                                                                                                          otherInvoiceItems,
+                                                                                                          linkedInvoiceItem,
+                                                                                                          isWrittenOff,
+                                                                                                          bundles,
+                                                                                                          currencyConverter,
+                                                                                                          creationAuditLog,
+                                                                                                          accountRecordId,
+                                                                                                          tenantRecordId,
+                                                                                                          reportGroup);
+            if (businessInvoiceItemModelDao != null) {
+                businessInvoiceItemsForInvoiceId.get(businessInvoiceItemModelDao.getInvoiceId()).add(businessInvoiceItemModelDao);
+            }
+        }
+
+        // Now, create the business invoice
+        final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessRecords = new HashMap<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>>();
+        createBusinessInvoice(businessRecords,
+                              businessContextFactory,
+                              invoice,
+                              businessInvoiceItemsForInvoiceId,
+                              writtenOffInvoices,
+                              account,
+                              currencyConverter,
+                              accountRecordId,
+                              tenantRecordId,
+                              reportGroup);
+
+        return businessRecords;
+    }
+
+    /**
      * Create current business invoices and invoice items.
      *
      * @return all business invoice and invoice items to create
-     * @throws org.killbill.billing.plugin.analytics.AnalyticsRefreshException
+     * @throws AnalyticsRefreshException
      */
     public Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> createBusinessInvoicesAndInvoiceItems(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         // Pre-fetch these, to avoid contention on BusinessContextFactory
@@ -157,35 +260,57 @@ public class BusinessInvoiceFactory {
         // Now, create the business invoices
         final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessRecords = new HashMap<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>>();
         for (final Invoice invoice : invoices) {
-            final Collection<BusinessInvoiceItemBaseModelDao> businessInvoiceItems = businessInvoiceItemsForInvoiceId.get(invoice.getId());
-            if (businessInvoiceItems == null) {
-                continue;
-            }
-
-            final boolean isWrittenOff = writtenOffInvoices.contains(invoice.getId());
-
-            final Long invoiceRecordId = businessContextFactory.getInvoiceRecordId(invoice.getId());
-            final AuditLog creationAuditLog = businessContextFactory.getInvoiceCreationAuditLog(invoice.getId());
-
-            final BusinessInvoiceModelDao businessInvoice = new BusinessInvoiceModelDao(account,
-                                                                                        accountRecordId,
-                                                                                        invoice,
-                                                                                        isWrittenOff,
-                                                                                        invoiceRecordId,
-                                                                                        currencyConverter,
-                                                                                        creationAuditLog,
-                                                                                        tenantRecordId,
-                                                                                        reportGroup);
-
-            businessRecords.put(businessInvoice, businessInvoiceItems);
+            createBusinessInvoice(businessRecords,
+                                  businessContextFactory,
+                                  invoice,
+                                  businessInvoiceItemsForInvoiceId,
+                                  writtenOffInvoices,
+                                  account,
+                                  currencyConverter,
+                                  accountRecordId,
+                                  tenantRecordId,
+                                  reportGroup);
         }
 
         return businessRecords;
     }
 
+    private void createBusinessInvoice(final Map<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> businessRecords,
+                                       final BusinessContextFactory businessContextFactory,
+                                       final Invoice invoice,
+                                       final Multimap<UUID, BusinessInvoiceItemBaseModelDao> businessInvoiceItemsForInvoiceId,
+                                       final Collection<UUID> writtenOffInvoices,
+                                       final Account account,
+                                       final CurrencyConverter currencyConverter,
+                                       final Long accountRecordId,
+                                       final Long tenantRecordId,
+                                       final ReportGroup reportGroup) throws AnalyticsRefreshException {
+        final Collection<BusinessInvoiceItemBaseModelDao> businessInvoiceItems = businessInvoiceItemsForInvoiceId.get(invoice.getId());
+        if (businessInvoiceItems == null) {
+            return;
+        }
+
+        final boolean isWrittenOff = writtenOffInvoices.contains(invoice.getId());
+
+        final Long invoiceRecordId = businessContextFactory.getInvoiceRecordId(invoice.getId());
+        final AuditLog creationAuditLog = businessContextFactory.getInvoiceCreationAuditLog(invoice.getId());
+
+        final BusinessInvoiceModelDao businessInvoice = new BusinessInvoiceModelDao(account,
+                                                                                    accountRecordId,
+                                                                                    invoice,
+                                                                                    isWrittenOff,
+                                                                                    invoiceRecordId,
+                                                                                    currencyConverter,
+                                                                                    creationAuditLog,
+                                                                                    tenantRecordId,
+                                                                                    reportGroup);
+
+        businessRecords.put(businessInvoice, businessInvoiceItems);
+    }
+
     private BusinessInvoiceItemBaseModelDao createBusinessInvoiceItem(final BusinessContextFactory businessContextFactory,
                                                                       final InvoiceItem invoiceItem,
-                                                                      final Multimap<UUID, InvoiceItem> allInvoiceItems,
+                                                                      final Multimap<UUID, InvoiceItem> allInvoiceItemsAcrossAllInvoices,
                                                                       final Map<UUID, Invoice> invoiceIdToInvoiceMappings,
                                                                       final boolean isWrittenOff,
                                                                       final Account account,
@@ -196,24 +321,28 @@ public class BusinessInvoiceFactory {
                                                                       final Long tenantRecordId,
                                                                       final ReportGroup reportGroup) throws AnalyticsRefreshException {
         final Invoice invoice = invoiceIdToInvoiceMappings.get(invoiceItem.getInvoiceId());
-        final Collection<InvoiceItem> otherInvoiceItems = Collections2.filter(allInvoiceItems.values(),
+        final Collection<InvoiceItem> otherInvoiceItems = Collections2.filter(allInvoiceItemsAcrossAllInvoices.values(),
                                                                               new Predicate<InvoiceItem>() {
                                                                                   @Override
                                                                                   public boolean apply(final InvoiceItem input) {
-                                                                                      return input.getId() != null && !input.getId().equals(invoiceItem.getId());
-                                                                                  }
-
-                                                                                  @Override
-                                                                                  public boolean test(@Nullable final InvoiceItem input) {
-                                                                                      return apply(input);
+                                                                                      return !input.getId().equals(invoiceItem.getId()) &&
+                                                                                             input.getInvoiceId().equals(invoiceItem.getInvoiceId());
                                                                                   }
                                                                               }
                                                                              );
+        final InvoiceItem linkedInvoiceItem = Iterables.find(allInvoiceItemsAcrossAllInvoices.values(), new Predicate<InvoiceItem>() {
+            @Override
+            public boolean apply(final InvoiceItem input) {
+                return invoiceItem.getLinkedItemId() != null && invoiceItem.getLinkedItemId().equals(input.getId());
+
+            }
+        }, null);
         return createBusinessInvoiceItem(businessContextFactory,
                                          account,
                                          invoice,
                                          invoiceItem,
                                          otherInvoiceItems,
+                                         linkedInvoiceItem,
                                          isWrittenOff,
                                          bundles,
                                          currencyConverter,
@@ -229,6 +358,8 @@ public class BusinessInvoiceFactory {
                                                               final Invoice invoice,
                                                               final InvoiceItem invoiceItem,
                                                               final Collection<InvoiceItem> otherInvoiceItems,
+                                                              // For convenience, populate empty columns using the linked item
+                                                              @Nullable final InvoiceItem linkedInvoiceItem,
                                                               final boolean isWrittenOff,
                                                               final Map<UUID, SubscriptionBundle> bundles,
                                                               final CurrencyConverter currencyConverter,
@@ -236,19 +367,6 @@ public class BusinessInvoiceFactory {
                                                               final Long accountRecordId,
                                                               final Long tenantRecordId,
                                                               @Nullable final ReportGroup reportGroup) throws AnalyticsRefreshException {
-        // For convenience, populate empty columns using the linked item
-        final InvoiceItem linkedInvoiceItem = Iterables.find(otherInvoiceItems, new Predicate<InvoiceItem>() {
-            @Override
-            public boolean apply(final InvoiceItem input) {
-                return invoiceItem.getLinkedItemId() != null && invoiceItem.getLinkedItemId().equals(input.getId());
-            }
-
-            @Override
-            public boolean test(@Nullable final InvoiceItem input) {
-                return apply(input);
-            }
-        }, null);
-
         SubscriptionBundle bundle = null;
         // Subscription and bundle could be null for e.g. credits or adjustments
         if (invoiceItem.getBundleId() != null) {
