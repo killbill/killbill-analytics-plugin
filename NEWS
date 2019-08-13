@@ -1,3 +1,6 @@
+7.0.4
+    https://github.com/killbill/killbill-analytics-plugin/issues/100
+
 7.0.3
     performance: introduce INVOICES group, enhance sync primitives and lower internal default # threads
 
