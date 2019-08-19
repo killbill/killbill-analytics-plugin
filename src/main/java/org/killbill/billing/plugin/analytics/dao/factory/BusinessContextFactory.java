@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import org.joda.time.DateTime;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Catalog;
@@ -609,12 +610,12 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     // Simple pass-through
 
-    public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem) throws AnalyticsRefreshException {
-        return getPlanFromInvoiceItem(invoiceItem, getCatalog());
+    public Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final DateTime bundleStartDate) throws AnalyticsRefreshException {
+        return getPlanFromInvoiceItem(invoiceItem, bundleStartDate, getCatalog());
     }
 
-    public PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem) throws AnalyticsRefreshException {
-        return getPlanPhaseFromInvoiceItem(invoiceItem, getCatalog());
+    public PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final DateTime bundleStartDate) throws AnalyticsRefreshException {
+        return getPlanPhaseFromInvoiceItem(invoiceItem, bundleStartDate, getCatalog());
     }
 
     private Catalog getCatalog() throws AnalyticsRefreshException {

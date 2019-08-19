@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutorCompletionService;
 
 import javax.annotation.Nullable;
 
+import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
@@ -376,20 +377,29 @@ public class BusinessInvoiceFactory {
             bundle = bundles.get(linkedInvoiceItem.getBundleId());
         }
 
+        //
+        // In order to correctly use our catalog api, we should be passing the most recent subscription transition Date,
+        // but unfortunately such date is not exposed. Considering we are only using the Plan/PlanPhase to extract
+        // attributes that we don't expect should be changing (e.g productName, billingPeriod, ...) and not any
+        // pricing info, using a catalog version that contains the original Plan should be good enough.
+        // (and certainly better than using current version and possibly finding a missing (deleted) Plan
+        //
+        final DateTime bundleCreatedDate = bundle != null ? bundle.getCreatedDate() : null;
+
         Plan plan = null;
         if (Strings.emptyToNull(invoiceItem.getPlanName()) != null) {
-            plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem);
+            plan = businessContextFactory.getPlanFromInvoiceItem(invoiceItem, bundleCreatedDate);
         }
         if (plan == null && linkedInvoiceItem != null && Strings.emptyToNull(linkedInvoiceItem.getPlanName()) != null) {
-            plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem);
+            plan = businessContextFactory.getPlanFromInvoiceItem(linkedInvoiceItem, bundleCreatedDate);
         }
 
         PlanPhase planPhase = null;
         if (invoiceItem.getSubscriptionId() != null && Strings.emptyToNull(invoiceItem.getPhaseName()) != null && bundle != null) {
-            planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(invoiceItem);
+            planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(invoiceItem, bundleCreatedDate);
         }
         if (planPhase == null && linkedInvoiceItem != null && linkedInvoiceItem.getSubscriptionId() != null && Strings.emptyToNull(linkedInvoiceItem.getPhaseName()) != null && bundle != null) {
-            planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(linkedInvoiceItem);
+            planPhase = businessContextFactory.getPlanPhaseFromInvoiceItem(linkedInvoiceItem, bundleCreatedDate);
         }
 
         final Long invoiceItemRecordId = invoiceItem.getId() != null ? businessContextFactory.getInvoiceItemRecordId(invoiceItem.getId()) : null;
