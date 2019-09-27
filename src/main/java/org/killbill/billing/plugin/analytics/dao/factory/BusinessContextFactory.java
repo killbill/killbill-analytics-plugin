@@ -27,9 +27,9 @@ import javax.annotation.Nullable;
 
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
-import org.killbill.billing.catalog.api.Catalog;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
+import org.killbill.billing.catalog.api.VersionedCatalog;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
@@ -107,7 +107,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Others
     private Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
     private Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
-    private Catalog catalog;
+    private VersionedCatalog catalog;
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
@@ -617,7 +617,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return getPlanPhaseFromInvoiceItem(invoiceItem, getCatalog());
     }
 
-    private Catalog getCatalog() throws AnalyticsRefreshException {
+    private VersionedCatalog getCatalog() throws AnalyticsRefreshException {
         if (catalog == null) {
             synchronized (this) {
                 if (catalog == null) {

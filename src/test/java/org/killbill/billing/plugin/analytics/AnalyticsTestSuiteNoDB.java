@@ -18,6 +18,7 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -42,6 +43,7 @@ import org.killbill.billing.catalog.api.PriceList;
 import org.killbill.billing.catalog.api.Product;
 import org.killbill.billing.catalog.api.ProductCategory;
 import org.killbill.billing.catalog.api.Recurring;
+import org.killbill.billing.catalog.api.StaticCatalog;
 import org.killbill.billing.catalog.api.VersionedCatalog;
 import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
@@ -591,15 +593,14 @@ public abstract class AnalyticsTestSuiteNoDB {
                .thenReturn(ImmutableList.<InvoicePayment>of(invoicePayment));
 
         final CatalogUserApi catalogUserApi = Mockito.mock(CatalogUserApi.class);
-        final VersionedCatalog catalog = Mockito.mock(VersionedCatalog.class);
+        final VersionedCatalog versionedCatalog = Mockito.mock(VersionedCatalog.class);
         //noinspection unchecked
         Mockito.when(catalogUserApi.getCatalog(Mockito.anyString(),
-                                               Mockito.any(),
                                                Mockito.any(TenantContext.class)))
-               .thenReturn(catalog);
-        Mockito.when(catalog.findPlan(Mockito.eq(plan.getName()),
-                                      Mockito.any()))
-               .thenReturn(plan);
+               .thenReturn(versionedCatalog);
+        final StaticCatalog catalog = Mockito.mock(StaticCatalog.class);
+        Mockito.when(versionedCatalog.getVersion(Mockito.any(Date.class))).thenReturn(catalog);
+        Mockito.when(catalog.findPlan(Mockito.eq(plan.getName()))).thenReturn(plan);
 
         Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.anyBoolean(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
 
