@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
@@ -350,8 +351,9 @@ public abstract class BusinessFactoryBase {
 
     protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final VersionedCatalog catalog) throws AnalyticsRefreshException {
         try {
-            // Find the catalog when the invoice item was created (same logic as InvoiceItemFactory)
-            return catalog.getVersion(invoiceItem.getCreatedDate().toDate()).findPlan(invoiceItem.getPlanName());
+            // getCatalogEffectiveDate was introduced in 0.21.x
+            final DateTime catalogEffectiveDate = MoreObjects.firstNonNull(invoiceItem.getCatalogEffectiveDate(), invoiceItem.getCreatedDate());
+            return catalog.getVersion(catalogEffectiveDate.toDate()).findPlan(invoiceItem.getPlanName());
         } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve plan for invoice item {}", invoiceItem.getId(), e);
             return null;
