@@ -25,16 +25,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.account.api.AccountUserApi;
-import org.killbill.billing.catalog.api.Catalog;
 import org.killbill.billing.catalog.api.CatalogApiException;
 import org.killbill.billing.catalog.api.CatalogUserApi;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
+import org.killbill.billing.catalog.api.StaticCatalog;
+import org.killbill.billing.catalog.api.VersionedCatalog;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -347,17 +349,18 @@ public abstract class BusinessFactoryBase {
         return invoiceUserApi.getAccountBalance(accountId, context);
     }
 
-    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final Catalog catalog) throws AnalyticsRefreshException {
+    protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final VersionedCatalog catalog) throws AnalyticsRefreshException {
         try {
-            // Find the catalog when the invoice item was created (same logic as InvoiceItemFactory)
-            return catalog.findPlan(invoiceItem.getPlanName(), invoiceItem.getCreatedDate());
+            // getCatalogEffectiveDate was introduced in 0.21.x
+            final DateTime catalogEffectiveDate = MoreObjects.firstNonNull(invoiceItem.getCatalogEffectiveDate(), invoiceItem.getCreatedDate());
+            return catalog.getVersion(catalogEffectiveDate.toDate()).findPlan(invoiceItem.getPlanName());
         } catch (final CatalogApiException e) {
             logger.warn("Unable to retrieve plan for invoice item {}", invoiceItem.getId(), e);
             return null;
         }
     }
 
-    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final Catalog catalog) throws AnalyticsRefreshException {
+    protected PlanPhase getPlanPhaseFromInvoiceItem(final InvoiceItem invoiceItem, final VersionedCatalog catalog) throws AnalyticsRefreshException {
         // Find the phase via the plan (same implementation logic as Catalog.findPhase, but without having to pass the subscription start date)
         final Plan plan = getPlanFromInvoiceItem(invoiceItem, catalog);
         if (plan == null) {
@@ -376,10 +379,10 @@ public abstract class BusinessFactoryBase {
     // CATALOG
     //
 
-    protected Catalog getCatalog(final TenantContext context) throws AnalyticsRefreshException {
+    protected VersionedCatalog getCatalog(final TenantContext context) throws AnalyticsRefreshException {
         final CatalogUserApi catalogUserApi = getCatalogUserApi();
         try {
-            return catalogUserApi.getCatalog(null, null, context);
+            return catalogUserApi.getCatalog(null, context);
         } catch (final CatalogApiException e) {
             throw new AnalyticsRefreshException(e);
         }
