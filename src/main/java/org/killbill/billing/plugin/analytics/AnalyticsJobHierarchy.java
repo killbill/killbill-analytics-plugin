@@ -17,12 +17,10 @@
 
 package org.killbill.billing.plugin.analytics;
 
-import org.killbill.billing.notification.plugin.api.ExtBusEventType;
-
 public abstract class AnalyticsJobHierarchy {
 
-    public static Group fromEventType(final ExtBusEventType eventType) {
-        switch (eventType) {
+    public static Group fromEventType(final AnalyticsJob job) {
+        switch (job.getEventType()) {
             // Account information is denormalized across all tables
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:
