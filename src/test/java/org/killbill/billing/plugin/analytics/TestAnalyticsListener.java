@@ -64,7 +64,7 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
 
-        Assert.assertTrue(analyticsListener.shouldIgnoreEvent(cfEvent));
-        Assert.assertFalse(analyticsListener.shouldIgnoreEvent(accountEvent));
+        Assert.assertTrue(analyticsListener.shouldIgnoreEvent(new AnalyticsJob(cfEvent)));
+        Assert.assertFalse(analyticsListener.shouldIgnoreEvent(new AnalyticsJob(accountEvent)));
     }
 }
