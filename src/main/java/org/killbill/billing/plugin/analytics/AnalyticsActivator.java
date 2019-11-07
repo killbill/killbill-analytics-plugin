@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -18,8 +18,6 @@
 
 package org.killbill.billing.plugin.analytics;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Hashtable;
 import java.util.concurrent.Executor;
 
@@ -35,8 +33,8 @@ import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHand
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.core.AnalyticsHealthcheck;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
-import org.killbill.billing.plugin.analytics.http.AnalyticsHealthcheckResource;
 import org.killbill.billing.plugin.analytics.http.AnalyticsAccountResource;
+import org.killbill.billing.plugin.analytics.http.AnalyticsHealthcheckResource;
 import org.killbill.billing.plugin.analytics.http.ReportsResource;
 import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
@@ -44,10 +42,15 @@ import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
+import org.killbill.billing.plugin.dao.PluginDao;
 import org.killbill.bus.dao.BusEventModelDao;
 import org.killbill.clock.Clock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
+import org.killbill.commons.locker.GlobalLocker;
+import org.killbill.commons.locker.memory.MemoryGlobalLocker;
+import org.killbill.commons.locker.mysql.MySqlGlobalLocker;
+import org.killbill.commons.locker.postgresql.PostgreSQLGlobalLocker;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.killbill.notificationq.dao.NotificationEventModelDao;
@@ -99,13 +102,34 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
         analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
-        analyticsListener = new AnalyticsListener(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, notificationQueueService);
+        final EmbeddedDB.DBEngine dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
+        final GlobalLocker locker;
+        switch (dbEngine) {
+            case MYSQL:
+                locker = new MySqlGlobalLocker(dataSource.getDataSource());
+                break;
+            case POSTGRESQL:
+                locker = new PostgreSQLGlobalLocker(dataSource.getDataSource());
+                break;
+            case GENERIC:
+            case H2:
+            default:
+                locker = new MemoryGlobalLocker();
+                break;
+        }
+        analyticsListener = new AnalyticsListener(roOSGIkillbillAPI,
+                                                  dataSource,
+                                                  configProperties,
+                                                  executor,
+                                                  locker,
+                                                  killbillClock,
+                                                  analyticsConfigurationHandler,
+                                                  notificationQueueService);
 
         jobsScheduler = new JobsScheduler(dataSource, killbillClock, notificationQueueService);
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
-        final EmbeddedDB.DBEngine dbEngine = getDbEngine();
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
         reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
 
@@ -169,30 +193,5 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(OSGIPluginProperties.PLUGIN_NAME_PROP, PLUGIN_NAME);
         registrar.registerService(context, Healthcheck.class, healthcheck, props);
-    }
-
-    private EmbeddedDB.DBEngine getDbEngine() throws SQLException {
-        Connection connection = null;
-        String databaseProductName = null;
-        try {
-            connection = dataSource.getDataSource().getConnection();
-            databaseProductName = connection.getMetaData().getDatabaseProductName();
-        } finally {
-            if (connection != null) {
-                connection.close();
-            }
-        }
-
-        final EmbeddedDB.DBEngine dbEngine;
-        if ("H2".equalsIgnoreCase(databaseProductName)) {
-            dbEngine = EmbeddedDB.DBEngine.H2;
-        } else if ("MySQL".equalsIgnoreCase(databaseProductName)) {
-            dbEngine = EmbeddedDB.DBEngine.MYSQL;
-        } else if ("PostgreSQL".equalsIgnoreCase(databaseProductName)) {
-            dbEngine = EmbeddedDB.DBEngine.POSTGRESQL;
-        } else {
-            dbEngine = EmbeddedDB.DBEngine.GENERIC;
-        }
-        return dbEngine;
     }
 }

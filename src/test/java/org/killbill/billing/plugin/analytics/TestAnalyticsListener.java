@@ -34,7 +34,14 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testBlacklist() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
+                                                                          killbillDataSource,
+                                                                          osgiConfigPropertiesService,
+                                                                          null,
+                                                                          locker,
+                                                                          clock,
+                                                                          analyticsConfigurationHandler,
+                                                                          notificationQueueService);
 
         // Other accounts are blacklisted
         Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
@@ -62,7 +69,14 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
             }
         });
 
-        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, null, clock, analyticsConfigurationHandler, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
+                                                                          killbillDataSource,
+                                                                          osgiConfigPropertiesService,
+                                                                          null,
+                                                                          locker,
+                                                                          clock,
+                                                                          analyticsConfigurationHandler,
+                                                                          notificationQueueService);
 
         Assert.assertTrue(analyticsListener.shouldIgnoreEvent(new AnalyticsJob(cfEvent)));
         Assert.assertFalse(analyticsListener.shouldIgnoreEvent(new AnalyticsJob(accountEvent)));
