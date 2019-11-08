@@ -53,6 +53,9 @@ import org.killbill.billing.util.callcontext.CallOrigin;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.callcontext.UserType;
 import org.killbill.clock.Clock;
+import org.killbill.commons.locker.GlobalLock;
+import org.killbill.commons.locker.GlobalLocker;
+import org.killbill.commons.locker.LockFailedException;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationEvent;
 import org.killbill.notificationq.api.NotificationEventWithMetadata;
@@ -104,6 +107,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private final AllBusinessObjectsDao allBusinessObjectsDao;
     private final CurrencyConversionDao currencyConversionDao;
     private final NotificationQueue jobQueue;
+    private final GlobalLocker locker;
     private final Clock clock;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
@@ -111,11 +115,13 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                              final OSGIKillbillDataSource osgiKillbillDataSource,
                              final OSGIConfigPropertiesService osgiConfigPropertiesService,
                              final Executor executor,
+                             final GlobalLocker locker,
                              final Clock clock,
                              final AnalyticsConfigurationHandler analyticsConfigurationHandler,
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
+        this.locker = locker;
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
@@ -304,6 +310,20 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
+        GlobalLock lock = null;
+        try {
+            lock = locker.lockWithNumberOfTries("ANALYTICS_REFRESH", job.getAccountId().toString(), 100);
+            handleAnalyticsJobWithLock(job);
+        } catch (final LockFailedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (lock != null) {
+                lock.release();
+            }
+        }
+    }
+
+    private void handleAnalyticsJobWithLock(final AnalyticsJob job) throws AnalyticsRefreshException {
         if (job.getEventType() == null) {
             return;
         }

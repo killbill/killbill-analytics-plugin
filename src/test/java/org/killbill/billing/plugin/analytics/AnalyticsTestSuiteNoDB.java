@@ -1,6 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * Ning licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -96,6 +97,8 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
+import org.killbill.commons.locker.GlobalLocker;
+import org.killbill.commons.locker.memory.MemoryGlobalLocker;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -111,6 +114,8 @@ public abstract class AnalyticsTestSuiteNoDB {
 
     private static final DateTime INVOICE_CREATED_DATE = new DateTime(2016, 1, 22, 10, 56, 53, DateTimeZone.UTC);
     protected final Logger logger = LoggerFactory.getLogger(AnalyticsTestSuiteNoDB.class);
+
+    protected final GlobalLocker locker = new MemoryGlobalLocker();
 
     protected final Long accountRecordId = 1L;
     protected final Long subscriptionEventRecordId = 2L;
