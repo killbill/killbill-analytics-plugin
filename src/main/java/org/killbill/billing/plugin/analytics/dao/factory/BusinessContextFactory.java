@@ -1,6 +1,6 @@
 /*
- * Copyright 2014 Groupon, Inc
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -25,12 +25,11 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.LocalDate;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
-import org.killbill.billing.catalog.api.Catalog;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
+import org.killbill.billing.catalog.api.VersionedCatalog;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
@@ -76,6 +75,8 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Relatively cheap lookups, should be done by account_record_id
     private Iterable<SubscriptionBundle> accountBundles;
     private Iterable<SubscriptionEvent> accountBlockingStates;
+    private Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
+    private Map<UUID, Invoice> invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
     private Iterable<Invoice> accountInvoices;
     private Map<UUID, List<InvoicePayment>> accountInvoicePayments;
     private Iterable<Payment> accountPayments;
@@ -106,7 +107,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     // Others
     private Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
     private Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
-    private Catalog catalog;
+    private VersionedCatalog catalog;
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
@@ -151,274 +152,456 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return reportGroup;
     }
 
-    public synchronized PluginPropertiesManager getPluginPropertiesManager() {
+    public PluginPropertiesManager getPluginPropertiesManager() {
         if (pluginPropertiesManager == null) {
-            final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
-            pluginPropertiesManager = new PluginPropertiesManager(analyticsConfiguration);
+            synchronized (this) {
+                if (pluginPropertiesManager == null) {
+                    final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
+                    pluginPropertiesManager = new PluginPropertiesManager(analyticsConfiguration);
+                }
+            }
         }
         return pluginPropertiesManager;
     }
 
     @Override
-    public synchronized CurrencyConverter getCurrencyConverter() {
+    public CurrencyConverter getCurrencyConverter() {
         if (currencyConverter == null) {
-            currencyConverter = super.getCurrencyConverter();
+            synchronized (this) {
+                if (currencyConverter == null) {
+                    currencyConverter = super.getCurrencyConverter();
+                }
+            }
         }
         return currencyConverter;
     }
 
-    public synchronized Account getAccount() throws AnalyticsRefreshException {
+    public Account getAccount() throws AnalyticsRefreshException {
         if (account == null) {
-            account = getAccount(accountId, callContext);
+            synchronized (this) {
+                if (account == null) {
+                    account = getAccount(accountId, callContext);
+                }
+            }
         }
         return account;
     }
 
-    public synchronized Account getParentAccount() throws AnalyticsRefreshException {
-        if(account != null && account.getParentAccountId() != null && parentAccount == null) {
-            parentAccount = getAccount(account.getParentAccountId(), callContext);
+    public Account getParentAccount() throws AnalyticsRefreshException {
+        if (account != null && account.getParentAccountId() != null && parentAccount == null) {
+            synchronized (this) {
+                if (account != null && account.getParentAccountId() != null && parentAccount == null) {
+                    parentAccount = getAccount(account.getParentAccountId(), callContext);
+                }
+            }
         }
         return parentAccount;
     }
 
-    public synchronized BigDecimal getAccountBalance() throws AnalyticsRefreshException {
+    public BigDecimal getAccountBalance() throws AnalyticsRefreshException {
         if (accountBalance == null) {
-            accountBalance = getAccountBalance(accountId, callContext);
+            synchronized (this) {
+                if (accountBalance == null) {
+                    accountBalance = getAccountBalance(accountId, callContext);
+                }
+            }
         }
         return accountBalance;
     }
 
-    public synchronized Iterable<SubscriptionBundle> getAccountBundles() throws AnalyticsRefreshException {
+    public Iterable<SubscriptionBundle> getAccountBundles() throws AnalyticsRefreshException {
         if (accountBundles == null) {
-            accountBundles = getSubscriptionBundlesForAccount(accountId, callContext);
+            synchronized (this) {
+                if (accountBundles == null) {
+                    accountBundles = getSubscriptionBundlesForAccount(accountId, callContext);
+                }
+            }
         }
         return accountBundles;
     }
 
-    public synchronized Iterable<SubscriptionEvent> getAccountBlockingStates() throws AnalyticsRefreshException {
+    public Iterable<SubscriptionEvent> getAccountBlockingStates() throws AnalyticsRefreshException {
         if (accountBlockingStates == null) {
-            // Find all subscription events for that account
-            final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(getAccountBundles(),
-                                                                                                                                                                        new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
-                                                                                                                                                                            @Override
-                                                                                                                                                                            public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
-                                                                                                                                                                                return bundle.getTimeline().getSubscriptionEvents();
-                                                                                                                                                                            }
-                                                                                                                                                                        }
-                                                                                                                                                                       ));
+            synchronized (this) {
+                if (accountBlockingStates == null) {
+                    // Find all subscription events for that account
+                    final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(getAccountBundles(),
+                                                                                                                                                                                new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
+                                                                                                                                                                                    @Override
+                                                                                                                                                                                    public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
+                                                                                                                                                                                        return bundle.getTimeline().getSubscriptionEvents();
+                                                                                                                                                                                    }
+                                                                                                                                                                                }
+                                                                                                                                                                               ));
 
-            // Filter all service state changes
-            accountBlockingStates = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
-                                                                        new Predicate<SubscriptionEvent>() {
-                                                                            @Override
-                                                                            public boolean apply(final SubscriptionEvent event) {
-                                                                                return event.getSubscriptionEventType() != null &&
-                                                                                       // We want events coming from the blocking states table...
-                                                                                       ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
-                                                                                       // ...that are for any service but entitlement
-                                                                                       !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
-                                                                            }
+                    // Filter all service state changes
+                    accountBlockingStates = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
+                                                                                new Predicate<SubscriptionEvent>() {
+                                                                                    @Override
+                                                                                    public boolean apply(final SubscriptionEvent event) {
+                                                                                        return event.getSubscriptionEventType() != null &&
+                                                                                               // We want events coming from the blocking states table...
+                                                                                               ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
+                                                                                               // ...that are for any service but entitlement
+                                                                                               !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
+                                                                                    }
 
-                                                                            @Override
-                                                                            public boolean test(@Nullable final SubscriptionEvent input) {
-                                                                                return apply(input);
-                                                                            }
-                                                                        }
-                                                                       );
+                                                                                    @Override
+                                                                                    public boolean test(@Nullable final SubscriptionEvent input) {
+                                                                                        return apply(input);
+                                                                                    }
+                                                                                }
+                                                                               );
+                }
+            }
         }
         return accountBlockingStates;
     }
 
-    public synchronized Iterable<Invoice> getAccountInvoices() throws AnalyticsRefreshException {
+    public Invoice getInvoice(final UUID invoiceId) throws AnalyticsRefreshException {
+        if (invoices.get(invoiceId) == null) {
+            synchronized (this) {
+                if (invoices.get(invoiceId) == null) {
+                    final Invoice invoice = getInvoice(invoiceId, callContext);
+                    invoices.put(invoiceId, invoice);
+
+                    for (final InvoiceItem invoiceItem : invoice.getInvoiceItems()) {
+                        invoicesByInvoiceItem.put(invoiceItem.getId(), invoice);
+                    }
+                }
+            }
+        }
+        return invoices.get(invoiceId);
+    }
+
+    public Invoice getInvoiceByInvoiceItemId(final UUID invoiceItemId) throws AnalyticsRefreshException {
+        if (invoicesByInvoiceItem.get(invoiceItemId) == null) {
+            synchronized (this) {
+                if (invoicesByInvoiceItem.get(invoiceItemId) == null) {
+                    final Invoice invoice = getInvoiceByInvoiceItemId(invoiceItemId, callContext);
+                    invoicesByInvoiceItem.put(invoiceItemId, invoice);
+
+                    invoices.put(invoice.getId(), invoice);
+                }
+            }
+        }
+        return invoicesByInvoiceItem.get(invoiceItemId);
+    }
+
+    public Iterable<Invoice> getAccountInvoices() throws AnalyticsRefreshException {
         if (accountInvoices == null) {
-            accountInvoices = getInvoicesByAccountId(accountId, callContext);
+            synchronized (this) {
+                if (accountInvoices == null) {
+                    accountInvoices = getInvoicesByAccountId(accountId, callContext);
+
+                    if (invoicesByInvoiceItem == null) {
+                        invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
+                    }
+                    for (final Invoice invoice : accountInvoices) {
+                        for (final InvoiceItem invoiceItem : invoice.getInvoiceItems()) {
+                            invoicesByInvoiceItem.put(invoiceItem.getId(), invoice);
+                        }
+                    }
+
+                    if (invoices == null) {
+                        invoices = new HashMap<UUID, Invoice>();
+                    }
+                    for (final Invoice invoice : accountInvoices) {
+                        invoices.put(invoice.getId(), invoice);
+                    }
+                }
+            }
         }
         return accountInvoices;
     }
 
-    public synchronized Map<UUID, List<InvoicePayment>> getAccountInvoicePayments() throws AnalyticsRefreshException {
+    public Map<UUID, List<InvoicePayment>> getAccountInvoicePayments() throws AnalyticsRefreshException {
         if (accountInvoicePayments == null) {
-            accountInvoicePayments = getAccountInvoicePayments(getAccountPayments(), callContext);
+            synchronized (this) {
+                if (accountInvoicePayments == null) {
+                    accountInvoicePayments = getAccountInvoicePayments(getAccountPayments(), callContext);
+                }
+            }
         }
         return accountInvoicePayments;
     }
 
-    public synchronized Iterable<Payment> getAccountPayments() throws AnalyticsRefreshException {
+    public Iterable<Payment> getAccountPayments() throws AnalyticsRefreshException {
         if (accountPayments == null) {
-            accountPayments = getPaymentsWithPluginInfoByAccountId(accountId, callContext);
+            synchronized (this) {
+                if (accountPayments == null) {
+                    accountPayments = getPaymentsWithPluginInfoByAccountId(accountId, callContext);
+                }
+            }
         }
         return accountPayments;
     }
 
-    public synchronized PaymentMethod getPaymentMethod(final UUID paymentMethodId) throws AnalyticsRefreshException {
+    public PaymentMethod getPaymentMethod(final UUID paymentMethodId) throws AnalyticsRefreshException {
         if (accountPaymentMethods == null) {
-            accountPaymentMethods = new HashMap<UUID, PaymentMethod>();
-            for (final PaymentMethod paymentMethod : getPaymentMethodsForAccount(accountId, callContext)) {
-                accountPaymentMethods.put(paymentMethod.getId(), paymentMethod);
+            synchronized (this) {
+                if (accountPaymentMethods == null) {
+                    accountPaymentMethods = new HashMap<UUID, PaymentMethod>();
+                    for (final PaymentMethod paymentMethod : getPaymentMethodsForAccount(accountId, callContext)) {
+                        accountPaymentMethods.put(paymentMethod.getId(), paymentMethod);
+                    }
+                }
             }
         }
         return accountPaymentMethods.get(paymentMethodId);
     }
 
-    public synchronized Iterable<Tag> getAccountTags() throws AnalyticsRefreshException {
+    public Iterable<Tag> getAccountTags() throws AnalyticsRefreshException {
         if (accountTags == null) {
-            accountTags = getTagsForAccount(accountId, callContext);
+            synchronized (this) {
+                if (accountTags == null) {
+                    accountTags = getTagsForAccount(accountId, callContext);
+                }
+            }
         }
         return accountTags;
     }
 
-    public synchronized Iterable<CustomField> getAccountCustomFields() throws AnalyticsRefreshException {
+    public Iterable<CustomField> getAccountCustomFields() throws AnalyticsRefreshException {
         if (accountCustomFields == null) {
-            accountCustomFields = getFieldsForAccount(accountId, callContext);
+            synchronized (this) {
+                if (accountCustomFields == null) {
+                    accountCustomFields = getFieldsForAccount(accountId, callContext);
+                }
+            }
         }
         return accountCustomFields;
     }
 
-    public synchronized AuditLog getAccountCreationAuditLog() throws AnalyticsRefreshException {
+    public AuditLog getAccountCreationAuditLog() throws AnalyticsRefreshException {
         if (accountCreationAuditLog == null) {
-            accountCreationAuditLog = getAccountCreationAuditLog(accountId, accountAuditLogs);
+            synchronized (this) {
+                if (accountCreationAuditLog == null) {
+                    accountCreationAuditLog = getAccountCreationAuditLog(accountId, accountAuditLogs);
+                }
+            }
         }
         return accountCreationAuditLog;
     }
 
-    public synchronized AuditLog getBundleCreationAuditLog(final UUID bundleId) throws AnalyticsRefreshException {
+    public AuditLog getBundleCreationAuditLog(final UUID bundleId) throws AnalyticsRefreshException {
         if (bundleCreationAuditLogs.get(bundleId) == null) {
-            bundleCreationAuditLogs.put(bundleId, getBundleCreationAuditLog(bundleId, accountAuditLogs));
+            synchronized (this) {
+                if (bundleCreationAuditLogs.get(bundleId) == null) {
+                    bundleCreationAuditLogs.put(bundleId, getBundleCreationAuditLog(bundleId, accountAuditLogs));
+                }
+            }
         }
         return bundleCreationAuditLogs.get(bundleId);
     }
 
-    public synchronized AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType) throws AnalyticsRefreshException {
+    public AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType) throws AnalyticsRefreshException {
         if (subscriptionEventCreationAuditLogs.get(subscriptionEventId) == null) {
-            subscriptionEventCreationAuditLogs.put(subscriptionEventId, getSubscriptionEventCreationAuditLog(subscriptionEventId, objectType, accountAuditLogs));
+            synchronized (this) {
+                if (subscriptionEventCreationAuditLogs.get(subscriptionEventId) == null) {
+                    subscriptionEventCreationAuditLogs.put(subscriptionEventId, getSubscriptionEventCreationAuditLog(subscriptionEventId, objectType, accountAuditLogs));
+                }
+            }
         }
         return subscriptionEventCreationAuditLogs.get(subscriptionEventId);
     }
 
-    public synchronized AuditLog getBlockingStateCreationAuditLog(final UUID blockingStateId) throws AnalyticsRefreshException {
+    public AuditLog getBlockingStateCreationAuditLog(final UUID blockingStateId) throws AnalyticsRefreshException {
         if (blockingStateCreationAuditLogs.get(blockingStateId) == null) {
-            blockingStateCreationAuditLogs.put(blockingStateId, getBlockingStateCreationAuditLog(blockingStateId, accountAuditLogs));
+            synchronized (this) {
+                if (blockingStateCreationAuditLogs.get(blockingStateId) == null) {
+                    blockingStateCreationAuditLogs.put(blockingStateId, getBlockingStateCreationAuditLog(blockingStateId, accountAuditLogs));
+                }
+            }
         }
         return blockingStateCreationAuditLogs.get(blockingStateId);
     }
 
-    public synchronized AuditLog getInvoiceCreationAuditLog(final UUID invoiceId) throws AnalyticsRefreshException {
+    public AuditLog getInvoiceCreationAuditLog(final UUID invoiceId) throws AnalyticsRefreshException {
         if (invoiceCreationAuditLogs.get(invoiceId) == null) {
-            invoiceCreationAuditLogs.put(invoiceId, getInvoiceCreationAuditLog(invoiceId, accountAuditLogs));
+            synchronized (this) {
+                if (invoiceCreationAuditLogs.get(invoiceId) == null) {
+                    invoiceCreationAuditLogs.put(invoiceId, getInvoiceCreationAuditLog(invoiceId, accountAuditLogs));
+                }
+            }
         }
         return invoiceCreationAuditLogs.get(invoiceId);
     }
 
-    public synchronized AuditLog getInvoiceItemCreationAuditLog(final UUID invoiceItemId) throws AnalyticsRefreshException {
+    public AuditLog getInvoiceItemCreationAuditLog(final UUID invoiceItemId) throws AnalyticsRefreshException {
         if (invoiceItemCreationAuditLogs.get(invoiceItemId) == null) {
-            invoiceItemCreationAuditLogs.put(invoiceItemId, getInvoiceItemCreationAuditLog(invoiceItemId, accountAuditLogs));
+            synchronized (this) {
+                if (invoiceItemCreationAuditLogs.get(invoiceItemId) == null) {
+                    invoiceItemCreationAuditLogs.put(invoiceItemId, getInvoiceItemCreationAuditLog(invoiceItemId, accountAuditLogs));
+                }
+            }
         }
         return invoiceItemCreationAuditLogs.get(invoiceItemId);
     }
 
-    public synchronized AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId) throws AnalyticsRefreshException {
+    public AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId) throws AnalyticsRefreshException {
         if (invoicePaymentCreationAuditLogs.get(invoicePaymentId) == null) {
-            invoicePaymentCreationAuditLogs.put(invoicePaymentId, getInvoicePaymentCreationAuditLog(invoicePaymentId, accountAuditLogs));
+            synchronized (this) {
+                if (invoicePaymentCreationAuditLogs.get(invoicePaymentId) == null) {
+                    invoicePaymentCreationAuditLogs.put(invoicePaymentId, getInvoicePaymentCreationAuditLog(invoicePaymentId, accountAuditLogs));
+                }
+            }
         }
         return invoicePaymentCreationAuditLogs.get(invoicePaymentId);
     }
 
-    public synchronized AuditLog getPaymentCreationAuditLog(final UUID paymentId) throws AnalyticsRefreshException {
+    public AuditLog getPaymentCreationAuditLog(final UUID paymentId) throws AnalyticsRefreshException {
         if (paymentCreationAuditLogs.get(paymentId) == null) {
-            paymentCreationAuditLogs.put(paymentId, getPaymentCreationAuditLog(paymentId, accountAuditLogs));
+            synchronized (this) {
+                if (paymentCreationAuditLogs.get(paymentId) == null) {
+                    paymentCreationAuditLogs.put(paymentId, getPaymentCreationAuditLog(paymentId, accountAuditLogs));
+                }
+            }
         }
         return paymentCreationAuditLogs.get(paymentId);
     }
 
-    public synchronized AuditLog getTagCreationAuditLog(final UUID tagId) throws AnalyticsRefreshException {
+    public AuditLog getTagCreationAuditLog(final UUID tagId) throws AnalyticsRefreshException {
         if (tagCreationAuditLogs.get(tagId) == null) {
-            tagCreationAuditLogs.put(tagId, getTagCreationAuditLog(tagId, accountAuditLogs));
+            synchronized (this) {
+                if (tagCreationAuditLogs.get(tagId) == null) {
+                    tagCreationAuditLogs.put(tagId, getTagCreationAuditLog(tagId, accountAuditLogs));
+                }
+            }
         }
         return tagCreationAuditLogs.get(tagId);
     }
 
-    public synchronized AuditLog getCustomFieldCreationAuditLog(final UUID customFieldId) throws AnalyticsRefreshException {
+    public AuditLog getCustomFieldCreationAuditLog(final UUID customFieldId) throws AnalyticsRefreshException {
         if (customFieldCreationAuditLogs.get(customFieldId) == null) {
-            customFieldCreationAuditLogs.put(customFieldId, getFieldCreationAuditLog(customFieldId, accountAuditLogs));
+            synchronized (this) {
+                if (customFieldCreationAuditLogs.get(customFieldId) == null) {
+                    customFieldCreationAuditLogs.put(customFieldId, getFieldCreationAuditLog(customFieldId, accountAuditLogs));
+                }
+            }
         }
         return customFieldCreationAuditLogs.get(customFieldId);
     }
 
-    public synchronized Long getBundleRecordId(final UUID bundleId) throws AnalyticsRefreshException {
+    public Long getBundleRecordId(final UUID bundleId) throws AnalyticsRefreshException {
         if (bundleRecordIds.get(bundleId) == null) {
-            bundleRecordIds.put(bundleId, getBundleRecordId(bundleId, callContext));
+            synchronized (this) {
+                if (bundleRecordIds.get(bundleId) == null) {
+                    bundleRecordIds.put(bundleId, getBundleRecordId(bundleId, callContext));
+                }
+            }
         }
         return bundleRecordIds.get(bundleId);
     }
 
-    public synchronized Long getSubscriptionEventRecordId(final UUID subscriptionEventId, final ObjectType objectType) throws AnalyticsRefreshException {
+    public Long getSubscriptionEventRecordId(final UUID subscriptionEventId, final ObjectType objectType) throws AnalyticsRefreshException {
         if (subscriptionEventRecordIds.get(subscriptionEventId) == null) {
-            subscriptionEventRecordIds.put(subscriptionEventId, getSubscriptionEventRecordId(subscriptionEventId, objectType, callContext));
+            synchronized (this) {
+                if (subscriptionEventRecordIds.get(subscriptionEventId) == null) {
+                    subscriptionEventRecordIds.put(subscriptionEventId, getSubscriptionEventRecordId(subscriptionEventId, objectType, callContext));
+                }
+            }
         }
         return subscriptionEventRecordIds.get(subscriptionEventId);
     }
 
-    public synchronized Long getBlockingStateRecordId(final UUID blockingStateId) throws AnalyticsRefreshException {
+    public Long getBlockingStateRecordId(final UUID blockingStateId) throws AnalyticsRefreshException {
         if (blockingStateRecordIds.get(blockingStateId) == null) {
-            blockingStateRecordIds.put(blockingStateId, getBlockingStateRecordId(blockingStateId, callContext));
+            synchronized (this) {
+                if (blockingStateRecordIds.get(blockingStateId) == null) {
+                    blockingStateRecordIds.put(blockingStateId, getBlockingStateRecordId(blockingStateId, callContext));
+                }
+            }
         }
         return blockingStateRecordIds.get(blockingStateId);
     }
 
-    public synchronized Long getInvoiceRecordId(final UUID invoiceId) throws AnalyticsRefreshException {
+    public Long getInvoiceRecordId(final UUID invoiceId) throws AnalyticsRefreshException {
         if (invoiceRecordIds.get(invoiceId) == null) {
-            invoiceRecordIds.put(invoiceId, getInvoiceRecordId(invoiceId, callContext));
+            synchronized (this) {
+                if (invoiceRecordIds.get(invoiceId) == null) {
+                    invoiceRecordIds.put(invoiceId, getInvoiceRecordId(invoiceId, callContext));
+                }
+            }
         }
         return invoiceRecordIds.get(invoiceId);
     }
 
-    public synchronized Long getInvoiceItemRecordId(final UUID invoiceItemId) throws AnalyticsRefreshException {
+    public Long getInvoiceItemRecordId(final UUID invoiceItemId) throws AnalyticsRefreshException {
         if (invoiceItemRecordIds.get(invoiceItemId) == null) {
-            invoiceItemRecordIds.put(invoiceItemId, getInvoiceItemRecordId(invoiceItemId, callContext));
+            synchronized (this) {
+                if (invoiceItemRecordIds.get(invoiceItemId) == null) {
+                    invoiceItemRecordIds.put(invoiceItemId, getInvoiceItemRecordId(invoiceItemId, callContext));
+                }
+            }
         }
         return invoiceItemRecordIds.get(invoiceItemId);
     }
 
-    public synchronized Long getInvoicePaymentRecordId(final UUID invoicePaymentId) throws AnalyticsRefreshException {
+    public Long getInvoicePaymentRecordId(final UUID invoicePaymentId) throws AnalyticsRefreshException {
         if (invoicePaymentRecordIds.get(invoicePaymentId) == null) {
-            invoicePaymentRecordIds.put(invoicePaymentId, getInvoicePaymentRecordId(invoicePaymentId, callContext));
+            synchronized (this) {
+                if (invoicePaymentRecordIds.get(invoicePaymentId) == null) {
+                    invoicePaymentRecordIds.put(invoicePaymentId, getInvoicePaymentRecordId(invoicePaymentId, callContext));
+                }
+            }
         }
         return invoicePaymentRecordIds.get(invoicePaymentId);
     }
 
-    public synchronized Long getPaymentRecordId(final UUID paymentId) throws AnalyticsRefreshException {
+    public Long getPaymentRecordId(final UUID paymentId) throws AnalyticsRefreshException {
         if (paymentRecordIds.get(paymentId) == null) {
-            paymentRecordIds.put(paymentId, getPaymentRecordId(paymentId, callContext));
+            synchronized (this) {
+                if (paymentRecordIds.get(paymentId) == null) {
+                    paymentRecordIds.put(paymentId, getPaymentRecordId(paymentId, callContext));
+                }
+            }
         }
         return paymentRecordIds.get(paymentId);
     }
 
-    public synchronized Long getTagRecordId(final UUID tagId) throws AnalyticsRefreshException {
+    public Long getTagRecordId(final UUID tagId) throws AnalyticsRefreshException {
         if (tagRecordIds.get(tagId) == null) {
-            tagRecordIds.put(tagId, getTagRecordId(tagId, callContext));
+            synchronized (this) {
+                if (tagRecordIds.get(tagId) == null) {
+                    tagRecordIds.put(tagId, getTagRecordId(tagId, callContext));
+                }
+            }
         }
         return tagRecordIds.get(tagId);
     }
 
-    public synchronized Long getCustomFieldRecordId(final UUID customFieldId) throws AnalyticsRefreshException {
+    public Long getCustomFieldRecordId(final UUID customFieldId) throws AnalyticsRefreshException {
         if (customFieldRecordIds.get(customFieldId) == null) {
-            customFieldRecordIds.put(customFieldId, getFieldRecordId(customFieldId, callContext));
+            synchronized (this) {
+                if (customFieldRecordIds.get(customFieldId) == null) {
+                    customFieldRecordIds.put(customFieldId, getFieldRecordId(customFieldId, callContext));
+                }
+            }
         }
         return customFieldRecordIds.get(customFieldId);
     }
 
-    public synchronized SubscriptionBundle getLatestSubscriptionBundleForExternalKey(final String externalKey) throws AnalyticsRefreshException {
+    public SubscriptionBundle getLatestSubscriptionBundleForExternalKey(final String externalKey) throws AnalyticsRefreshException {
         if (latestSubscriptionBundleForExternalKeys.get(externalKey) == null) {
-            latestSubscriptionBundleForExternalKeys.put(externalKey, getLatestSubscriptionBundleForExternalKey(externalKey, callContext));
+            synchronized (this) {
+                if (latestSubscriptionBundleForExternalKeys.get(externalKey) == null) {
+                    latestSubscriptionBundleForExternalKeys.put(externalKey, getLatestSubscriptionBundleForExternalKey(externalKey, callContext));
+                }
+            }
         }
         return latestSubscriptionBundleForExternalKeys.get(externalKey);
     }
 
-    public synchronized TagDefinition getTagDefinition(final UUID tagDefinitionId) throws AnalyticsRefreshException {
+    public TagDefinition getTagDefinition(final UUID tagDefinitionId) throws AnalyticsRefreshException {
         if (tagDefinitions.isEmpty()) {
-            tagDefinitions = new HashMap<UUID, TagDefinition>();
-            for (final TagDefinition tagDefinition : getTagDefinitions(callContext)) {
-                tagDefinitions.put(tagDefinition.getId(), tagDefinition);
+            synchronized (this) {
+                if (tagDefinitions.isEmpty()) {
+                    tagDefinitions = new HashMap<UUID, TagDefinition>();
+                    for (final TagDefinition tagDefinition : getTagDefinitions(callContext)) {
+                        tagDefinitions.put(tagDefinition.getId(), tagDefinition);
+                    }
+                }
             }
         }
         return tagDefinitions.get(tagDefinitionId);
@@ -434,9 +617,13 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return getPlanPhaseFromInvoiceItem(invoiceItem, getCatalog());
     }
 
-    private synchronized Catalog getCatalog() throws AnalyticsRefreshException {
+    private VersionedCatalog getCatalog() throws AnalyticsRefreshException {
         if (catalog == null) {
-            catalog = getCatalog(callContext);
+            synchronized (this) {
+                if (catalog == null) {
+                    catalog = getCatalog(callContext);
+                }
+            }
         }
         return catalog;
     }

@@ -1,3 +1,28 @@
+7.0.8
+    Update parent pom.xml
+
+7.0.6
+    refresh payment rows when CBA is distributed
+
+7.0.5
+    Updates for Kill Bill 0.21.5
+
+7.0.4
+    https://github.com/killbill/killbill-analytics-plugin/issues/100
+
+7.0.3
+    performance: introduce INVOICES group, enhance sync primitives and lower internal default # threads
+
+7.0.2
+    Update to latest oss pom.xml
+
+7.0.1
+    https://github.com/killbill/killbill-analytics-plugin/issues/89
+    https://github.com/killbill/killbill-analytics-plugin/issues/90
+
+7.0.0
+    Initial release for Kill Bill 0.21.x
+
 6.0.1
     Add property org.killbill.billing.plugin.analytics.ignoredGroups
 

@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,6 +19,7 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -27,6 +28,8 @@ import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.ObjectType;
+import org.killbill.billing.invoice.api.Invoice;
+import org.killbill.billing.invoice.api.InvoiceApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
@@ -39,14 +42,20 @@ import org.killbill.billing.plugin.analytics.dao.BusinessAccountDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountTransitionDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessFieldDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessInvoiceAndPaymentDao;
+import org.killbill.billing.plugin.analytics.dao.BusinessInvoiceDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessSubscriptionTransitionDao;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
+import org.killbill.billing.plugin.api.PluginTenantContext;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.CallOrigin;
+import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.callcontext.UserType;
 import org.killbill.clock.Clock;
+import org.killbill.commons.locker.GlobalLock;
+import org.killbill.commons.locker.GlobalLocker;
+import org.killbill.commons.locker.LockFailedException;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationEvent;
 import org.killbill.notificationq.api.NotificationEventWithMetadata;
@@ -65,6 +74,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
+import static org.killbill.billing.notification.plugin.api.ExtBusEventType.PAYMENT_SUCCESS;
 import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS_QUEUE_SERVICE;
 
 public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbillEventHandler {
@@ -90,12 +100,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
+    private final BusinessInvoiceDao binDao;
     private final BusinessInvoiceAndPaymentDao binAndBipDao;
     private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
     private final CurrencyConversionDao currencyConversionDao;
     private final NotificationQueue jobQueue;
+    private final GlobalLocker locker;
     private final Clock clock;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
@@ -103,11 +115,13 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                              final OSGIKillbillDataSource osgiKillbillDataSource,
                              final OSGIConfigPropertiesService osgiConfigPropertiesService,
                              final Executor executor,
+                             final GlobalLocker locker,
                              final Clock clock,
                              final AnalyticsConfigurationHandler analyticsConfigurationHandler,
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
+        this.locker = locker;
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
@@ -116,6 +130,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
         final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
         this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
+        this.binDao = new BusinessInvoiceDao(osgiKillbillDataSource, bacDao, executor);
         this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, bacDao, executor);
         this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource);
         this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource);
@@ -183,12 +198,29 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
             return;
         }
 
-        // Events we don't care about
-        if (shouldIgnoreEvent(killbillEvent)) {
-            return;
+        AnalyticsJob job = new AnalyticsJob(killbillEvent);
+        if (AnalyticsJobHierarchy.fromEventType(job) == Group.INVOICES) {
+            try {
+                final TenantContext tenantContext = new PluginTenantContext(killbillEvent.getAccountId(), killbillEvent.getTenantId());
+                final Invoice invoice = osgiKillbillAPI.getInvoiceUserApi().getInvoice(killbillEvent.getObjectId(), tenantContext);
+                if (BigDecimal.ZERO.compareTo(invoice.getCreditedAmount()) != 0 && invoice.getNumberOfPayments() > 0) {
+                    // The invoice has payments and CBA was updated: payment rows must be updated
+                    // See https://github.com/killbill/killbill-analytics-plugin/issues/105
+                    job = new AnalyticsJob(PAYMENT_SUCCESS,
+                                           killbillEvent.getObjectType(),
+                                           killbillEvent.getObjectId(),
+                                           killbillEvent.getAccountId(),
+                                           killbillEvent.getTenantId());
+                }
+            } catch (final InvoiceApiException e) {
+                logger.warn("Unable to retrieve InvoiceUserApi for event {}, payment data might be stale", killbillEvent);
+            }
         }
 
-        final AnalyticsJob job = new AnalyticsJob(killbillEvent);
+        // Events we don't care about
+        if (shouldIgnoreEvent(job)) {
+            return;
+        }
 
         Long accountRecordId = null;
         Long tenantRecordId = null;
@@ -270,14 +302,28 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     // Does the specified existing notification overlap with this job?
     private boolean jobsOverlap(final AnalyticsJob job, final NotificationEventWithMetadata<AnalyticsJob> notificationEventForExistingJob) {
         final AnalyticsJob existingJob = notificationEventForExistingJob.getEvent();
-        final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob.getEventType());
+        final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob);
 
         return existingJob.getAccountId().equals(job.getAccountId()) &&
-               (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job.getEventType())) ||
+               (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job)) ||
                 AnalyticsJobHierarchy.Group.ALL.equals(existingHierarchyGroup));
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
+        GlobalLock lock = null;
+        try {
+            lock = locker.lockWithNumberOfTries("ANALYTICS_REFRESH", job.getAccountId().toString(), 100);
+            handleAnalyticsJobWithLock(job);
+        } catch (final LockFailedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (lock != null) {
+                lock.release();
+            }
+        }
+    }
+
+    private void handleAnalyticsJobWithLock(final AnalyticsJob job) throws AnalyticsRefreshException {
         if (job.getEventType() == null) {
             return;
         }
@@ -285,7 +331,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         final CallContext callContext = new AnalyticsCallContext(job, clock);
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
 
-        final Group group = AnalyticsJobHierarchy.fromEventType(job.getEventType());
+        final Group group = AnalyticsJobHierarchy.fromEventType(job);
         logger.info("Starting {} Analytics refresh for account {}", group, businessContextFactory.getAccountId());
         switch (group) {
             case ALL:
@@ -296,6 +342,9 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                 break;
             case OVERDUE:
                 bosDao.update(businessContextFactory);
+                break;
+            case INVOICES:
+                binDao.update(job.getObjectId(), businessContextFactory);
                 break;
             case INVOICE_AND_PAYMENTS:
                 binAndBipDao.update(businessContextFactory);
@@ -320,8 +369,8 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     }
 
     @VisibleForTesting
-    protected boolean shouldIgnoreEvent(final ExtBusEvent event) {
-        return Iterables.find(ignoredGroups, Predicates.<Group>equalTo(AnalyticsJobHierarchy.fromEventType(event.getEventType())), null) != null;
+    protected boolean shouldIgnoreEvent(final AnalyticsJob job) {
+        return Iterables.find(ignoredGroups, Predicates.<Group>equalTo(AnalyticsJobHierarchy.fromEventType(job)), null) != null;
     }
 
     @VisibleForTesting

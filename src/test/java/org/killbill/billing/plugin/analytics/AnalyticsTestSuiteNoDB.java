@@ -1,6 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * Ning licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -18,8 +19,10 @@
 package org.killbill.billing.plugin.analytics;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 import javax.annotation.Nullable;
 import javax.sql.DataSource;
@@ -31,6 +34,7 @@ import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountUserApi;
 import org.killbill.billing.catalog.api.BillingPeriod;
+import org.killbill.billing.catalog.api.CatalogUserApi;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.catalog.api.InternationalPrice;
 import org.killbill.billing.catalog.api.PhaseType;
@@ -40,6 +44,9 @@ import org.killbill.billing.catalog.api.PriceList;
 import org.killbill.billing.catalog.api.Product;
 import org.killbill.billing.catalog.api.ProductCategory;
 import org.killbill.billing.catalog.api.Recurring;
+import org.killbill.billing.catalog.api.StaticCatalog;
+import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
@@ -49,11 +56,14 @@ import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.invoice.api.InvoicePaymentType;
+import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
+import org.killbill.billing.payment.api.InvoicePaymentApi;
 import org.killbill.billing.payment.api.Payment;
+import org.killbill.billing.payment.api.PaymentApi;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentMethodPlugin;
 import org.killbill.billing.payment.api.PaymentTransaction;
@@ -64,12 +74,14 @@ import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.TestCallContext;
+import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.PluginPropertiesManager;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.BusinessInvoiceItemType;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
+import org.killbill.billing.tenant.api.TenantUserApi;
 import org.killbill.billing.util.api.AuditLevel;
 import org.killbill.billing.util.api.AuditUserApi;
 import org.killbill.billing.util.api.CustomFieldUserApi;
@@ -85,8 +97,9 @@ import org.killbill.billing.util.customfield.CustomField;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
+import org.killbill.commons.locker.GlobalLocker;
+import org.killbill.commons.locker.memory.MemoryGlobalLocker;
 import org.killbill.notificationq.DefaultNotificationQueueService;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -101,6 +114,8 @@ public abstract class AnalyticsTestSuiteNoDB {
 
     private static final DateTime INVOICE_CREATED_DATE = new DateTime(2016, 1, 22, 10, 56, 53, DateTimeZone.UTC);
     protected final Logger logger = LoggerFactory.getLogger(AnalyticsTestSuiteNoDB.class);
+
+    protected final GlobalLocker locker = new MemoryGlobalLocker();
 
     protected final Long accountRecordId = 1L;
     protected final Long subscriptionEventRecordId = 2L;
@@ -137,6 +152,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected SubscriptionEvent subscriptionTransition;
     protected Invoice invoice;
     protected InvoiceItem invoiceItem;
+    protected InvoiceItem linkedInvoiceItem;
     protected InvoicePayment invoicePayment;
     protected PaymentMethod paymentMethod;
     protected Payment payment;
@@ -155,6 +171,8 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected OSGIKillbillAPI killbillAPI;
     protected OSGIKillbillDataSource killbillDataSource;
     protected OSGIConfigPropertiesService osgiConfigPropertiesService;
+    protected ExecutorService executor;
+    protected BusinessContextFactory businessContextFactory;
 
     protected void verifyBusinessEntityBase(final BusinessEntityBase businessEntityBase) {
         Assert.assertEquals(businessEntityBase.getCreatedBy(), auditLog.getUserName());
@@ -196,7 +214,24 @@ public abstract class AnalyticsTestSuiteNoDB {
                                             final BigDecimal amount,
                                             @Nullable final UUID linkedItemId) {
         final UUID invoiceItemId = UUID.randomUUID();
+        return createInvoiceItem(invoiceItemId,
+                                 invoiceId,
+                                 invoiceItemType,
+                                 subscriptionId,
+                                 startDate,
+                                 endDate,
+                                 amount,
+                                 linkedItemId);
+    }
 
+    protected InvoiceItem createInvoiceItem(final UUID invoiceItemId,
+                                            final UUID invoiceId,
+                                            final InvoiceItemType invoiceItemType,
+                                            final UUID subscriptionId,
+                                            final LocalDate startDate,
+                                            final LocalDate endDate,
+                                            final BigDecimal amount,
+                                            @Nullable final UUID linkedItemId) {
         final InvoiceItem invoiceItem = Mockito.mock(InvoiceItem.class);
         Mockito.when(invoiceItem.getId()).thenReturn(invoiceItemId);
         Mockito.when(invoiceItem.getInvoiceItemType()).thenReturn(invoiceItemType);
@@ -229,8 +264,6 @@ public abstract class AnalyticsTestSuiteNoDB {
                 return null;
             }
         }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
-
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(AnalyticsActivator.PLUGIN_NAME, killbillAPI, logService);
 
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
@@ -279,6 +312,12 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(bundle.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 48, DateTimeZone.UTC));
         final UUID bundleId = bundle.getId();
 
+        final UUID subscriptionId = UUID.randomUUID();
+        final Subscription subscription = Mockito.mock(Subscription.class);
+        Mockito.when(subscription.getBaseEntitlementId()).thenReturn(subscriptionId);
+        Mockito.when(subscription.getId()).thenReturn(subscriptionId);
+        Mockito.when(bundle.getSubscriptions()).thenReturn(ImmutableList.<Subscription>of(subscription));
+
         final Product product = Mockito.mock(Product.class);
         Mockito.when(product.getName()).thenReturn(UUID.randomUUID().toString());
         Mockito.when(product.getCategory()).thenReturn(ProductCategory.STANDALONE);
@@ -292,7 +331,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         final String planName = plan.getName();
 
         phase = Mockito.mock(PlanPhase.class);
-        Recurring recurring = Mockito.mock(Recurring.class);
+        final Recurring recurring = Mockito.mock(Recurring.class);
         Mockito.when(recurring.getBillingPeriod()).thenReturn(BillingPeriod.QUARTERLY);
         Mockito.when(phase.getRecurring()).thenReturn(recurring);
         Mockito.when(phase.getName()).thenReturn(UUID.randomUUID().toString());
@@ -307,7 +346,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(priceList.getName()).thenReturn(UUID.randomUUID().toString());
 
         subscriptionTransition = Mockito.mock(SubscriptionEvent.class);
-        Mockito.when(subscriptionTransition.getEntitlementId()).thenReturn(UUID.randomUUID());
+        Mockito.when(subscriptionTransition.getEntitlementId()).thenReturn(subscriptionId);
         Mockito.when(subscriptionTransition.getServiceName()).thenReturn(serviceName);
         Mockito.when(subscriptionTransition.getServiceStateName()).thenReturn(stateName);
         Mockito.when(subscriptionTransition.getNextPlan()).thenReturn(plan);
@@ -317,7 +356,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new LocalDate(2011, 2, 3));
         Mockito.when(subscriptionTransition.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_ENTITLEMENT);
         Mockito.when(subscriptionTransition.getId()).thenReturn(UUID.randomUUID());
-        final UUID subscriptionId = subscriptionTransition.getEntitlementId();
         final UUID nextEventId = subscriptionTransition.getId();
 
         invoiceItem = Mockito.mock(InvoiceItem.class);
@@ -339,11 +377,21 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoiceItem.getCreatedDate()).thenReturn(new DateTime(2016, 1, 22, 10, 56, 51, DateTimeZone.UTC));
         final UUID invoiceItemId = invoiceItem.getId();
 
-        final UUID invoiceId = UUID.randomUUID();
+        linkedInvoiceItem = createInvoiceItem(invoiceItem.getLinkedItemId(),
+                                              invoiceItem.getInvoiceId(),
+                                              InvoiceItemType.TAX,
+                                              invoiceItem.getSubscriptionId(),
+                                              null,
+                                              null,
+                                              BigDecimal.ONE,
+                                              null);
+
+        final UUID invoiceId = invoiceItem.getInvoiceId();
+        final UUID paymentId = UUID.randomUUID();
 
         invoicePayment = Mockito.mock(InvoicePayment.class);
         Mockito.when(invoicePayment.getId()).thenReturn(UUID.randomUUID());
-        Mockito.when(invoicePayment.getPaymentId()).thenReturn(UUID.randomUUID());
+        Mockito.when(invoicePayment.getPaymentId()).thenReturn(paymentId);
         Mockito.when(invoicePayment.getType()).thenReturn(InvoicePaymentType.ATTEMPT);
         Mockito.when(invoicePayment.getInvoiceId()).thenReturn(invoiceId);
         Mockito.when(invoicePayment.getPaymentDate()).thenReturn(new DateTime(2003, 4, 12, 3, 34, 52, DateTimeZone.UTC));
@@ -356,8 +404,8 @@ public abstract class AnalyticsTestSuiteNoDB {
 
         invoice = Mockito.mock(Invoice.class);
         Mockito.when(invoice.getId()).thenReturn(invoiceId);
-        Mockito.when(invoice.getInvoiceItems()).thenReturn(ImmutableList.<InvoiceItem>of(invoiceItem));
-        Mockito.when(invoice.getNumberOfItems()).thenReturn(1);
+        Mockito.when(invoice.getInvoiceItems()).thenReturn(ImmutableList.<InvoiceItem>of(invoiceItem, linkedInvoiceItem));
+        Mockito.when(invoice.getNumberOfItems()).thenReturn(2);
         Mockito.when(invoice.getPayments()).thenReturn(ImmutableList.<InvoicePayment>of(invoicePayment));
         Mockito.when(invoice.getNumberOfPayments()).thenReturn(1);
         Mockito.when(invoice.getAccountId()).thenReturn(accountId);
@@ -370,7 +418,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoice.getChargedAmount()).thenReturn(new BigDecimal("100293"));
         Mockito.when(invoice.getCreditedAmount()).thenReturn(new BigDecimal("283"));
         Mockito.when(invoice.getRefundedAmount()).thenReturn(new BigDecimal("384"));
-        Mockito.when(invoice.getBalance()).thenReturn(new BigDecimal("18376"));
+        Mockito.when(invoice.getBalance()).thenReturn(new BigDecimal("12001"));
         Mockito.when(invoice.isMigrationInvoice()).thenReturn(false);
         Mockito.when(invoice.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);
 
@@ -415,7 +463,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(refundTransaction.getTransactionStatus()).thenReturn(TransactionStatus.PENDING);
 
         payment = Mockito.mock(Payment.class);
-        Mockito.when(payment.getId()).thenReturn(UUID.randomUUID());
+        Mockito.when(payment.getId()).thenReturn(paymentId);
         Mockito.when(payment.getAccountId()).thenReturn(accountId);
         Mockito.when(payment.getPaymentMethodId()).thenReturn(paymentMethodId);
         Mockito.when(payment.getPaymentNumber()).thenReturn(1);
@@ -512,15 +560,68 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(auditUserApi.getAuditLogs(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.<AuditLevel>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<AuditLog>of());
 
         final SubscriptionApi subscriptionApi = Mockito.mock(SubscriptionApi.class);
-        Mockito.when(subscriptionApi.getSubscriptionBundlesForAccountId(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of());
+        Mockito.when(subscriptionApi.getSubscriptionBundlesForAccountId(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
+        Mockito.when(subscriptionApi.getSubscriptionBundlesForExternalKey(Mockito.<String>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
+
+        final InvoiceUserApi invoiceApi = Mockito.mock(InvoiceUserApi.class);
+        Mockito.when(invoiceApi.getInvoicesByAccount(Mockito.eq(account.getId()),
+                                                     Mockito.anyBoolean(),
+                                                     Mockito.anyBoolean(),
+                                                     Mockito.any(TenantContext.class)))
+               .thenReturn(ImmutableList.of(invoice));
+        Mockito.when(invoiceApi.getInvoiceByInvoiceItem(Mockito.eq(invoiceItem.getId()),
+                                                        Mockito.any(TenantContext.class)))
+               .thenReturn(invoice);
+        Mockito.when(invoiceApi.getInvoiceByInvoiceItem(Mockito.eq(linkedInvoiceItem.getId()),
+                                                        Mockito.any(TenantContext.class)))
+               .thenReturn(invoice);
+
+        final PaymentApi paymentApi = Mockito.mock(PaymentApi.class);
+        //noinspection unchecked
+        Mockito.when(paymentApi.getAccountPayments(Mockito.eq(account.getId()),
+                                                   Mockito.anyBoolean(),
+                                                   Mockito.anyBoolean(),
+                                                   Mockito.any(Iterable.class),
+                                                   Mockito.any(TenantContext.class)))
+               .thenReturn(ImmutableList.of(payment));
+        //noinspection unchecked
+        Mockito.when(paymentApi.getAccountPaymentMethods(Mockito.eq(account.getId()),
+                                                         Mockito.anyBoolean(),
+                                                         Mockito.anyBoolean(),
+                                                         Mockito.any(Iterable.class),
+                                                         Mockito.any(TenantContext.class)))
+               .thenReturn(ImmutableList.of(paymentMethod));
+
+        final InvoicePaymentApi invoicePaymentApi = Mockito.mock(InvoicePaymentApi.class);
+        Mockito.when(invoicePaymentApi.getInvoicePayments(Mockito.eq(payment.getId()),
+                                                          Mockito.any(TenantContext.class)))
+               .thenReturn(ImmutableList.<InvoicePayment>of(invoicePayment));
+
+        final CatalogUserApi catalogUserApi = Mockito.mock(CatalogUserApi.class);
+        final VersionedCatalog versionedCatalog = Mockito.mock(VersionedCatalog.class);
+        //noinspection unchecked
+        Mockito.when(catalogUserApi.getCatalog(Mockito.anyString(),
+                                               Mockito.any(TenantContext.class)))
+               .thenReturn(versionedCatalog);
+        final StaticCatalog catalog = Mockito.mock(StaticCatalog.class);
+        Mockito.when(versionedCatalog.getVersion(Mockito.any(Date.class))).thenReturn(catalog);
+        Mockito.when(catalog.findPlan(Mockito.eq(plan.getName()))).thenReturn(plan);
 
         Mockito.when(tagUserApi.getTagsForObject(Mockito.<UUID>any(), Mockito.<ObjectType>any(), Mockito.anyBoolean(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<Tag>of());
+
+        final TenantUserApi tenantUserApi = Mockito.mock(TenantUserApi.class);
+
         Mockito.when(killbillAPI.getAccountUserApi()).thenReturn(accountUserApi);
         Mockito.when(killbillAPI.getSubscriptionApi()).thenReturn(subscriptionApi);
+        Mockito.when(killbillAPI.getInvoiceUserApi()).thenReturn(invoiceApi);
+        Mockito.when(killbillAPI.getPaymentApi()).thenReturn(paymentApi);
+        Mockito.when(killbillAPI.getInvoicePaymentApi()).thenReturn(invoicePaymentApi);
         Mockito.when(killbillAPI.getRecordIdApi()).thenReturn(recordIdApi);
         Mockito.when(killbillAPI.getTagUserApi()).thenReturn(tagUserApi);
         Mockito.when(killbillAPI.getCustomFieldUserApi()).thenReturn(customFieldUserApi);
         Mockito.when(killbillAPI.getAuditUserApi()).thenReturn(auditUserApi);
+        Mockito.when(killbillAPI.getCatalogUserApi()).thenReturn(catalogUserApi);
+        Mockito.when(killbillAPI.getTenantUserApi()).thenReturn(tenantUserApi);
 
         killbillDataSource = Mockito.mock(OSGIKillbillDataSource.class);
         final DataSource dataSource = Mockito.mock(DataSource.class);
@@ -535,9 +636,22 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(osgiConfigPropertiesService.getProperties()).thenReturn(properties);
         Mockito.when(osgiConfigPropertiesService.getString(Mockito.<String>any())).thenAnswer(new Answer<Object>() {
             @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
+            public Object answer(final InvocationOnMock invocation) {
                 return properties.getProperty((String) invocation.getArguments()[0]);
             }
         });
+
+        executor = BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService);
+
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(AnalyticsActivator.PLUGIN_NAME, killbillAPI, logService);
+        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration(new Properties()));
+
+        businessContextFactory = new BusinessContextFactory(account.getId(),
+                                                            callContext,
+                                                            currencyConversionDao,
+                                                            killbillAPI,
+                                                            osgiConfigPropertiesService,
+                                                            clock,
+                                                            analyticsConfigurationHandler);
     }
 }

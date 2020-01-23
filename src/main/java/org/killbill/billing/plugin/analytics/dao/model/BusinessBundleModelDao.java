@@ -1,8 +1,9 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -81,9 +82,7 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
                                   final String accountExternalKey,
                                   final Long accountRecordId,
                                   final Long tenantRecordId,
-                                  @Nullable final ReportGroup reportGroup)
-
-    {
+                                  @Nullable final ReportGroup reportGroup) {
         super(createdDate,
               createdBy,
               createdReasonCode,
@@ -114,8 +113,14 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         this.convertedCurrentMrr = bst.getConvertedNextMrr();
         this.currentCurrency = bst.getNextCurrency();
         this.currentBusinessActive = bst.getNextBusinessActive();
-        this.currentStartDate = bst.getNextStartDate();
-        this.currentEndDate = bst.getNextEndDate();
+        if (bst.getEvent() != null &&
+            (bst.getEvent().startsWith("STOP_ENTITLEMENT") || bst.getEvent().startsWith("STOP_BILLING"))) {
+            this.currentStartDate = bst.getPrevStartDate();
+            this.currentEndDate = bst.getRequestedTimestamp();
+        } else {
+            this.currentStartDate = bst.getNextStartDate();
+            this.currentEndDate = bst.getNextEndDate();
+        }
         this.currentService = bst.getNextService();
         this.currentState = bst.getNextState();
         this.convertedCurrency = convertedCurrency;

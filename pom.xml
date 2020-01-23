@@ -21,11 +21,11 @@
     <parent>
         <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.142.7</version>
+        <version>0.143.41</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
-    <version>6.0.2-SNAPSHOT</version>
+    <version>7.0.9-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Kill Bill OSGI Analytics bundle</name>
     <description>Kill Bill Analytics plugin</description>
@@ -196,6 +196,10 @@
             <artifactId>killbill-base-plugin</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-locker</artifactId>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>

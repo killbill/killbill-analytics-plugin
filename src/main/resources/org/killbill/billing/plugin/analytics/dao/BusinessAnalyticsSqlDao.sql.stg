@@ -290,6 +290,8 @@ insert into analytics_invoices (
 , invoice_date
 , target_date
 , currency
+, raw_balance
+, converted_raw_balance
 , balance
 , converted_balance
 , amount_paid
@@ -303,6 +305,7 @@ insert into analytics_invoices (
 , amount_refunded
 , converted_amount_refunded
 , converted_currency
+, written_off
 , created_date
 , created_by
 , created_reason_code
@@ -320,6 +323,8 @@ insert into analytics_invoices (
 , :invoiceDate
 , :targetDate
 , :currency
+, :rawBalance
+, :convertedRawBalance
 , :balance
 , :convertedBalance
 , :amountPaid
@@ -333,6 +338,7 @@ insert into analytics_invoices (
 , :amountRefunded
 , :convertedAmountRefunded
 , :convertedCurrency
+, :writtenOff
 , :createdDate
 , :createdBy
 , :createdReasonCode
@@ -357,6 +363,8 @@ insert into analytics_invoice_adjustments (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -369,6 +377,7 @@ insert into analytics_invoice_adjustments (
 , converted_invoice_amount_credited
 , invoice_amount_refunded
 , converted_invoice_amount_refunded
+, invoice_written_off
 , item_type
 , item_source
 , bundle_id
@@ -406,6 +415,8 @@ insert into analytics_invoice_adjustments (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -418,6 +429,7 @@ insert into analytics_invoice_adjustments (
 , :convertedInvoiceAmountCredited
 , :invoiceAmountRefunded
 , :convertedInvoiceAmountRefunded
+, :invoiceWrittenOff
 , :itemType
 , :itemSource
 , :bundleId
@@ -459,6 +471,8 @@ insert into analytics_invoice_items (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -471,6 +485,7 @@ insert into analytics_invoice_items (
 , converted_invoice_amount_credited
 , invoice_amount_refunded
 , converted_invoice_amount_refunded
+, invoice_written_off
 , item_type
 , item_source
 , bundle_id
@@ -509,6 +524,8 @@ insert into analytics_invoice_items (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -521,6 +538,7 @@ insert into analytics_invoice_items (
 , :convertedInvoiceAmountCredited
 , :invoiceAmountRefunded
 , :convertedInvoiceAmountRefunded
+, :invoiceWrittenOff
 , :itemType
 , :itemSource
 , :bundleId
@@ -563,6 +581,8 @@ insert into analytics_invoice_item_adjustments (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -575,6 +595,7 @@ insert into analytics_invoice_item_adjustments (
 , converted_invoice_amount_credited
 , invoice_amount_refunded
 , converted_invoice_amount_refunded
+, invoice_written_off
 , item_type
 , item_source
 , bundle_id
@@ -612,6 +633,8 @@ insert into analytics_invoice_item_adjustments (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -624,6 +647,7 @@ insert into analytics_invoice_item_adjustments (
 , :convertedInvoiceAmountCredited
 , :invoiceAmountRefunded
 , :convertedInvoiceAmountRefunded
+, :invoiceWrittenOff
 , :itemType
 , :itemSource
 , :bundleId
@@ -665,6 +689,8 @@ insert into analytics_invoice_credits (
 , invoice_date
 , invoice_target_date
 , invoice_currency
+, raw_invoice_balance
+, converted_raw_invoice_balance
 , invoice_balance
 , converted_invoice_balance
 , invoice_amount_paid
@@ -677,6 +703,7 @@ insert into analytics_invoice_credits (
 , converted_invoice_amount_credited
 , invoice_amount_refunded
 , converted_invoice_amount_refunded
+, invoice_written_off
 , item_type
 , item_source
 , bundle_id
@@ -714,6 +741,8 @@ insert into analytics_invoice_credits (
 , :invoiceDate
 , :invoiceTargetDate
 , :invoiceCurrency
+, :rawInvoiceBalance
+, :convertedRawInvoiceBalance
 , :invoiceBalance
 , :convertedInvoiceBalance
 , :invoiceAmountPaid
@@ -726,6 +755,7 @@ insert into analytics_invoice_credits (
 , :convertedInvoiceAmountCredited
 , :invoiceAmountRefunded
 , :convertedInvoiceAmountRefunded
+, :invoiceWrittenOff
 , :itemType
 , :itemSource
 , :bundleId
@@ -2208,12 +2238,16 @@ insert into analytics_transaction_fields (
 );
 >>
 
-CHECK_TENANT_AND_ACCOUNT(prefix) ::= <<
+CHECK_TENANT(prefix) ::= <<
 case
     when <prefix>tenant_record_id is null and :tenantRecordId is null then true
     when <prefix>tenant_record_id is null or  :tenantRecordId is null then false
     else <prefix>tenant_record_id = :tenantRecordId
 end
+>>
+
+CHECK_TENANT_AND_ACCOUNT(prefix) ::= <<
+<CHECK_TENANT(prefix)>
 and <prefix>account_record_id = :accountRecordId
 >>
 
@@ -2221,6 +2255,13 @@ SELECT_STAR_FROM_TABLE(table) ::= <<
 select *
 from <table> t
 where <CHECK_TENANT_AND_ACCOUNT("t.")>
+>>
+
+deleteByInvoiceId(tableName) ::= <<
+delete from <tableName>
+where <CHECK_TENANT("")>
+and invoice_id = :invoiceId
+;
 >>
 
 deleteByAccountRecordId(tableName) ::= <<

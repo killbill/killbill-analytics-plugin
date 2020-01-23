@@ -1,6 +1,6 @@
 /*
- * Copyright 2015 Groupon, Inc
- * Copyright 2015 The Billing Project, LLC
+ * Copyright 2015-2019 Groupon, Inc
+ * Copyright 2015-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -17,12 +17,10 @@
 
 package org.killbill.billing.plugin.analytics;
 
-import org.killbill.billing.notification.plugin.api.ExtBusEventType;
-
 public abstract class AnalyticsJobHierarchy {
 
-    public static Group fromEventType(final ExtBusEventType eventType) {
-        switch (eventType) {
+    public static Group fromEventType(final AnalyticsJob job) {
+        switch (job.getEventType()) {
             // Account information is denormalized across all tables
             case ACCOUNT_CREATION:
             case ACCOUNT_CHANGE:
@@ -42,6 +40,7 @@ public abstract class AnalyticsJobHierarchy {
                 return Group.OVERDUE;
             case INVOICE_CREATION:
             case INVOICE_ADJUSTMENT:
+                return Group.INVOICES;
             case PAYMENT_SUCCESS:
             case PAYMENT_FAILED:
                 return Group.INVOICE_AND_PAYMENTS;
@@ -56,6 +55,7 @@ public abstract class AnalyticsJobHierarchy {
     public enum Group {
         ALL,
         FIELDS,
+        INVOICES,
         INVOICE_AND_PAYMENTS,
         OVERDUE,
         OTHER,

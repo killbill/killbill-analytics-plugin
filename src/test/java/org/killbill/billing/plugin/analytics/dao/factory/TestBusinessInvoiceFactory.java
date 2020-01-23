@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2017 Groupon, Inc
- * Copyright 2014-2017 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -109,6 +109,8 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                       invoice,
                                                                                                       adjustmentItem,
                                                                                                       ImmutableList.<InvoiceItem>of(taxItem, recurringItem),
+                                                                                                      recurringItem,
+                                                                                                      false,
                                                                                                       bundles,
                                                                                                       currencyConverter,
                                                                                                       auditLog,
@@ -129,6 +131,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                invoice,
                                                                                                                createInvoiceItem(invoiceId, InvoiceItemType.CREDIT_ADJ, new BigDecimal("-10")),
                                                                                                                ImmutableList.<InvoiceItem>of(createInvoiceItem(invoiceId, InvoiceItemType.CBA_ADJ, new BigDecimal("10"))),
+                                                                                                               false,
                                                                                                                null,
                                                                                                                null,
                                                                                                                null,
@@ -146,6 +149,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                             invoice,
                                                                                                             createInvoiceItem(invoiceId, InvoiceItemType.CBA_ADJ, new BigDecimal("10")),
                                                                                                             ImmutableList.<InvoiceItem>of(createInvoiceItem(invoiceId, InvoiceItemType.CREDIT_ADJ, new BigDecimal("-10"))),
+                                                                                                            false,
                                                                                                             null,
                                                                                                             null,
                                                                                                             null,
@@ -165,6 +169,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                        invoice,
                                                                                                                        createInvoiceItem(invoiceId, InvoiceItemType.CREDIT_ADJ, new BigDecimal("-10")),
                                                                                                                        ImmutableList.<InvoiceItem>of(createInvoiceItem(invoiceId, InvoiceItemType.RECURRING, new BigDecimal("10"))),
+                                                                                                                       false,
                                                                                                                        null,
                                                                                                                        null,
                                                                                                                        null,
@@ -183,6 +188,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                                            invoice,
                                                                                                                            createInvoiceItem(invoiceId, InvoiceItemType.ITEM_ADJ, new BigDecimal("-10")),
                                                                                                                            ImmutableList.<InvoiceItem>of(createInvoiceItem(invoiceId, InvoiceItemType.RECURRING, new BigDecimal("10"))),
+                                                                                                                           false,
                                                                                                                            null,
                                                                                                                            null,
                                                                                                                            null,
@@ -203,6 +209,7 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
                                                                                                          ImmutableList.<InvoiceItem>of(createInvoiceItem(invoiceId, InvoiceItemType.RECURRING, new BigDecimal("30")),
                                                                                                                                        createInvoiceItem(invoiceId, InvoiceItemType.REPAIR_ADJ, new BigDecimal("-30")),
                                                                                                                                        createInvoiceItem(invoiceId, InvoiceItemType.RECURRING, new BigDecimal("20"))),
+                                                                                                         false,
                                                                                                          null,
                                                                                                          null,
                                                                                                          null,

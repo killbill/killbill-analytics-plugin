@@ -56,6 +56,6 @@ public class BusinessExecutor {
     @VisibleForTesting
     static int getNbThreads(OSGIConfigPropertiesService osgiConfigPropertiesService) {
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_NB_THREADS_PROPERTY));
-        return nbThreadsMaybeNull == null ? 100 : Integer.valueOf(nbThreadsMaybeNull);
+        return nbThreadsMaybeNull == null ? 10 : Integer.valueOf(nbThreadsMaybeNull);
     }
 }

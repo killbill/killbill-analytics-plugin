@@ -1,7 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
+import org.awaitility.Awaitility;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
 import org.killbill.billing.notification.plugin.api.ExtBusEventType;
 import org.killbill.notificationq.api.NotificationEventWithMetadata;
@@ -29,15 +30,20 @@ import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.awaitility.Awaitility;
-
 import com.google.common.collect.Iterables;
 
 public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbeddedDB {
 
     @Test(groups = "slow")
     public void testSendOneEvent() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, analyticsConfigurationHandler, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
+                                                                          killbillDataSource,
+                                                                          osgiConfigPropertiesService,
+                                                                          BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService),
+                                                                          locker,
+                                                                          clock,
+                                                                          analyticsConfigurationHandler,
+                                                                          notificationQueueService);
         analyticsListener.start();
 
         // Verify the original state
@@ -62,7 +68,14 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
     @Test(groups = "slow")
     public void testVerifyNoDups() throws Exception {
-        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI, killbillDataSource, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, analyticsConfigurationHandler, notificationQueueService);
+        final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
+                                                                          killbillDataSource,
+                                                                          osgiConfigPropertiesService,
+                                                                          BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService),
+                                                                          locker,
+                                                                          clock,
+                                                                          analyticsConfigurationHandler,
+                                                                          notificationQueueService);
         // Don't start the dequeuer
         Assert.assertEquals(Iterables.<NotificationEventWithMetadata>size(analyticsListener.getJobQueue().getFutureNotificationForSearchKeys(accountRecordId, tenantRecordId)), 0);
 
@@ -71,7 +84,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Send the first event
         final ExtBusEvent firstEvent = createExtBusEvent();
-        Mockito.when(firstEvent.getEventType()).thenReturn(ExtBusEventType.INVOICE_CREATION);
+        Mockito.when(firstEvent.getEventType()).thenReturn(ExtBusEventType.PAYMENT_FAILED);
         analyticsListener.handleKillbillEvent(firstEvent);
 
         // Verify the size of the queue
@@ -93,7 +106,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Now, send a different event type, but triggering the same refresh type as the first event
         final ExtBusEvent thirdEvent = createExtBusEvent();
-        Mockito.when(thirdEvent.getEventType()).thenReturn(ExtBusEventType.PAYMENT_FAILED);
+        Mockito.when(thirdEvent.getEventType()).thenReturn(ExtBusEventType.PAYMENT_SUCCESS);
         analyticsListener.handleKillbillEvent(thirdEvent);
 
         // Verify the size of the queue

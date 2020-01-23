@@ -1,6 +1,7 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2019 Groupon, Inc
+ * Copyright 2014-2019 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -24,6 +25,7 @@ import javax.sql.DataSource;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.platform.test.PlatformDBTestingHelper;
+import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.dao.BusinessAnalyticsSqlDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
@@ -62,6 +64,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     protected DBI dbi;
     protected BusinessAnalyticsSqlDao analyticsSqlDao;
     protected DefaultNotificationQueueService notificationQueueService;
+    protected AnalyticsUserApi analyticsUserApi;
 
     @BeforeSuite(groups = "slow")
     public void setUpSuite(final ITestContext context) throws Exception {
@@ -88,6 +91,13 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
         final NotificationQueueConfig config = new ConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                                  ImmutableMap.<String, String>of("instanceName", "analytics"));
         notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
+
+        analyticsUserApi = new AnalyticsUserApi(killbillAPI,
+                                                killbillDataSource,
+                                                osgiConfigPropertiesService,
+                                                executor,
+                                                clock,
+                                                analyticsConfigurationHandler);
     }
 
     @AfterSuite(groups = "slow")
