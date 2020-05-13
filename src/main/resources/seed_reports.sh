@@ -71,7 +71,7 @@ for r in `find $SYSTEM -type f -name '*.sql' -o -name '*.ddl' -maxdepth 1`; do i
 # Dashboard views
 create_report 'accounts_summary' 'Account summary' 'COUNTERS' 'v_report_accounts_summary'
 create_report 'active_by_product_term_monthly' 'Active subscriptions' 'TIMELINE' 'v_report_active_by_product_term_monthly'
-create_report 'cancellations_count_daily' 'Cancellations' 'TIMELINE' 'v_report_cancellations_count_daily'
+create_report 'cancellations_count_daily' 'Cancellations' 'TIMELINE' 'v_report_cancellations_daily'
 create_report 'chargebacks_daily' 'Chargebacks' 'TIMELINE' 'v_report_chargebacks_daily'
 create_report 'conversions_daily' 'Conversions' 'TIMELINE' 'v_report_conversions_daily'
 create_report 'invoice_adjustments_daily' 'Invoice adjustments' 'TIMELINE' 'v_report_invoice_adjustments_daily'
