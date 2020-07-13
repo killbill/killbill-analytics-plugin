@@ -44,11 +44,14 @@ The plugin can be configured to generate fact tables:
 | `subscription_id` | Points to the `id` column of the `subscriptions` table  |
 | `bcd` | The bill cycle day for that subscription in the account timezone |
 | `product_name` | The current or last active product name (before cancellation) |
-| `product_type` | The current or last active product type (before cancellation) |
 | `product_category` | The current or last active product category (before cancellation) |
 | `product_phase_name` | The current or last active phase name (before cancellation) |
 | `product_phase_type` | The current or last active phase type (before cancellation) |
-| `state` | The current entitlement state |
+| `plan_name` | The current or last active plan name (before cancellation) |
+| `pricelist_name` | The current or last pricelist name (before cancellation) |
+| `catalog_name` | The catalog name associated with the current or last plan (before cancellation) |
+| `catalog_version` | The catalog version associated with the current or last plan (before cancellation) |
+| `entitlement_state` | The current entitlement state |
 | `entitlement_start_date` | The start date of the entitlement |
 | `entitlement_end_date` | The end date of the entitlement, that is the date at which it got cancelled |
 | `billing_start_date` | The date at which the billing started for that subscription |
