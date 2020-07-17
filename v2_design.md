@@ -20,7 +20,7 @@ The plugin can be configured to generate fact tables:
 
 ## v2 schema
 
-`analytics_accounts_snapshot`:
+### `analytics_accounts_snapshot`
 
 | Column name | Description |
 | ----------: | ----------: |
@@ -45,7 +45,7 @@ The plugin can be configured to generate fact tables:
 | `created_reason_code` | Audit log reason code |
 | `created_comments` | Audit log comments |
 
-`analytics_subscriptions_snapshot`:
+### `analytics_subscriptions_snapshot`
 
 | Column name | Description |
 | ----------: | ----------: |
@@ -72,7 +72,7 @@ The plugin can be configured to generate fact tables:
 | `created_reason_code` | Audit log reason code |
 | `created_comments` | Audit log comments |
 
-`analytics_subscriptions_transitions_snapshot`:
+### `analytics_subscriptions_transitions_snapshot`
 
 | Column name | Description |
 | ----------: | ----------: |
@@ -108,7 +108,7 @@ The plugin can be configured to generate fact tables:
 | `created_reason_code` | Audit log reason code |
 | `created_comments` | Audit log comments |
 
-`analytics_invoices_snapshot`:
+### `analytics_invoices_snapshot`
 
 | Column name | Description |
 | ----------: | ----------: |
