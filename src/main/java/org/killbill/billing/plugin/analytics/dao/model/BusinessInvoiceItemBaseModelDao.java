@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -37,6 +38,7 @@ import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBase {
 
@@ -45,6 +47,7 @@ public abstract class BusinessInvoiceItemBaseModelDao extends BusinessModelDaoBa
     protected static final String INVOICE_ITEM_ADJUSTMENTS_TABLE_NAME = "analytics_invoice_item_adjustments";
     protected static final String ACCOUNT_CREDITS_TABLE_NAME = "analytics_invoice_credits";
 
+    @SuppressFBWarnings("MS_MUTABLE_ARRAY")
     public static final String[] ALL_INVOICE_ITEMS_TABLE_NAMES = new String[]{INVOICE_ADJUSTMENTS_TABLE_NAME, INVOICE_ITEMS_TABLE_NAME, INVOICE_ITEM_ADJUSTMENTS_TABLE_NAME, ACCOUNT_CREDITS_TABLE_NAME};
 
     private Long invoiceItemRecordId;

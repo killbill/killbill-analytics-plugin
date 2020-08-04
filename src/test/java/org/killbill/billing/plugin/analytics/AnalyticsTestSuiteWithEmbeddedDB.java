@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -63,7 +64,6 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     protected EmbeddedDB embeddedDB;
     protected DBI dbi;
     protected BusinessAnalyticsSqlDao analyticsSqlDao;
-    protected DefaultNotificationQueueService notificationQueueService;
     protected AnalyticsUserApi analyticsUserApi;
 
     @BeforeSuite(groups = "slow")
@@ -125,7 +125,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
         }
     }
 
-    private final class AnalyticsPlatformDBTestingHelper extends PlatformDBTestingHelper {
+    private static final class AnalyticsPlatformDBTestingHelper extends PlatformDBTestingHelper {
 
         public AnalyticsPlatformDBTestingHelper() {
             super();

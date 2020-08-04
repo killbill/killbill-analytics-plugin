@@ -1,8 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -79,28 +81,19 @@ public class BusinessAccountFactory {
         final int nbActiveBundles = Iterables.size(Iterables.<SubscriptionBundle>filter(bundles,
                                                                                         new Predicate<SubscriptionBundle>() {
                                                                                             @Override
-                                                                                            public boolean test(@Nullable final SubscriptionBundle input) {
-                                                                                                return apply(input);
-                                                                                            }
-
-                                                                                            @Override
                                                                                             public boolean apply(final SubscriptionBundle bundle) {
-                                                                                                return Iterables.size(Iterables.<Subscription>filter(bundle.getSubscriptions(),
-                                                                                                                                                     new Predicate<Subscription>() {
-                                                                                                                                                         @Override
-                                                                                                                                                         public boolean apply(final Subscription subscription) {
-                                                                                                                                                             // Bundle is active iff its base entitlement is not cancelled
-                                                                                                                                                             return ProductCategory.BASE.equals(subscription.getLastActiveProductCategory()) &&
-                                                                                                                                                                    !subscription.getState().equals(EntitlementState.CANCELLED);
-                                                                                                                                                         }
+                                                                                                return bundle != null && Iterables.size(Iterables.<Subscription>filter(bundle.getSubscriptions(),
+                                                                                                                                                                       new Predicate<Subscription>() {
+                                                                                                                                                                           @Override
+                                                                                                                                                                           public boolean apply(final Subscription subscription) {
+                                                                                                                                                                               // Bundle is active iff its base entitlement is not cancelled
+                                                                                                                                                                               return subscription != null &&
+                                                                                                                                                                                      ProductCategory.BASE.equals(subscription.getLastActiveProductCategory()) &&
+                                                                                                                                                                                      !subscription.getState().equals(EntitlementState.CANCELLED);
+                                                                                                                                                                           }
+                                                                                                                                                                       }
 
-                                                                                                                                                         @Override
-                                                                                                                                                         public boolean test(@Nullable final Subscription input) {
-                                                                                                                                                             return apply(input);
-                                                                                                                                                         }
-                                                                                                                                                     }
-
-                                                                                                                                                    )) > 0;
+                                                                                                                                                                      )) > 0;
                                                                                             }
                                                                                         }
                                                                                        ));

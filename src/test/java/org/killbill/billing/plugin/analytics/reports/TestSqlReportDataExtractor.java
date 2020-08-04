@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 Groupon, Inc
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,7 +24,7 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
-import org.killbill.commons.embeddeddb.EmbeddedDB;
+import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -290,6 +291,6 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName, @Nullable final DateTime startDate, @Nullable final DateTime endDate) {
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
-        return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate, EmbeddedDB.DBEngine.MYSQL, 1234L);
+        return new SqlReportDataExtractor(reportSpecification.getReportName(), reportSpecification, startDate, endDate, DBEngine.MYSQL, 1234L);
     }
 }

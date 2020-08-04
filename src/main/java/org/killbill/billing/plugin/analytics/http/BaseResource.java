@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -52,9 +53,9 @@ public abstract class BaseResource {
         this.osgiKillbillClock = osgiKillbillClock;
     }
 
-    protected CallContext createCallContext(@Nullable final Optional<String> createdBy,
-                                            @Nullable final Optional<String> reason,
-                                            @Nullable final Optional<String> comment,
+    protected CallContext createCallContext(final Optional<String> createdBy,
+                                            final Optional<String> reason,
+                                            final Optional<String> comment,
                                             @Nullable final UUID accountId,
                                             final Tenant tenant) {
         final DateTime utcNow = osgiKillbillClock.getClock().getUTCNow();

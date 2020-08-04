@@ -1,8 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -56,6 +58,6 @@ public class BusinessExecutor {
     @VisibleForTesting
     static int getNbThreads(OSGIConfigPropertiesService osgiConfigPropertiesService) {
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_NB_THREADS_PROPERTY));
-        return nbThreadsMaybeNull == null ? 10 : Integer.valueOf(nbThreadsMaybeNull);
+        return nbThreadsMaybeNull == null ? Integer.valueOf(10) : Integer.valueOf(nbThreadsMaybeNull);
     }
 }

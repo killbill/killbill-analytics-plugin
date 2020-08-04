@@ -1,8 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,7 +22,6 @@ package org.killbill.billing.plugin.analytics.dao.model;
 import java.math.BigDecimal;
 
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
-import org.killbill.billing.plugin.analytics.api.BusinessAccount;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

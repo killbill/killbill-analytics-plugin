@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -115,7 +116,7 @@ public class BusinessInvoiceFactory {
                                                                                   new Predicate<InvoiceItem>() {
                                                                                       @Override
                                                                                       public boolean apply(final InvoiceItem input) {
-                                                                                          return !input.getId().equals(invoiceItem.getId());
+                                                                                          return input != null && !input.getId().equals(invoiceItem.getId());
                                                                                       }
                                                                                   }
                                                                                  );
@@ -126,7 +127,7 @@ public class BusinessInvoiceFactory {
                                                       new Predicate<InvoiceItem>() {
                                                           @Override
                                                           public boolean apply(final InvoiceItem input) {
-                                                              return input.getId().equals(invoiceItem.getLinkedItemId());
+                                                              return input != null && input.getId().equals(invoiceItem.getLinkedItemId());
                                                           }
                                                       })
                                              .orNull();
@@ -325,7 +326,8 @@ public class BusinessInvoiceFactory {
                                                                               new Predicate<InvoiceItem>() {
                                                                                   @Override
                                                                                   public boolean apply(final InvoiceItem input) {
-                                                                                      return !input.getId().equals(invoiceItem.getId()) &&
+                                                                                      return input != null &&
+                                                                                             !input.getId().equals(invoiceItem.getId()) &&
                                                                                              input.getInvoiceId().equals(invoiceItem.getInvoiceId());
                                                                                   }
                                                                               }

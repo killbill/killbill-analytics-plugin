@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -35,7 +36,6 @@ import org.killbill.billing.catalog.api.CatalogApiException;
 import org.killbill.billing.catalog.api.CatalogUserApi;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
-import org.killbill.billing.catalog.api.StaticCatalog;
 import org.killbill.billing.catalog.api.VersionedCatalog;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
@@ -167,7 +167,7 @@ public abstract class BusinessFactoryBase {
         final RecordIdApi recordIdUserApi = getRecordIdUserApi();
         final Long accountRecordIdOrNull = recordIdUserApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
         // Never return null, to make sure indexes can be used (see https://github.com/killbill/killbill-analytics-plugin/issues/59)
-        return accountRecordIdOrNull == null ? -1L : accountRecordIdOrNull;
+        return accountRecordIdOrNull == null ? Long.valueOf(-1L) : accountRecordIdOrNull;
     }
 
     protected ReportGroup getReportGroup(final Iterable<Tag> accountTags) throws AnalyticsRefreshException {

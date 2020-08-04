@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2015 Groupon, Inc
- * Copyright 2014-2015 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -38,6 +39,7 @@ import org.killbill.billing.plugin.analytics.utils.PaymentUtils;
 import org.killbill.billing.util.audit.AuditLog;
 
 import com.google.common.annotations.VisibleForTesting;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
 
@@ -52,6 +54,7 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
     protected static final String CHARGEBACKS_TABLE_NAME = "analytics_payment_chargebacks";
     protected static final String VOIDS_TABLE_NAME = "analytics_payment_voids";
 
+    @SuppressFBWarnings("MS_MUTABLE_ARRAY")
     public static final String[] ALL_PAYMENTS_TABLE_NAMES = new String[]{AUTHS_TABLE_NAME, CAPTURES_TABLE_NAME, PURCHASES_TABLE_NAME, REFUNDS_TABLE_NAME, CREDITS_TABLE_NAME, CHARGEBACKS_TABLE_NAME, VOIDS_TABLE_NAME};
 
     private Long invoicePaymentRecordId;
@@ -445,7 +448,7 @@ public abstract class BusinessPaymentBaseModelDao extends BusinessModelDaoBase {
              invoicePayment == null ? null : invoicePayment.getLinkedInvoicePaymentId(),
              invoicePayment == null ? paymentTransaction.getAmount() : invoicePayment.getAmount(),
              currencyConverter.getConvertedValue(invoicePayment, paymentTransaction, invoice),
-             invoicePayment == null || invoicePayment.getCurrency() == null ? ( paymentTransaction == null || paymentTransaction.getCurrency() == null ? null : paymentTransaction.getCurrency().toString() ) : invoicePayment.getCurrency().toString(),
+             invoicePayment == null || invoicePayment.getCurrency() == null ? paymentTransaction.getCurrency() == null ? null : paymentTransaction.getCurrency().toString() : invoicePayment.getCurrency().toString(),
              invoice == null ? null : invoice.getBalance(),
              invoice == null ? null : currencyConverter.getConvertedValue(invoice.getBalance(), invoice),
              invoice == null ? null : invoice.getPaidAmount(),

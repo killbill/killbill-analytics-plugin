@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 Groupon, Inc
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,6 +24,7 @@ import java.util.Map;
 
 import org.joda.time.LocalDate;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteWithEmbeddedDB;
+import org.killbill.billing.plugin.dao.PluginDao;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.tweak.HandleCallback;
 import org.testng.Assert;
@@ -50,7 +52,7 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
                                                                                          reportSpecification,
                                                                                          new LocalDate(2012, 10, 10).toDateTimeAtStartOfDay(),
                                                                                          new LocalDate(2014, 11, 11).toDateTimeAtStartOfDay(),
-                                                                                         embeddedDB.getDBEngine(),
+                                                                                         PluginDao.DBEngine.valueOf(embeddedDB.getDBEngine().name()),
                                                                                          1234L);
 
         final List<Map<String, Object>> results = dbi.withHandle(new HandleCallback<List<Map<String, Object>>>() {

@@ -1,9 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -60,7 +61,6 @@ import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.payment.api.InvoicePaymentApi;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
@@ -136,7 +136,8 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final ClockMock clock = new ClockMock();
     protected final CurrencyConverter currencyConverter = Mockito.mock(CurrencyConverter.class);
     protected final CurrencyConversionDao currencyConversionDao = Mockito.mock(CurrencyConversionDao.class);
-    protected final DefaultNotificationQueueService notificationQueueService = Mockito.mock(DefaultNotificationQueueService.class);
+
+    protected DefaultNotificationQueueService notificationQueueService = Mockito.mock(DefaultNotificationQueueService.class);
 
     protected final String serviceName = UUID.randomUUID().toString();
     protected final String stateName = UUID.randomUUID().toString();
@@ -167,7 +168,6 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected AuditLog auditLog;
     protected CallContext callContext;
     protected AnalyticsConfigurationHandler analyticsConfigurationHandler;
-    protected OSGIKillbillLogService logService;
     protected OSGIKillbillAPI killbillAPI;
     protected OSGIKillbillDataSource killbillDataSource;
     protected OSGIConfigPropertiesService osgiConfigPropertiesService;
@@ -256,15 +256,6 @@ public abstract class AnalyticsTestSuiteNoDB {
 
     @BeforeMethod(groups = "fast")
     public void setUp() throws Exception {
-        logService = Mockito.mock(OSGIKillbillLogService.class);
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(final InvocationOnMock invocation) throws Throwable {
-                //logger.info(Arrays.toString(invocation.getArguments()));
-                return null;
-            }
-        }).when(logService).log(Mockito.anyInt(), Mockito.anyString());
-
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.<Account>any())).thenReturn(BigDecimal.TEN);
@@ -643,7 +634,7 @@ public abstract class AnalyticsTestSuiteNoDB {
 
         executor = BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(AnalyticsActivator.PLUGIN_NAME, killbillAPI, logService);
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(AnalyticsActivator.PLUGIN_NAME, killbillAPI);
         analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration(new Properties()));
 
         businessContextFactory = new BusinessContextFactory(account.getId(),

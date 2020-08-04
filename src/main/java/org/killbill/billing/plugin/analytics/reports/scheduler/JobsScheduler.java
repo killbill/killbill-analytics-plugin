@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -108,12 +109,12 @@ public class JobsScheduler {
                                                                     notificationQueueHandler);
     }
 
-    public synchronized void start() {
+    public void start() {
         proceduresService = Executors.newCachedThreadPool("proceduresService");
         jobQueue.startQueue();
     }
 
-    public synchronized void shutdownNow() {
+    public void shutdownNow() {
         if (proceduresService != null) {
             proceduresService.shutdownNow();
             proceduresService = null;
@@ -192,7 +193,7 @@ public class JobsScheduler {
                                                                                        new Predicate<NotificationEventWithMetadata<AnalyticsReportJob>>() {
                                                                                            @Override
                                                                                            public boolean apply(final NotificationEventWithMetadata<AnalyticsReportJob> existingJob) {
-                                                                                               return existingJob.getEvent().equalsNoRecordId(reportJob);
+                                                                                               return existingJob != null && existingJob.getEvent().equalsNoRecordId(reportJob);
                                                                                            }
                                                                                        }
                                                                                       );

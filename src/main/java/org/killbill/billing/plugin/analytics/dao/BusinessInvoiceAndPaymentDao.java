@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -21,6 +22,7 @@ package org.killbill.billing.plugin.analytics.dao;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
@@ -40,7 +42,6 @@ import org.skife.jdbi.v2.TransactionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
@@ -109,9 +110,9 @@ public class BusinessInvoiceAndPaymentDao extends BusinessAnalyticsDaoBase {
         final Collection<BusinessPaymentBaseModelDao> businessInvoicePayments = bipFactory.createBusinessPayments(businessContextFactory);
 
         // Transform the results
-        for (final BusinessInvoiceModelDao businessInvoice : businessInvoices.keySet()) {
-            invoices.put(businessInvoice.getInvoiceId(), businessInvoice);
-            invoiceItems.get(businessInvoice.getInvoiceId()).addAll(businessInvoices.get(businessInvoice));
+        for (final Entry<BusinessInvoiceModelDao, Collection<BusinessInvoiceItemBaseModelDao>> entry : businessInvoices.entrySet()) {
+            invoices.put(entry.getKey().getInvoiceId(), entry.getKey());
+            invoiceItems.get(entry.getKey().getInvoiceId()).addAll(entry.getValue());
         }
         for (final BusinessPaymentBaseModelDao businessInvoicePayment : businessInvoicePayments) {
             invoicePayments.get(businessInvoicePayment.getInvoiceId()).add(businessInvoicePayment);

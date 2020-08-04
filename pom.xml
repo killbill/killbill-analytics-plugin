@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2010-2014 Ning, Inc.
-  ~ Copyright 2014-2018 Groupon, Inc
-  ~ Copyright 2014-2018 The Billing Project, LLC
+  ~ Copyright 2014-2020 Groupon, Inc
+  ~ Copyright 2020-2020 Equinix, Inc
+  ~ Copyright 2014-2020 The Billing Project, LLC
   ~
   ~ The Billing Project licenses this file to you under the Apache License, version 2.0
   ~ (the "License"); you may not use this file except in compliance with the
@@ -19,9 +20,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>killbill-oss-parent</artifactId>
         <groupId>org.kill-bill.billing</groupId>
-        <version>0.143.41</version>
+        <artifactId>killbill-oss-parent</artifactId>
+        <version>0.144.18</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -39,23 +40,16 @@
         <system>Github</system>
         <url>https://github.com/killbill/killbill-analytics-plugin/issues</url>
     </issueManagement>
+    <properties>
+        <check.fail-spotbugs>true</check.fail-spotbugs>
+        <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
+        <osgi.private>org.killbill.billing.plugin.analytics.*</osgi.private>
+    </properties>
     <dependencies>
-        <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-        </dependency>
         <dependency>
             <groupId>com.bpodgursky</groupId>
             <artifactId>jbool_expressions</artifactId>
             <version>1.5</version>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -78,13 +72,16 @@
             <artifactId>jackson-datatype-joda</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs-annotations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>io.airlift</groupId>
@@ -102,19 +99,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.google.inject</groupId>
-            <artifactId>guice</artifactId>
-            <scope>compile</scope>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.inject.extensions</groupId>
-            <artifactId>guice-multibindings</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <scope>test</scope>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -124,20 +114,27 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-mxj</artifactId>
-            <scope>test</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.antlr</groupId>
-            <artifactId>ST4</artifactId>
+            <artifactId>antlr-runtime</artifactId>
         </dependency>
         <!-- Still needed for ReusableStringTemplate3StatementLocator -->
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>stringtemplate</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.felix</groupId>
+            <artifactId>org.apache.felix.framework</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.bgee.log4jdbc-log4j2</groupId>
@@ -145,16 +142,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.framework</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-jdbi</artifactId>
+            <groupId>org.jooby</groupId>
+            <artifactId>jooby</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
@@ -168,14 +157,12 @@
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-platform-osgi-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
             <artifactId>killbill-platform-osgi-bundles-lib-killbill</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.billing</groupId>
-            <artifactId>killbill-platform-osgi-bundles-lib-slf4j-osgi</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.billing</groupId>
@@ -199,11 +186,8 @@
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-locker</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-clock</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
@@ -218,10 +202,6 @@
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.antlr</groupId>
-            <artifactId>antlr-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
@@ -247,11 +227,19 @@
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-jdbi</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-locker</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-queue</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -266,6 +254,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testng</groupId>
@@ -292,136 +286,10 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>manifest</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <instructions>
-                        <Bundle-Activator>org.killbill.billing.plugin.analytics.AnalyticsActivator</Bundle-Activator>
-                        <Export-Package />
-                        <Private-Package>org.killbill.billing.plugin.analytics.*</Private-Package>
-                        <!-- Optional resolution because exported by the Felix system bundle -->
-                        <!-- sun.misc and javax.management are required for Metrics (notification queue) -->
-                        <Import-Package>
-                            org.killbill.billing.account.api;
-                            org.killbill.billing.catalog.api;
-                            org.killbill.billing.invoice.api;
-                            org.killbill.billing.entitlement.api;
-                            org.killbill.billing.notification.api;
-                            org.killbill.billing.notification.plugin.api;
-                            org.killbill.billing.notification.plugin;
-                            org.killbill.billing.osgi.api;
-                            org.killbill.billing.osgi.api.config;
-                            org.killbill.billing.payment.api;
-                            org.killbill.billing.payment.plugin.api;
-                            org.killbill.billing.control.plugin.api;
-                            org.killbill.billing.tenant.api;
-                            org.killbill.billing.usage.api;
-                            org.killbill.billing.util.api;
-                            org.killbill.billing.currency.plugin.api;
-                            org.killbill.billing.currency.api;
-                            org.killbill.billing.security.api;
-                            org.xml.sax.helpers;
-                            org.xml.sax;
-                            org.w3c.dom;
-                            org.w3c.dom.ls;
-                            sun.misc;
-                            javax.net.ssl;
-                            javax.management;
-                            javax.jws;
-                            javax.jws.soap;
-                            javax.annotation;
-                            javax.activation;
-                            javax.xml.soap;
-                            javax.xml.ws;
-                            javax.xml.ws.spi;
-                            javax.xml.ws.handler.soap;
-                            javax.xml.ws.handler;
-                            javax.xml.ws.http;
-                            javax.xml.ws.soap;
-                            javax.xml.ws.wsaddressing;
-                            javax.xml.stream;
-                            javax.xml.stream.events;
-                            javax.xml.stream.util;
-                            javax.xml.bind.annotation.adapters;
-                            javax.xml.bind;
-                            javax.xml.bind.helpers;
-                            javax.xml.bind.annotation;
-                            javax.xml.bind.attachment;
-                            javax.xml.datatype;
-                            javax.xml.namespace;
-                            javax.xml.parsers;
-                            javax.xml.transform;
-                            javax.xml.transform.sax;
-                            javax.xml.transform.dom;
-                            javax.xml.transform.stream;
-                            javax.xml.xpath;
-                            javax.naming.directory;
-                            javax.naming.event;
-                            javax.naming.ldap;
-                            javax.naming.spi;
-                            javax.naming;
-                            org.osgi.service.log;
-                            version="[0,3)",
-                            *;resolution:=optional
-                        </Import-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>jar</goal>
-                            <goal>test-jar</goal>
-                        </goals>
-                        <configuration>
-                            <archive>
-                                <!-- use the manifest file created by the bundle plugin -->
-                                <!--<useDefaultManifestFile>true</useDefaultManifestFile>-->
-                                <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
-                                <!-- bundle plugin already generated the maven descriptor -->
-                                <addMavenDescriptor>false</addMavenDescriptor>
-                            </archive>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>assemble-killbill-osgi-bundles-analytics</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createSourcesJar>true</createSourcesJar>
-                            <shadedArtifactAttached>false</shadedArtifactAttached>
-                            <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-                            <filters>
-                                <filter>
-                                    <artifact>${project.groupId}:${project.artifactId}</artifact>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>1.8</version>
                 <executions>
                     <execution>
                         <id>add-source</id>

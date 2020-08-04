@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 Groupon, Inc
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -39,7 +40,7 @@ import org.jooq.impl.DSL;
 import org.killbill.billing.plugin.analytics.reports.sql.Cases;
 import org.killbill.billing.plugin.analytics.reports.sql.Filters;
 import org.killbill.billing.plugin.analytics.reports.sql.MetricExpressionParser;
-import org.killbill.commons.embeddeddb.EmbeddedDB;
+import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 
 import com.bpodgursky.jbool_expressions.And;
 import com.bpodgursky.jbool_expressions.Expression;
@@ -68,7 +69,7 @@ public class SqlReportDataExtractor {
                                   final ReportSpecification reportSpecification,
                                   @Nullable final DateTime startDate,
                                   @Nullable final DateTime endDate,
-                                  final EmbeddedDB.DBEngine dbEngine,
+                                  final DBEngine dbEngine,
                                   final Long tenantRecordId) {
         this(tableName, reportSpecification, startDate, endDate, SQLDialectFromDBEngine(dbEngine), tenantRecordId);
     }
@@ -182,7 +183,7 @@ public class SqlReportDataExtractor {
         }
     }
 
-    private static SQLDialect SQLDialectFromDBEngine(final EmbeddedDB.DBEngine dbEngine) {
+    private static SQLDialect SQLDialectFromDBEngine(final DBEngine dbEngine) {
         switch (dbEngine) {
             case H2:
                 return SQLDialect.H2;
