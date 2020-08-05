@@ -55,7 +55,7 @@ jobs:
   test-mysql:
     <<: *defaults
     docker:
-      key: v1-dependencies-{{ .Revision }}
+      - image: killbill/kbbuild:0.7.0
     steps:
       - checkout
       - restore_cache:
