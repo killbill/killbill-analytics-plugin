@@ -591,7 +591,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         final CatalogUserApi catalogUserApi = Mockito.mock(CatalogUserApi.class);
         final VersionedCatalog versionedCatalog = Mockito.mock(VersionedCatalog.class);
         //noinspection unchecked
-        Mockito.when(catalogUserApi.getCatalog(Mockito.anyString(),
+        Mockito.when(catalogUserApi.getCatalog(Mockito.any(),
                                                Mockito.any(TenantContext.class)))
                .thenReturn(versionedCatalog);
         final StaticCatalog catalog = Mockito.mock(StaticCatalog.class);

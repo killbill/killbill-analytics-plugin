@@ -90,6 +90,11 @@
         </dependency>
         <dependency>
             <groupId>io.airlift</groupId>
+            <artifactId>testing-mysql-server</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.airlift</groupId>
             <artifactId>testing-postgresql-server</artifactId>
             <scope>test</scope>
         </dependency>
@@ -119,6 +124,11 @@
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr-runtime</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>ST4</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <!-- Still needed for ReusableStringTemplate3StatementLocator -->
         <dependency>
@@ -211,18 +221,6 @@
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-mysql</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-embeddeddb-mysql</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.kill-bill.commons</groupId>
-            <artifactId>killbill-embeddeddb-postgresql</artifactId>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -241,11 +239,6 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.skife.config</groupId>
