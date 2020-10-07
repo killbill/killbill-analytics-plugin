@@ -65,8 +65,8 @@ function create_report() {
 
 # Install the DDL - the calendar table needs to be first
 install_ddl $REPORTS/calendar.sql
-for r in `find $REPORTS -type f -name '*.sql' -o -name '*.ddl' -maxdepth 1`; do install_ddl $r; done
-for r in `find $SYSTEM -type f -name '*.sql' -o -name '*.ddl' -maxdepth 1`; do install_ddl $r; done
+for r in `find $REPORTS -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl'`; do install_ddl $r; done
+for r in `find $SYSTEM -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl'`; do install_ddl $r; done
 
 # Dashboard views
 create_report 'accounts_summary' 'Account summary' 'COUNTERS' 'v_report_accounts_summary'
