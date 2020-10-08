@@ -69,21 +69,11 @@ for r in `find $REPORTS -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl'`; do 
 for r in `find $SYSTEM -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl'`; do install_ddl $r; done
 
 # Dashboard views
-create_report 'accounts_summary' 'Account summary' 'COUNTERS' 'v_report_accounts_summary'
-create_report 'active_by_product_term_monthly' 'Active subscriptions' 'TIMELINE' 'v_report_active_by_product_term_monthly'
-create_report 'cancellations_count_daily' 'Cancellations' 'TIMELINE' 'v_report_cancellations_daily'
-create_report 'chargebacks_daily' 'Chargebacks' 'TIMELINE' 'v_report_chargebacks_daily'
 create_report 'conversions_daily' 'Conversions' 'TIMELINE' 'v_report_conversions_daily'
 create_report 'invoice_adjustments_daily' 'Invoice adjustments' 'TIMELINE' 'v_report_invoice_adjustments_daily'
 create_report 'invoice_item_adjustments_daily' 'Invoice item adjustments' 'TIMELINE' 'v_report_invoice_item_adjustments_daily'
 create_report 'invoice_item_credits_daily' 'Invoice credits' 'TIMELINE' 'v_report_invoice_item_credits_daily'
-create_report 'invoices_balance_daily' 'Invoice balance' 'TIMELINE' 'v_report_invoices_balance_daily'
-create_report 'invoices_daily' 'Invoices' 'TIMELINE' 'v_report_invoices_daily'
-create_report 'mrr_daily' 'MRR' 'TIMELINE' 'v_report_mrr_daily'
-create_report 'new_accounts_daily' 'New accounts' 'TIMELINE' 'v_report_new_accounts_daily'
 create_report 'overdue_states_count_daily' 'Overdue states' 'TIMELINE' 'v_report_overdue_states_count_daily'
-create_report 'payments_total_daily' 'Payment ($ amount)' 'TIMELINE' 'v_report_payments_total_daily'
-create_report 'refunds_total_daily' 'Refunds' 'TIMELINE' 'v_report_refunds_total_daily'
 create_report 'trial_starts_count_daily' 'Trials' 'TIMELINE' 'v_report_trial_starts_count_daily'
 
 # System views
