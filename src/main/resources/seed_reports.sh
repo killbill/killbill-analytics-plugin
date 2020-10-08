@@ -77,8 +77,8 @@ create_report 'overdue_states_count_daily' 'Overdue states' 'TIMELINE' 'v_report
 create_report 'trial_starts_count_daily' 'Trials' 'TIMELINE' 'v_report_trial_starts_count_daily'
 
 # System views
-create_report 'system_report_control_tag_no_test' 'Control tags' 'COUNTERS' 'v_system_report_control_tag_no_test'
-create_report 'system_report_notifications_per_queue_name' 'Notification queues' 'TIMELINE' 'v_system_report_notifications_per_queue_name'
-create_report 'system_report_notifications_per_queue_name_late' 'Late notifications' 'COUNTERS' 'v_system_report_notifications_per_queue_name_late'
-create_report 'system_report_payments' 'Payments status' 'COUNTERS' 'v_system_report_payments'
-create_report 'system_report_payments_per_day' 'Payments' 'TIMELINE' 'v_system_report_payments_per_day'
+create_report 'system_report_control_tag_no_test' 'System - Control tags' 'COUNTERS' 'v_system_report_control_tag_no_test'
+create_report 'system_report_notifications_per_queue_name' 'System - Notification queues' 'TIMELINE' 'v_system_report_notifications_per_queue_name'
+create_report 'system_report_notifications_per_queue_name_late' 'System - Late notifications' 'COUNTERS' 'v_system_report_notifications_per_queue_name_late'
+create_report 'system_report_payments' 'System - Payments status' 'COUNTERS' 'v_system_report_payments'
+create_report 'system_report_payments_per_day' 'System - Payments' 'TIMELINE' 'v_system_report_payments_per_day'
