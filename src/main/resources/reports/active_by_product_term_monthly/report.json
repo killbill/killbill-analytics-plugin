@@ -3,6 +3,6 @@
 	"reportType": "TIMELINE",
 	"reportPrettyName": "Monthly active subscriptions",
 	"sourceTableName": "report_active_by_product_term_monthly",
-	"refreshProcedureName": "refresh_active_by_product_term_monthly",
+	"refreshProcedureName": "refresh_report_active_by_product_term_monthly",
 	"refreshFrequency": "DAILY"
 }
