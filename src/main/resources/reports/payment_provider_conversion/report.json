@@ -1,0 +1,8 @@
+{
+	"reportName": "report_payment_provider_conversion",
+	"reportType": "TABLE",
+	"reportPrettyName": "Payment Provider Conversion",
+	"sourceTableName": "report_payment_provider_conversion_history",
+	"refreshProcedureName": "refresh_report_payment_provider_conversion_history",
+	"refreshFrequency": "HOURLY"
+}

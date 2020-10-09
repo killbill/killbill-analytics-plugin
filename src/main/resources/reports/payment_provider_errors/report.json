@@ -1,0 +1,8 @@
+{
+	"reportName": "report_payment_provider_errors",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Payment Provider Errors",
+	"sourceTableName": "report_payment_provider_errors",
+	"refreshProcedureName": "refresh_report_payment_provider_errors",
+	"refreshFrequency": "HOURLY"
+}

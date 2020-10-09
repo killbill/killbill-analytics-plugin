@@ -1,0 +1,8 @@
+{
+	"reportName": "report_payments_by_provider_last_24h_summary",
+	"reportType": "COUNTERS",
+	"reportPrettyName": "Payments By Provider Summary (last 24hrs)",
+	"sourceTableName": "report_payments_by_provider_last_24h_summary",
+	"refreshProcedureName": "refresh_report_payments_by_provider_last_24h_summary",
+	"refreshFrequency": "DAILY"
+}

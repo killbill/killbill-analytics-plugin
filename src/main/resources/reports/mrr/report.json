@@ -1,0 +1,8 @@
+{
+	"reportName": "report_mrr_daily",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Daily MRR",
+	"sourceTableName": "report_mrr_daily",
+	"refreshProcedureName": "refresh_report_mrr_daily",
+	"refreshFrequency": "DAILY"
+}

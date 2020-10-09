@@ -1,0 +1,8 @@
+{
+	"reportName": "report_payment_provider_monitor",
+	"reportType": "TABLE",
+	"reportPrettyName": "Payment Provider Monitor",
+	"sourceTableName": "report_payment_provider_monitor_history",
+	"refreshProcedureName": "refresh_report_payment_provider_monitor_history",
+	"refreshFrequency": "DAILY"
+}
