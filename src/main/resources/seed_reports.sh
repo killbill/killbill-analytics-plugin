@@ -41,6 +41,7 @@ SYSTEM=$HERE/system
 
 function install_ddl() {
     local ddl=$1
+    echo "Executing $ddl..."
     mysql -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE -e "source $ddl"
 }
 
@@ -50,8 +51,8 @@ function create_report() {
     local report_type=$3
     local source_table_name=$4
 
-    curl -v \
-         -X POST \
+    echo "Creating report $report_name (\"$report_pretty_name\")..."
+    curl \
          -u $KILLBILL_USER:$KILLBILL_PASSWORD \
          -H "X-Killbill-ApiKey:$KILLBILL_API_KEY" \
          -H "X-Killbill-ApiSecret:$KILLBILL_API_SECRET" \
@@ -65,7 +66,7 @@ function create_report() {
 
 # Install the DDL - the calendar table needs to be first
 install_ddl $REPORTS/calendar.sql
-for r in `find $REPORTS -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl'`; do install_ddl $r; done
+for r in `find $REPORTS -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl' | sed /calendar\.sql/d`; do install_ddl $r; done
 for r in `find $SYSTEM -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl'`; do install_ddl $r; done
 
 # Dashboard views

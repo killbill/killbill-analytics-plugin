@@ -23,7 +23,8 @@ function install_ddl() {
 function create_report() {
     local report=$1
     for r in `find $report -maxdepth 1 -type f -name '*.json' | sort`; do
-        curl -v \
+        echo "Creating report $r..."
+        curl \
             -u $KILLBILL_USER:$KILLBILL_PASSWORD \
             -H "X-Killbill-ApiKey:$KILLBILL_API_KEY" \
             -H "X-Killbill-ApiSecret:$KILLBILL_API_SECRET" \
@@ -35,6 +36,7 @@ function create_report() {
 
 # Install the DDL and creates the reports contained in folders passed as script parameters
 for p in ${@}; do
+    echo -e "\n***** Processing folder ${p}"
 	for r in `find $p -maxdepth 1 -type f -name '*.sql' -o -name '*.ddl' -o -name '*.prc' | sort`; do install_ddl $r; done
 	create_report $p
 done
