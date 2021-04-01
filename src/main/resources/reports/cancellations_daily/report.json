@@ -1,0 +1,8 @@
+{
+	"reportName": "report_cancellations_daily",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Daily cancellations",
+	"sourceTableName": "report_cancellations_daily",
+	"refreshProcedureName": "refresh_report_cancellations_daily",
+	"refreshFrequency": "DAILY"
+}

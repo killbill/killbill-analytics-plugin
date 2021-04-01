@@ -1,0 +1,8 @@
+{
+	"reportName": "report_chargebacks_daily",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Daily chargebacks value",
+	"sourceTableName": "report_chargebacks_daily",
+	"refreshProcedureName": "refresh_report_chargebacks_daily",
+	"refreshFrequency": "DAILY"
+}

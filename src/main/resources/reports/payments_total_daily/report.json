@@ -1,0 +1,8 @@
+{
+	"reportName": "report_payments_total_daily",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Daily payments value",
+	"sourceTableName": "report_payments_total_daily",
+	"refreshProcedureName": "refresh_report_payments_total_daily",
+	"refreshFrequency": "HOURLY"
+}
