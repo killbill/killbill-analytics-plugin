@@ -465,7 +465,8 @@ public abstract class BusinessFactoryBase {
             return paymentApi.getAccountPaymentMethods(accountId, true, true, PLUGIN_PROPERTIES, context);
         } catch (final PaymentApiException e) {
             error = e;
-            if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode()) {
+            if (e.getCode() == ErrorCode.PAYMENT_NO_SUCH_PAYMENT_PLUGIN.getCode() || // Plugin was uninstalled
+                e.getCode() == ErrorCode.PAYMENT_GET_PAYMENT_METHODS.getCode()) { // Plugin doesn't return information on deleted payment methods
                 logger.warn(e.getMessage() + ". Analytics tables will be missing plugin specific information");
 
                 try {
