@@ -26,12 +26,12 @@ public class TestMetricExpressionParser {
 
     @Test(groups = "fast")
     public void testCheckTree() throws Exception {
-        Assert.assertEquals(MetricExpressionParser.parse("((1 + 2) + (5 - 3) / 2) % 10").toString(), "mod(\n" +
-                                                                                                     "  (1 + 2 + ((5 - 3) / 2)), \n" +
-                                                                                                     "  10\n)");
-        Assert.assertEquals(MetricExpressionParser.parse("((1 + 2) * (5 - 3) / 2) % 10").toString(), "mod(\n" +
-                                                                                                     "  (((1 + 2) * (5 - 3)) / 2), \n" +
-                                                                                                     "  10\n)");
+        Assert.assertEquals(MetricExpressionParser.parse("((1 + 2) + (5 - 3) / 2) % 10").toString(), "mod(" +
+                                                                                                     "(1 + 2 + ((5 - 3) / 2)), " +
+                                                                                                     "10)");
+        Assert.assertEquals(MetricExpressionParser.parse("((1 + 2) * (5 - 3) / 2) % 10").toString(), "mod(" +
+                                                                                                     "(((1 + 2) * (5 - 3)) / 2), " +
+                                                                                                     "10)");
         Assert.assertEquals(MetricExpressionParser.parse("payment_failures / (payment_failures + payment_successes) * 100").toString(), "((\"payment_failures\" / (\"payment_failures\" + \"payment_successes\")) * 100)");
     }
 }
