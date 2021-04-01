@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -26,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -55,10 +57,10 @@ import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfig
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.analytics.reports.sql.Metadata;
+import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
-import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.skife.jdbi.v2.Handle;
 import org.skife.jdbi.v2.IDBI;
 import org.skife.jdbi.v2.tweak.HandleCallback;
@@ -90,7 +92,7 @@ public class ReportsUserApi {
 
     private final OSGIKillbillAPI killbillAPI;
     private final IDBI dbi;
-    private final EmbeddedDB.DBEngine dbEngine;
+    private final DBEngine dbEngine;
     private final ExecutorService dbiThreadsExecutor;
     private final ReportsConfiguration reportsConfiguration;
     private final JobsScheduler jobsScheduler;
@@ -99,7 +101,7 @@ public class ReportsUserApi {
     public ReportsUserApi(final OSGIKillbillAPI killbillAPI,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
                           final OSGIConfigPropertiesService osgiConfigPropertiesService,
-                          final EmbeddedDB.DBEngine dbEngine,
+                          final DBEngine dbEngine,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler) {
         this.killbillAPI = killbillAPI;
@@ -109,13 +111,13 @@ public class ReportsUserApi {
         dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
 
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REPORTS_NB_THREADS_PROPERTY));
-        this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? 10 : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");
+        this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? Integer.valueOf(10) : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");
 
         this.sqlMetadata = new Metadata(Sets.<String>newHashSet(Iterables.transform(reportsConfiguration.getAllReportConfigurations(null).values(),
                                                                                     new Function<ReportsConfigurationModelDao, String>() {
                                                                                         @Override
                                                                                         public String apply(final ReportsConfigurationModelDao reportConfiguration) {
-                                                                                            return reportConfiguration.getSourceTableName();
+                                                                                            return reportConfiguration == null ? null : reportConfiguration.getSourceTableName();
                                                                                         }
                                                                                     }
                                                                                    )),
@@ -172,7 +174,7 @@ public class ReportsUserApi {
                                                                    .onResultOf(new Function<ReportsConfigurationModelDao, String>() {
                                                                        @Override
                                                                        public String apply(final ReportsConfigurationModelDao input) {
-                                                                           return input.getReportPrettyName();
+                                                                           return input == null ? null : input.getReportPrettyName();
                                                                        }
                                                                    })
                                                                    .immutableSortedCopy(reportsConfiguration.getAllReportConfigurations(tenantRecordId).values());
@@ -182,7 +184,7 @@ public class ReportsUserApi {
                                                                                           @Override
                                                                                           public ReportConfigurationJson apply(final ReportsConfigurationModelDao input) {
                                                                                               try {
-                                                                                                  return new ReportConfigurationJson(input, sqlMetadata.getTable(input.getSourceTableName()));
+                                                                                                  return input == null ? null : new ReportConfigurationJson(input, sqlMetadata.getTable(input.getSourceTableName()));
                                                                                               } catch (SQLException e) {
                                                                                                   throw new RuntimeException(e);
                                                                                               }
@@ -291,12 +293,12 @@ public class ReportsUserApi {
     private List<Chart> buildNamedXYTimeSeries(final Map<String, Map<String, List<XY>>> dataForReports, final Map<String, ReportsConfigurationModelDao> reportsConfigurations) {
         final List<Chart> results = new LinkedList<Chart>();
         final List<DataMarker> timeSeries = new LinkedList<DataMarker>();
-        for (final String reportName : dataForReports.keySet()) {
-            final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(reportName, reportsConfigurations);
+        for (final Entry<String, Map<String, List<XY>>> entry : dataForReports.entrySet()) {
+            final ReportsConfigurationModelDao reportConfiguration = getReportConfiguration(entry.getKey(), reportsConfigurations);
 
             // Sort the pivots by name for a consistent display in the dashboard
-            for (final String timeSeriesName : Ordering.natural().sortedCopy(dataForReports.get(reportName).keySet())) {
-                final List<XY> dataForReport = dataForReports.get(reportName).get(timeSeriesName);
+            for (final String timeSeriesName : Ordering.natural().sortedCopy(entry.getValue().keySet())) {
+                final List<XY> dataForReport = entry.getValue().get(timeSeriesName);
                 timeSeries.add(new NamedXYTimeSeries(timeSeriesName, dataForReport));
             }
             results.add(new Chart(ReportType.TIMELINE, reportConfiguration.getReportPrettyName(), timeSeries));
@@ -348,9 +350,9 @@ public class ReportsUserApi {
         }
 
         // Sort the data for the dashboard
-        for (final String reportName : dataForReports.keySet()) {
-            for (final String pivotName : dataForReports.get(reportName).keySet()) {
-                Collections.sort(dataForReports.get(reportName).get(pivotName),
+        for (final Entry<String, Map<String, List<XY>>> entry : dataForReports.entrySet()) {
+            for (final Entry<String, List<XY>> subEntry : entry.getValue().entrySet()) {
+                Collections.sort(subEntry.getValue(),
                                  new Comparator<XY>() {
                                      @Override
                                      public int compare(final XY o1, final XY o2) {
@@ -366,12 +368,7 @@ public class ReportsUserApi {
         final XY valueForCurrentDate = Iterables.tryFind(dataForPivot, new Predicate<XY>() {
             @Override
             public boolean apply(final XY xy) {
-                return xy.getxDate().compareTo(curDate) == 0;
-            }
-
-            @Override
-            public boolean test(@Nullable final XY input) {
-                return apply(input);
+                return xy != null && xy.getxDate().compareTo(curDate) == 0;
             }
         }).orNull();
 
@@ -454,7 +451,7 @@ public class ReportsUserApi {
             public Map<String, List<XY>> withHandle(final Handle handle) throws Exception {
                 final List<Map<String, Object>> results = handle.select(sqlReportDataExtractor.toString());
                 if (results.size() == 0) {
-                    Collections.emptyMap();
+                    return Collections.emptyMap();
                 }
 
                 final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
@@ -472,16 +469,16 @@ public class ReportsUserApi {
                     final String date = dateObject.toString();
 
                     final String legendWithDimensions = createLegendWithDimensionsForSeries(row, reportSpecification);
-                    for (final String column : row.keySet()) {
-                        if (isMetric(column, reportSpecification)) {
+                    for (final Entry<String, Object> entry : row.entrySet()) {
+                        if (isMetric(entry.getKey(), reportSpecification)) {
                             // Create a unique name for that result set
-                            final String seriesName = MoreObjects.firstNonNull(reportSpecification.getLegend(), column) + (legendWithDimensions == null ? "" : (": " + legendWithDimensions));
+                            final String seriesName = MoreObjects.firstNonNull(reportSpecification.getLegend(), entry.getKey()) + (legendWithDimensions == null ? "" : (": " + legendWithDimensions));
                             if (timeSeries.get(seriesName) == null) {
                                 timeSeries.put(seriesName, new LinkedList<XY>());
                             }
 
-                            final Object value = row.get(column);
-                            final Float valueAsFloat = value == null ? 0f : Float.valueOf(value.toString());
+                            final Object value = entry.getValue();
+                            final Float valueAsFloat = value == null ? Float.valueOf(0f) : Float.valueOf(value.toString());
                             timeSeries.get(seriesName).add(new XY(date, valueAsFloat));
                         }
                     }
@@ -495,12 +492,12 @@ public class ReportsUserApi {
     private String createLegendWithDimensionsForSeries(final Map<String, Object> row, final ReportSpecification reportSpecification) {
         int i = 0;
         final StringBuilder seriesNameBuilder = new StringBuilder();
-        for (final String column : row.keySet()) {
-            if (shouldUseColumnAsDimensionMultiplexer(column, reportSpecification)) {
+        for (final Entry<String, Object> entry : row.entrySet()) {
+            if (shouldUseColumnAsDimensionMultiplexer(entry.getKey(), reportSpecification)) {
                 if (i > 0) {
                     seriesNameBuilder.append(" :: ");
                 }
-                seriesNameBuilder.append(row.get(column) == null ? "NULL" : row.get(column).toString());
+                seriesNameBuilder.append(entry.getValue() == null ? "NULL" : entry.getValue().toString());
                 i++;
             }
         }

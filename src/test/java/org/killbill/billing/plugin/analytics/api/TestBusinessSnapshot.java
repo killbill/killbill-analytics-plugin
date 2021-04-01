@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -200,6 +201,6 @@ public class TestBusinessSnapshot extends AnalyticsTestSuiteNoDB {
 
         // We check we can write it out without exception - we can't deserialize it back (no annotation)
         // but we don't care since the APIs are read-only for Analytics
-        final String asJson = ObjectMapperProvider.getJsonMapper().writeValueAsString(businessSnapshot);
+        ObjectMapperProvider.getJsonMapper().writeValueAsString(businessSnapshot);
     }
 }

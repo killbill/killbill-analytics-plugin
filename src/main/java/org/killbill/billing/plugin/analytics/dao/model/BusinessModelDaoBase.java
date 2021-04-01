@@ -1,8 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -26,7 +28,7 @@ import org.joda.time.DateTime;
 public abstract class BusinessModelDaoBase {
 
     // See ddl.sql
-    private final String DEFAULT_REPORT_GROUP = "default";
+    private static final String DEFAULT_REPORT_GROUP = "default";
 
     // See ddl.sql
     public enum ReportGroup {

@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2016 Groupon, Inc
- * Copyright 2014-2016 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -21,6 +22,7 @@ package org.killbill.billing.plugin.analytics.reports.analysis;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
@@ -76,10 +78,10 @@ public abstract class Smoother {
     // Assume the data is already sorted
     public void smooth() {
         for (final Map<String, List<XY>> dataForReport : dataForReports.values()) {
-            for (final String pivotName : dataForReport.keySet()) {
-                final List<XY> dataForPivot = dataForReport.get(pivotName);
+            for (final Entry<String, List<XY>> entry : dataForReport.entrySet()) {
+                final List<XY> dataForPivot = entry.getValue();
                 final List<XY> smoothedData = smooth(dataForPivot);
-                dataForReport.put(pivotName, smoothedData);
+                dataForReport.put(entry.getKey(), smoothedData);
             }
         }
     }
@@ -95,7 +97,7 @@ public abstract class Smoother {
                               new Function<XY, DateTime>() {
                                   @Override
                                   public DateTime apply(final XY input) {
-                                      return input.getxDate().withDayOfWeek(DateTimeConstants.MONDAY);
+                                      return input == null ? null : input.getxDate().withDayOfWeek(DateTimeConstants.MONDAY);
                                   }
                               }
                              );
@@ -104,7 +106,7 @@ public abstract class Smoother {
                               new Function<XY, DateTime>() {
                                   @Override
                                   public DateTime apply(final XY input) {
-                                      return input.getxDate().withDayOfMonth(1);
+                                      return input == null ? null : input.getxDate().withDayOfMonth(1);
                                   }
                               }
                              );
@@ -121,8 +123,7 @@ public abstract class Smoother {
         int accumulatorSize = 0;
         for (final XY xy : inputData) {
             final DateTime zeTruncatedDate = truncator.apply(xy);
-            //noinspection ConstantConditions
-            if (zeTruncatedDate.compareTo(currentTruncatedDate) != 0) {
+            if (zeTruncatedDate != null && currentTruncatedDate != null && zeTruncatedDate.compareTo(currentTruncatedDate) != 0) {
                 smoothedData.add(new XY(currentTruncatedDate, computeSmoothedValue(accumulator, accumulatorSize)));
                 accumulator = (float) 0;
                 accumulatorSize = 0;

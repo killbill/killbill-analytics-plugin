@@ -1,8 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -20,6 +22,8 @@ package org.killbill.billing.plugin.analytics.http;
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,6 +40,7 @@ import org.testng.annotations.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Charsets;
 
 public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
 
@@ -75,7 +80,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         ReportsResource.writeAsCSV(Collections.singletonList(new Chart(ReportType.TIMELINE, "foo", res)), out);
-        Assert.assertEquals(out.toString(),
+        Assert.assertEquals(out.toString(StandardCharsets.UTF_8.name()),
                             "serie1,2013-01-01,11.0\n" +
                             "serie1,2013-01-02,7.0\n" +
                             "serie1,2013-01-03,34.0\n" +
@@ -139,7 +144,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
                             "}" +
                             "]";
 
-        final List<NamedXYTimeSeries> obj = jsonMapper.readValue(json.getBytes(), new TypeReference<List<NamedXYTimeSeries>>() {});
+        final List<NamedXYTimeSeries> obj = jsonMapper.readValue(json.getBytes(StandardCharsets.UTF_8), new TypeReference<List<NamedXYTimeSeries>>() {});
 
         final Writer writer = new StringWriter();
         jsonMapper.writeValue(writer, obj);

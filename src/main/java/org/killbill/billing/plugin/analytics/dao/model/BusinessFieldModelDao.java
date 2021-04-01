@@ -1,8 +1,10 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
- * Ning licenses this file to you under the Apache License, version 2.0
+ * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
  * License.  You may obtain a copy of the License at:
  *
@@ -28,6 +30,8 @@ import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.util.audit.AuditLog;
 import org.killbill.billing.util.customfield.CustomField;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
 
     protected static final String ACCOUNT_FIELDS_TABLE_NAME = "analytics_account_fields";
@@ -38,6 +42,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
     protected static final String PAYMENT_METHOD_FIELDS_TABLE_NAME = "analytics_payment_method_fields";
     protected static final String TRANSACTION_FIELDS_TABLE_NAME = "analytics_transaction_fields";
 
+    @SuppressFBWarnings("MS_MUTABLE_ARRAY")
     public static final String[] ALL_FIELDS_TABLE_NAMES = new String[]{ACCOUNT_FIELDS_TABLE_NAME, BUNDLE_FIELDS_TABLE_NAME, INVOICE_FIELDS_TABLE_NAME, INVOICE_PAYMENT_FIELDS_TABLE_NAME, PAYMENT_FIELDS_TABLE_NAME, PAYMENT_METHOD_FIELDS_TABLE_NAME, TRANSACTION_FIELDS_TABLE_NAME};
 
     private Long customFieldRecordId;

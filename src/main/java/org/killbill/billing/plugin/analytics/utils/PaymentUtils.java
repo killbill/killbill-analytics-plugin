@@ -1,6 +1,8 @@
 /*
- * Copyright 2014 Groupon, Inc
- * Copyright 2014 The Billing Project, LLC
+ * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -79,11 +81,6 @@ public class PaymentUtils {
                                                             }
                                                             return false;
                                                         }
-
-                                                        @Override
-                                                        public boolean test(@Nullable final PaymentTransaction input) {
-                                                            return apply(input);
-                                                        }
                                                     });
     }
 
@@ -94,13 +91,8 @@ public class PaymentUtils {
             final PluginProperty pluginProperty = Iterables.<PluginProperty>tryFind(properties,
                                                                                     new Predicate<PluginProperty>() {
                                                                                         @Override
-                                                                                        public boolean apply(@Nullable final PluginProperty pluginProperty) {
+                                                                                        public boolean apply(final PluginProperty pluginProperty) {
                                                                                             return pluginProperty != null && key.equals(pluginProperty.getKey());
-                                                                                        }
-
-                                                                                        @Override
-                                                                                        public boolean test(@Nullable final PluginProperty input) {
-                                                                                            return apply(input);
                                                                                         }
                                                                                     }).orNull();
 

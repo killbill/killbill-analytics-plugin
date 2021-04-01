@@ -1,12 +1,9 @@
-Analytics plugin
-================
+# Analytics plugin
+![Maven Central](https://img.shields.io/maven-central/v/org.kill-bill.billing.plugin.java/analytics-plugin?color=blue&label=Maven%20Central)
 
 Kill Bill plugin to provide business analytics and reporting capabilities. You can find the documentation [here](http://docs.killbill.io/latest/userguide_analytics.html).
 
-Release builds are available on [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22org.kill-bill.billing.plugin.java%22%20AND%20a%3A%22analytics-plugin%22) with coordinates `org.kill-bill.billing.plugin.java:analytics-plugin`.
-
-Kill Bill compatibility
------------------------
+## Kill Bill compatibility
 
 | Plugin version | Kill Bill version |
 | -------------: | ----------------: |
@@ -15,15 +12,16 @@ Kill Bill compatibility
 | 4.x.y          | 0.18.z            |
 | 5.x.y          | 0.19.z            |
 | 6.x.y          | 0.20.z            |
-| 7.x.y          | 0.22.z            |
+| 7.0.y          | 0.22.z            |
+| 7.1.y          | 0.22.z            |
 
-Requirements
-------------
+We've upgraded numerous dependencies in 7.1.x (required for Java 11 support).
+
+## Requirements
 
 The plugin needs a database. The latest version of the schema can be found [here](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/org/killbill/billing/plugin/analytics/ddl.sql).
 
-Setup
------
+## Setup
 
 Default dashboards rely on reports that need to be installed by running the [seed_reports.sh](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/seed_reports.sh) script.
 
@@ -31,8 +29,7 @@ By default, the views will use the *converted* amount columns when applicable, w
 
 When configuring refreshes via stored procedures, make sure to bump the connection timeout accordingly (`org.killbill.billing.osgi.dao.connectionTimeout`), as it will be used to set the read and query timeouts.
 
-API
----
+## API
 
 ### Data
 
@@ -152,3 +149,7 @@ curl -v \
      -u admin:password \
      "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
 ```
+
+## About
+
+Kill Bill is the leading Open-Source Subscription Billing & Payments Platform. For more information about the project, go to https://killbill.io/.

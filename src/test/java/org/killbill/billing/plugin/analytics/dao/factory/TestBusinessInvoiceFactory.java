@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,7 +20,6 @@
 package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.UUID;
 
@@ -31,15 +31,12 @@ import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillLogService;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessInvoiceItemBaseModelDao.ItemSource;
 import org.killbill.billing.plugin.analytics.utils.BusinessInvoiceUtils;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -60,15 +57,6 @@ public class TestBusinessInvoiceFactory extends AnalyticsTestSuiteNoDB {
 
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(osgiKillbillDataSource.getDataSource()).thenReturn(dataSource);
-
-        final OSGIKillbillLogService osgiKillbillLogService = Mockito.mock(OSGIKillbillLogService.class);
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(final InvocationOnMock invocation) throws Throwable {
-                logger.info(Arrays.toString(invocation.getArguments()));
-                return null;
-            }
-        }).when(osgiKillbillLogService).log(Mockito.anyInt(), Mockito.anyString());
 
         invoiceFactory = new BusinessInvoiceFactory(BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService));
     }

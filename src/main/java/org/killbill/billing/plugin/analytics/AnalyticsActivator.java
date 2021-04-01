@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -43,9 +44,9 @@ import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHand
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.killbill.billing.plugin.dao.PluginDao;
+import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 import org.killbill.bus.dao.BusEventModelDao;
 import org.killbill.clock.Clock;
-import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import org.killbill.commons.locker.GlobalLocker;
 import org.killbill.commons.locker.memory.MemoryGlobalLocker;
@@ -98,11 +99,11 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI, logService);
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI);
         final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
         analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
-        final EmbeddedDB.DBEngine dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
+        final DBEngine dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
         final GlobalLocker locker;
         switch (dbEngine) {
             case MYSQL:
@@ -138,7 +139,6 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
                                                          killbillAPI,
-                                                         logService,
                                                          dataSource,
                                                          clock,
                                                          configProperties).withRouteClass(AnalyticsHealthcheckResource.class)

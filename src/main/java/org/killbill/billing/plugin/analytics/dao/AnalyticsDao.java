@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2018 Groupon, Inc
- * Copyright 2014-2018 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -84,7 +85,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessBundleModelDaos, new Function<BusinessBundleModelDao, BusinessBundle>() {
             @Override
             public BusinessBundle apply(final BusinessBundleModelDao input) {
-                return new BusinessBundle(input);
+                return input == null ? null : new BusinessBundle(input);
             }
         });
     }
@@ -97,7 +98,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessSubscriptionTransitionModelDaos, new Function<BusinessSubscriptionTransitionModelDao, BusinessSubscriptionTransition>() {
             @Override
             public BusinessSubscriptionTransition apply(final BusinessSubscriptionTransitionModelDao input) {
-                return new BusinessSubscriptionTransition(input);
+                return input == null ? null : new BusinessSubscriptionTransition(input);
             }
         });
     }
@@ -110,7 +111,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessAccountTransitionModelDaos, new Function<BusinessAccountTransitionModelDao, BusinessAccountTransition>() {
             @Override
             public BusinessAccountTransition apply(final BusinessAccountTransitionModelDao input) {
-                return new BusinessAccountTransition(input);
+                return input == null ? null : new BusinessAccountTransition(input);
             }
         });
     }
@@ -137,7 +138,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessInvoiceModelDaos, new Function<BusinessInvoiceModelDao, BusinessInvoice>() {
             @Override
             public BusinessInvoice apply(final BusinessInvoiceModelDao input) {
-                return new BusinessInvoice(input, MoreObjects.firstNonNull(itemsPerInvoice.get(input.getInvoiceId()), ImmutableList.<BusinessInvoiceItemBaseModelDao>of()));
+                return input == null ? null : new BusinessInvoice(input, MoreObjects.firstNonNull(itemsPerInvoice.get(input.getInvoiceId()), ImmutableList.<BusinessInvoiceItemBaseModelDao>of()));
             }
         });
     }
@@ -157,7 +158,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessInvoicePaymentModelDaos, new Function<BusinessPaymentBaseModelDao, BusinessPayment>() {
             @Override
             public BusinessPayment apply(final BusinessPaymentBaseModelDao input) {
-                return new BusinessPayment(input);
+                return input == null ? null : new BusinessPayment(input);
             }
         });
     }
@@ -178,7 +179,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessFieldModelDaos, new Function<BusinessFieldModelDao, BusinessField>() {
             @Override
             public BusinessField apply(final BusinessFieldModelDao input) {
-                return BusinessField.create(input);
+                return input == null ? null : BusinessField.create(input);
             }
         });
     }
@@ -196,7 +197,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         return Lists.transform(businessTagModelDaos, new Function<BusinessTagModelDao, BusinessTag>() {
             @Override
             public BusinessTag apply(final BusinessTagModelDao input) {
-                return BusinessTag.create(input);
+                return input == null ? null : BusinessTag.create(input);
             }
         });
     }
@@ -208,7 +209,7 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
         } else {
             final Long accountRecordIdOrNull = recordIdApi.getRecordId(accountId, ObjectType.ACCOUNT, context);
             // Never return null, to make sure indexes can be used (see https://github.com/killbill/killbill-analytics-plugin/issues/59)
-            return accountRecordIdOrNull == null ? -1L : accountRecordIdOrNull;
+            return accountRecordIdOrNull == null ? Long.valueOf(-1L) : accountRecordIdOrNull;
         }
     }
 

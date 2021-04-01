@@ -1,6 +1,8 @@
 /*
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2010-2014 Ning, Inc.
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -55,6 +57,7 @@ import org.killbill.clock.Clock;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
@@ -67,47 +70,47 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private final CallContext callContext;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
-    private PluginPropertiesManager pluginPropertiesManager;
-    private CurrencyConverter currencyConverter;
-    private Account account;
-    private Account parentAccount;
-    private BigDecimal accountBalance;
+    private volatile PluginPropertiesManager pluginPropertiesManager;
+    private volatile CurrencyConverter currencyConverter;
+    private volatile Account account;
+    private volatile Account parentAccount;
+    private volatile BigDecimal accountBalance;
     // Relatively cheap lookups, should be done by account_record_id
-    private Iterable<SubscriptionBundle> accountBundles;
-    private Iterable<SubscriptionEvent> accountBlockingStates;
-    private Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
-    private Map<UUID, Invoice> invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
-    private Iterable<Invoice> accountInvoices;
-    private Map<UUID, List<InvoicePayment>> accountInvoicePayments;
-    private Iterable<Payment> accountPayments;
-    private Map<UUID, PaymentMethod> accountPaymentMethods;
-    private Iterable<Tag> accountTags;
-    private Iterable<CustomField> accountCustomFields;
+    private volatile Iterable<SubscriptionBundle> accountBundles;
+    private volatile Iterable<SubscriptionEvent> accountBlockingStates;
+    private volatile Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
+    private volatile Map<UUID, Invoice> invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
+    private volatile Iterable<Invoice> accountInvoices;
+    private volatile Map<UUID, List<InvoicePayment>> accountInvoicePayments;
+    private volatile Iterable<Payment> accountPayments;
+    private volatile Map<UUID, PaymentMethod> accountPaymentMethods;
+    private volatile Iterable<Tag> accountTags;
+    private volatile Iterable<CustomField> accountCustomFields;
     // Cheap lookups, as all audit logs have been pre-fetched
-    private AuditLog accountCreationAuditLog;
-    private Map<UUID, AuditLog> bundleCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> subscriptionEventCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> blockingStateCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> invoiceCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> invoiceItemCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> invoicePaymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> paymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> tagCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private Map<UUID, AuditLog> customFieldCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile AuditLog accountCreationAuditLog;
+    private volatile Map<UUID, AuditLog> bundleCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> subscriptionEventCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> blockingStateCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> invoiceCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> invoiceItemCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> invoicePaymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> paymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> tagCreationAuditLogs = new HashMap<UUID, AuditLog>();
+    private volatile Map<UUID, AuditLog> customFieldCreationAuditLogs = new HashMap<UUID, AuditLog>();
     // Cheap lookups (should be in Ehcache)
-    private Map<UUID, Long> bundleRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> subscriptionEventRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> blockingStateRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> invoiceRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> invoiceItemRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> invoicePaymentRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> paymentRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> tagRecordIds = new HashMap<UUID, Long>();
-    private Map<UUID, Long> customFieldRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> bundleRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> subscriptionEventRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> blockingStateRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> invoiceRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> invoiceItemRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> invoicePaymentRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> paymentRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> tagRecordIds = new HashMap<UUID, Long>();
+    private volatile Map<UUID, Long> customFieldRecordIds = new HashMap<UUID, Long>();
     // Others
-    private Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
-    private Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
-    private VersionedCatalog catalog;
+    private volatile Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
+    private volatile Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
+    private volatile VersionedCatalog catalog;
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
@@ -229,7 +232,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
                                                                                                                                                                                 new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
                                                                                                                                                                                     @Override
                                                                                                                                                                                     public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
-                                                                                                                                                                                        return bundle.getTimeline().getSubscriptionEvents();
+                                                                                                                                                                                        return bundle == null ? ImmutableList.<SubscriptionEvent>of() : bundle.getTimeline().getSubscriptionEvents();
                                                                                                                                                                                     }
                                                                                                                                                                                 }
                                                                                                                                                                                ));
@@ -239,16 +242,12 @@ public class BusinessContextFactory extends BusinessFactoryBase {
                                                                                 new Predicate<SubscriptionEvent>() {
                                                                                     @Override
                                                                                     public boolean apply(final SubscriptionEvent event) {
-                                                                                        return event.getSubscriptionEventType() != null &&
+                                                                                        return event != null &&
+                                                                                               event.getSubscriptionEventType() != null &&
                                                                                                // We want events coming from the blocking states table...
                                                                                                ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
                                                                                                // ...that are for any service but entitlement
                                                                                                !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
-                                                                                    }
-
-                                                                                    @Override
-                                                                                    public boolean test(@Nullable final SubscriptionEvent input) {
-                                                                                        return apply(input);
                                                                                     }
                                                                                 }
                                                                                );
@@ -341,10 +340,11 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (accountPaymentMethods == null) {
             synchronized (this) {
                 if (accountPaymentMethods == null) {
-                    accountPaymentMethods = new HashMap<UUID, PaymentMethod>();
+                    final Map<UUID, PaymentMethod> accountPaymentMethodsCopy = new HashMap<UUID, PaymentMethod>();
                     for (final PaymentMethod paymentMethod : getPaymentMethodsForAccount(accountId, callContext)) {
-                        accountPaymentMethods.put(paymentMethod.getId(), paymentMethod);
+                        accountPaymentMethodsCopy.put(paymentMethod.getId(), paymentMethod);
                     }
+                    accountPaymentMethods = accountPaymentMethodsCopy;
                 }
             }
         }

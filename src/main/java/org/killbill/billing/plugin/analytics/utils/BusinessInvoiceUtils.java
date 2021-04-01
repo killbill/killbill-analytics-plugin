@@ -1,7 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2019 Groupon, Inc
- * Copyright 2014-2019 The Billing Project, LLC
+ * Copyright 2014-2020 Groupon, Inc
+ * Copyright 2020-2020 Equinix, Inc
+ * Copyright 2014-2020 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -24,7 +25,6 @@ import java.util.Collection;
 import javax.annotation.Nullable;
 
 import org.killbill.billing.catalog.api.Currency;
-import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.invoice.api.InvoicePayment;
@@ -111,7 +111,7 @@ public class BusinessInvoiceUtils {
             final Iterable<InvoiceItem> otherInvoiceItems = Iterables.filter(invoiceItems, new Predicate<InvoiceItem>() {
                 @Override
                 public boolean apply(final InvoiceItem input) {
-                    return !input.getId().equals(invoiceItem.getId());
+                    return input != null && !input.getId().equals(invoiceItem.getId());
                 }
             });
 
@@ -137,7 +137,7 @@ public class BusinessInvoiceUtils {
             final Collection<InvoiceItem> otherInvoiceItems = Collections2.<InvoiceItem>filter(invoiceItems, new Predicate<InvoiceItem>() {
                 @Override
                 public boolean apply(final InvoiceItem input) {
-                    return !input.getId().equals(invoiceItem.getId());
+                    return input != null && !input.getId().equals(invoiceItem.getId());
                 }
             });
 
