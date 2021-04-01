@@ -29,32 +29,37 @@ public class TestCases extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testCheckRegexp() throws Exception {
         Assert.assertEquals(getSQL("currency"), "select \"currency\"");
-        Assert.assertEquals(getSQL("currency(USD)"), "select case when \"currency\" = 'USD' then 'USD'\n" +
-                                                     "            else 'Other'\n" +
-                                                     "       end \"currency\"");
-        Assert.assertEquals(getSQL("currency(USD|BRL,GBP,EUR,MXN,AUD)"), "select case when \"currency\" = 'USD' then 'USD'\n" +
-                                                                         "            when \"currency\" = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                                         "            when \"currency\" = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                                         "            when \"currency\" = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                                         "            when \"currency\" = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                                         "            when \"currency\" = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                                         "            else 'Other'\n" +
-                                                                         "       end \"currency\"");
-        Assert.assertEquals(getSQL("currency(USD=Group 1|BRL,GBP,EUR,MXN,AUD=Group 2, with Europe)"), "select case when \"currency\" = 'USD' then 'Group 1'\n" +
-                                                                                                      "            when \"currency\" = 'BRL' then 'Group 2, with Europe'\n" +
-                                                                                                      "            when \"currency\" = 'GBP' then 'Group 2, with Europe'\n" +
-                                                                                                      "            when \"currency\" = 'EUR' then 'Group 2, with Europe'\n" +
-                                                                                                      "            when \"currency\" = 'MXN' then 'Group 2, with Europe'\n" +
-                                                                                                      "            when \"currency\" = 'AUD' then 'Group 2, with Europe'\n" +
-                                                                                                      "            else 'Other'\n" +
-                                                                                                      "       end \"currency\"");
-        Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD'\n" +
-                                                                         "            when \"currency_with_underscore\" = 'EUR' then 'EUR'\n" +
-                                                                         "            else 'Other'\n" +
-                                                                         "       end \"currency_with_underscore\"");
-        Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR|-)"), "select case when \"currency_with_underscore\" = 'USD' then 'USD'\n" +
-                                                                           "            when \"currency_with_underscore\" = 'EUR' then 'EUR'\n" +
-                                                                           "       end \"currency_with_underscore\"");
+        Assert.assertEquals(getSQL("currency(USD)"), "select case\n" +
+                                                     "  when \"currency\" = 'USD' then 'USD'\n" +
+                                                     "  else 'Other'\n" +
+                                                     "end \"currency\"");
+        Assert.assertEquals(getSQL("currency(USD|BRL,GBP,EUR,MXN,AUD)"), "select case\n" +
+                                                                         "  when \"currency\" = 'USD' then 'USD'\n" +
+                                                                         "  when \"currency\" = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                                         "  when \"currency\" = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                                         "  when \"currency\" = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                                         "  when \"currency\" = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                                         "  when \"currency\" = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                                         "  else 'Other'\n" +
+                                                                         "end \"currency\"");
+        Assert.assertEquals(getSQL("currency(USD=Group 1|BRL,GBP,EUR,MXN,AUD=Group 2, with Europe)"), "select case\n" +
+                                                                                                      "  when \"currency\" = 'USD' then 'Group 1'\n" +
+                                                                                                      "  when \"currency\" = 'BRL' then 'Group 2, with Europe'\n" +
+                                                                                                      "  when \"currency\" = 'GBP' then 'Group 2, with Europe'\n" +
+                                                                                                      "  when \"currency\" = 'EUR' then 'Group 2, with Europe'\n" +
+                                                                                                      "  when \"currency\" = 'MXN' then 'Group 2, with Europe'\n" +
+                                                                                                      "  when \"currency\" = 'AUD' then 'Group 2, with Europe'\n" +
+                                                                                                      "  else 'Other'\n" +
+                                                                                                      "end \"currency\"");
+        Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR)"), "select case\n" +
+                                                                         "  when \"currency_with_underscore\" = 'USD' then 'USD'\n" +
+                                                                         "  when \"currency_with_underscore\" = 'EUR' then 'EUR'\n" +
+                                                                         "  else 'Other'\n" +
+                                                                         "end \"currency_with_underscore\"");
+        Assert.assertEquals(getSQL("currency_with_underscore(USD|EUR|-)"), "select case\n" +
+                                                                           "  when \"currency_with_underscore\" = 'USD' then 'USD'\n" +
+                                                                           "  when \"currency_with_underscore\" = 'EUR' then 'EUR'\n" +
+                                                                           "end \"currency_with_underscore\"");
     }
 
     private String getSQL(final String input) {

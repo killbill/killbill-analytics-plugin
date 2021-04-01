@@ -34,7 +34,7 @@ public class FieldJson {
     private final List<Object> distinctValues;
 
     public FieldJson(final Field<?> field, @Nullable final List<Object> distinctValues) {
-        this(field.getName(), field.getDataType() == null ? null : field.getDataType().getTypeName(), distinctValues);
+        this(field.getName(), field.getDataType().getTypeName(), distinctValues);
     }
 
     public FieldJson(@JsonProperty("name") final String name,
