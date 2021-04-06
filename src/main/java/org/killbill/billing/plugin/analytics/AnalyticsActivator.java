@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -41,6 +41,7 @@ import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.killbill.billing.plugin.dao.PluginDao;
@@ -99,9 +100,10 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI);
-        final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
-        analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
+        final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
+
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(region, PLUGIN_NAME, roOSGIkillbillAPI);
+        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration());
 
         final DBEngine dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
         final GlobalLocker locker;
@@ -132,7 +134,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
-        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
+        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler, analyticsConfigurationHandler);
 
         final AnalyticsHealthcheck healthcheck = new AnalyticsHealthcheck(analyticsListener, jobsScheduler);
         registerHealthcheck(context, healthcheck);

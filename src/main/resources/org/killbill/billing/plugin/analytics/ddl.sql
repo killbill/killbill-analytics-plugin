@@ -1430,7 +1430,9 @@ create table analytics_reports (
 , report_name varchar(100) not null
 , report_pretty_name varchar(256) default null
 , report_type varchar(24) not null default 'TIMELINE'
-, source_table_name varchar(256) not null
+, source_table_name varchar(256) default null
+, source_name varchar(256) default null
+, source_query varchar(4096) default null
 , refresh_procedure_name varchar(256) default null
 , refresh_frequency varchar(50) default null
 , refresh_hour_of_day_gmt smallint default null

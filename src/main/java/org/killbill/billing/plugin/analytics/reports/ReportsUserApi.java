@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -43,6 +43,7 @@ import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.json.Chart;
 import org.killbill.billing.plugin.analytics.json.CounterChart;
@@ -88,10 +89,9 @@ public class ReportsUserApi {
     public static final String TS_COLUMN_NAME = "ts";
     public static final String LABEL = "label";
     public static final String COUNT_COLUMN_NAME = "count";
-    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
 
     private final OSGIKillbillAPI killbillAPI;
-    private final IDBI dbi;
+    private final QueryEngine queryEngine;
     private final DBEngine dbEngine;
     private final ExecutorService dbiThreadsExecutor;
     private final ReportsConfiguration reportsConfiguration;
@@ -103,12 +103,13 @@ public class ReportsUserApi {
                           final OSGIConfigPropertiesService osgiConfigPropertiesService,
                           final DBEngine dbEngine,
                           final ReportsConfiguration reportsConfiguration,
-                          final JobsScheduler jobsScheduler) {
+                          final JobsScheduler jobsScheduler,
+                          final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
         this.killbillAPI = killbillAPI;
         this.dbEngine = dbEngine;
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
-        dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+        queryEngine = new QueryEngine(BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource()), analyticsConfigurationHandler);
 
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REPORTS_NB_THREADS_PROPERTY));
         this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? Integer.valueOf(10) : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");
@@ -251,17 +252,17 @@ public class ReportsUserApi {
                 public void run() {
                     switch (reportType) {
                         case COUNTERS:
-                            List<DataMarker> counters = getCountersData(tableName, tenantRecordId);
+                            List<DataMarker> counters = queryEngine.getCountersData(reportConfiguration, tenantRecordId, context.getTenantId());
                             result.add(new Chart(ReportType.COUNTERS, prettyName, counters));
                             break;
 
                         case TIMELINE:
-                            final Map<String, List<XY>> data = getTimeSeriesData(tableName, reportSpecification, reportConfiguration, startDate, endDate, tenantRecordId);
+                            final Map<String, List<XY>> data = queryEngine.getTimeSeriesData(reportConfiguration, reportSpecification, dbEngine, startDate, endDate, tenantRecordId, context.getTenantId());
                             timeSeriesData.put(reportName, data);
                             break;
 
                         case TABLE:
-                            List<DataMarker> tables = getTablesData(tableName, tenantRecordId);
+                            List<DataMarker> tables = queryEngine.getTablesData(reportConfiguration, tenantRecordId, context.getTenantId());
                             result.add(new Chart(ReportType.TABLE, prettyName, tables));
                             break;
 
@@ -374,171 +375,6 @@ public class ReportsUserApi {
 
         if (valueForCurrentDate == null) {
             dataForPivot.add(new XY(curDate, (float) 0));
-        }
-    }
-
-    private List<DataMarker> getCountersData(final String tableName, final Long tenantRecordId) {
-        return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
-            @Override
-            public List<DataMarker> withHandle(final Handle handle) throws Exception {
-                final List<Map<String, Object>> results = handle.select("select * from " + tableName + " where tenant_record_id = " + tenantRecordId);
-                if (results.size() == 0) {
-                    return Collections.emptyList();
-                }
-
-                final List<DataMarker> counters = new LinkedList<DataMarker>();
-                for (final Map<String, Object> row : results) {
-                    final Object labelObject = row.get(LABEL);
-                    final Object countObject = row.get(COUNT_COLUMN_NAME);
-                    if (labelObject == null || countObject == null) {
-                        continue;
-                    }
-
-                    final String label = labelObject.toString();
-                    final Float value = Float.valueOf(countObject.toString());
-
-                    final DataMarker counter = new CounterChart(label, value);
-                    counters.add(counter);
-                }
-                return counters;
-            }
-        });
-    }
-
-    private List<DataMarker> getTablesData(final String tableName, final Long tenantRecordId) {
-        return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
-            @Override
-            public List<DataMarker> withHandle(final Handle handle) throws Exception {
-                final List<Map<String, Object>> results = handle.select("select * from " + tableName + " where tenant_record_id = " + tenantRecordId);
-                if (results.size() == 0) {
-                    return Collections.emptyList();
-                }
-
-                // Keep the original ordering of the view
-                final List<String> header = new LinkedList<String>();
-                final List<Map<String, Object>> schemaResults = handle.select("select column_name from information_schema.columns where table_schema = schema() and table_name = '" + tableName + "' order by ordinal_position");
-                for (final Map<String, Object> row : schemaResults) {
-                    header.add(String.valueOf(row.get("column_name")));
-                }
-
-                final List<List<Object>> values = new LinkedList<List<Object>>();
-                for (final Map<String, Object> row : results) {
-                    final List<Object> tableRow = new LinkedList<Object>();
-                    for (final String headerName : header) {
-                        tableRow.add(row.get(headerName));
-                    }
-                    values.add(tableRow);
-                }
-                return ImmutableList.<DataMarker>of(new TableDataSeries(tableName, header, values));
-            }
-        });
-    }
-
-    private Map<String, List<XY>> getTimeSeriesData(final String tableName,
-                                                    final ReportSpecification reportSpecification,
-                                                    final ReportsConfigurationModelDao reportsConfiguration,
-                                                    @Nullable final DateTime startDate,
-                                                    @Nullable final DateTime endDate,
-                                                    final Long tenantRecordId) {
-        final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(tableName,
-                                                                                         reportSpecification,
-                                                                                         startDate,
-                                                                                         endDate,
-                                                                                         dbEngine,
-                                                                                         tenantRecordId);
-        return dbi.withHandle(new HandleCallback<Map<String, List<XY>>>() {
-            @Override
-            public Map<String, List<XY>> withHandle(final Handle handle) throws Exception {
-                final List<Map<String, Object>> results = handle.select(sqlReportDataExtractor.toString());
-                if (results.size() == 0) {
-                    return Collections.emptyMap();
-                }
-
-                final Map<String, List<XY>> timeSeries = new LinkedHashMap<String, List<XY>>();
-                for (final Map<String, Object> row : results) {
-                    // Day
-                    Object dateObject = row.get(DAY_COLUMN_NAME);
-                    if (dateObject == null) {
-                        // Timestamp
-                        dateObject = row.get(TS_COLUMN_NAME);
-                        if (dateObject == null) {
-                            continue;
-                        }
-                        dateObject = DATE_TIME_FORMATTER.parseDateTime(dateObject.toString()).toString();
-                    }
-                    final String date = dateObject.toString();
-
-                    final String legendWithDimensions = createLegendWithDimensionsForSeries(row, reportSpecification);
-                    for (final Entry<String, Object> entry : row.entrySet()) {
-                        if (isMetric(entry.getKey(), reportSpecification)) {
-                            // Create a unique name for that result set
-                            final String seriesName = MoreObjects.firstNonNull(reportSpecification.getLegend(), entry.getKey()) + (legendWithDimensions == null ? "" : (": " + legendWithDimensions));
-                            if (timeSeries.get(seriesName) == null) {
-                                timeSeries.put(seriesName, new LinkedList<XY>());
-                            }
-
-                            final Object value = entry.getValue();
-                            final Float valueAsFloat = value == null ? Float.valueOf(0f) : Float.valueOf(value.toString());
-                            timeSeries.get(seriesName).add(new XY(date, valueAsFloat));
-                        }
-                    }
-                }
-
-                return timeSeries;
-            }
-        });
-    }
-
-    private String createLegendWithDimensionsForSeries(final Map<String, Object> row, final ReportSpecification reportSpecification) {
-        int i = 0;
-        final StringBuilder seriesNameBuilder = new StringBuilder();
-        for (final Entry<String, Object> entry : row.entrySet()) {
-            if (shouldUseColumnAsDimensionMultiplexer(entry.getKey(), reportSpecification)) {
-                if (i > 0) {
-                    seriesNameBuilder.append(" :: ");
-                }
-                seriesNameBuilder.append(entry.getValue() == null ? "NULL" : entry.getValue().toString());
-                i++;
-            }
-        }
-
-        if (i == 0) {
-            return null;
-        } else {
-            return seriesNameBuilder.toString();
-        }
-    }
-
-    private boolean shouldUseColumnAsDimensionMultiplexer(final String column, final ReportSpecification reportSpecification) {
-        // Don't multiplex the day column
-        if (DAY_COLUMN_NAME.equals(column)) {
-            return false;
-        }
-
-        if (reportSpecification.getDimensions().isEmpty()) {
-            if (reportSpecification.getMetrics().isEmpty()) {
-                // If no dimension and metric are specified, assume all columns are dimensions except the "count" one
-                return !COUNT_COLUMN_NAME.equals(column);
-            } else {
-                // Otherwise, all non-metric columns are dimensions
-                return !reportSpecification.getMetrics().contains(column);
-            }
-        } else {
-            return reportSpecification.getDimensions().contains(column);
-        }
-    }
-
-    private boolean isMetric(final String column, final ReportSpecification reportSpecification) {
-        if (reportSpecification.getMetrics().isEmpty()) {
-            if (reportSpecification.getDimensions().isEmpty()) {
-                // If no dimension and metric are specified, assume the only metric is the "count" one
-                return COUNT_COLUMN_NAME.equals(column);
-            } else {
-                // Otherwise, all non-dimension columns are metrics
-                return !DAY_COLUMN_NAME.equals(column) && !reportSpecification.getDimensions().contains(column);
-            }
-        } else {
-            return reportSpecification.getMetrics().contains(column);
         }
     }
 

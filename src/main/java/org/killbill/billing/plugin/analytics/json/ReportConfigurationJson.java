@@ -35,6 +35,8 @@ public class ReportConfigurationJson {
     private final String reportPrettyName;
     private final ReportType reportType;
     private final String sourceTableName;
+    private final String sourceName;
+    private final String sourceQuery;
     private final String refreshProcedureName;
     private final Frequency refreshFrequency;
     private final Integer refreshHourOfDayGmt;
@@ -46,6 +48,8 @@ public class ReportConfigurationJson {
              reportsConfigurationModelDao.getReportPrettyName(),
              reportsConfigurationModelDao.getReportType(),
              reportsConfigurationModelDao.getSourceTableName(),
+             reportsConfigurationModelDao.getSourceName(),
+             reportsConfigurationModelDao.getSourceQuery(),
              reportsConfigurationModelDao.getRefreshProcedureName(),
              reportsConfigurationModelDao.getRefreshFrequency(),
              reportsConfigurationModelDao.getRefreshHourOfDayGmt(),
@@ -57,6 +61,8 @@ public class ReportConfigurationJson {
                                    @JsonProperty("reportPrettyName") final String reportPrettyName,
                                    @JsonProperty("reportType") final ReportType reportType,
                                    @JsonProperty("sourceTableName") final String sourceTableName,
+                                   @JsonProperty("sourceName") final String sourceName,
+                                   @JsonProperty("sourceQuery") final String sourceQuery,
                                    @JsonProperty("refreshProcedureName") final String refreshProcedureName,
                                    @JsonProperty("refreshFrequency") final Frequency refreshFrequency,
                                    @JsonProperty("refreshHourOfDayGmt") final Integer refreshHourOfDayGmt,
@@ -66,6 +72,8 @@ public class ReportConfigurationJson {
         this.reportPrettyName = reportPrettyName;
         this.reportType = reportType;
         this.sourceTableName = sourceTableName;
+        this.sourceName = sourceName;
+        this.sourceQuery = sourceQuery;
         this.refreshProcedureName = refreshProcedureName;
         this.refreshFrequency = refreshFrequency;
         this.refreshHourOfDayGmt = refreshHourOfDayGmt;
@@ -86,6 +94,14 @@ public class ReportConfigurationJson {
 
     public String getSourceTableName() {
         return sourceTableName;
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public String getSourceQuery() {
+        return sourceQuery;
     }
 
     public String getRefreshProcedureName() {
@@ -116,6 +132,8 @@ public class ReportConfigurationJson {
         sb.append(", reportPrettyName='").append(reportPrettyName).append('\'');
         sb.append(", reportType=").append(reportType);
         sb.append(", sourceTableName='").append(sourceTableName).append('\'');
+        sb.append(", sourceName='").append(sourceName).append('\'');
+        sb.append(", sourceQuery='").append(sourceQuery).append('\'');
         sb.append(", refreshProcedureName='").append(refreshProcedureName).append('\'');
         sb.append(", refreshFrequency=").append(refreshFrequency);
         sb.append(", refreshHourOfDayGmt=").append(refreshHourOfDayGmt);
@@ -125,7 +143,7 @@ public class ReportConfigurationJson {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -133,18 +151,9 @@ public class ReportConfigurationJson {
             return false;
         }
 
-        ReportConfigurationJson that = (ReportConfigurationJson) o;
+        final ReportConfigurationJson that = (ReportConfigurationJson) o;
 
         if (recordId != null ? !recordId.equals(that.recordId) : that.recordId != null) {
-            return false;
-        }
-        if (refreshFrequency != that.refreshFrequency) {
-            return false;
-        }
-        if (refreshHourOfDayGmt != null ? !refreshHourOfDayGmt.equals(that.refreshHourOfDayGmt) : that.refreshHourOfDayGmt != null) {
-            return false;
-        }
-        if (refreshProcedureName != null ? !refreshProcedureName.equals(that.refreshProcedureName) : that.refreshProcedureName != null) {
             return false;
         }
         if (reportName != null ? !reportName.equals(that.reportName) : that.reportName != null) {
@@ -156,14 +165,25 @@ public class ReportConfigurationJson {
         if (reportType != that.reportType) {
             return false;
         }
-        if (schema != null ? !schema.equals(that.schema) : that.schema != null) {
-            return false;
-        }
         if (sourceTableName != null ? !sourceTableName.equals(that.sourceTableName) : that.sourceTableName != null) {
             return false;
         }
-
-        return true;
+        if (sourceName != null ? !sourceName.equals(that.sourceName) : that.sourceName != null) {
+            return false;
+        }
+        if (sourceQuery != null ? !sourceQuery.equals(that.sourceQuery) : that.sourceQuery != null) {
+            return false;
+        }
+        if (refreshProcedureName != null ? !refreshProcedureName.equals(that.refreshProcedureName) : that.refreshProcedureName != null) {
+            return false;
+        }
+        if (refreshFrequency != that.refreshFrequency) {
+            return false;
+        }
+        if (refreshHourOfDayGmt != null ? !refreshHourOfDayGmt.equals(that.refreshHourOfDayGmt) : that.refreshHourOfDayGmt != null) {
+            return false;
+        }
+        return schema != null ? schema.equals(that.schema) : that.schema == null;
     }
 
     @Override
@@ -173,6 +193,8 @@ public class ReportConfigurationJson {
         result = 31 * result + (reportPrettyName != null ? reportPrettyName.hashCode() : 0);
         result = 31 * result + (reportType != null ? reportType.hashCode() : 0);
         result = 31 * result + (sourceTableName != null ? sourceTableName.hashCode() : 0);
+        result = 31 * result + (sourceName != null ? sourceName.hashCode() : 0);
+        result = 31 * result + (sourceQuery != null ? sourceQuery.hashCode() : 0);
         result = 31 * result + (refreshProcedureName != null ? refreshProcedureName.hashCode() : 0);
         result = 31 * result + (refreshFrequency != null ? refreshFrequency.hashCode() : 0);
         result = 31 * result + (refreshHourOfDayGmt != null ? refreshHourOfDayGmt.hashCode() : 0);
