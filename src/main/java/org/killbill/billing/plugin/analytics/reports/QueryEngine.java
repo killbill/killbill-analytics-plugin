@@ -30,13 +30,6 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.jooq.Query;
-import org.jooq.ResultQuery;
-import org.jooq.SQLDialect;
-import org.jooq.conf.RenderNameStyle;
-import org.jooq.conf.Settings;
-import org.jooq.conf.StatementType;
-import org.jooq.impl.DSL;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.json.CounterChart;
 import org.killbill.billing.plugin.analytics.json.DataMarker;
@@ -53,7 +46,6 @@ import org.skife.jdbi.v2.tweak.HandleCallback;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
 import static org.killbill.billing.plugin.analytics.reports.ReportsUserApi.COUNT_COLUMN_NAME;
@@ -311,7 +303,8 @@ public class QueryEngine {
         if (reportsConfigurationModelDao.getSourceName() != null) {
             Preconditions.checkArgument(reportsConfigurationModelDao.getSourceTableName() != null || reportsConfigurationModelDao.getSourceQuery() != null,
                                         "sourceTableName or sourceQuery must be defined: " + reportsConfigurationModelDao);
-            Preconditions.checkArgument(reportsConfigurationModelDao.getSourceTableName() == null || reportsConfigurationModelDao.getSourceQuery() == null,
+            Preconditions.checkArgument((reportsConfigurationModelDao.getSourceTableName() == null && reportsConfigurationModelDao.getSourceQuery() != null) ||
+                                        (reportsConfigurationModelDao.getSourceTableName() != null && reportsConfigurationModelDao.getSourceQuery() == null),
                                         "sourceTableName or sourceQuery must be defined: " + reportsConfigurationModelDao);
 
             final Trino trino = new Trino(reportsConfigurationModelDao.getSourceName(),

@@ -186,7 +186,7 @@ public class ReportsUserApi {
                                                                                           public ReportConfigurationJson apply(final ReportsConfigurationModelDao input) {
                                                                                               try {
                                                                                                   return input == null ? null : new ReportConfigurationJson(input, sqlMetadata.getTable(input.getSourceTableName()));
-                                                                                              } catch (SQLException e) {
+                                                                                              } catch (final SQLException e) {
                                                                                                   throw new RuntimeException(e);
                                                                                               }
                                                                                           }

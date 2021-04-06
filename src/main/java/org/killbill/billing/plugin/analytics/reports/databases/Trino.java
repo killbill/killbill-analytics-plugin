@@ -44,7 +44,7 @@ public class Trino {
 
     public Trino(final String name,
                  final Map<String, String> configuration) {
-        Preconditions.checkArgument(configuration != null && "trino".equals(configuration.get("type")), "Expected trino, got " + configuration.get("type"));
+        Preconditions.checkArgument(configuration != null && "trino".equals(configuration.get("type")), "Expected trino, got " + (configuration == null ? "null" : configuration.get("type")));
         Preconditions.checkNotNull(configuration.get("url"), "Missing trino url");
         this.name = name;
         this.url = configuration.get("url");

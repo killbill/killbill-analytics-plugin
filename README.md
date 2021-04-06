@@ -14,8 +14,12 @@ Kill Bill plugin to provide business analytics and reporting capabilities. You c
 | 6.x.y          | 0.20.z            |
 | 7.0.y          | 0.22.z            |
 | 7.1.y          | 0.22.z            |
+| 7.2.y          | 0.22.z            |
 
-We've upgraded numerous dependencies in 7.1.x (required for Java 11 support).
+### Release notes
+
+* Starting with 7.2.0, the configuration is using a YAML format, instead of key-value pairs.
+* We've upgraded numerous dependencies in 7.1.x (required for Java 11 support).
 
 ## Requirements
 
@@ -105,6 +109,18 @@ curl -v \
 
 ### Reports
 
+There are 3 report types:
+
+* `COUNTERS`: This is used for pie charts.
+  * Local: Each row must have 3 columns (`tenant_record_id`, `label`, and `count`).
+  * Remote: Only the columns `label`, and `count` are mandatory. You can optionally specify the placeholder `TENANT_RECORD_ID` in the query which will be replaced by the `tenantRecordId` before the query is executed.
+* `TIMELINE`: This is used for line charts.
+  * Local: The columns `day` (or `ts`) and `tenant_record_id` are mandatory
+  * Remote: The column `day` (or `ts`) is mandatory. You can optionally specify the placeholders `TENANT_RECORD_ID`, `START_DATE`, and `END_DATE` in the query which will be replaced by the `tenantRecordId` and specified dates by the user before the query is executed.
+* `TABLE`: This is used for rendering underlying data.
+  * Local: Each row must have at least a `tenant_record_id` column.
+  * Remote: You can optionally specify the placeholder `TENANT_RECORD_ID` in the query which will be replaced by the `tenantRecordId` before the query is executed.
+
 To create a report based on a local view:
 
 ```
@@ -123,7 +139,7 @@ curl -v \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
-To create a report based on SQL executed on Trino:
+To create a report based on SQL executed on a remote database (`warehouse`):
 
 ```
 curl -v \

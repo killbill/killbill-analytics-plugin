@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import org.killbill.billing.plugin.analytics.json.ReportConfigurationJson;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 
 public class ReportsConfigurationModelDao {
 
@@ -113,10 +114,10 @@ public class ReportsConfigurationModelDao {
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
         this.reportType = MoreObjects.firstNonNull(type, ReportType.TIMELINE);
-        this.sourceTableName = sourceTableName;
-        this.sourceName = sourceName;
-        this.sourceQuery = sourceQuery;
-        this.refreshProcedureName = refreshProcedureName;
+        this.sourceTableName = Strings.emptyToNull(sourceTableName);
+        this.sourceName = Strings.emptyToNull(sourceName);
+        this.sourceQuery = Strings.emptyToNull(sourceQuery);
+        this.refreshProcedureName = Strings.emptyToNull(refreshProcedureName);
         this.refreshFrequency = refreshFrequency;
         this.refreshHourOfDayGmt = refreshHourOfDayGmt;
     }

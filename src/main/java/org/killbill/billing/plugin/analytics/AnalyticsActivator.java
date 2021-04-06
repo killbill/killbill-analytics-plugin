@@ -63,6 +63,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.collect.ImmutableMap;
 
 public class AnalyticsActivator extends KillbillActivatorBase {
@@ -139,6 +143,11 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final AnalyticsHealthcheck healthcheck = new AnalyticsHealthcheck(analyticsListener, jobsScheduler);
         registerHealthcheck(context, healthcheck);
 
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JodaModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
                                                          killbillAPI,
                                                          dataSource,
@@ -150,6 +159,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
                                                                           .withService(reportsUserApi)
                                                                           .withService(clock)
                                                                           .withService(healthcheck)
+                                                                          .withObjectMapper(objectMapper)
                                                                           .build();
         final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
         registerServlet(context, httpServlet);
