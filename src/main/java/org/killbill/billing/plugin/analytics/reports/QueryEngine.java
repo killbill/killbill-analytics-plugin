@@ -17,6 +17,11 @@
 
 package org.killbill.billing.plugin.analytics.reports;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -85,20 +90,20 @@ public class QueryEngine {
         final DBI dbi = getDBI(reportsConfigurationModelDao, tenantId);
 
         final String seriesName;
-        final String tableName;
+        final String fallBackHeadersQuery;
         final String query;
         if (reportsConfigurationModelDao.getSourceTableName() != null) {
             seriesName = reportsConfigurationModelDao.getSourceTableName();
-            tableName = reportsConfigurationModelDao.getSourceTableName();
+            fallBackHeadersQuery = "select column_name from information_schema.columns where table_schema = schema() and table_name = '" + reportsConfigurationModelDao.getSourceTableName() + "' order by ordinal_position";
             query = "select * from " + reportsConfigurationModelDao.getSourceTableName() + " where tenant_record_id = " + tenantRecordId;
         } else {
             seriesName = reportsConfigurationModelDao.getSourceName();
-            tableName = null;
+            fallBackHeadersQuery = null;
             query = reportsConfigurationModelDao.getSourceQuery().replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
         }
         return getTablesData(dbi,
                              seriesName,
-                             tableName,
+                             fallBackHeadersQuery,
                              query);
     }
 
@@ -163,7 +168,7 @@ public class QueryEngine {
 
     private List<DataMarker> getTablesData(final IDBI dbi,
                                            final String seriesName,
-                                           @Nullable final String tableName,
+                                           @Nullable final String fallBackHeadersQuery,
                                            final String query) {
         return dbi.withHandle(new HandleCallback<List<DataMarker>>() {
             @Override
@@ -173,18 +178,29 @@ public class QueryEngine {
                     return Collections.emptyList();
                 }
 
-                // Keep the original ordering of the view
                 final List<String> header = new LinkedList<String>();
-                if (tableName != null) {
-                    final List<Map<String, Object>> schemaResults = handle.select("select column_name from information_schema.columns where table_schema = schema() and table_name = '" + tableName + "' order by ordinal_position");
-                    for (final Map<String, Object> row : schemaResults) {
-                        header.add(String.valueOf(row.get("column_name")));
+
+                // Try to find the column names to keep the ordering
+                final String headersQuery = String.format("%s limit 0", query);
+                try (final Connection connection = handle.getConnection();
+                     final Statement statement = connection.createStatement();
+                     final ResultSet rs = statement.executeQuery(headersQuery)) {
+                    final ResultSetMetaData rsmd = rs.getMetaData();
+                    for (int i = 1; i <= rsmd.getColumnCount(); i++) {
+                        header.add(String.valueOf(rsmd.getColumnLabel(i)));
                     }
-                } else {
-                    // TODO: how can we do better?
-                    final Map<String, Object> firstRow = Iterators.getNext(results.iterator(), null);
-                    assert firstRow != null;
-                    header.addAll(firstRow.keySet());
+                } catch (final SQLException e) {
+                    if (fallBackHeadersQuery != null) {
+                        final List<Map<String, Object>> schemaResults = handle.select(fallBackHeadersQuery);
+                        for (final Map<String, Object> row : schemaResults) {
+                            header.add(String.valueOf(row.get("column_name")));
+                        }
+                    } else {
+                        // TODO: how can we do better?
+                        final Map<String, Object> firstRow = Iterators.getNext(results.iterator(), null);
+                        assert firstRow != null;
+                        header.addAll(firstRow.keySet());
+                    }
                 }
 
                 final List<List<Object>> values = new LinkedList<List<Object>>();
