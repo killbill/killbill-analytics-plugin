@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,20 +19,17 @@
 
 package org.killbill.billing.plugin.analytics.api.core;
 
-import java.util.Properties;
-
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
-import org.killbill.billing.plugin.api.notification.PluginTenantConfigurableConfigurationHandler;
+import org.killbill.billing.plugin.core.config.YAMLPluginTenantConfigurationHandler;
 
-public class AnalyticsConfigurationHandler extends PluginTenantConfigurableConfigurationHandler<AnalyticsConfiguration> {
+public class AnalyticsConfigurationHandler extends YAMLPluginTenantConfigurationHandler<AnalyticsConfiguration, AnalyticsConfiguration> {
 
-    public AnalyticsConfigurationHandler(final String pluginName,
+    private final String region;
+
+    public AnalyticsConfigurationHandler(final String region,
+                                         final String pluginName,
                                          final OSGIKillbillAPI osgiKillbillAPI) {
         super(pluginName, osgiKillbillAPI);
-    }
-
-    @Override
-    public AnalyticsConfiguration createConfigurable(final Properties properties) {
-        return new AnalyticsConfiguration(properties);
+        this.region = region;
     }
 }

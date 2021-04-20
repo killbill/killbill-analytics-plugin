@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import org.killbill.billing.plugin.analytics.json.ReportConfigurationJson;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Strings;
 
 public class ReportsConfigurationModelDao {
 
@@ -44,6 +45,8 @@ public class ReportsConfigurationModelDao {
     private String reportPrettyName;
     private ReportType reportType;
     private String sourceTableName;
+    private String sourceName;
+    private String sourceQuery;
     private String refreshProcedureName;
     private Frequency refreshFrequency;
     private Integer refreshHourOfDayGmt;
@@ -56,6 +59,8 @@ public class ReportsConfigurationModelDao {
              reportConfigurationJson.getReportPrettyName(),
              reportConfigurationJson.getReportType(),
              reportConfigurationJson.getSourceTableName(),
+             reportConfigurationJson.getSourceName(),
+             reportConfigurationJson.getSourceQuery(),
              reportConfigurationJson.getRefreshProcedureName(),
              reportConfigurationJson.getRefreshFrequency(),
              reportConfigurationJson.getRefreshHourOfDayGmt());
@@ -67,24 +72,52 @@ public class ReportsConfigurationModelDao {
              reportConfigurationJson.getReportPrettyName() != null ? reportConfigurationJson.getReportPrettyName() : currentReportsConfigurationModelDao.getReportPrettyName(),
              currentReportsConfigurationModelDao.getReportType(),
              MoreObjects.firstNonNull(reportConfigurationJson.getSourceTableName(), currentReportsConfigurationModelDao.getSourceTableName()),
+             reportConfigurationJson.getSourceName() != null ? reportConfigurationJson.getSourceName() : currentReportsConfigurationModelDao.getSourceName(),
+             reportConfigurationJson.getSourceQuery() != null ? reportConfigurationJson.getSourceQuery() : currentReportsConfigurationModelDao.getSourceQuery(),
              reportConfigurationJson.getRefreshProcedureName() != null ? reportConfigurationJson.getRefreshProcedureName() : currentReportsConfigurationModelDao.getRefreshProcedureName(),
              reportConfigurationJson.getRefreshFrequency() != null ? reportConfigurationJson.getRefreshFrequency() : currentReportsConfigurationModelDao.getRefreshFrequency(),
              reportConfigurationJson.getRefreshHourOfDayGmt() != null ? reportConfigurationJson.getRefreshHourOfDayGmt() : currentReportsConfigurationModelDao.getRefreshHourOfDayGmt());
     }
 
-    public ReportsConfigurationModelDao(final String reportName, final String reportPrettyName, final ReportType type, final String sourceTableName,
-                                        final String refreshProcedureName, final Frequency refreshFrequency, final Integer refreshHourOfDayGmt) {
-        this(null, reportName, reportPrettyName, type, sourceTableName, refreshProcedureName, refreshFrequency, refreshHourOfDayGmt);
+    public ReportsConfigurationModelDao(final String reportName,
+                                        final String reportPrettyName,
+                                        final ReportType type,
+                                        final String sourceTableName,
+                                        final String sourceName,
+                                        final String sourceQuery,
+                                        final String refreshProcedureName,
+                                        final Frequency refreshFrequency,
+                                        final Integer refreshHourOfDayGmt) {
+        this(null,
+             reportName,
+             reportPrettyName,
+             type,
+             sourceTableName,
+             sourceName,
+             sourceQuery,
+             refreshProcedureName,
+             refreshFrequency,
+             refreshHourOfDayGmt);
     }
 
-    public ReportsConfigurationModelDao(@Nullable final Integer recordId, final String reportName, final String reportPrettyName, final ReportType type, final String sourceTableName,
-                                        final String refreshProcedureName, final Frequency refreshFrequency, final Integer refreshHourOfDayGmt) {
+    public ReportsConfigurationModelDao(@Nullable final Integer recordId,
+                                        final String reportName,
+                                        final String reportPrettyName,
+                                        final ReportType type,
+                                        final String sourceTableName,
+                                        final String sourceName,
+                                        final String sourceQuery,
+                                        final String refreshProcedureName,
+                                        final Frequency refreshFrequency,
+                                        final Integer refreshHourOfDayGmt) {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
         this.reportType = MoreObjects.firstNonNull(type, ReportType.TIMELINE);
-        this.sourceTableName = sourceTableName;
-        this.refreshProcedureName = refreshProcedureName;
+        this.sourceTableName = Strings.emptyToNull(sourceTableName);
+        this.sourceName = Strings.emptyToNull(sourceName);
+        this.sourceQuery = Strings.emptyToNull(sourceQuery);
+        this.refreshProcedureName = Strings.emptyToNull(refreshProcedureName);
         this.refreshFrequency = refreshFrequency;
         this.refreshHourOfDayGmt = refreshHourOfDayGmt;
     }
@@ -103,6 +136,14 @@ public class ReportsConfigurationModelDao {
 
     public String getSourceTableName() {
         return sourceTableName;
+    }
+
+    public String getSourceName() {
+        return sourceName;
+    }
+
+    public String getSourceQuery() {
+        return sourceQuery;
     }
 
     public String getRefreshProcedureName() {
@@ -127,8 +168,10 @@ public class ReportsConfigurationModelDao {
         sb.append("recordId=").append(recordId);
         sb.append(", reportName='").append(reportName).append('\'');
         sb.append(", reportPrettyName='").append(reportPrettyName).append('\'');
+        sb.append(", reportType=").append(reportType);
         sb.append(", sourceTableName='").append(sourceTableName).append('\'');
-        sb.append(", reportType='").append(reportType).append('\'');
+        sb.append(", sourceName='").append(sourceName).append('\'');
+        sb.append(", sourceQuery='").append(sourceQuery).append('\'');
         sb.append(", refreshProcedureName='").append(refreshProcedureName).append('\'');
         sb.append(", refreshFrequency=").append(refreshFrequency);
         sb.append(", refreshHourOfDayGmt=").append(refreshHourOfDayGmt);
@@ -176,6 +219,12 @@ public class ReportsConfigurationModelDao {
         if (reportType != null ? !reportType.equals(that.reportType) : that.reportType != null) {
             return false;
         }
+        if (sourceName != null ? !sourceName.equals(that.sourceName) : that.sourceName != null) {
+            return false;
+        }
+        if (sourceQuery != null ? !sourceQuery.equals(that.sourceQuery) : that.sourceQuery != null) {
+            return false;
+        }
         return true;
     }
 
@@ -184,8 +233,10 @@ public class ReportsConfigurationModelDao {
         int result = recordId != null ? recordId.hashCode() : 0;
         result = 31 * result + (reportName != null ? reportName.hashCode() : 0);
         result = 31 * result + (reportPrettyName != null ? reportPrettyName.hashCode() : 0);
-        result = 31 * result + (sourceTableName != null ? sourceTableName.hashCode() : 0);
         result = 31 * result + (reportType != null ? reportType.hashCode() : 0);
+        result = 31 * result + (sourceTableName != null ? sourceTableName.hashCode() : 0);
+        result = 31 * result + (sourceName != null ? sourceName.hashCode() : 0);
+        result = 31 * result + (sourceQuery != null ? sourceQuery.hashCode() : 0);
         result = 31 * result + (refreshProcedureName != null ? refreshProcedureName.hashCode() : 0);
         result = 31 * result + (refreshFrequency != null ? refreshFrequency.hashCode() : 0);
         result = 31 * result + (refreshHourOfDayGmt != null ? refreshHourOfDayGmt.hashCode() : 0);

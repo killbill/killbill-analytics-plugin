@@ -14,12 +14,47 @@ Kill Bill plugin to provide business analytics and reporting capabilities. You c
 | 6.x.y          | 0.20.z            |
 | 7.0.y          | 0.22.z            |
 | 7.1.y          | 0.22.z            |
+| 7.2.y          | 0.22.z            |
 
-We've upgraded numerous dependencies in 7.1.x (required for Java 11 support).
+### Release notes
+
+* Starting with 7.2.0, the configuration is using a YAML format, instead of key-value pairs.
+* We've upgraded numerous dependencies in 7.1.x (required for Java 11 support).
 
 ## Requirements
 
 The plugin needs a database. The latest version of the schema can be found [here](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/org/killbill/billing/plugin/analytics/ddl.sql).
+
+## Installation
+
+Locally:
+
+```
+kpm install_java_plugin analytics --from-source-file target/analytics-plugin-*-SNAPSHOT.jar --destination /var/tmp/bundles
+```
+
+## Configuration
+
+```
+curl -v \
+     -X POST \
+     -u admin:password \
+     -H 'X-Killbill-ApiKey: bob' \
+     -H 'X-Killbill-ApiSecret: lazar' \
+     -H 'X-Killbill-CreatedBy: admin' \
+     -H 'Content-Type: text/plain' \
+     -d '!!org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration
+  pluginPropertyKeys:
+    killbill-stripe:
+      1: processorResponse
+      2: avsResultCode
+      3: cvvResultCode
+  databases:
+    warehouse:
+      type: trino
+      url: jdbc:trino://example.net:8080/hive/sales?user=admin' \
+    http://127.0.0.1:8080/1.0/kb/tenants/uploadPluginConfig/killbill-analytics
+```
 
 ## Setup
 
@@ -74,7 +109,19 @@ curl -v \
 
 ### Reports
 
-To create a report:
+There are 3 report types:
+
+* `COUNTERS`: This is used for pie charts.
+  * Local: Each row must have 3 columns (`tenant_record_id`, `label`, and `count`).
+  * Remote: Only the columns `label`, and `count` are mandatory. You can optionally specify the placeholder `TENANT_RECORD_ID` in the query which will be replaced by the `tenantRecordId` before the query is executed.
+* `TIMELINE`: This is used for line charts.
+  * Local: The columns `day` (or `ts`) and `tenant_record_id` are mandatory
+  * Remote: The column `day` (or `ts`) is mandatory. You can optionally specify the placeholders `TENANT_RECORD_ID`, `START_DATE`, and `END_DATE` in the query which will be replaced by the `tenantRecordId` and specified dates by the user before the query is executed.
+* `TABLE`: This is used for rendering underlying data.
+  * Local: Each row must have at least a `tenant_record_id` column.
+  * Remote: You can optionally specify the placeholder `TENANT_RECORD_ID` in the query which will be replaced by the `tenantRecordId` before the query is executed.
+
+To create a report based on a local view:
 
 ```
 curl -v \
@@ -89,6 +136,23 @@ curl -v \
           "sourceTableName": "report_accounts_summary",
           "refreshProcedureName": "refresh_report_accounts_summary",
           "refreshFrequency": "HOURLY"}' \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
+```
+
+To create a report based on SQL executed on a remote database (`warehouse`):
+
+```
+curl -v \
+     -X POST \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     -H 'Content-Type: application/json' \
+     -d '{"reportName": "report_historical_orders",
+          "reportType": "TABLE",
+          "reportPrettyName": "Historical orders",
+          "sourceName": "warehouse",
+          "sourceQuery": "select * from warehouse.public.orders"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
@@ -120,6 +184,17 @@ curl -v \
      -H "X-Killbill-ApiKey:bob" \
      -H "X-Killbill-ApiSecret:lazar" \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports?name=report_accounts_summary&startDate=2018-01-01&endDate=2018-05-01&smooth=SUM_WEEKLY&format=csv"
+```
+
+To delete a report configuration by name:
+
+```
+curl -v \
+     -X DELETE \
+     -u admin:password \
+     -H "X-Killbill-ApiKey:bob" \
+     -H "X-Killbill-ApiSecret:lazar" \
+     "http://127.0.0.1:8080/plugins/killbill-analytics/reports/report_accounts_summary"
 ```
 
 ### Healthcheck

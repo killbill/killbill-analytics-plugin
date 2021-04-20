@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -130,7 +130,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected final Long bundleRecordId = 10L;
 
     protected final ReportGroup reportGroup = ReportGroup.partner;
-    protected final PluginPropertiesManager pluginPropertiesManager = new PluginPropertiesManager(new AnalyticsConfiguration(new Properties()));
+    protected final PluginPropertiesManager pluginPropertiesManager = new PluginPropertiesManager(new AnalyticsConfiguration());
     protected final BusinessInvoiceItemType invoiceItemType = BusinessInvoiceItemType.INVOICE_ITEM_ADJUSTMENT;
     protected final ItemSource itemSource = ItemSource.user;
     protected final ClockMock clock = new ClockMock();
@@ -634,8 +634,8 @@ public abstract class AnalyticsTestSuiteNoDB {
 
         executor = BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(AnalyticsActivator.PLUGIN_NAME, killbillAPI);
-        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration(new Properties()));
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(null, AnalyticsActivator.PLUGIN_NAME, killbillAPI);
+        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration());
 
         businessContextFactory = new BusinessContextFactory(account.getId(),
                                                             callContext,

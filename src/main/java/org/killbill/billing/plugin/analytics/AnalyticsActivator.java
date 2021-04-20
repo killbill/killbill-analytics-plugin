@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -41,6 +41,7 @@ import org.killbill.billing.plugin.analytics.reports.ReportsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
+import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.killbill.billing.plugin.dao.PluginDao;
@@ -62,6 +63,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.codahale.metrics.MetricRegistry;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.google.common.collect.ImmutableMap;
 
 public class AnalyticsActivator extends KillbillActivatorBase {
@@ -99,9 +104,10 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
 
-        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(PLUGIN_NAME, roOSGIkillbillAPI);
-        final AnalyticsConfiguration globalConfiguration = analyticsConfigurationHandler.createConfigurable(configProperties.getProperties());
-        analyticsConfigurationHandler.setDefaultConfigurable(globalConfiguration);
+        final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
+
+        analyticsConfigurationHandler = new AnalyticsConfigurationHandler(region, PLUGIN_NAME, roOSGIkillbillAPI);
+        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration());
 
         final DBEngine dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
         final GlobalLocker locker;
@@ -132,10 +138,15 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
 
         final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler);
-        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler);
+        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler, analyticsConfigurationHandler);
 
         final AnalyticsHealthcheck healthcheck = new AnalyticsHealthcheck(analyticsListener, jobsScheduler);
         registerHealthcheck(context, healthcheck);
+
+        final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JodaModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapper.enable(DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
 
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME,
                                                          killbillAPI,
@@ -148,6 +159,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
                                                                           .withService(reportsUserApi)
                                                                           .withService(clock)
                                                                           .withService(healthcheck)
+                                                                          .withObjectMapper(objectMapper)
                                                                           .build();
         final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
         registerServlet(context, httpServlet);

@@ -8,6 +8,8 @@ tableFields(prefix) ::= <<
 , <prefix>report_pretty_name
 , <prefix>report_type
 , <prefix>source_table_name
+, <prefix>source_name
+, <prefix>source_query
 , <prefix>refresh_procedure_name
 , <prefix>refresh_frequency
 , <prefix>refresh_hour_of_day_gmt
@@ -34,6 +36,8 @@ insert into <tableName()> (
 , report_pretty_name
 , report_type
 , source_table_name
+, source_name
+, source_query
 , refresh_procedure_name
 , refresh_frequency
 , refresh_hour_of_day_gmt
@@ -42,6 +46,8 @@ insert into <tableName()> (
 , :reportPrettyName
 , :reportType
 , :sourceTableName
+, :sourceName
+, :sourceQuery
 , :refreshProcedureName
 , :refreshFrequency
 , :refreshHourOfDayGmt
@@ -54,6 +60,8 @@ set
   report_pretty_name = :reportPrettyName
 , report_type = :reportType
 , source_table_name = :sourceTableName
+, source_name = :sourceName
+, source_query = :sourceQuery
 , refresh_procedure_name = :refreshProcedureName
 , refresh_frequency = :refreshFrequency
 , refresh_hour_of_day_gmt = :refreshHourOfDayGmt

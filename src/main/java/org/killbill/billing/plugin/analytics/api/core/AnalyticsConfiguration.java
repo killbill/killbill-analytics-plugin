@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,14 +19,15 @@
 
 package org.killbill.billing.plugin.analytics.api.core;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+@SuppressFBWarnings("UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD")
 public class AnalyticsConfiguration {
-
-    private final Properties properties;
 
     // Sane defaults (keys used by most official plugins)
     private final Map<Integer, String> defaultPluginPropertyKeys = ImmutableMap.<Integer, String>of(1, "processorResponse",
@@ -35,13 +36,14 @@ public class AnalyticsConfiguration {
                                                                                                     4, "payment_processor_account_id",
                                                                                                     5, "paymentMethod");
 
-    public AnalyticsConfiguration(final Properties properties) {
-        this.properties = properties;
-    }
+    public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
+    public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 
     public String getPluginPropertyKey(final int position, final String pluginName) {
-        final String propertyKey = String.format("org.killbill.billing.plugin.analytics.pluginPropertyKey.%s.%s", pluginName, position);
-        final String pluginPropertyKey = properties.getProperty(propertyKey);
-        return pluginPropertyKey != null ? pluginPropertyKey : defaultPluginPropertyKeys.get(position);
+        if (pluginPropertyKeys.get(pluginName) == null || pluginPropertyKeys.get(pluginName).get(position) == null) {
+            return defaultPluginPropertyKeys.get(position);
+        }
+
+        return pluginPropertyKeys.get(pluginName).get(position);
     }
 }
