@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.kill-bill.billing</groupId>
         <artifactId>killbill-oss-parent</artifactId>
-        <version>0.144.18</version>
+        <version>0.144.49</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -34,6 +34,7 @@
     <scm>
         <connection>scm:git:git://github.com/killbill/killbill-analytics-plugin.git</connection>
         <developerConnection>scm:git:git@github.com:killbill/killbill-analytics-plugin.git</developerConnection>
+        <tag>HEAD</tag>
         <url>http://github.com/killbill/killbill-analytics-plugin/tree/master</url>
     </scm>
     <issueManagement>
@@ -45,6 +46,15 @@
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
         <osgi.private>org.killbill.billing.plugin.analytics.*</osgi.private>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.reactivestreams</groupId>
+                <artifactId>reactive-streams</artifactId>
+                <version>1.0.3</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>com.bpodgursky</groupId>
@@ -284,6 +294,20 @@
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*.prc</exclude>
+                                <exclude>**/*.ddl</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

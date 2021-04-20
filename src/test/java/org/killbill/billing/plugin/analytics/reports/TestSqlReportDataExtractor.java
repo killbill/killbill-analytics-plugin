@@ -41,9 +41,9 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testDimensions() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
                                                                "  `state`\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234");
@@ -52,9 +52,9 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testMetrics() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^metric:amount^metric:fee");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  `amount`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  `amount`,\n" +
                                                                "  `fee`\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234");
@@ -63,11 +63,11 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testDimensionsAndMetrics() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state^metric:amount^metric:fee");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
-                                                               "  `state`, \n" +
-                                                               "  `amount`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
+                                                               "  `state`,\n" +
+                                                               "  `amount`,\n" +
                                                                "  `fee`\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234");
@@ -76,18 +76,19 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testCaseStatement() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency(USD|BRL,GBP,EUR,MXN,AUD)^dimension:state^metric:amount^metric:fee");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  case when `currency` = 'USD' then 'USD'\n" +
-                                                               "       when `currency` = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       else 'Other'\n" +
-                                                               "  end as `currency`, \n" +
-                                                               "  `state`, \n" +
-                                                               "  `amount`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  case\n" +
+                                                               "    when `currency` = 'USD' then 'USD'\n" +
+                                                               "    when `currency` = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    else 'Other'\n" +
+                                                               "  end as `currency`,\n" +
+                                                               "  `state`,\n" +
+                                                               "  `amount`,\n" +
                                                                "  `fee`\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234");
@@ -96,17 +97,18 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testCaseStatementNoOther() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency(USD|BRL,GBP,EUR,MXN,AUD|-)^dimension:state^metric:amount^metric:fee");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  case when `currency` = 'USD' then 'USD'\n" +
-                                                               "       when `currency` = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "       when `currency` = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
-                                                               "  end as `currency`, \n" +
-                                                               "  `state`, \n" +
-                                                               "  `amount`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  case\n" +
+                                                               "    when `currency` = 'USD' then 'USD'\n" +
+                                                               "    when `currency` = 'BRL' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'GBP' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'EUR' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'MXN' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "    when `currency` = 'AUD' then 'BRL,GBP,EUR,MXN,AUD'\n" +
+                                                               "  end as `currency`,\n" +
+                                                               "  `state`,\n" +
+                                                               "  `amount`,\n" +
                                                                "  `fee`\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -163,26 +165,26 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testAggregate() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state^metric:avg(amount)^metric:sum(fee)^metric:count(distinct amount)");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
-                                                               "  `state`, \n" +
-                                                               "  avg(`amount`), \n" +
-                                                               "  sum(`fee`), \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
+                                                               "  `state`,\n" +
+                                                               "  avg(`amount`),\n" +
+                                                               "  sum(`fee`),\n" +
                                                                "  count(distinct `amount`)\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234\n" +
-                                                               "group by \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
-                                                               "  `state`\n");
+                                                               "group by\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
+                                                               "  `state`");
     }
 
     @Test(groups = "fast")
     public void testAggregateNoDimension() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^metric:avg(amount)");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
                                                                "  avg(`amount`)\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234\n" +
@@ -228,11 +230,11 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:currency!=EUR^filter:state=PROCESSED^filter:state=PROCESSING^dimension:currency^dimension:state^metric:amount^metric:fee",
                                                                                           new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(),
                                                                                           new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay());
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
-                                                               "  `state`, \n" +
-                                                               "  `amount`, \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
+                                                               "  `state`,\n" +
+                                                               "  `amount`,\n" +
                                                                "  `fee`\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -252,12 +254,12 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^filter:(currency=USD&state!=ERRORED)|(currency=EUR&currency=PROCESSED)|(name~'John Doe%'&name!~'John Does')^dimension:currency^dimension:state^metric:avg(amount)^metric:avg(fee)^metric:100*sum(fee)/amount",
                                                                                           new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(),
                                                                                           new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay());
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
-                                                               "  `state`, \n" +
-                                                               "  avg(`amount`), \n" +
-                                                               "  avg(`fee`), \n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
+                                                               "  `state`,\n" +
+                                                               "  avg(`amount`),\n" +
+                                                               "  avg(`fee`),\n" +
                                                                "  ((100 * sum(`fee`)) / `amount`)\n" +
                                                                "from payments_per_day\n" +
                                                                "where (\n" +
@@ -279,10 +281,10 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  and `day` <= '2013-11-10'\n" +
                                                                "  and `tenant_record_id` = 1234\n" +
                                                                ")\n" +
-                                                               "group by \n" +
-                                                               "  `day`, \n" +
-                                                               "  `currency`, \n" +
-                                                               "  `state`\n");
+                                                               "group by\n" +
+                                                               "  `day`,\n" +
+                                                               "  `currency`,\n" +
+                                                               "  `state`");
     }
 
     private SqlReportDataExtractor buildSqlReportDataExtractor(final String rawReportName) {
