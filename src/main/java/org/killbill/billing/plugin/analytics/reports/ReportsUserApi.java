@@ -206,14 +206,22 @@ public class ReportsUserApi {
             final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
             final ReportsConfigurationModelDao reportConfigurationForReport = reportsConfiguration.getReportConfigurationForReport(reportSpecification.getReportName(), tenantRecordId);
             if (reportConfigurationForReport != null) {
-                final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportConfigurationForReport.getSourceTableName(),
-                                                                                                 reportSpecification,
-                                                                                                 startDate,
-                                                                                                 endDate,
-                                                                                                 dbEngine,
-                                                                                                 tenantRecordId);
+                if (reportConfigurationForReport.getSourceTableName() != null) {
+                    final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportConfigurationForReport.getSourceTableName(),
+                                                                                                     reportSpecification,
+                                                                                                     startDate,
+                                                                                                     endDate,
+                                                                                                     dbEngine,
+                                                                                                     tenantRecordId);
 
-                sqlQueries.add(sqlReportDataExtractor.toString());
+                    sqlQueries.add(sqlReportDataExtractor.toString());
+                } else {
+                    final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportConfigurationForReport.getSourceQuery(),
+                                                                                                     startDate,
+                                                                                                     endDate,
+                                                                                                     tenantRecordId);
+                    sqlQueries.add(sqlReportDataExtractor.toString());
+                }
             }
         }
 
@@ -252,7 +260,7 @@ public class ReportsUserApi {
                 public void run() {
                     switch (reportType) {
                         case COUNTERS:
-                            List<DataMarker> counters = queryEngine.getCountersData(reportConfiguration, tenantRecordId, context.getTenantId());
+                            List<DataMarker> counters = queryEngine.getCountersData(reportConfiguration, startDate, endDate, tenantRecordId, context.getTenantId());
                             result.add(new Chart(ReportType.COUNTERS, prettyName, counters));
                             break;
 
@@ -262,7 +270,7 @@ public class ReportsUserApi {
                             break;
 
                         case TABLE:
-                            List<DataMarker> tables = queryEngine.getTablesData(reportConfiguration, tenantRecordId, context.getTenantId());
+                            List<DataMarker> tables = queryEngine.getTablesData(reportConfiguration, startDate, endDate, tenantRecordId, context.getTenantId());
                             result.add(new Chart(ReportType.TABLE, prettyName, tables));
                             break;
 

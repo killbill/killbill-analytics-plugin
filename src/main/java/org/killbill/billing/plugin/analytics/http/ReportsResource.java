@@ -139,7 +139,7 @@ public class ReportsResource extends BaseResource {
 
         // TODO I'm sure Jooby could do that for us?
         DateTime startDate;
-        if (startDateStr.isPresent()) {
+        if (startDateStr.isPresent() && !startDateStr.get().isEmpty()) {
             try {
                 startDate = DATE_FORMAT.parseLocalDate(startDateStr.get()).toDateTimeAtStartOfDay(DateTimeZone.UTC);
             } catch (final IllegalArgumentException e) {
@@ -149,7 +149,7 @@ public class ReportsResource extends BaseResource {
             startDate = null;
         }
         DateTime endDate;
-        if (endDateStr.isPresent()) {
+        if (endDateStr.isPresent() && !endDateStr.get().isEmpty()) {
             try {
                 endDate = DATE_FORMAT.parseLocalDate(endDateStr.get()).toDateTimeAtStartOfDay(DateTimeZone.UTC);
             } catch (final IllegalArgumentException e) {

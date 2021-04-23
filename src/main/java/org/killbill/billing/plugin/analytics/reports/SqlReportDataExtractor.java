@@ -53,6 +53,7 @@ import static org.killbill.billing.plugin.analytics.reports.ReportsUserApi.TS_CO
 public class SqlReportDataExtractor {
 
     private final String tableName;
+    private final String sourceQuery;
     private final ReportSpecification reportSpecification;
     private final DateTime startDate;
     private final DateTime endDate;
@@ -71,20 +72,14 @@ public class SqlReportDataExtractor {
                                   @Nullable final DateTime endDate,
                                   final DBEngine dbEngine,
                                   final Long tenantRecordId) {
-        this(tableName, reportSpecification, startDate, endDate, SQLDialectFromDBEngine(dbEngine), tenantRecordId);
-    }
-
-    public SqlReportDataExtractor(final String tableName,
-                                  final ReportSpecification reportSpecification,
-                                  @Nullable final DateTime startDate,
-                                  @Nullable final DateTime endDate,
-                                  final SQLDialect sqlDialect,
-                                  final Long tenantRecordId) {
         this.tableName = tableName;
         this.reportSpecification = reportSpecification;
         this.startDate = startDate;
         this.endDate = endDate;
         this.tenantRecordId = tenantRecordId;
+        this.sourceQuery = null;
+
+        final SQLDialect sqlDialect = SQLDialectFromDBEngine(dbEngine);
 
         final Settings settings = new Settings();
         settings.withStatementType(StatementType.STATIC_STATEMENT);
@@ -97,8 +92,37 @@ public class SqlReportDataExtractor {
         setup();
     }
 
+    public SqlReportDataExtractor(final String sourceQuery,
+                                  @Nullable final DateTime startDate,
+                                  @Nullable final DateTime endDate,
+                                  final Long tenantRecordId) {
+        this.tableName = null;
+        this.reportSpecification = null;
+        this.context = null;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.tenantRecordId = tenantRecordId;
+
+        String query = sourceQuery.replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
+        if (startDate != null) {
+            query = query.replaceAll("START_DATE", startDate.toString());
+        } else {
+            query = query.replaceAll("START_DATE", "2000-01-01T00:00:00.000Z");
+        }
+        if (endDate != null) {
+            query = query.replaceAll("END_DATE", endDate.toString());
+        } else {
+            query = query.replaceAll("END_DATE", "2030-01-01T00:00:00.000Z");
+        }
+        this.sourceQuery = query;
+    }
+
     @Override
     public String toString() {
+        if (this.sourceQuery != null) {
+            return this.sourceQuery;
+        }
+
         // Generate "select *" if no dimension or metric is precised
         final SelectSelectStep<? extends Record> initialSelect = dimensions.size() == 1 && metrics.isEmpty() ? context.select()
                                                                                                              : context.select(dimensions)
@@ -106,7 +130,6 @@ public class SqlReportDataExtractor {
 
         SelectConditionStep<? extends Record> statement = initialSelect.from(tableName)
                                                                        .where();
-
 
         if (filters != null) {
             statement = statement.and(Filters.of(filters));
