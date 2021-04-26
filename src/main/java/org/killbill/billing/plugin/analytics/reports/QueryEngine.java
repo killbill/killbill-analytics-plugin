@@ -71,6 +71,8 @@ public class QueryEngine {
     }
 
     public List<DataMarker> getCountersData(final ReportsConfigurationModelDao reportsConfigurationModelDao,
+                                            @Nullable final DateTime startDate,
+                                            @Nullable final DateTime endDate,
                                             final Long tenantRecordId,
                                             final UUID tenantId) {
         final DBI dbi = getDBI(reportsConfigurationModelDao, tenantId);
@@ -79,12 +81,18 @@ public class QueryEngine {
         if (reportsConfigurationModelDao.getSourceTableName() != null) {
             query = "select * from " + reportsConfigurationModelDao.getSourceTableName() + " where tenant_record_id = " + tenantRecordId;
         } else {
-            query = reportsConfigurationModelDao.getSourceQuery().replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
+            final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceQuery(),
+                                                                                             startDate,
+                                                                                             endDate,
+                                                                                             tenantRecordId);
+            query = sqlReportDataExtractor.toString();
         }
         return getCountersData(dbi, query);
     }
 
     public List<DataMarker> getTablesData(final ReportsConfigurationModelDao reportsConfigurationModelDao,
+                                          @Nullable final DateTime startDate,
+                                          @Nullable final DateTime endDate,
                                           final Long tenantRecordId,
                                           final UUID tenantId) {
         final DBI dbi = getDBI(reportsConfigurationModelDao, tenantId);
@@ -99,7 +107,11 @@ public class QueryEngine {
         } else {
             seriesName = reportsConfigurationModelDao.getSourceName();
             fallBackHeadersQuery = null;
-            query = reportsConfigurationModelDao.getSourceQuery().replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
+            final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceQuery(),
+                                                                                             startDate,
+                                                                                             endDate,
+                                                                                             tenantRecordId);
+            query = sqlReportDataExtractor.toString();
         }
         return getTablesData(dbi,
                              seriesName,
@@ -126,13 +138,11 @@ public class QueryEngine {
                                                                                              tenantRecordId);
             query = sqlReportDataExtractor.toString();
         } else {
-            query = reportsConfigurationModelDao.getSourceQuery().replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
-            if (startDate != null) {
-                query = query.replaceAll("START_DATE", startDate.toString());
-            }
-            if (endDate != null) {
-                query = query.replaceAll("END_DATE", endDate.toString());
-            }
+            final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceQuery(),
+                                                                                             startDate,
+                                                                                             endDate,
+                                                                                             tenantRecordId);
+            query = sqlReportDataExtractor.toString();
         }
         return getTimeSeriesData(dbi, reportSpecification, query);
     }
