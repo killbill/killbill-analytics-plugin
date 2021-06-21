@@ -1,4 +1,4 @@
-CREATE OR REPLACE PROCEDURE cleanAnlyticsAccount(p_account_id varchar(36)) LANGUAGE plpgsql
+CREATE OR REPLACE PROCEDURE cleanAnalyticsAccount(p_account_id varchar(36)) LANGUAGE plpgsql
 AS $$
 DECLARE
     v_account_record_id bigint;
