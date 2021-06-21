@@ -1,6 +1,6 @@
-drop procedure if exists cleanAnalyticsAccount;
+DROP PROCEDURE IF EXISTS cleanAnalyticsAccount;
 DELIMITER //
-CREATE PROCEDURE cleanAccount(p_account_id varchar(36))
+CREATE PROCEDURE cleanAnalyticsAccount(p_account_id varchar(36))
 BEGIN
 
     DECLARE v_account_record_id bigint /*! unsigned */;
