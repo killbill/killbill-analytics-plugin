@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -84,7 +84,9 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
         Assert.assertEquals(analyticsSqlDao.getAccountFieldsByAccountRecordId(accountRecordId, tenantRecordId, callContext).size(), 0);
 
         // Send the first event
+        final UUID objectId = UUID.randomUUID();
         final ExtBusEvent firstEvent = createExtBusEvent();
+        Mockito.when(firstEvent.getObjectId()).thenReturn(objectId);
         Mockito.when(firstEvent.getEventType()).thenReturn(ExtBusEventType.PAYMENT_FAILED);
         analyticsListener.handleKillbillEvent(firstEvent);
 
@@ -99,6 +101,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Now, send a different event type
         final ExtBusEvent secondEvent = createExtBusEvent();
+        Mockito.when(secondEvent.getObjectId()).thenReturn(objectId);
         Mockito.when(secondEvent.getEventType()).thenReturn(ExtBusEventType.OVERDUE_CHANGE);
         analyticsListener.handleKillbillEvent(secondEvent);
 
@@ -107,6 +110,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
 
         // Now, send a different event type, but triggering the same refresh type as the first event
         final ExtBusEvent thirdEvent = createExtBusEvent();
+        Mockito.when(thirdEvent.getObjectId()).thenReturn(objectId);
         Mockito.when(thirdEvent.getEventType()).thenReturn(ExtBusEventType.PAYMENT_SUCCESS);
         analyticsListener.handleKillbillEvent(thirdEvent);
 

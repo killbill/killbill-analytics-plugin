@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -294,20 +294,33 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                                                                              new Predicate<NotificationEventWithMetadata<AnalyticsJob>>() {
                                                                                  @Override
                                                                                  public boolean apply(final NotificationEventWithMetadata<AnalyticsJob> notificationEvent) {
-                                                                                     return jobsOverlap(job, notificationEvent);
+                                                                                     if (notificationEvent == null) {
+                                                                                         return false;
+                                                                                     }
+                                                                                     return jobsOverlap(job, notificationEvent.getEvent());
                                                                                  }
                                                                              }
                                                                             );
     }
 
     // Does the specified existing notification overlap with this job?
-    private boolean jobsOverlap(final AnalyticsJob job, final NotificationEventWithMetadata<AnalyticsJob> notificationEventForExistingJob) {
-        final AnalyticsJob existingJob = notificationEventForExistingJob.getEvent();
+    @VisibleForTesting
+    boolean jobsOverlap(final AnalyticsJob job, final AnalyticsJob existingJob) {
         final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob);
 
-        return existingJob.getAccountId().equals(job.getAccountId()) &&
-               (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job)) ||
-                AnalyticsJobHierarchy.Group.ALL.equals(existingHierarchyGroup));
+        if (!existingJob.getAccountId().equals(job.getAccountId())) {
+            // Jobs for different accounts, they cannot overlap
+            return false;
+        } else if (Group.ALL.equals(existingHierarchyGroup)) {
+            // A full refresh is already scheduled, the new job overlaps
+            return true;
+        } else if (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job)) &&
+                   job.getObjectId() != null && existingJob.getObjectId() != null && job.getObjectId().equals(existingJob.getObjectId())) {
+            // A refresh for the same group and object is already scheduled
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
