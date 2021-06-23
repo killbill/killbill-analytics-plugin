@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -22,9 +22,9 @@ package org.killbill.billing.plugin.analytics.http;
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +33,7 @@ import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.killbill.billing.plugin.analytics.json.Chart;
 import org.killbill.billing.plugin.analytics.json.DataMarker;
 import org.killbill.billing.plugin.analytics.json.NamedXYTimeSeries;
+import org.killbill.billing.plugin.analytics.json.TableDataSeries;
 import org.killbill.billing.plugin.analytics.json.XY;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import org.testng.Assert;
@@ -40,7 +41,7 @@ import org.testng.annotations.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 
 public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
 
@@ -90,6 +91,37 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
                            );
     }
 
+    @Test(groups = "fast")
+    public void testSimpleSerializationWithNULL() throws Exception {
+        final List<DataMarker> res = new ArrayList<DataMarker>();
+
+        final List<List<Object>> values = new ArrayList<List<Object>>();
+        values.add(Arrays.asList("2013-01-01", null, 1.0));
+        values.add(Arrays.asList("2013-01-01", " ", 7.0));
+        values.add(Arrays.asList("2013-01-01", " ", null));
+        values.add(Arrays.asList("2013-01-01", " ", ""));
+        values.add(Arrays.asList("2013-01-01", "something", null));
+        values.add(Arrays.asList("2013-01-01", "something", ""));
+        values.add(Arrays.asList("2013-01-01", "something", " "));
+        final DataMarker serie1 = new TableDataSeries("serie1",
+                                                      ImmutableList.<String>of("c1", "c2", "c3"),
+                                                      values);
+        res.add(serie1);
+
+        final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        ReportsResource.writeAsCSV(Collections.singletonList(new Chart(ReportType.TABLE, "foo", res)), out);
+        Assert.assertEquals(out.toString(StandardCharsets.UTF_8.name()),
+                            "c1,c2,c3\n" +
+                            "2013-01-01,,1.0\n" +
+                            "2013-01-01,\" \",7.0\n" +
+                            "2013-01-01,\" \",\n" +
+                            "2013-01-01,\" \",\n" +
+                            "2013-01-01,something,\n" +
+                            "2013-01-01,something,\n" +
+                            "2013-01-01,something,\" \"\n"
+                           );
+    }
 
     @Test(groups = "fast")
     public void testDeserializationReserialization() throws Exception {
