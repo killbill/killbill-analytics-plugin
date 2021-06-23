@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -68,6 +68,8 @@ import org.killbill.billing.util.callcontext.TenantContext;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 
 @Singleton
 // Handle /plugins/killbill-analytics/reports
@@ -114,7 +116,14 @@ public class ReportsResource extends BaseResource {
                         final TableDataSeries tableDataSeries = (TableDataSeries) marker;
                         out.write(csvMapper.writeValueAsBytes(tableDataSeries.getHeader()));
                         for (final List<Object> row : tableDataSeries.getValues()) {
-                            out.write(csvMapper.writeValueAsBytes(row));
+                            // Workaround for https://github.com/FasterXML/jackson-dataformats-text/issues/10
+                            final List<Object> withoutNulls = Lists.<Object, Object>transform(row, new Function<Object, Object>() {
+                                @Override
+                                public Object apply(final Object input) {
+                                    return (input == null) ? "" : input;
+                                }
+                            });
+                            out.write(csvMapper.writeValueAsBytes(withoutNulls));
                         }
                     }
                     break;

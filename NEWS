@@ -1,8 +1,27 @@
+7.2.2
+    Bug fix for missing refreshes (https://github.com/killbill/killbill-analytics-plugin/issues/118)
+    Fix NULL handling in CSV generation
+
+7.2.1
+    Allow date filters for all report types
+
+7.2.0
+    Add support for Trino based queries
+    Change configuration format to YAML
+    Note: DDL change in analytics_reports
+
+7.1.1
+    Update to killbill-oss-parent 0.144.49
+
+7.1.0
+    Be resilient if a payment plugin doesn't return info on deleted payment methods
+    Update to killbill-oss-parent 0.144.18
+
 7.0.8
     Update parent pom.xml
 
 7.0.6
-    refresh payment rows when CBA is distributed
+    Refresh payment rows when CBA is distributed
 
 7.0.5
     Updates for Kill Bill 0.21.5
