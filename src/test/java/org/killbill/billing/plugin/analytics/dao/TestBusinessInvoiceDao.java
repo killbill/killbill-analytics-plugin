@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -26,8 +26,10 @@ import java.util.UUID;
 import org.joda.time.LocalDate;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.invoice.api.Invoice;
+import org.killbill.billing.invoice.api.InvoiceApiException;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
+import org.killbill.billing.invoice.api.InvoiceStatus;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteWithEmbeddedDB;
 import org.killbill.billing.plugin.analytics.api.BusinessInvoice;
@@ -112,6 +114,7 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
         Mockito.when(invoice2.getNumberOfItems()).thenReturn(1);
         Mockito.when(invoice2.getBalance()).thenReturn(BigDecimal.ZERO);
         Mockito.when(invoice2.getCurrency()).thenReturn(Currency.EUR);
+        Mockito.when(invoice2.getStatus()).thenReturn(InvoiceStatus.COMMITTED);
         final LocalDate firstInvoiceDate = invoice.getInvoiceDate();
         Mockito.when(invoice2.getInvoiceDate()).thenReturn(firstInvoiceDate.plusDays(1));
         Mockito.when(killbillAPI.getInvoiceUserApi().getInvoicesByAccount(Mockito.eq(account.getId()),
@@ -172,5 +175,78 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
                 Assert.assertTrue(businessInvoiceItemModelDao.getRecordId() > Math.max(biiRecordId11, biiRecordId12));
             }
         }
+    }
+
+    @Test(groups = "slow")
+    public void testUpdateToVoid() throws AnalyticsRefreshException, InvoiceApiException {
+        final BusinessSnapshot businessSnapshot1 = analyticsUserApi.getBusinessSnapshot(account.getId(), callContext);
+        Assert.assertNull(businessSnapshot1.getBusinessAccount());
+        Assert.assertEquals(businessSnapshot1.getBusinessInvoices().size(), 0);
+
+        // Refresh that one invoice
+        businessInvoiceDao.update(invoice.getId(), businessContextFactory);
+
+        final BusinessSnapshot businessSnapshot2 = analyticsUserApi.getBusinessSnapshot(account.getId(), callContext);
+        Assert.assertEquals(businessSnapshot2.getBusinessAccount().getAccountId(), account.getId());
+        Assert.assertEquals(businessSnapshot2.getBusinessAccount().getLastInvoiceId(), invoice.getId());
+        Assert.assertEquals(businessSnapshot2.getBusinessInvoices().size(), 1);
+        final BusinessInvoice businessInvoice21 = businessSnapshot2.getBusinessInvoices().iterator().next();
+        Assert.assertEquals(businessInvoice21.getInvoiceItems().size(), 2);
+        Assert.assertTrue("EXTERNAL_CHARGE".equals(businessInvoice21.getInvoiceItems().get(0).getItemType()) && "TAX".equals(businessInvoice21.getInvoiceItems().get(1).getItemType()) ||
+                          "EXTERNAL_CHARGE".equals(businessInvoice21.getInvoiceItems().get(1).getItemType()) && "TAX".equals(businessInvoice21.getInvoiceItems().get(0).getItemType()));
+
+        final Long bacRecordId1 = analyticsSqlDao.getAccountByAccountRecordId(accountRecordId, tenantRecordId, callContext).getRecordId();
+        final Long binRecordId1 = analyticsSqlDao.getInvoicesByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0).getRecordId();
+        final List<BusinessInvoiceItemModelDao> invoiceItemsModelDao1 = analyticsSqlDao.getInvoiceItemsByAccountRecordId(accountRecordId, tenantRecordId, callContext);
+        final Long biiRecordId11 = invoiceItemsModelDao1.get(0).getRecordId();
+        final Long biiRecordId12 = invoiceItemsModelDao1.get(1).getRecordId();
+
+        // Full invoices and payments refresh
+        businessInvoiceAndPaymentDao.update(businessContextFactory);
+
+        // Verify the state is the same
+        final BusinessSnapshot businessSnapshot3 = analyticsUserApi.getBusinessSnapshot(account.getId(), callContext);
+        Assert.assertEquals(businessSnapshot3.getBusinessAccount(), businessSnapshot2.getBusinessAccount());
+        Assert.assertEquals(businessSnapshot3.getBusinessInvoices().size(), 1);
+        Assert.assertEqualsNoOrder(businessSnapshot3.getBusinessInvoices().iterator().next().getInvoiceItems().toArray(), businessInvoice21.getInvoiceItems().toArray());
+
+        // Verify the rows have been recreated
+        final Long bacRecordId2 = analyticsSqlDao.getAccountByAccountRecordId(accountRecordId, tenantRecordId, callContext).getRecordId();
+        final Long binRecordId2 = analyticsSqlDao.getInvoicesByAccountRecordId(accountRecordId, tenantRecordId, callContext).get(0).getRecordId();
+        final List<BusinessInvoiceItemModelDao> invoiceItemsModelDao2 = analyticsSqlDao.getInvoiceItemsByAccountRecordId(accountRecordId, tenantRecordId, callContext);
+        final Long biiRecordId21 = invoiceItemsModelDao2.get(0).getRecordId();
+        final Long biiRecordId22 = invoiceItemsModelDao2.get(1).getRecordId();
+        Assert.assertTrue(bacRecordId2 > bacRecordId1);
+        Assert.assertTrue(binRecordId2 > binRecordId1);
+        Assert.assertTrue(biiRecordId21 > Math.max(biiRecordId11, biiRecordId12));
+        Assert.assertTrue(biiRecordId22 > Math.max(biiRecordId11, biiRecordId12));
+
+        // Void the invoice
+        Mockito.when(invoice.getStatus()).thenReturn(InvoiceStatus.VOID);
+        Mockito.when(killbillAPI.getInvoiceUserApi().getInvoice(Mockito.eq(invoice.getId()),
+                                                                Mockito.any(TenantContext.class)))
+               .thenReturn(invoice);
+        Mockito.when(killbillAPI.getInvoiceUserApi().getInvoicesByAccount(Mockito.eq(account.getId()),
+                                                                          Mockito.anyBoolean(),
+                                                                          Mockito.eq(false),
+                                                                          Mockito.any(TenantContext.class)))
+               .thenReturn(ImmutableList.of());
+
+        // Re-create the context to clear caches
+        businessContextFactory = new BusinessContextFactory(account.getId(),
+                                                            callContext,
+                                                            currencyConversionDao,
+                                                            killbillAPI,
+                                                            osgiConfigPropertiesService,
+                                                            clock,
+                                                            analyticsConfigurationHandler);
+
+        // Refresh that one invoice
+        businessInvoiceDao.update(invoice.getId(), businessContextFactory);
+
+        final BusinessSnapshot businessSnapshot4 = analyticsUserApi.getBusinessSnapshot(account.getId(), callContext);
+        Assert.assertEquals(businessSnapshot4.getBusinessAccount().getAccountId(), account.getId());
+        Assert.assertNull(businessSnapshot4.getBusinessAccount().getLastInvoiceId());
+        Assert.assertEquals(businessSnapshot4.getBusinessInvoices().size(), 0);
     }
 }

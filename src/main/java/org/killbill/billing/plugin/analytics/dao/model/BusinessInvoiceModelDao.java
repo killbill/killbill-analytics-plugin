@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -58,6 +58,8 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
     private BigDecimal convertedAmountRefunded;
     private String convertedCurrency;
     private boolean writtenOff;
+    // Not in DB schema
+    private String status;
 
     public BusinessInvoiceModelDao() { /* When reading from the database */ }
 
@@ -83,6 +85,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
                                    final BigDecimal convertedAmountRefunded,
                                    final String convertedCurrency,
                                    final boolean writtenOff,
+                                   final String status,
                                    final DateTime createdDate,
                                    final String createdBy,
                                    final String createdReasonCode,
@@ -125,6 +128,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         this.convertedAmountRefunded = convertedAmountRefunded;
         this.convertedCurrency = convertedCurrency;
         this.writtenOff = writtenOff;
+        this.status = status;
     }
 
     public BusinessInvoiceModelDao(final Account account,
@@ -158,6 +162,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
              currencyConverter.getConvertedValue(invoice.getRefundedAmount(), invoice),
              currencyConverter.getConvertedCurrency(),
              writtenOff,
+             invoice.getStatus().toString(),
              invoice.getCreatedDate(),
              creationAuditLog != null ? creationAuditLog.getUserName() : null,
              creationAuditLog != null ? creationAuditLog.getReasonCode() : null,
@@ -263,6 +268,10 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         return writtenOff;
     }
 
+    public String getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("BusinessInvoiceModelDao{");
@@ -288,6 +297,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         sb.append(", convertedAmountRefunded=").append(convertedAmountRefunded);
         sb.append(", convertedCurrency='").append(convertedCurrency).append('\'');
         sb.append(", writtenOff='").append(writtenOff).append('\'');
+        /* sb.append(", status='").append(status).append('\''); // Not read from DB */
         sb.append('}');
         return sb.toString();
     }
@@ -366,6 +376,12 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         if (rawBalance != null ? rawBalance.compareTo(that.rawBalance) != 0 : that.rawBalance != null) {
             return false;
         }
+        /*
+        // Not read from DB
+        if (status != null ? !status.equals(that.status) : that.status != null) {
+            return false;
+        }
+        */
         if (targetDate != null ? targetDate.compareTo(that.targetDate) != 0 : that.targetDate != null) {
             return false;
         }
@@ -401,6 +417,7 @@ public class BusinessInvoiceModelDao extends BusinessModelDaoBase {
         result = 31 * result + (convertedAmountRefunded != null ? convertedAmountRefunded.hashCode() : 0);
         result = 31 * result + (convertedCurrency != null ? convertedCurrency.hashCode() : 0);
         result = 31 * result + (writtenOff ? 1 : 0);
+        /* result = 31 * result + (status != null ? status.hashCode() : 0); // Not read from DB */
         return result;
     }
 }

@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -25,6 +25,9 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
+import javax.annotation.Nullable;
+
+import org.killbill.billing.invoice.api.InvoiceStatus;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
@@ -88,14 +91,11 @@ public class BusinessInvoiceDao extends BusinessAnalyticsDaoBase {
 
     private void updateInTransaction(final BusinessAccountModelDao bac,
                                      final BusinessInvoiceModelDao businessInvoice,
-                                     final Iterable<BusinessInvoiceItemBaseModelDao> businessInvoiceItems,
+                                     @Nullable final Iterable<BusinessInvoiceItemBaseModelDao> businessInvoiceItems,
                                      final BusinessAnalyticsSqlDao transactional,
                                      final CallContext context) {
         deleteInvoiceAndInvoiceItemsInTransaction(transactional, businessInvoice.getInvoiceId(), bac.getTenantRecordId(), context);
-
-        if (businessInvoiceItems != null) {
-            createInvoiceInTransaction(transactional, businessInvoice, businessInvoiceItems, context);
-        }
+        createInvoiceInTransaction(transactional, businessInvoice, businessInvoiceItems, context);
 
         // Invoice and payment details in BAC will subsequently be updated
     }
@@ -118,9 +118,7 @@ public class BusinessInvoiceDao extends BusinessAnalyticsDaoBase {
 
         for (final BusinessInvoiceModelDao businessInvoice : businessInvoices.values()) {
             final Collection<BusinessInvoiceItemBaseModelDao> invoiceItems = businessInvoiceItems.get(businessInvoice.getInvoiceId());
-            if (invoiceItems != null) {
-                createInvoiceInTransaction(transactional, businessInvoice, invoiceItems, context);
-            }
+            createInvoiceInTransaction(transactional, businessInvoice, invoiceItems, context);
         }
 
         // Invoice and payment details in BAC will subsequently be updated
@@ -154,8 +152,12 @@ public class BusinessInvoiceDao extends BusinessAnalyticsDaoBase {
 
     private void createInvoiceInTransaction(final BusinessAnalyticsSqlDao transactional,
                                             final BusinessInvoiceModelDao invoice,
-                                            final Iterable<BusinessInvoiceItemBaseModelDao> invoiceItems,
+                                            @Nullable final Iterable<BusinessInvoiceItemBaseModelDao> invoiceItems,
                                             final CallContext context) {
+        if (invoiceItems == null || !InvoiceStatus.COMMITTED.toString().equals(invoice.getStatus())) {
+            return;
+        }
+
         // Create the invoice
         transactional.create(invoice.getTableName(), invoice, context);
 

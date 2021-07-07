@@ -57,6 +57,7 @@ import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.invoice.api.InvoicePayment;
 import org.killbill.billing.invoice.api.InvoicePaymentType;
+import org.killbill.billing.invoice.api.InvoiceStatus;
 import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
@@ -412,6 +413,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoice.getBalance()).thenReturn(new BigDecimal("12001"));
         Mockito.when(invoice.isMigrationInvoice()).thenReturn(false);
         Mockito.when(invoice.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);
+        Mockito.when(invoice.getStatus()).thenReturn(InvoiceStatus.COMMITTED);
 
         final PaymentMethodPlugin paymentMethodPlugin = Mockito.mock(PaymentMethodPlugin.class);
         Mockito.when(paymentMethodPlugin.getExternalPaymentMethodId()).thenReturn(UUID.randomUUID().toString());
