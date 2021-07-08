@@ -39,6 +39,8 @@ public class AnalyticsConfiguration {
 
     // List of account ids to ignore
     public List<String> blacklist = new LinkedList<String>();
+    // Groups to ignore for refresh, see https://github.com/killbill/killbill-analytics-plugin/issues/87
+    public List<String> ignoredGroups = new LinkedList<String>();
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 
