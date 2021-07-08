@@ -1,3 +1,6 @@
+7.2.4
+    Make all properties dynamic (the System Properties have been deprecated, see README for a configuration example)
+
 7.2.3
     Fix inconsistency with non COMMITTED invoices (requires Kill Bill 0.22.24)
 
