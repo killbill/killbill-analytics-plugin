@@ -82,9 +82,6 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsListener.class);
 
-    // List of account ids to ignore
-    @VisibleForTesting
-    static final String ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY = "org.killbill.billing.plugin.analytics.blacklist";
     // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
     // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
     // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
@@ -95,7 +92,6 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private static final Splitter PROPERTY_SPLITTER = Splitter.on(',')
                                                               .trimResults()
                                                               .omitEmptyStrings();
-    private final Iterable<String> accountsBlacklist;
     private final int refreshDelaySeconds;
     private final Iterable<Group> ignoredGroups;
     private final OSGIKillbillAPI osgiKillbillAPI;
@@ -165,7 +161,6 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         jobQueue = notificationQueueService.createNotificationQueue(ANALYTICS_QUEUE_SERVICE,
                                                                     "refresh-queue",
                                                                     notificationQueueHandler);
-        accountsBlacklist = PROPERTY_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY)));
         ignoredGroups = Iterables.<String, Group>transform(PROPERTY_SPLITTER.split(Strings.nullToEmpty(osgiConfigPropertiesService.getString(ANALYTICS_IGNORED_GROUPS_PROPERTY))),
                                                            new Function<String, Group>() {
                                                                @Override
@@ -195,7 +190,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         // Don't mirror accounts in the blacklist
-        if (isAccountBlacklisted(killbillEvent.getAccountId())) {
+        if (isAccountBlacklisted(killbillEvent.getAccountId(), killbillEvent.getTenantId())) {
             return;
         }
 
@@ -378,8 +373,8 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     }
 
     @VisibleForTesting
-    protected boolean isAccountBlacklisted(@Nullable final UUID accountId) {
-        return accountId != null && Iterables.find(accountsBlacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
+    protected boolean isAccountBlacklisted(@Nullable final UUID accountId, final UUID tenantId) {
+        return accountId != null && Iterables.find(analyticsConfigurationHandler.getConfigurable(tenantId).blacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
     }
 
     @VisibleForTesting

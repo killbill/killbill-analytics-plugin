@@ -20,8 +20,9 @@
 package org.killbill.billing.plugin.analytics.api.core;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -36,6 +37,8 @@ public class AnalyticsConfiguration {
                                                                                                     4, "payment_processor_account_id",
                                                                                                     5, "paymentMethod");
 
+    // List of account ids to ignore
+    public List<String> blacklist = new LinkedList<String>();
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 

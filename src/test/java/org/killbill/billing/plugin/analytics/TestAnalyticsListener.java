@@ -45,10 +45,10 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
                                                                           notificationQueueService);
 
         // Other accounts are blacklisted
-        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
+        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID(), callContext.getTenantId()));
 
         // Blacklist
-        Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId));
+        Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId, callContext.getTenantId()));
     }
 
     @Test(groups = "fast")
