@@ -81,12 +81,6 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsListener.class);
 
-    // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
-    // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
-    // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
-    private static final String ANALYTICS_REFRESH_DELAY_PROPERTY = "org.killbill.billing.plugin.analytics.refreshDelay";
-
-    private final int refreshDelaySeconds;
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
     private final BusinessSubscriptionTransitionDao bstDao;
@@ -114,9 +108,6 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         this.locker = locker;
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
-
-        final String refreshDelayMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFRESH_DELAY_PROPERTY));
-        this.refreshDelaySeconds = refreshDelayMaybeNull == null ? Integer.valueOf(10) : Integer.valueOf(refreshDelayMaybeNull);
 
         final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
         this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
@@ -224,7 +215,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         try {
-            jobQueue.recordFutureNotification(computeFutureNotificationTime(), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
+            jobQueue.recordFutureNotification(computeFutureNotificationTime(killbillEvent.getTenantId()), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
         } catch (final IOException e) {
             logger.warn("Unable to record notification for event {}", killbillEvent);
         }
@@ -354,8 +345,8 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         logger.info("Finished Analytics refresh for account {}", businessContextFactory.getAccountId());
     }
 
-    private DateTime computeFutureNotificationTime() {
-        return clock.getUTCNow().plusSeconds(refreshDelaySeconds);
+    private DateTime computeFutureNotificationTime(final UUID tenantId) {
+        return clock.getUTCNow().plusSeconds(analyticsConfigurationHandler.getConfigurable(tenantId).refreshDelaySeconds);
     }
 
     @VisibleForTesting

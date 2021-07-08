@@ -41,6 +41,10 @@ public class AnalyticsConfiguration {
     public List<String> blacklist = new LinkedList<String>();
     // Groups to ignore for refresh, see https://github.com/killbill/killbill-analytics-plugin/issues/87
     public List<String> ignoredGroups = new LinkedList<String>();
+    // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
+    // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
+    // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
+    public Integer refreshDelaySeconds = 10;
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 
