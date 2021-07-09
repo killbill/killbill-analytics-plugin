@@ -44,6 +44,12 @@ curl -v \
      -H 'X-Killbill-CreatedBy: admin' \
      -H 'Content-Type: text/plain' \
      -d '!!org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration
+  refreshDelaySeconds: 10
+  blacklist:
+    - 468e5259-6635-4988-9ae7-3d79b11fc6ed
+    - f7da09af-8593-4a88-b6d4-1c4ebf807103
+  ignoredGroups:
+    - FIELDS
   pluginPropertyKeys:
     killbill-stripe:
       1: processorResponse

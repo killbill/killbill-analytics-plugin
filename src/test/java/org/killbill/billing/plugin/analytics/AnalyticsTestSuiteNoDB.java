@@ -621,7 +621,6 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(killbillDataSource.getDataSource()).thenReturn(dataSource);
 
         final Properties properties = System.getProperties();
-        properties.setProperty(AnalyticsListener.ANALYTICS_ACCOUNTS_BLACKLIST_PROPERTY, String.format("%s,%s", UUID.randomUUID(), blackListedAccountId));
         properties.setProperty("org.killbill.notificationq.analytics.tableName", "analytics_notifications");
         properties.setProperty("org.killbill.notificationq.analytics.historyTableName", "analytics_notifications_history");
 
@@ -637,7 +636,10 @@ public abstract class AnalyticsTestSuiteNoDB {
         executor = BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService);
 
         analyticsConfigurationHandler = new AnalyticsConfigurationHandler(null, AnalyticsActivator.PLUGIN_NAME, killbillAPI);
-        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration());
+        final AnalyticsConfiguration defaultConfigurable = new AnalyticsConfiguration();
+        defaultConfigurable.blacklist.add(UUID.randomUUID().toString());
+        defaultConfigurable.blacklist.add(blackListedAccountId.toString());
+        analyticsConfigurationHandler.setDefaultConfigurable(defaultConfigurable);
 
         businessContextFactory = new BusinessContextFactory(account.getId(),
                                                             callContext,

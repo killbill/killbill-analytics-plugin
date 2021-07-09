@@ -20,8 +20,9 @@
 package org.killbill.billing.plugin.analytics.api.core;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -36,6 +37,14 @@ public class AnalyticsConfiguration {
                                                                                                     4, "payment_processor_account_id",
                                                                                                     5, "paymentMethod");
 
+    // List of account ids to ignore
+    public List<String> blacklist = new LinkedList<String>();
+    // Groups to ignore for refresh, see https://github.com/killbill/killbill-analytics-plugin/issues/87
+    public List<String> ignoredGroups = new LinkedList<String>();
+    // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
+    // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
+    // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
+    public Integer refreshDelaySeconds = 10;
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 

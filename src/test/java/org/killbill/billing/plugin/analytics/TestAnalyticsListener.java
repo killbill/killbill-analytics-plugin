@@ -19,15 +19,13 @@
 
 package org.killbill.billing.plugin.analytics;
 
-import java.util.Properties;
 import java.util.UUID;
 
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
 import org.killbill.billing.notification.plugin.api.ExtBusEventType;
-import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -45,10 +43,10 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
                                                                           notificationQueueService);
 
         // Other accounts are blacklisted
-        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID()));
+        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID(), callContext.getTenantId()));
 
         // Blacklist
-        Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId));
+        Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId, callContext.getTenantId()));
     }
 
     @Test(groups = "fast")
@@ -59,16 +57,10 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
         final ExtBusEvent accountEvent = Mockito.mock(ExtBusEvent.class);
         Mockito.when(accountEvent.getEventType()).thenReturn(ExtBusEventType.ACCOUNT_CREATION);
 
-        final Properties properties = new Properties();
-        properties.setProperty(AnalyticsListener.ANALYTICS_IGNORED_GROUPS_PROPERTY, "FIELDS");
-        final OSGIConfigPropertiesService osgiConfigPropertiesService = Mockito.mock(OSGIConfigPropertiesService.class);
-        Mockito.when(osgiConfigPropertiesService.getProperties()).thenReturn(properties);
-        Mockito.when(osgiConfigPropertiesService.getString(Mockito.<String>any())).thenAnswer(new Answer<Object>() {
-            @Override
-            public Object answer(InvocationOnMock invocation) throws Throwable {
-                return properties.getProperty((String) invocation.getArguments()[0]);
-            }
-        });
+        final AnalyticsConfigurationHandler analyticsConfigurationHandler = new AnalyticsConfigurationHandler(null, AnalyticsActivator.PLUGIN_NAME, killbillAPI);
+        final AnalyticsConfiguration defaultConfigurable = new AnalyticsConfiguration();
+        defaultConfigurable.ignoredGroups.add("FIELDS");
+        analyticsConfigurationHandler.setDefaultConfigurable(defaultConfigurable);
 
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
                                                                           killbillDataSource,
