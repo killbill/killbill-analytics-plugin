@@ -217,6 +217,14 @@ public class BusinessContextFactory extends BusinessFactoryBase {
             synchronized (this) {
                 if (accountBundles == null) {
                     accountBundles = getSubscriptionBundlesForAccount(accountId, callContext);
+
+                    // Pre-populate latestSubscriptionBundleForExternalKeys cache to avoid calling getLatestSubscriptionBundleForExternalKey for each bundle
+                    for (final SubscriptionBundle subscriptionBundle : accountBundles) {
+                        if (latestSubscriptionBundleForExternalKeys.get(subscriptionBundle.getExternalKey()) == null ||
+                            latestSubscriptionBundleForExternalKeys.get(subscriptionBundle.getExternalKey()).getCreatedDate().compareTo(subscriptionBundle.getCreatedDate()) > 0) {
+                            latestSubscriptionBundleForExternalKeys.put(subscriptionBundle.getExternalKey(), subscriptionBundle);
+                        }
+                    }
                 }
             }
         }
