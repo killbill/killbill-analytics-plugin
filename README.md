@@ -35,6 +35,8 @@ kpm install_java_plugin analytics --from-source-file target/analytics-plugin-*-S
 
 ## Configuration
 
+### Per tenant
+
 ```
 curl -v \
      -X POST \
@@ -45,6 +47,7 @@ curl -v \
      -H 'Content-Type: text/plain' \
      -d '!!org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration
   refreshDelaySeconds: 10
+  lockAttemptRetries: 100
   blacklist:
     - 468e5259-6635-4988-9ae7-3d79b11fc6ed
     - f7da09af-8593-4a88-b6d4-1c4ebf807103
@@ -60,6 +63,14 @@ curl -v \
       type: trino
       url: jdbc:trino://example.net:8080/hive/sales?user=admin' \
     http://127.0.0.1:8080/1.0/kb/tenants/uploadPluginConfig/killbill-analytics
+```
+
+### Global
+
+```
+org.killbill.notificationq.analytics.tableName=analytics_notifications
+org.killbill.notificationq.analytics.historyTableName=analytics_notifications_history
+org.killbill.analytics.lockSleepMilliSeconds=100
 ```
 
 ## Setup

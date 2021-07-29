@@ -21,6 +21,7 @@ package org.killbill.billing.plugin.analytics;
 
 import java.util.Hashtable;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
@@ -109,14 +110,17 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         analyticsConfigurationHandler = new AnalyticsConfigurationHandler(region, PLUGIN_NAME, roOSGIkillbillAPI);
         analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration());
 
+        // Timeout defines how long to sleep between retries to get the lock
+        final long lockSleepMilliSeconds = Long.parseLong(configProperties.getProperties().getProperty("org.killbill.analytics.lockSleepMilliSeconds", "100"));
+
         final DBEngine dbEngine = PluginDao.getDBEngine(dataSource.getDataSource());
         final GlobalLocker locker;
         switch (dbEngine) {
             case MYSQL:
-                locker = new MySqlGlobalLocker(dataSource.getDataSource());
+                locker = new MySqlGlobalLocker(dataSource.getDataSource(), lockSleepMilliSeconds, TimeUnit.MILLISECONDS);
                 break;
             case POSTGRESQL:
-                locker = new PostgreSQLGlobalLocker(dataSource.getDataSource());
+                locker = new PostgreSQLGlobalLocker(dataSource.getDataSource(), lockSleepMilliSeconds, TimeUnit.MILLISECONDS);
                 break;
             case GENERIC:
             case H2:

@@ -298,7 +298,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
         GlobalLock lock = null;
         try {
-            lock = locker.lockWithNumberOfTries("ANALYTICS_REFRESH", job.getAccountId().toString(), 100);
+            lock = locker.lockWithNumberOfTries("ANALYTICS_REFRESH", job.getAccountId().toString(), analyticsConfigurationHandler.getConfigurable(job.getTenantId()).lockAttemptRetries);
             handleAnalyticsJobWithLock(job);
         } catch (final LockFailedException e) {
             throw new RuntimeException(e);
