@@ -37,6 +37,7 @@ import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
 import org.killbill.billing.plugin.analytics.AnalyticsJobHierarchy.Group;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.AllBusinessObjectsDao;
 import org.killbill.billing.plugin.analytics.dao.BusinessAccountDao;
@@ -70,7 +71,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 
@@ -80,6 +80,8 @@ import static org.killbill.billing.plugin.analytics.AnalyticsActivator.ANALYTICS
 public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbillEventHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsListener.class);
+
+    private static final String ANALYTICS_REFRESH_LOCK_NAME = "ANALYTICS_REFRESH";
 
     private final OSGIKillbillAPI osgiKillbillAPI;
     private final OSGIConfigPropertiesService osgiConfigPropertiesService;
@@ -195,29 +197,36 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
             return;
         }
 
-        Long accountRecordId = null;
-        Long tenantRecordId = null;
+        scheduleAnalyticsJob(job);
+    }
+
+    private boolean scheduleAnalyticsJob(final AnalyticsJob job) {
+        final Long accountRecordId;
+        final Long tenantRecordId;
         final RecordIdApi recordIdApi = osgiKillbillAPI.getRecordIdApi();
         if (recordIdApi == null) {
             logger.warn("Unable to retrieve the recordIdApi");
+            return false;
         } else {
-            final CallContext callContext = new AnalyticsCallContext(job, clock);
-            accountRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(killbillEvent.getAccountId(), ObjectType.ACCOUNT, callContext);
-            tenantRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(killbillEvent.getTenantId(), ObjectType.TENANT, callContext);
+            final TenantContext callContext = new AnalyticsCallContext(job, clock);
+            accountRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(job.getAccountId(), ObjectType.ACCOUNT, callContext);
+            tenantRecordId = osgiKillbillAPI.getRecordIdApi().getRecordId(job.getTenantId(), ObjectType.TENANT, callContext);
         }
 
         // We check for duplicates here to avoid triggering useless refreshes. Note that because multiple bus_ext_events threads
         // are calling handleKillbillEvent in parallel, there is a small chance that this check will miss some, so we will check again
         // before processing the job (see handleReadyNotification above)
         if (accountRecordId != null && futureOverlappingJobAlreadyScheduled(job, accountRecordId, tenantRecordId)) {
-            logger.debug("Skipping already present notification for event {}", killbillEvent.toString());
-            return;
+            logger.debug("Skipping already present notification for job {}", job);
+            return true;
         }
 
         try {
-            jobQueue.recordFutureNotification(computeFutureNotificationTime(killbillEvent.getTenantId()), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
+            jobQueue.recordFutureNotification(computeFutureNotificationTime(job.getTenantId()), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
+            return true;
         } catch (final IOException e) {
-            logger.warn("Unable to record notification for event {}", killbillEvent);
+            logger.warn("Unable to record notification for job {}", job);
+            return false;
         }
     }
 
@@ -296,9 +305,22 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     }
 
     private void handleAnalyticsJob(final AnalyticsJob job) throws AnalyticsRefreshException {
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(job.getTenantId());
+
+        if (!locker.isFree(ANALYTICS_REFRESH_LOCK_NAME, job.getAccountId().toString())) {
+            final Integer delaySec = analyticsConfiguration.rescheduleIntervalOnLockSeconds;
+            if (delaySec > 0) {
+                final DateTime nextRescheduleDt = clock.getUTCNow().plusSeconds(delaySec);
+                if (scheduleAnalyticsJob(job)) {
+                    logger.info("Lock is busy for account {}, rescheduling job at time {}", job.getAccountId(), nextRescheduleDt);
+                    return;
+                }
+            }
+        }
+
         GlobalLock lock = null;
         try {
-            lock = locker.lockWithNumberOfTries("ANALYTICS_REFRESH", job.getAccountId().toString(), analyticsConfigurationHandler.getConfigurable(job.getTenantId()).lockAttemptRetries);
+            lock = locker.lockWithNumberOfTries(ANALYTICS_REFRESH_LOCK_NAME, job.getAccountId().toString(), analyticsConfiguration.lockAttemptRetries);
             handleAnalyticsJobWithLock(job);
         } catch (final LockFailedException e) {
             throw new RuntimeException(e);
