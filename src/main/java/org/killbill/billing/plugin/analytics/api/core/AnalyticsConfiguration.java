@@ -49,6 +49,8 @@ public class AnalyticsConfiguration {
     public Integer lockAttemptRetries = 100;
     // If the lock is taken, how long until the job is rescheduled
     public Integer rescheduleIntervalOnLockSeconds = 10;
+    // Whether to trigger full refreshes each time
+    public boolean enablePartialRefreshes = true;
 
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();

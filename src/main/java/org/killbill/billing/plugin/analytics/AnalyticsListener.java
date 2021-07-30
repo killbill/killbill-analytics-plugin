@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Iterables;
@@ -168,20 +169,24 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
             return;
         }
 
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(killbillEvent.getTenantId());
+
         // Don't mirror accounts in the blacklist
-        if (isAccountBlacklisted(killbillEvent.getAccountId(), killbillEvent.getTenantId())) {
+        if (isAccountBlacklisted(killbillEvent.getAccountId(), analyticsConfiguration)) {
             return;
         }
 
-        AnalyticsJob job = new AnalyticsJob(killbillEvent);
-        if (AnalyticsJobHierarchy.fromEventType(job) == Group.INVOICES) {
+        final Group group = analyticsConfiguration.enablePartialRefreshes ? AnalyticsJobHierarchy.fromEventType(killbillEvent.getEventType()) : Group.ALL;
+        AnalyticsJob job = new AnalyticsJob(killbillEvent, group);
+        if (group == Group.INVOICES) {
             try {
                 final TenantContext tenantContext = new PluginTenantContext(killbillEvent.getAccountId(), killbillEvent.getTenantId());
                 final Invoice invoice = osgiKillbillAPI.getInvoiceUserApi().getInvoice(killbillEvent.getObjectId(), tenantContext);
                 if (BigDecimal.ZERO.compareTo(invoice.getCreditedAmount()) != 0 && invoice.getNumberOfPayments() > 0) {
                     // The invoice has payments and CBA was updated: payment rows must be updated
                     // See https://github.com/killbill/killbill-analytics-plugin/issues/105
-                    job = new AnalyticsJob(PAYMENT_SUCCESS,
+                    job = new AnalyticsJob(AnalyticsJobHierarchy.fromEventType(PAYMENT_SUCCESS),
+                                           PAYMENT_SUCCESS,
                                            killbillEvent.getObjectType(),
                                            killbillEvent.getObjectId(),
                                            killbillEvent.getAccountId(),
@@ -193,14 +198,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         // Events we don't care about
-        if (shouldIgnoreEvent(job)) {
+        if (shouldIgnoreEvent(group, analyticsConfiguration)) {
             return;
         }
 
-        scheduleAnalyticsJob(job);
+        scheduleAnalyticsJob(job, analyticsConfiguration);
     }
 
-    private boolean scheduleAnalyticsJob(final AnalyticsJob job) {
+    private boolean scheduleAnalyticsJob(final AnalyticsJob job, final AnalyticsConfiguration analyticsConfiguration) {
         final Long accountRecordId;
         final Long tenantRecordId;
         final RecordIdApi recordIdApi = osgiKillbillAPI.getRecordIdApi();
@@ -222,7 +227,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         try {
-            jobQueue.recordFutureNotification(computeFutureNotificationTime(job.getTenantId()), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
+            jobQueue.recordFutureNotification(computeFutureNotificationTime(analyticsConfiguration), job, UUID.randomUUID(), accountRecordId, tenantRecordId);
             return true;
         } catch (final IOException e) {
             logger.warn("Unable to record notification for job {}", job);
@@ -287,7 +292,9 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     // Does the specified existing notification overlap with this job?
     @VisibleForTesting
     boolean jobsOverlap(final AnalyticsJob job, final AnalyticsJob existingJob) {
-        final AnalyticsJobHierarchy.Group existingHierarchyGroup = AnalyticsJobHierarchy.fromEventType(existingJob);
+        // Pre 7.2.4, the group wasn't stored in the event
+        final Group existingHierarchyGroup = MoreObjects.firstNonNull(existingJob.getGroup(), AnalyticsJobHierarchy.fromEventType(existingJob.getEventType()));
+        final Group hierarchyGroup = MoreObjects.firstNonNull(job.getGroup(), AnalyticsJobHierarchy.fromEventType(job.getEventType()));
 
         if (!existingJob.getAccountId().equals(job.getAccountId())) {
             // Jobs for different accounts, they cannot overlap
@@ -295,7 +302,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         } else if (Group.ALL.equals(existingHierarchyGroup)) {
             // A full refresh is already scheduled, the new job overlaps
             return true;
-        } else if (existingHierarchyGroup.equals(AnalyticsJobHierarchy.fromEventType(job)) &&
+        } else if (existingHierarchyGroup.equals(hierarchyGroup) &&
                    job.getObjectId() != null && existingJob.getObjectId() != null && job.getObjectId().equals(existingJob.getObjectId())) {
             // A refresh for the same group and object is already scheduled
             return true;
@@ -311,7 +318,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
             final Integer delaySec = analyticsConfiguration.rescheduleIntervalOnLockSeconds;
             if (delaySec > 0) {
                 final DateTime nextRescheduleDt = clock.getUTCNow().plusSeconds(delaySec);
-                if (scheduleAnalyticsJob(job)) {
+                if (scheduleAnalyticsJob(job, analyticsConfiguration)) {
                     logger.info("Lock is busy for account {}, rescheduling job at time {}", job.getAccountId(), nextRescheduleDt);
                     return;
                 }
@@ -339,7 +346,8 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         final CallContext callContext = new AnalyticsCallContext(job, clock);
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
 
-        final Group group = AnalyticsJobHierarchy.fromEventType(job);
+        // Pre 7.2.4, the group wasn't stored in the event
+        final Group group = MoreObjects.firstNonNull(job.getGroup(), AnalyticsJobHierarchy.fromEventType(job.getEventType()));
         logger.info("Starting {} Analytics refresh for account {}", group, businessContextFactory.getAccountId());
         switch (group) {
             case ALL:
@@ -367,25 +375,25 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         logger.info("Finished Analytics refresh for account {}", businessContextFactory.getAccountId());
     }
 
-    private DateTime computeFutureNotificationTime(final UUID tenantId) {
-        return clock.getUTCNow().plusSeconds(analyticsConfigurationHandler.getConfigurable(tenantId).refreshDelaySeconds);
+    private DateTime computeFutureNotificationTime(final AnalyticsConfiguration analyticsConfiguration) {
+        return clock.getUTCNow().plusSeconds(analyticsConfiguration.refreshDelaySeconds);
     }
 
     @VisibleForTesting
-    protected boolean isAccountBlacklisted(@Nullable final UUID accountId, final UUID tenantId) {
-        return accountId != null && Iterables.find(analyticsConfigurationHandler.getConfigurable(tenantId).blacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
+    protected boolean isAccountBlacklisted(@Nullable final UUID accountId, final AnalyticsConfiguration analyticsConfiguration) {
+        return accountId != null && Iterables.find(analyticsConfiguration.blacklist, Predicates.<String>equalTo(accountId.toString()), null) != null;
     }
 
     @VisibleForTesting
-    protected boolean shouldIgnoreEvent(final AnalyticsJob job) {
-        final Iterable<Group> ignoredGroups = Iterables.<String, Group>transform(analyticsConfigurationHandler.getConfigurable(job.getTenantId()).ignoredGroups,
+    protected boolean shouldIgnoreEvent(final Group group, final AnalyticsConfiguration analyticsConfiguration) {
+        final Iterable<Group> ignoredGroups = Iterables.<String, Group>transform(analyticsConfiguration.ignoredGroups,
                                                                                  new Function<String, Group>() {
                                                                                      @Override
                                                                                      public Group apply(final String input) {
                                                                                          return input == null ? null : Group.valueOf(input.toUpperCase());
                                                                                      }
                                                                                  });
-        return Iterables.find(ignoredGroups, Predicates.<Group>equalTo(AnalyticsJobHierarchy.fromEventType(job)), null) != null;
+        return Iterables.find(ignoredGroups, Predicates.<Group>equalTo(group), null) != null;
     }
 
     @VisibleForTesting
