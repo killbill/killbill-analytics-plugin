@@ -116,8 +116,8 @@ public class CurrencyConverter {
         return getConvertedValue(invoiceItem.getAmount(), invoiceItem.getCurrency().toString(), invoice.getInvoiceDate());
     }
 
-    public BigDecimal getConvertedValue(@Nullable final InvoicePayment invoicePayment, final PaymentTransaction transaction, final Invoice invoice) {
-        if (invoicePayment != null && invoicePayment.getAmount() != null) {
+    public BigDecimal getConvertedValue(@Nullable final InvoicePayment invoicePayment, final PaymentTransaction transaction, @Nullable final Invoice invoice) {
+        if (invoicePayment != null && invoicePayment.getAmount() != null && invoicePayment.getCurrency() != null && invoice != null) {
             // Use the invoice date as the effective date for consistency - invoice payment payment date could also be a candidate
             return getConvertedValue(invoicePayment.getAmount(), invoicePayment.getCurrency().toString(), invoice.getInvoiceDate());
         } else if (transaction.getCurrency() != null) {
