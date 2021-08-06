@@ -45,6 +45,13 @@ public class AnalyticsConfiguration {
     // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
     // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
     public Integer refreshDelaySeconds = 10;
+    // How many retries to get the lock
+    public Integer lockAttemptRetries = 100;
+    // If the lock is taken, how long until the job is rescheduled
+    public Integer rescheduleIntervalOnLockSeconds = 10;
+    // Whether to trigger full refreshes each time
+    public boolean enablePartialRefreshes = true;
+
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 

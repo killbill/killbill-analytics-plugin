@@ -43,10 +43,10 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
                                                                           notificationQueueService);
 
         // Other accounts are blacklisted
-        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID(), callContext.getTenantId()));
+        Assert.assertFalse(analyticsListener.isAccountBlacklisted(UUID.randomUUID(), analyticsConfigurationHandler.getConfigurable(callContext.getTenantId())));
 
         // Blacklist
-        Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId, callContext.getTenantId()));
+        Assert.assertTrue(analyticsListener.isAccountBlacklisted(blackListedAccountId, analyticsConfigurationHandler.getConfigurable(callContext.getTenantId())));
     }
 
     @Test(groups = "fast")
@@ -71,8 +71,8 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
                                                                           analyticsConfigurationHandler,
                                                                           notificationQueueService);
 
-        Assert.assertTrue(analyticsListener.shouldIgnoreEvent(new AnalyticsJob(cfEvent)));
-        Assert.assertFalse(analyticsListener.shouldIgnoreEvent(new AnalyticsJob(accountEvent)));
+        Assert.assertTrue(analyticsListener.shouldIgnoreEvent(AnalyticsJobHierarchy.fromEventType(cfEvent.getEventType()), analyticsConfigurationHandler.getConfigurable(callContext.getTenantId())));
+        Assert.assertFalse(analyticsListener.shouldIgnoreEvent(AnalyticsJobHierarchy.fromEventType(accountEvent.getEventType()), analyticsConfigurationHandler.getConfigurable(callContext.getTenantId())));
     }
 
 
@@ -114,12 +114,16 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
         Mockito.when(inv3CreationEvent.getEventType()).thenReturn(ExtBusEventType.INVOICE_CREATION);
 
         // Same job
-        Assert.assertTrue(analyticsListener.jobsOverlap(new AnalyticsJob(inv1CreationEvent), new AnalyticsJob(inv1CreationEvent)));
+        Assert.assertTrue(analyticsListener.jobsOverlap(new AnalyticsJob(inv1CreationEvent, AnalyticsJobHierarchy.fromEventType(inv1CreationEvent.getEventType())),
+                                                        new AnalyticsJob(inv1CreationEvent, AnalyticsJobHierarchy.fromEventType(inv1CreationEvent.getEventType()))));
         // Different accounts
-        Assert.assertFalse(analyticsListener.jobsOverlap(new AnalyticsJob(inv3CreationEvent), new AnalyticsJob(inv1CreationEvent)));
+        Assert.assertFalse(analyticsListener.jobsOverlap(new AnalyticsJob(inv3CreationEvent, AnalyticsJobHierarchy.fromEventType(inv3CreationEvent.getEventType())),
+                                                         new AnalyticsJob(inv1CreationEvent, AnalyticsJobHierarchy.fromEventType(inv1CreationEvent.getEventType()))));
         // Adjustment event for the same invoice
-        Assert.assertTrue(analyticsListener.jobsOverlap(new AnalyticsJob(inv1AdjEvent), new AnalyticsJob(inv1CreationEvent)));
+        Assert.assertTrue(analyticsListener.jobsOverlap(new AnalyticsJob(inv1AdjEvent, AnalyticsJobHierarchy.fromEventType(inv1AdjEvent.getEventType())),
+                                                        new AnalyticsJob(inv1CreationEvent, AnalyticsJobHierarchy.fromEventType(inv1CreationEvent.getEventType()))));
         // Adjustment event for another invoice
-        Assert.assertFalse(analyticsListener.jobsOverlap(new AnalyticsJob(inv2AdjEvent), new AnalyticsJob(inv1CreationEvent)));
+        Assert.assertFalse(analyticsListener.jobsOverlap(new AnalyticsJob(inv2AdjEvent, AnalyticsJobHierarchy.fromEventType(inv2AdjEvent.getEventType())),
+                                                         new AnalyticsJob(inv1CreationEvent, AnalyticsJobHierarchy.fromEventType(inv1CreationEvent.getEventType()))));
     }
 }
