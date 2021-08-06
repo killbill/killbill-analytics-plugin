@@ -3,6 +3,7 @@
     Introduce lockAttemptRetries, rescheduleIntervalOnLockSeconds, and enablePartialRefreshes (per tenant)
     Introduce org.killbill.analytics.lockSleepMilliSeconds (global)
     Performance improvements
+    Update to killbill-oss-parent 0.144.58
 
 7.2.3
     Fix inconsistency with non COMMITTED invoices (requires Kill Bill 0.22.24)
