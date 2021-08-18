@@ -151,16 +151,22 @@ public abstract class BusinessFactoryBase {
         return auditUserApi.getAccountAuditLogs(accountId, AuditLevel.MINIMAL, context);
     }
 
-    protected AuditLog getAccountCreationAuditLog(final UUID accountId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForAccount = accountAuditLogs.getAuditLogsForAccount();
-        for (final AuditLog auditLog : auditLogsForAccount) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
 
-        logger.warn("Unable to find Account creation audit log for id {}", accountId);
-        return null;
+    protected AuditLog getAccountCreationAuditLog(final UUID accountId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
+
+
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForAccount = accountAuditLogs.getAuditLogsForAccount();
+                for (final AuditLog auditLog : auditLogsForAccount) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        },"Unable to find Account creation audit log for id {}", accountId);
     }
 
     protected Long getAccountRecordId(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
@@ -231,28 +237,36 @@ public abstract class BusinessFactoryBase {
         return recordIdUserApi.getRecordId(bundleId, ObjectType.BUNDLE, context);
     }
 
-    protected AuditLog getBundleCreationAuditLog(final UUID bundleId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForBundle = accountAuditLogs.getAuditLogsForBundle(bundleId);
-        for (final AuditLog auditLog : auditLogsForBundle) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
+    protected AuditLog getBundleCreationAuditLog(final UUID bundleId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
-        logger.warn("Unable to find Bundle creation audit log for id {}", bundleId);
-        return null;
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForBundle = accountAuditLogs.getAuditLogsForBundle(bundleId);
+                for (final AuditLog auditLog : auditLogsForBundle) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        }, "Unable to find Bundle creation audit log for id {}", bundleId);
+
     }
 
-    protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForSubscriptionEvent = accountAuditLogs.getAuditLogs(objectType).getAuditLogs(subscriptionEventId);
-        for (final AuditLog auditLog : auditLogsForSubscriptionEvent) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
+    protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForSubscriptionEvent = accountAuditLogs.getAuditLogs(objectType).getAuditLogs(subscriptionEventId);
+                for (final AuditLog auditLog : auditLogsForSubscriptionEvent) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
             }
-        }
-
-        logger.warn("Unable to find Subscription event creation audit log for id {}", subscriptionEventId);
-        return null;
+        }, "Unable to find Subscription event creation audit log for id {}", subscriptionEventId);
     }
 
     protected Long getSubscriptionEventRecordId(final UUID subscriptionEventId, final ObjectType objectType, final TenantContext context) throws AnalyticsRefreshException {
@@ -264,16 +278,20 @@ public abstract class BusinessFactoryBase {
     // BLOCKING STATES
     //
 
-    protected AuditLog getBlockingStateCreationAuditLog(final UUID blockingStateId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForBlockingState = accountAuditLogs.getAuditLogsForBlockingState(blockingStateId);
-        for (final AuditLog auditLog : auditLogsForBlockingState) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
+    protected AuditLog getBlockingStateCreationAuditLog(final UUID blockingStateId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
-        logger.warn("Unable to find Blocking state creation audit log for id {}", blockingStateId);
-        return null;
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForBlockingState = accountAuditLogs.getAuditLogsForBlockingState(blockingStateId);
+                for (final AuditLog auditLog : auditLogsForBlockingState) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        }, "Unable to find Blocking state creation audit log for id {}", blockingStateId);
     }
 
     protected Long getBlockingStateRecordId(final UUID blockingStateId, final TenantContext context) throws AnalyticsRefreshException {
@@ -285,16 +303,20 @@ public abstract class BusinessFactoryBase {
     // INVOICE
     //
 
-    protected AuditLog getInvoiceCreationAuditLog(final UUID invoiceId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForInvoice = accountAuditLogs.getAuditLogsForInvoice(invoiceId);
-        for (final AuditLog auditLog : auditLogsForInvoice) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
+    protected AuditLog getInvoiceCreationAuditLog(final UUID invoiceId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
-        logger.warn("Unable to find Invoice creation audit log for id {}", invoiceId);
-        return null;
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForInvoice = accountAuditLogs.getAuditLogsForInvoice(invoiceId);
+                for (final AuditLog auditLog : auditLogsForInvoice) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        }, "Unable to find Invoice creation audit log for id {}", invoiceId);
     }
 
     protected Long getInvoiceRecordId(final UUID invoiceId, final TenantContext context) throws AnalyticsRefreshException {
@@ -302,16 +324,20 @@ public abstract class BusinessFactoryBase {
         return recordIdUserApi.getRecordId(invoiceId, ObjectType.INVOICE, context);
     }
 
-    protected AuditLog getInvoiceItemCreationAuditLog(final UUID invoiceItemId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForInvoiceItem = accountAuditLogs.getAuditLogsForInvoiceItem(invoiceItemId);
-        for (final AuditLog auditLog : auditLogsForInvoiceItem) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
+    protected AuditLog getInvoiceItemCreationAuditLog(final UUID invoiceItemId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
-        logger.warn("Unable to find Invoice item creation audit log for id {}", invoiceItemId);
-        return null;
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForInvoiceItem = accountAuditLogs.getAuditLogsForInvoiceItem(invoiceItemId);
+                for (final AuditLog auditLog : auditLogsForInvoiceItem) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        }, "Unable to find Invoice item creation audit log for id {}", invoiceItemId);
     }
 
     protected Long getInvoiceItemRecordId(final UUID invoiceItemId, final TenantContext context) throws AnalyticsRefreshException {
@@ -404,16 +430,20 @@ public abstract class BusinessFactoryBase {
         return allInvoicePaymentsByPaymentId;
     }
 
-    protected AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForInvoicePayment = accountAuditLogs.getAuditLogsForInvoicePayment(invoicePaymentId);
-        for (final AuditLog auditLog : auditLogsForInvoicePayment) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
+    protected AuditLog getInvoicePaymentCreationAuditLog(final UUID invoicePaymentId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
-        logger.warn("Unable to find Invoice payment creation audit log for id {}", invoicePaymentId);
-        return null;
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForInvoicePayment = accountAuditLogs.getAuditLogsForInvoicePayment(invoicePaymentId);
+                for (final AuditLog auditLog : auditLogsForInvoicePayment) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        }, "Unable to find Invoice payment creation audit log for id {}", invoicePaymentId);
     }
 
     protected Long getInvoicePaymentRecordId(final UUID invoicePaymentId, final TenantContext context) throws AnalyticsRefreshException {
@@ -490,16 +520,20 @@ public abstract class BusinessFactoryBase {
         throw new AnalyticsRefreshException(error);
     }
 
-    protected AuditLog getPaymentCreationAuditLog(final UUID paymentId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForPayment = accountAuditLogs.getAuditLogsForPayment(paymentId);
-        for (final AuditLog auditLog : auditLogsForPayment) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
-            }
-        }
+    protected AuditLog getPaymentCreationAuditLog(final UUID paymentId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
-        logger.warn("Unable to find payment creation audit log for id {}", paymentId);
-        return null;
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForPayment = accountAuditLogs.getAuditLogsForPayment(paymentId);
+                for (final AuditLog auditLog : auditLogsForPayment) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
+            }
+        }, "Unable to find payment creation audit log for id {}", paymentId);
     }
 
     protected Long getPaymentRecordId(final UUID paymentId, final TenantContext context) throws AnalyticsRefreshException {
@@ -516,16 +550,19 @@ public abstract class BusinessFactoryBase {
         return tagUserApi.getCustomFieldsForAccount(accountId, context);
     }
 
-    protected AuditLog getFieldCreationAuditLog(final UUID fieldId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForCustomField(fieldId);
-        for (final AuditLog auditLog : auditLogsForTag) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
+    protected AuditLog getFieldCreationAuditLog(final UUID fieldId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForCustomField(fieldId);
+                for (final AuditLog auditLog : auditLogsForTag) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
             }
-        }
-
-        logger.warn("Unable to find Field creation audit log for id {}", fieldId);
-        return null;
+        }, "Unable to find Field creation audit log for id {}", fieldId);
     }
 
     protected Long getFieldRecordId(final UUID fieldId, final TenantContext context) throws AnalyticsRefreshException {
@@ -547,16 +584,19 @@ public abstract class BusinessFactoryBase {
         return tagUserApi.getTagDefinitions(context);
     }
 
-    protected AuditLog getTagCreationAuditLog(final UUID tagId, final AccountAuditLogs accountAuditLogs) throws AnalyticsRefreshException {
-        final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForTag(tagId);
-        for (final AuditLog auditLog : auditLogsForTag) {
-            if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                return auditLog;
+    protected AuditLog getTagCreationAuditLog(final UUID tagId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
+        return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
+            @Override
+            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
+                final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForTag(tagId);
+                for (final AuditLog auditLog : auditLogsForTag) {
+                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                        return auditLog;
+                    }
+                }
+                return null;
             }
-        }
-
-        logger.warn("Unable to find Tag creation audit log for id {}", tagId);
-        return null;
+        }, "Unable to find Tag creation audit log for id {}", tagId);
     }
 
     protected Long getTagRecordId(final UUID tagId, final TenantContext context) throws AnalyticsRefreshException {
@@ -646,5 +686,31 @@ public abstract class BusinessFactoryBase {
             throw new AnalyticsRefreshException("Error retrieving auditUserApi");
         }
         return auditUserApi;
+    }
+
+
+    private interface AuditLogHandler {
+        AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs);
+    }
+
+    private static class AuditLogWithRetry {
+
+        private final SafeAccountAuditLogs safeAccountAuditLogs;
+
+        public AuditLogWithRetry(final SafeAccountAuditLogs safeAccountAuditLogs) {
+            this.safeAccountAuditLogs = safeAccountAuditLogs;
+        }
+
+        // Fetch audit log for resource based on cached value and refresh cache if not found.
+        public AuditLog withRetry(final AuditLogHandler handler, final String warnFmt, final Object... warnObjs) throws AnalyticsRefreshException {
+            AuditLog result = handler.getAuditLog(safeAccountAuditLogs.getAccountAuditLogs(false));
+            if (result == null) {
+                result = handler.getAuditLog(safeAccountAuditLogs.getAccountAuditLogs(true));
+                if (result == null) {
+                    logger.warn(warnFmt, warnObjs);
+                }
+            }
+            return result;
+        }
     }
 }
