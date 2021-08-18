@@ -18,8 +18,8 @@
 package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.util.UUID;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
@@ -27,6 +27,8 @@ import org.killbill.billing.util.api.AuditLevel;
 import org.killbill.billing.util.api.AuditUserApi;
 import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.callcontext.TenantContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // Encapsulate logic to fetch *all* audit logs for a given account
 //
@@ -35,35 +37,73 @@ import org.killbill.billing.util.callcontext.TenantContext;
 //
 class SafeAccountAuditLogs {
 
+    private static final long WAIT_TIME_MS = 20;
+    private static final int MAX_ATTEMPTS = 10;
+    // More than LOG_THRESHOLD refresh we log an entry
+    private static final int LOG_THRESHOLD = 10;
+
+    private static final Logger logger = LoggerFactory.getLogger(SafeAccountAuditLogs.class);
+
     private final UUID accountId;
     private final TenantContext context;
     private final OSGIKillbillAPI osgiKillbillAPI;
-    private final ReadWriteLock lock;
+
+    private AtomicBoolean isRefreshing;
     private volatile AccountAuditLogs accountAuditLogs;
+    // Only for logging to see what's happening
+    private AtomicInteger nbRefresh;
 
     public SafeAccountAuditLogs(final OSGIKillbillAPI osgiKillbillAPI, final UUID accountId, final TenantContext context) {
         this.osgiKillbillAPI = osgiKillbillAPI;
-        this.lock = new ReentrantReadWriteLock();
         this.accountId = accountId;
         this.context = context;
+        this.isRefreshing = new AtomicBoolean(false);
+        this.nbRefresh = new AtomicInteger(0);
     }
 
     public AccountAuditLogs getAccountAuditLogs(final boolean refresh) throws AnalyticsRefreshException {
-        lock.readLock().lock();
-        try {
-            if (accountAuditLogs == null || refresh) {
-                lock.writeLock().lock();
+        if (accountAuditLogs == null || refresh) {
+            accountAuditLogs = getAccountAuditLogsWithRetry();
+        }
+        if (accountAuditLogs == null) {
+            throw new AnalyticsRefreshException(String.format("Failed to fetch all account audit logs for account %s", accountId));
+        }
+
+        int refreshCnt = nbRefresh.get();
+        if (refreshCnt >= LOG_THRESHOLD) {
+            if (refreshCnt % LOG_THRESHOLD == 0) {
+                logger.warn("Detected {} audit logs full refresh for accountId={}", refreshCnt , accountId);
+            }
+        }
+        return accountAuditLogs;
+    }
+
+    private AccountAuditLogs getAccountAuditLogsWithRetry() throws AnalyticsRefreshException {
+
+        int leftAttempts = MAX_ATTEMPTS;
+        do {
+
+            boolean doRefresh = isRefreshing.compareAndSet(false, true);
+            if (doRefresh) {
                 try {
-                    accountAuditLogs = refreshAccountAuditLogs();
+                    final AccountAuditLogs tmp = refreshAccountAuditLogs();
+                    return tmp;
                 } finally {
-                    lock.writeLock().unlock();
+                    nbRefresh.incrementAndGet();
+                    isRefreshing.set(false);
+                }
+            } else {
+                try {
+                    Thread.sleep(WAIT_TIME_MS);
+                } catch (final InterruptedException e) {
+                    Thread.interrupted();
+                    throw new AnalyticsRefreshException(e);
                 }
             }
-            return accountAuditLogs;
-        } finally {
-            lock.readLock().unlock();
-        }
+        } while (leftAttempts-- > 0);
+        return null;
     }
+
 
     private AccountAuditLogs refreshAccountAuditLogs() throws AnalyticsRefreshException {
         final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
