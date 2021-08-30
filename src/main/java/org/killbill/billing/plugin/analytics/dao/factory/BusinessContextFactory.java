@@ -25,8 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
-
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
@@ -47,7 +45,6 @@ import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHand
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
-import org.killbill.billing.util.audit.AccountAuditLogs;
 import org.killbill.billing.util.audit.AuditLog;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.customfield.CustomField;
@@ -64,8 +61,8 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     private final UUID accountId;
     private final Long accountRecordId;
-    private final AccountAuditLogs accountAuditLogs;
     private final Long tenantRecordId;
+    private final SafeAccountAuditLogs safeAccountAuditLogs;
     private final BusinessModelDaoBase.ReportGroup reportGroup;
     private final CallContext callContext;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
@@ -126,7 +123,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
         // Always needed
         this.accountRecordId = getAccountRecordId(accountId, callContext);
-        this.accountAuditLogs = getAccountAuditLogs(accountId, callContext);
+        this.safeAccountAuditLogs = new SafeAccountAuditLogs(osgiKillbillAPI, accountId, callContext);
         this.tenantRecordId = getTenantRecordId(callContext);
         this.reportGroup = getReportGroup(getAccountTags());
     }
@@ -137,10 +134,6 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public Long getAccountRecordId() {
         return accountRecordId;
-    }
-
-    public AccountAuditLogs getAccountAuditLogs() {
-        return accountAuditLogs;
     }
 
     public Long getTenantRecordId() {
@@ -385,7 +378,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (accountCreationAuditLog == null) {
             synchronized (this) {
                 if (accountCreationAuditLog == null) {
-                    accountCreationAuditLog = getAccountCreationAuditLog(accountId, accountAuditLogs);
+                    accountCreationAuditLog = getAccountCreationAuditLog(accountId, safeAccountAuditLogs);
                 }
             }
         }
@@ -396,7 +389,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (bundleCreationAuditLogs.get(bundleId) == null) {
             synchronized (this) {
                 if (bundleCreationAuditLogs.get(bundleId) == null) {
-                    bundleCreationAuditLogs.put(bundleId, getBundleCreationAuditLog(bundleId, accountAuditLogs));
+                    bundleCreationAuditLogs.put(bundleId, getBundleCreationAuditLog(bundleId, safeAccountAuditLogs));
                 }
             }
         }
@@ -407,7 +400,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (subscriptionEventCreationAuditLogs.get(subscriptionEventId) == null) {
             synchronized (this) {
                 if (subscriptionEventCreationAuditLogs.get(subscriptionEventId) == null) {
-                    subscriptionEventCreationAuditLogs.put(subscriptionEventId, getSubscriptionEventCreationAuditLog(subscriptionEventId, objectType, accountAuditLogs));
+                    subscriptionEventCreationAuditLogs.put(subscriptionEventId, getSubscriptionEventCreationAuditLog(subscriptionEventId, objectType, safeAccountAuditLogs));
                 }
             }
         }
@@ -418,7 +411,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (blockingStateCreationAuditLogs.get(blockingStateId) == null) {
             synchronized (this) {
                 if (blockingStateCreationAuditLogs.get(blockingStateId) == null) {
-                    blockingStateCreationAuditLogs.put(blockingStateId, getBlockingStateCreationAuditLog(blockingStateId, accountAuditLogs));
+                    blockingStateCreationAuditLogs.put(blockingStateId, getBlockingStateCreationAuditLog(blockingStateId, safeAccountAuditLogs));
                 }
             }
         }
@@ -429,7 +422,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (invoiceCreationAuditLogs.get(invoiceId) == null) {
             synchronized (this) {
                 if (invoiceCreationAuditLogs.get(invoiceId) == null) {
-                    invoiceCreationAuditLogs.put(invoiceId, getInvoiceCreationAuditLog(invoiceId, accountAuditLogs));
+                    invoiceCreationAuditLogs.put(invoiceId, getInvoiceCreationAuditLog(invoiceId, safeAccountAuditLogs));
                 }
             }
         }
@@ -440,7 +433,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (invoiceItemCreationAuditLogs.get(invoiceItemId) == null) {
             synchronized (this) {
                 if (invoiceItemCreationAuditLogs.get(invoiceItemId) == null) {
-                    invoiceItemCreationAuditLogs.put(invoiceItemId, getInvoiceItemCreationAuditLog(invoiceItemId, accountAuditLogs));
+                    invoiceItemCreationAuditLogs.put(invoiceItemId, getInvoiceItemCreationAuditLog(invoiceItemId, safeAccountAuditLogs));
                 }
             }
         }
@@ -451,7 +444,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (invoicePaymentCreationAuditLogs.get(invoicePaymentId) == null) {
             synchronized (this) {
                 if (invoicePaymentCreationAuditLogs.get(invoicePaymentId) == null) {
-                    invoicePaymentCreationAuditLogs.put(invoicePaymentId, getInvoicePaymentCreationAuditLog(invoicePaymentId, accountAuditLogs));
+                    invoicePaymentCreationAuditLogs.put(invoicePaymentId, getInvoicePaymentCreationAuditLog(invoicePaymentId, safeAccountAuditLogs));
                 }
             }
         }
@@ -462,7 +455,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (paymentCreationAuditLogs.get(paymentId) == null) {
             synchronized (this) {
                 if (paymentCreationAuditLogs.get(paymentId) == null) {
-                    paymentCreationAuditLogs.put(paymentId, getPaymentCreationAuditLog(paymentId, accountAuditLogs));
+                    paymentCreationAuditLogs.put(paymentId, getPaymentCreationAuditLog(paymentId, safeAccountAuditLogs));
                 }
             }
         }
@@ -473,7 +466,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (tagCreationAuditLogs.get(tagId) == null) {
             synchronized (this) {
                 if (tagCreationAuditLogs.get(tagId) == null) {
-                    tagCreationAuditLogs.put(tagId, getTagCreationAuditLog(tagId, accountAuditLogs));
+                    tagCreationAuditLogs.put(tagId, getTagCreationAuditLog(tagId, safeAccountAuditLogs));
                 }
             }
         }
@@ -484,7 +477,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (customFieldCreationAuditLogs.get(customFieldId) == null) {
             synchronized (this) {
                 if (customFieldCreationAuditLogs.get(customFieldId) == null) {
-                    customFieldCreationAuditLogs.put(customFieldId, getFieldCreationAuditLog(customFieldId, accountAuditLogs));
+                    customFieldCreationAuditLogs.put(customFieldId, getFieldCreationAuditLog(customFieldId, safeAccountAuditLogs));
                 }
             }
         }
