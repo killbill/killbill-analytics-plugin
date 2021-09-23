@@ -1,3 +1,7 @@
+7.2.5
+    Better support for long shutdown sequences
+    Update to killbill-oss-parent 0.144.61
+
 7.2.4
     Make all properties dynamic (the System Properties have been deprecated, see README for a configuration example)
     Introduce lockAttemptRetries, rescheduleIntervalOnLockSeconds, and enablePartialRefreshes (per tenant)

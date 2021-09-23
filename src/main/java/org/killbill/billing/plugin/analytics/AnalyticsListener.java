@@ -154,8 +154,8 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         jobQueue.startQueue();
     }
 
-    public void shutdownNow() {
-        jobQueue.stopQueue();
+    public boolean shutdownNow() {
+        return jobQueue.stopQueue();
     }
 
     public boolean isStarted() {

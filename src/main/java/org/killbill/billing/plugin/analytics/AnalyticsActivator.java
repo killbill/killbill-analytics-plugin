@@ -173,11 +173,15 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
     @Override
     public void stop(final BundleContext context) throws Exception {
-        if (analyticsListener != null) {
-            analyticsListener.shutdownNow();
-        }
         if (jobsScheduler != null) {
             jobsScheduler.shutdownNow();
+        }
+        if (analyticsListener != null) {
+            // Little bit of subtlety here, which is queue implementation dependent: only the second time
+            // the queue is asked to stop that it will actually go through the shutdown sequence
+            if (!analyticsListener.shutdownNow()) {
+                logger.warn("Timed out while shutting down Analytics notifications queue: IN_PROCESSING entries might be left behind");
+            }
         }
         if (reportsUserApi != null) {
             reportsUserApi.shutdownNow();
