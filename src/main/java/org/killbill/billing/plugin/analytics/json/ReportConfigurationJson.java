@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -21,12 +21,16 @@ package org.killbill.billing.plugin.analytics.json;
 
 import javax.annotation.Nullable;
 
+import org.jooq.Field;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.ReportType;
 import org.killbill.billing.plugin.analytics.reports.sql.TableMetadata;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 public class ReportConfigurationJson {
 
@@ -41,8 +45,11 @@ public class ReportConfigurationJson {
     private final Frequency refreshFrequency;
     private final Integer refreshHourOfDayGmt;
     private final SchemaJson schema;
+    private final SchemaJson variables;
 
-    public ReportConfigurationJson(final ReportsConfigurationModelDao reportsConfigurationModelDao, @Nullable final TableMetadata table) {
+    public ReportConfigurationJson(final ReportsConfigurationModelDao reportsConfigurationModelDao,
+                                   @Nullable final TableMetadata table,
+                                   @Nullable final Iterable<Field<?>> templateVariables) {
         this(reportsConfigurationModelDao.getRecordId(),
              reportsConfigurationModelDao.getReportName(),
              reportsConfigurationModelDao.getReportPrettyName(),
@@ -53,7 +60,16 @@ public class ReportConfigurationJson {
              reportsConfigurationModelDao.getRefreshProcedureName(),
              reportsConfigurationModelDao.getRefreshFrequency(),
              reportsConfigurationModelDao.getRefreshHourOfDayGmt(),
-             new SchemaJson(table));
+             new SchemaJson(table),
+             // Can't easily create a new constructor because of type erasure at runtime
+             new SchemaJson(templateVariables == null ? ImmutableList.<FieldJson>of() : ImmutableList.<FieldJson>copyOf(Iterables.<Field<?>, FieldJson>transform(templateVariables,
+                                                                                                                                                                 new Function<Field<?>, FieldJson>() {
+                                                                                                                                                                     @Override
+                                                                                                                                                                     public FieldJson apply(final Field<?> input) {
+                                                                                                                                                                         return input == null ? null : new FieldJson(input, null);
+                                                                                                                                                                     }
+                                                                                                                                                                 }
+                                                                                                                                                                ))));
     }
 
     public ReportConfigurationJson(@JsonProperty("recordId") final Integer recordId,
@@ -66,7 +82,8 @@ public class ReportConfigurationJson {
                                    @JsonProperty("refreshProcedureName") final String refreshProcedureName,
                                    @JsonProperty("refreshFrequency") final Frequency refreshFrequency,
                                    @JsonProperty("refreshHourOfDayGmt") final Integer refreshHourOfDayGmt,
-                                   @JsonProperty("schema") final SchemaJson schema) {
+                                   @JsonProperty("schema") final SchemaJson schema,
+                                   @JsonProperty("variables") final SchemaJson variables) {
         this.recordId = recordId;
         this.reportName = reportName;
         this.reportPrettyName = reportPrettyName;
@@ -78,6 +95,7 @@ public class ReportConfigurationJson {
         this.refreshFrequency = refreshFrequency;
         this.refreshHourOfDayGmt = refreshHourOfDayGmt;
         this.schema = schema;
+        this.variables = variables;
     }
 
     public Integer getRecordId() {
@@ -124,6 +142,10 @@ public class ReportConfigurationJson {
         return schema;
     }
 
+    public SchemaJson getVariables() {
+        return variables;
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("ReportConfigurationJson{");
@@ -138,6 +160,7 @@ public class ReportConfigurationJson {
         sb.append(", refreshFrequency=").append(refreshFrequency);
         sb.append(", refreshHourOfDayGmt=").append(refreshHourOfDayGmt);
         sb.append(", schema=").append(schema);
+        sb.append(", variables=").append(variables);
         sb.append('}');
         return sb.toString();
     }
@@ -183,7 +206,10 @@ public class ReportConfigurationJson {
         if (refreshHourOfDayGmt != null ? !refreshHourOfDayGmt.equals(that.refreshHourOfDayGmt) : that.refreshHourOfDayGmt != null) {
             return false;
         }
-        return schema != null ? schema.equals(that.schema) : that.schema == null;
+        if (schema != null ? !schema.equals(that.schema) : that.schema != null) {
+            return false;
+        }
+        return variables != null ? variables.equals(that.variables) : that.variables == null;
     }
 
     @Override
@@ -199,6 +225,7 @@ public class ReportConfigurationJson {
         result = 31 * result + (refreshFrequency != null ? refreshFrequency.hashCode() : 0);
         result = 31 * result + (refreshHourOfDayGmt != null ? refreshHourOfDayGmt.hashCode() : 0);
         result = 31 * result + (schema != null ? schema.hashCode() : 0);
+        result = 31 * result + (variables != null ? variables.hashCode() : 0);
         return result;
     }
 }

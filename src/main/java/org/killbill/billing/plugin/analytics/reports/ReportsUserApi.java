@@ -23,7 +23,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -36,21 +35,18 @@ import java.util.concurrent.Future;
 import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.json.Chart;
-import org.killbill.billing.plugin.analytics.json.CounterChart;
 import org.killbill.billing.plugin.analytics.json.DataMarker;
 import org.killbill.billing.plugin.analytics.json.NamedXYTimeSeries;
 import org.killbill.billing.plugin.analytics.json.ReportConfigurationJson;
-import org.killbill.billing.plugin.analytics.json.TableDataSeries;
 import org.killbill.billing.plugin.analytics.json.XY;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother;
 import org.killbill.billing.plugin.analytics.reports.analysis.Smoother.SmootherType;
@@ -62,17 +58,12 @@ import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
-import org.skife.jdbi.v2.Handle;
-import org.skife.jdbi.v2.IDBI;
-import org.skife.jdbi.v2.tweak.HandleCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
-import com.google.common.base.MoreObjects;
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -97,6 +88,7 @@ public class ReportsUserApi {
     private final ReportsConfiguration reportsConfiguration;
     private final JobsScheduler jobsScheduler;
     private final Metadata sqlMetadata;
+    private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
     public ReportsUserApi(final OSGIKillbillAPI killbillAPI,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
@@ -109,7 +101,8 @@ public class ReportsUserApi {
         this.dbEngine = dbEngine;
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
-        queryEngine = new QueryEngine(BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource()), analyticsConfigurationHandler);
+        this.analyticsConfigurationHandler = analyticsConfigurationHandler;
+        queryEngine = new QueryEngine(BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource()));
 
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REPORTS_NB_THREADS_PROPERTY));
         this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? Integer.valueOf(10) : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");
@@ -138,7 +131,9 @@ public class ReportsUserApi {
         final Long tenantRecordId = getTenantRecordId(context);
         final ReportsConfigurationModelDao reportsConfigurationModelDao = reportsConfiguration.getReportConfigurationForReport(reportName, tenantRecordId);
         if (reportsConfigurationModelDao != null) {
-            return new ReportConfigurationJson(reportsConfigurationModelDao, sqlMetadata.getTable(reportsConfigurationModelDao.getSourceTableName()));
+            return new ReportConfigurationJson(reportsConfigurationModelDao,
+                                               sqlMetadata.getTable(reportsConfigurationModelDao.getSourceTableName()),
+                                               sqlMetadata.getTemplateVariables(reportsConfigurationModelDao.getSourceQuery()));
         } else {
             return null;
         }
@@ -185,7 +180,9 @@ public class ReportsUserApi {
                                                                                           @Override
                                                                                           public ReportConfigurationJson apply(final ReportsConfigurationModelDao input) {
                                                                                               try {
-                                                                                                  return input == null ? null : new ReportConfigurationJson(input, sqlMetadata.getTable(input.getSourceTableName()));
+                                                                                                  return input == null ? null : new ReportConfigurationJson(input,
+                                                                                                                                                            sqlMetadata.getTable(input.getSourceTableName()),
+                                                                                                                                                            sqlMetadata.getTemplateVariables(input.getSourceQuery()));
                                                                                               } catch (final SQLException e) {
                                                                                                   throw new RuntimeException(e);
                                                                                               }
@@ -199,6 +196,7 @@ public class ReportsUserApi {
                                         @Nullable final DateTime startDate,
                                         @Nullable final DateTime endDate,
                                         final TenantContext context) {
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(context.getTenantId());
         final Long tenantRecordId = getTenantRecordId(context);
 
         final List<String> sqlQueries = new LinkedList<String>();
@@ -217,8 +215,11 @@ public class ReportsUserApi {
                     sqlQueries.add(sqlReportDataExtractor.toString());
                 } else {
                     final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportConfigurationForReport.getSourceQuery(),
+                                                                                                     reportSpecification,
                                                                                                      startDate,
                                                                                                      endDate,
+                                                                                                     analyticsConfiguration,
+                                                                                                     dbEngine,
                                                                                                      tenantRecordId);
                     sqlQueries.add(sqlReportDataExtractor.toString());
                 }
@@ -247,6 +248,8 @@ public class ReportsUserApi {
         // Fetch the latest reports configurations
         final Map<String, ReportsConfigurationModelDao> reportsConfigurations = reportsConfiguration.getAllReportConfigurations(tenantRecordId);
 
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(context.getTenantId());
+
         final List<Future> jobs = new LinkedList<Future>();
         for (final ReportSpecification reportSpecification : reportSpecifications) {
             final String reportName = reportSpecification.getReportName();
@@ -260,17 +263,35 @@ public class ReportsUserApi {
                 public void run() {
                     switch (reportType) {
                         case COUNTERS:
-                            List<DataMarker> counters = queryEngine.getCountersData(reportConfiguration, startDate, endDate, tenantRecordId, context.getTenantId());
+                            final List<DataMarker> counters = queryEngine.getCountersData(reportConfiguration,
+                                                                                          reportSpecification,
+                                                                                          dbEngine,
+                                                                                          startDate,
+                                                                                          endDate,
+                                                                                          analyticsConfiguration,
+                                                                                          tenantRecordId);
                             result.add(new Chart(ReportType.COUNTERS, prettyName, counters));
                             break;
 
                         case TIMELINE:
-                            final Map<String, List<XY>> data = queryEngine.getTimeSeriesData(reportConfiguration, reportSpecification, dbEngine, startDate, endDate, tenantRecordId, context.getTenantId());
+                            final Map<String, List<XY>> data = queryEngine.getTimeSeriesData(reportConfiguration,
+                                                                                             reportSpecification,
+                                                                                             dbEngine,
+                                                                                             startDate,
+                                                                                             endDate,
+                                                                                             tenantRecordId,
+                                                                                             analyticsConfiguration);
                             timeSeriesData.put(reportName, data);
                             break;
 
                         case TABLE:
-                            List<DataMarker> tables = queryEngine.getTablesData(reportConfiguration, startDate, endDate, tenantRecordId, context.getTenantId());
+                            final List<DataMarker> tables = queryEngine.getTablesData(reportConfiguration,
+                                                                                      reportSpecification,
+                                                                                      dbEngine,
+                                                                                      startDate,
+                                                                                      endDate,
+                                                                                      analyticsConfiguration,
+                                                                                      tenantRecordId);
                             result.add(new Chart(ReportType.TABLE, prettyName, tables));
                             break;
 

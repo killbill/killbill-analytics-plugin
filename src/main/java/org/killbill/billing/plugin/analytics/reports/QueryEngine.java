@@ -28,14 +28,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 
 import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.json.CounterChart;
 import org.killbill.billing.plugin.analytics.json.DataMarker;
 import org.killbill.billing.plugin.analytics.json.TableDataSeries;
@@ -63,27 +62,31 @@ public class QueryEngine {
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.S");
 
     private final DBI dbi;
-    private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
-    public QueryEngine(final DBI dbi, final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
+    public QueryEngine(final DBI dbi) {
         this.dbi = dbi;
-        this.analyticsConfigurationHandler = analyticsConfigurationHandler;
     }
 
     public List<DataMarker> getCountersData(final ReportsConfigurationModelDao reportsConfigurationModelDao,
+                                            final ReportSpecification reportSpecification,
+                                            final DBEngine kbDbEngine,
                                             @Nullable final DateTime startDate,
                                             @Nullable final DateTime endDate,
-                                            final Long tenantRecordId,
-                                            final UUID tenantId) {
-        final DBI dbi = getDBI(reportsConfigurationModelDao, tenantId);
+                                            final AnalyticsConfiguration analyticsConfiguration,
+                                            final Long tenantRecordId) {
+        final DBI dbi = getDBI(reportsConfigurationModelDao, analyticsConfiguration);
+        final DBEngine dbEngine = getDbEngine(reportsConfigurationModelDao, kbDbEngine);
 
         final String query;
         if (reportsConfigurationModelDao.getSourceTableName() != null) {
             query = "select * from " + reportsConfigurationModelDao.getSourceTableName() + " where tenant_record_id = " + tenantRecordId;
         } else {
             final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceQuery(),
+                                                                                             reportSpecification,
                                                                                              startDate,
                                                                                              endDate,
+                                                                                             analyticsConfiguration,
+                                                                                             dbEngine,
                                                                                              tenantRecordId);
             query = sqlReportDataExtractor.toString();
         }
@@ -91,11 +94,14 @@ public class QueryEngine {
     }
 
     public List<DataMarker> getTablesData(final ReportsConfigurationModelDao reportsConfigurationModelDao,
+                                          final ReportSpecification reportSpecification,
+                                          final DBEngine kbDbEngine,
                                           @Nullable final DateTime startDate,
                                           @Nullable final DateTime endDate,
-                                          final Long tenantRecordId,
-                                          final UUID tenantId) {
-        final DBI dbi = getDBI(reportsConfigurationModelDao, tenantId);
+                                          final AnalyticsConfiguration analyticsConfiguration,
+                                          final Long tenantRecordId) {
+        final DBI dbi = getDBI(reportsConfigurationModelDao, analyticsConfiguration);
+        final DBEngine dbEngine = getDbEngine(reportsConfigurationModelDao, kbDbEngine);
 
         final String seriesName;
         final String fallBackHeadersQuery;
@@ -108,8 +114,11 @@ public class QueryEngine {
             seriesName = reportsConfigurationModelDao.getSourceName();
             fallBackHeadersQuery = null;
             final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceQuery(),
+                                                                                             reportSpecification,
                                                                                              startDate,
                                                                                              endDate,
+                                                                                             analyticsConfiguration,
+                                                                                             dbEngine,
                                                                                              tenantRecordId);
             query = sqlReportDataExtractor.toString();
         }
@@ -121,14 +130,15 @@ public class QueryEngine {
 
     public Map<String, List<XY>> getTimeSeriesData(final ReportsConfigurationModelDao reportsConfigurationModelDao,
                                                    final ReportSpecification reportSpecification,
-                                                   final DBEngine dbEngine,
+                                                   final DBEngine kbDbEngine,
                                                    @Nullable final DateTime startDate,
                                                    @Nullable final DateTime endDate,
                                                    final Long tenantRecordId,
-                                                   final UUID tenantId) {
-        final DBI dbi = getDBI(reportsConfigurationModelDao, tenantId);
+                                                   final AnalyticsConfiguration analyticsConfiguration) {
+        final DBI dbi = getDBI(reportsConfigurationModelDao, analyticsConfiguration);
+        final DBEngine dbEngine = getDbEngine(reportsConfigurationModelDao, kbDbEngine);
 
-        String query;
+        final String query;
         if (reportsConfigurationModelDao.getSourceTableName() != null) {
             final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceTableName(),
                                                                                              reportSpecification,
@@ -139,8 +149,11 @@ public class QueryEngine {
             query = sqlReportDataExtractor.toString();
         } else {
             final SqlReportDataExtractor sqlReportDataExtractor = new SqlReportDataExtractor(reportsConfigurationModelDao.getSourceQuery(),
+                                                                                             reportSpecification,
                                                                                              startDate,
                                                                                              endDate,
+                                                                                             analyticsConfiguration,
+                                                                                             dbEngine,
                                                                                              tenantRecordId);
             query = sqlReportDataExtractor.toString();
         }
@@ -325,7 +338,7 @@ public class QueryEngine {
         }
     }
 
-    private DBI getDBI(final ReportsConfigurationModelDao reportsConfigurationModelDao, final UUID tenantId) {
+    private DBI getDBI(final ReportsConfigurationModelDao reportsConfigurationModelDao, final AnalyticsConfiguration analyticsConfiguration) {
         if (reportsConfigurationModelDao.getSourceName() != null) {
             Preconditions.checkArgument(reportsConfigurationModelDao.getSourceTableName() != null || reportsConfigurationModelDao.getSourceQuery() != null,
                                         "sourceTableName or sourceQuery must be defined: " + reportsConfigurationModelDao);
@@ -333,12 +346,22 @@ public class QueryEngine {
                                         (reportsConfigurationModelDao.getSourceTableName() != null && reportsConfigurationModelDao.getSourceQuery() == null),
                                         "sourceTableName or sourceQuery must be defined: " + reportsConfigurationModelDao);
 
-            final Trino trino = new Trino(reportsConfigurationModelDao.getSourceName(),
-                                          analyticsConfigurationHandler.getConfigurable(tenantId).databases.get(reportsConfigurationModelDao.getSourceName()));
+            final Map<String, String> configuration = analyticsConfiguration.databases.get(reportsConfigurationModelDao.getSourceName());
+            Preconditions.checkNotNull(configuration, "Missing database configuration for " + reportsConfigurationModelDao.getSourceName());
+            // We only support Trino for direct queries today
+            Preconditions.checkArgument("trino".equals(configuration.get("type")), "Database %s is not yet supported", configuration.get("type"));
+
+            final Trino trino = new Trino(reportsConfigurationModelDao.getSourceName(), configuration);
             return trino.getDBI();
         } else {
             Preconditions.checkNotNull(reportsConfigurationModelDao.getSourceTableName(), "sourceTableName must be defined: " + reportsConfigurationModelDao);
             return dbi;
         }
+    }
+
+    private DBEngine getDbEngine(final ReportsConfigurationModelDao reportsConfigurationModelDao, final DBEngine kbDbEngine) {
+        // TODO If a sourceName is specified, assume it's Trino for now (see also getDBI above)
+        // Make Presto/Trino look like Postgres (https://github.com/jOOQ/jOOQ/issues/5414, https://github.com/jOOQ/jOOQ/issues/11485)
+        return reportsConfigurationModelDao.getSourceName() != null ? DBEngine.POSTGRESQL : kbDbEngine;
     }
 }

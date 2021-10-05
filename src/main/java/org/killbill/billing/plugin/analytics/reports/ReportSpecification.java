@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,15 +19,18 @@
 
 package org.killbill.billing.plugin.analytics.reports;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.bpodgursky.jbool_expressions.Expression;
 import com.bpodgursky.jbool_expressions.Or;
 import com.google.common.base.Splitter;
+import com.google.common.base.Splitter.MapSplitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
@@ -47,16 +50,20 @@ public class ReportSpecification {
     private static final Splitter REPORT_GROUPING_SPECIFICATION_SPLITTER = Splitter.on(Pattern.compile("\\("))
                                                                                    .trimResults()
                                                                                    .omitEmptyStrings();
+    private static final MapSplitter REPORT_VARIABLE_SPECIFICATION_SPLITTER = Splitter.on(Pattern.compile(","))
+                                                                                      .withKeyValueSeparator('=');
 
     private final List<String> dimensions = new LinkedList<String>();
     private final List<String> dimensionsWithGrouping = new LinkedList<String>();
     private final List<String> metrics = new LinkedList<String>();
     private Expression<String> filterExpression = null;
+    private Map<String, String> variableValues = new HashMap<String, String>();
 
     private enum ValidKeywords {
         DIMENSION,
         METRIC,
-        FILTER
+        FILTER,
+        VARIABLE
     }
 
     private final String rawReportName;
@@ -91,6 +98,10 @@ public class ReportSpecification {
 
     public Expression<String> getFilterExpression() {
         return filterExpression;
+    }
+
+    public Map<String, String> getVariableValues() {
+        return variableValues;
     }
 
     private void parseRawReportName() {
@@ -153,6 +164,9 @@ public class ReportSpecification {
                         // Multiple filter expressions are OR'ed by default
                         filterExpression = Or.of(filterExpression, thisFilterExpression);
                     }
+                    break;
+                case VARIABLE:
+                    variableValues.putAll(REPORT_VARIABLE_SPECIFICATION_SPLITTER.split(value));
                     break;
             }
         }

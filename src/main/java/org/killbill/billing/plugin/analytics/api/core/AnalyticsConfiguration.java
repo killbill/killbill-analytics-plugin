@@ -51,6 +51,9 @@ public class AnalyticsConfiguration {
     public Integer rescheduleIntervalOnLockSeconds = 10;
     // Whether to trigger full refreshes each time
     public boolean enablePartialRefreshes = true;
+    // Whether to allow template variables in raw SQL queries.
+    // Note! This could be prone to SQL injection and should only be enabled in trusted environments.
+    public boolean enableTemplateVariables = false;
 
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
