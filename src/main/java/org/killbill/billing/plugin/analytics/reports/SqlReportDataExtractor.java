@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2021 Equinix, Inc
+ * Copyright 2014-2021 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -29,16 +29,16 @@ import org.joda.time.DateTimeZone;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSelectStep;
-import org.jooq.conf.RenderNameStyle;
-import org.jooq.conf.Settings;
-import org.jooq.conf.StatementType;
 import org.jooq.impl.DSL;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.reports.sql.Cases;
 import org.killbill.billing.plugin.analytics.reports.sql.Filters;
+import org.killbill.billing.plugin.analytics.reports.sql.JooqSettings;
 import org.killbill.billing.plugin.analytics.reports.sql.MetricExpressionParser;
 import org.killbill.billing.plugin.dao.PluginDao.DBEngine;
 
@@ -79,30 +79,27 @@ public class SqlReportDataExtractor {
         this.tenantRecordId = tenantRecordId;
         this.sourceQuery = null;
 
-        final SQLDialect sqlDialect = SQLDialectFromDBEngine(dbEngine);
-
-        final Settings settings = new Settings();
-        settings.withStatementType(StatementType.STATIC_STATEMENT);
-        settings.withRenderFormatted(true);
-        if (SQLDialect.H2.equals(sqlDialect)) {
-            settings.withRenderNameStyle(RenderNameStyle.AS_IS);
-        }
-        this.context = DSL.using(sqlDialect, settings);
+        this.context = buildDslContext(dbEngine);
 
         setup();
     }
 
     public SqlReportDataExtractor(final String sourceQuery,
+                                  final ReportSpecification reportSpecification,
                                   @Nullable final DateTime startDate,
                                   @Nullable final DateTime endDate,
+                                  final AnalyticsConfiguration analyticsConfiguration,
+                                  final DBEngine dbEngine,
                                   final Long tenantRecordId) {
         this.tableName = null;
         this.reportSpecification = null;
-        this.context = null;
         this.startDate = startDate;
         this.endDate = endDate;
         this.tenantRecordId = tenantRecordId;
 
+        this.context = buildDslContext(dbEngine);
+
+        // Default (safe) replacements
         String query = sourceQuery.replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
         if (startDate != null) {
             query = query.replaceAll("START_DATE", startDate.toString());
@@ -114,7 +111,19 @@ public class SqlReportDataExtractor {
         } else {
             query = query.replaceAll("END_DATE", "2030-01-01T00:00:00.000Z");
         }
-        this.sourceQuery = query;
+
+        // Custom replacements
+        final Query parsedQuery = context.parser().parseQuery(query);
+
+        // We use jOOQ to provide some amount of escaping. Not 100% sure how secure that is though,
+        // hence the explicit config required for trusted environments.
+        if (analyticsConfiguration.enableTemplateVariables) {
+            for (final String variableName : reportSpecification.getVariableValues().keySet()) {
+                parsedQuery.bind(variableName, reportSpecification.getVariableValues().get(variableName));
+            }
+        }
+
+        this.sourceQuery = parsedQuery.getSQL();
     }
 
     @Override
@@ -204,6 +213,11 @@ public class SqlReportDataExtractor {
             }
             filters = filters == null ? dateCheck : And.of(filters, dateCheck);
         }
+    }
+
+    private DSLContext buildDslContext(final DBEngine dbEngine) {
+        final SQLDialect sqlDialect = SQLDialectFromDBEngine(dbEngine);
+        return DSL.using(sqlDialect, JooqSettings.defaults(sqlDialect));
     }
 
     private static SQLDialect SQLDialectFromDBEngine(final DBEngine dbEngine) {

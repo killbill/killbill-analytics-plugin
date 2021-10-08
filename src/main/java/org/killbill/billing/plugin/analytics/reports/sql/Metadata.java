@@ -33,8 +33,11 @@ import javax.sql.DataSource;
 
 import org.jooq.ConnectionCallable;
 import org.jooq.DSLContext;
+import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Meta;
+import org.jooq.Param;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SQLDialect;
@@ -42,6 +45,9 @@ import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DefaultDataType;
+import org.jooq.impl.ParserException;
+import org.jooq.tools.Ints;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +74,7 @@ public class Metadata {
 
     public Metadata(final Set<String> reportsTables, final DataSource dataSource, final SQLDialect sqlDialect) {
         this.reportsTables = reportsTables;
-        this.context = DSL.using(dataSource, sqlDialect);
+        this.context = DSL.using(dataSource, sqlDialect, JooqSettings.defaults(sqlDialect));
         primeCaches();
     }
 
@@ -84,6 +90,36 @@ public class Metadata {
         final String schemaName = getSchemaName();
         final Table table = getTable(schemaName, tableName);
         return table == null ? null : new TableMetadata(table, distinctValuesCache.get(tableName));
+    }
+
+    public List<Field<?>> getTemplateVariables(@Nullable final String sourceQuery) {
+        if (sourceQuery == null) {
+            return null;
+        }
+
+        // The context has likely the wrong SQL Engine here (e.g. sourceQuery might be for Trino)
+        // but it shouldn't matter to find these params
+        final Query query;
+        try {
+            query = context.parser().parseQuery(sourceQuery);
+        } catch (final ParserException e) {
+            logger.debug("Unable to extract template variables from query {}", sourceQuery, e);
+            return null;
+        }
+
+        final Map<String, Param<?>> params = query.getParams();
+        final List<Field<?>> templateVariables = new LinkedList<Field<?>>();
+        for (final String paramCandidate : params.keySet()) {
+            final Integer index = Ints.tryParse(paramCandidate);
+            if (index != null) {
+                // Positional param, likely not user specified (could be funciton arguments, limits, etc.)
+                continue;
+            }
+            // TODO Allow the user to configure the data type for each parameter (would likely require a DDL change on the analytics_reports table)
+            final DataType<String> dataType = DefaultDataType.getDataType(SQLDialect.DEFAULT, String.class);
+            templateVariables.add(DSL.field(paramCandidate, dataType));
+        }
+        return templateVariables;
     }
 
     private Table getTable(final String schemaName, final String tableName) throws SQLException {
