@@ -32,8 +32,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
 
-import javax.annotation.Nullable;
-
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.ProductCategory;
@@ -71,12 +69,10 @@ public class BusinessBundleFactory {
 
         // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each bundle)
         final Set<UUID> baseSubscriptionIds = new HashSet<UUID>();
-        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
         final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
         for (final SubscriptionBundle bundle : bundlesForAccount) {
             for (final Subscription subscription : bundle.getSubscriptions()) {
                 baseSubscriptionIds.add(subscription.getBaseEntitlementId());
-                bundles.put(bundle.getId(), bundle);
             }
         }
 
@@ -98,7 +94,6 @@ public class BusinessBundleFactory {
                                     account,
                                     creationAuditLog,
                                     accountRecordId,
-                                    bundles,
                                     bst,
                                     rankForBundle.get(bst.getBundleId()),
                                     currencyConverter,
@@ -147,13 +142,12 @@ public class BusinessBundleFactory {
                                             final Account account,
                                             final AuditLog creationAuditLog,
                                             final Long accountRecordId,
-                                            final Map<UUID, SubscriptionBundle> bundles,
                                             final BusinessSubscriptionTransitionModelDao bst,
                                             final Integer bundleAccountRank,
                                             final CurrencyConverter currencyConverter,
                                             final Long tenantRecordId,
                                             final ReportGroup reportGroup) throws AnalyticsRefreshException {
-        final SubscriptionBundle bundle = bundles.get(bst.getBundleId());
+        final SubscriptionBundle bundle = businessContextFactory.getSubscriptionBundle(bst.getBundleId());
         final Long bundleRecordId = businessContextFactory.getBundleRecordId(bundle.getId());
         final Boolean latestForBundleExternalKey = businessContextFactory.getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey()).getId().equals(bundle.getId());
 

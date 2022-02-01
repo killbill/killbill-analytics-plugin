@@ -54,6 +54,8 @@ public class AnalyticsConfiguration {
     // Whether to allow template variables in raw SQL queries.
     // Note! This could be prone to SQL injection and should only be enabled in trusted environments.
     public boolean enableTemplateVariables = false;
+    // List of account ids with a high cardinality (where queries by account_record_id is a bad idea)
+    public List<String> highCardinalityAccounts = new LinkedList<String>();
 
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();

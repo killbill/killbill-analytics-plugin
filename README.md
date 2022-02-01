@@ -53,6 +53,9 @@ curl -v \
   blacklist:
     - 468e5259-6635-4988-9ae7-3d79b11fc6ed
     - f7da09af-8593-4a88-b6d4-1c4ebf807103
+  highCardinalityAccounts:
+    - a8e594e5-1b78-4c2d-876b-f09ec36c611c
+    - 31ea22c7-19ae-4316-a432-5e6319e49f97
   ignoredGroups:
     - FIELDS
   pluginPropertyKeys:

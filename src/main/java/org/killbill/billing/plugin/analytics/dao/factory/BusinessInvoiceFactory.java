@@ -91,13 +91,6 @@ public class BusinessInvoiceFactory {
         // Lookup the invoice
         final Invoice invoice = businessContextFactory.getInvoice(invoiceId);
 
-        // Lookup all SubscriptionBundle for that account (this avoids expensive lookups for each item)
-        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
-        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
-        for (final SubscriptionBundle bundle : bundlesForAccount) {
-            bundles.put(bundle.getId(), bundle);
-        }
-
         final Iterable<Tag> tags = businessContextFactory.getAccountTags();
         final Set<UUID> writtenOffInvoices = new HashSet<UUID>();
         for (final Tag cur : tags) {
@@ -150,7 +143,6 @@ public class BusinessInvoiceFactory {
                                                                                                           otherInvoiceItems,
                                                                                                           linkedInvoiceItem,
                                                                                                           isWrittenOff,
-                                                                                                          bundles,
                                                                                                           currencyConverter,
                                                                                                           creationAuditLog,
                                                                                                           accountRecordId,
@@ -203,13 +195,6 @@ public class BusinessInvoiceFactory {
             allInvoiceItems.get(invoice.getId()).addAll(invoice.getInvoiceItems());
         }
 
-        // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each item)
-        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
-        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
-        for (final SubscriptionBundle bundle : bundlesForAccount) {
-            bundles.put(bundle.getId(), bundle);
-        }
-
         final Iterable<Tag> tags = businessContextFactory.getAccountTags();
         final Set<UUID> writtenOffInvoices = new HashSet<UUID>();
         for (final Tag cur : tags) {
@@ -236,7 +221,6 @@ public class BusinessInvoiceFactory {
                                                      invoiceIdToInvoiceMappings,
                                                      isWrittenOff,
                                                      account,
-                                                     bundles,
                                                      currencyConverter,
                                                      creationAuditLog,
                                                      accountRecordId,
@@ -315,7 +299,6 @@ public class BusinessInvoiceFactory {
                                                                       final Map<UUID, Invoice> invoiceIdToInvoiceMappings,
                                                                       final boolean isWrittenOff,
                                                                       final Account account,
-                                                                      final Map<UUID, SubscriptionBundle> bundles,
                                                                       final CurrencyConverter currencyConverter,
                                                                       final AuditLog creationAuditLog,
                                                                       final Long accountRecordId,
@@ -346,7 +329,6 @@ public class BusinessInvoiceFactory {
                                          otherInvoiceItems,
                                          linkedInvoiceItem,
                                          isWrittenOff,
-                                         bundles,
                                          currencyConverter,
                                          creationAuditLog,
                                          accountRecordId,
@@ -363,7 +345,6 @@ public class BusinessInvoiceFactory {
                                                               // For convenience, populate empty columns using the linked item
                                                               @Nullable final InvoiceItem linkedInvoiceItem,
                                                               final boolean isWrittenOff,
-                                                              final Map<UUID, SubscriptionBundle> bundles,
                                                               final CurrencyConverter currencyConverter,
                                                               final AuditLog creationAuditLog,
                                                               final Long accountRecordId,
@@ -372,10 +353,10 @@ public class BusinessInvoiceFactory {
         SubscriptionBundle bundle = null;
         // Subscription and bundle could be null for e.g. credits or adjustments
         if (invoiceItem.getBundleId() != null) {
-            bundle = bundles.get(invoiceItem.getBundleId());
+            bundle = businessContextFactory.getSubscriptionBundle(invoiceItem.getBundleId());
         }
         if (bundle == null && linkedInvoiceItem != null && linkedInvoiceItem.getBundleId() != null) {
-            bundle = bundles.get(linkedInvoiceItem.getBundleId());
+            bundle = businessContextFactory.getSubscriptionBundle(linkedInvoiceItem.getBundleId());
         }
 
         Plan plan = null;

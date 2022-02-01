@@ -20,10 +20,7 @@
 package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.Map;
-import java.util.UUID;
 
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
@@ -46,14 +43,6 @@ public class BusinessFieldFactory {
 
         final Iterable<CustomField> fields = businessContextFactory.getAccountCustomFields();
 
-        // Lookup once all SubscriptionBundle for that account (optimized call, should be faster in case an account has a lot
-        // of bundles with custom fields)
-        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
-        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
-        for (final SubscriptionBundle bundle : bundlesForAccount) {
-            bundles.put(bundle.getId(), bundle);
-        }
-
         final Collection<BusinessFieldModelDao> fieldModelDaos = new LinkedList<BusinessFieldModelDao>();
         // We process custom fields sequentially: in practice, an account will be associated with a dozen fields at most
         for (final CustomField field : fields) {
@@ -62,7 +51,7 @@ public class BusinessFieldFactory {
 
             SubscriptionBundle bundle = null;
             if (ObjectType.BUNDLE.equals(field.getObjectType())) {
-                bundle = bundles.get(field.getObjectId());
+                bundle = businessContextFactory.getSubscriptionBundle(field.getObjectId());
             }
             final BusinessFieldModelDao fieldModelDao = BusinessFieldModelDao.create(account,
                                                                                      accountRecordId,
