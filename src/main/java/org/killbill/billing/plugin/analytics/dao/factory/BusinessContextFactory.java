@@ -30,6 +30,7 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
@@ -107,6 +108,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile Map<UUID, Long> customFieldRecordIds = new HashMap<UUID, Long>();
     // Others
     private volatile Map<UUID, SubscriptionBundle> cachedBundles = new HashMap<UUID, SubscriptionBundle>();
+    private volatile Map<UUID, Subscription> subscriptions = new HashMap<UUID, Subscription>();
     private volatile Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
     private volatile Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
     private volatile VersionedCatalog catalog;
@@ -144,6 +146,11 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public CallContext getCallContext() {
         return callContext;
+    }
+
+    public boolean highCardinalityAccount() {
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
+        return Iterables.find(analyticsConfiguration.highCardinalityAccounts, Predicates.<String>equalTo(accountId.toString()), null) != null;
     }
 
     public BusinessModelDaoBase.ReportGroup getReportGroup() {
@@ -590,8 +597,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         if (cachedBundles.get(bundleId) == null) {
             synchronized (this) {
                 if (cachedBundles.get(bundleId) == null) {
-                    final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
-                    if (Iterables.find(analyticsConfiguration.highCardinalityAccounts, Predicates.<String>equalTo(accountId.toString()), null) != null) {
+                    if (highCardinalityAccount()) {
                         // Avoid per account query
                         cachedBundles.put(bundleId, getSubscriptionBundle(bundleId, callContext));
                     } else {
@@ -602,6 +608,17 @@ public class BusinessContextFactory extends BusinessFactoryBase {
             }
         }
         return cachedBundles.get(bundleId);
+    }
+
+    public Subscription getSubscription(final UUID subscriptionId) throws AnalyticsRefreshException {
+        if (subscriptions.get(subscriptionId) == null) {
+            synchronized (this) {
+                if (subscriptions.get(subscriptionId) == null) {
+                    subscriptions.put(subscriptionId, getSubscription(subscriptionId, callContext));
+                }
+            }
+        }
+        return subscriptions.get(subscriptionId);
     }
 
     public SubscriptionBundle getLatestSubscriptionBundleForExternalKey(final String externalKey) throws AnalyticsRefreshException {

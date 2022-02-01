@@ -20,8 +20,11 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
+import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
@@ -58,17 +61,46 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
         bstFactory = new BusinessSubscriptionTransitionFactory();
     }
 
+    public void update(final UUID objectId, final ObjectType objectType, final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final UUID bundleId;
+        if (objectType == ObjectType.BUNDLE) {
+            bundleId = objectId;
+        } else if (objectType == ObjectType.SUBSCRIPTION) {
+            bundleId = businessContextFactory.getSubscription(objectId).getBundleId();
+        } else {
+            logger.warn("Unexpected objectType={} for objectId={}", objectType, objectId);
+            return;
+        }
+
+        logger.debug("Starting rebuild of Analytics bundleId {} for account {}", bundleId, businessContextFactory.getAccountId());
+
+        // Recompute all subscription transition records for that bundle
+        final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(bundleId, businessContextFactory);
+
+        update(bsts, true, businessContextFactory);
+
+        logger.debug("Finished rebuild of Analytics bundleId {} for account {}", bundleId, businessContextFactory.getAccountId());
+    }
+
     public void update(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         logger.debug("Starting rebuild of Analytics subscriptions for account {}", businessContextFactory.getAccountId());
 
+        // Recompute all subscription transition records
+        final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(businessContextFactory);
+
+        update(bsts, false, businessContextFactory);
+
+        logger.debug("Finished rebuild of Analytics subscriptions for account {}", businessContextFactory.getAccountId());
+    }
+
+    private void update(final Iterable<BusinessSubscriptionTransitionModelDao> bsts,
+                        final boolean partialRefresh,
+                        final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         // Recompute the account record
         final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
 
-        // Recompute all invoices and invoice items
-        final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(businessContextFactory);
-
         // Recompute the bundle summary records
-        final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(businessContextFactory, bsts);
+        final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(partialRefresh, businessContextFactory, bsts);
         executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
@@ -76,28 +108,31 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
                 return null;
             }
         });
-
-        logger.debug("Finished rebuild of Analytics subscriptions for account {}", businessContextFactory.getAccountId());
     }
 
     private void updateInTransaction(final BusinessAccountModelDao bac,
-                                     final Collection<BusinessBundleModelDao> bbss,
-                                     final Collection<BusinessSubscriptionTransitionModelDao> bsts,
+                                     final Iterable<BusinessBundleModelDao> bbss,
+                                     final Iterable<BusinessSubscriptionTransitionModelDao> bsts,
                                      final BusinessAnalyticsSqlDao transactional,
                                      final CallContext context) {
-        // Update the subscription transitions
-        transactional.deleteByAccountRecordId(BusinessSubscriptionTransitionModelDao.SUBSCRIPTION_TABLE_NAME,
-                                              bac.getAccountRecordId(),
-                                              bac.getTenantRecordId(),
-                                              context);
+        final Collection<UUID> deletedByBundleId = new HashSet<UUID>();
 
+        // Update the subscription transitions
         for (final BusinessSubscriptionTransitionModelDao bst : bsts) {
+            if (!deletedByBundleId.contains(bst.getBundleId())) {
+                // Delete by bundle to support partial refreshes
+                transactional.deleteByBundleId(BusinessSubscriptionTransitionModelDao.SUBSCRIPTION_TABLE_NAME,
+                                               bst.getBundleId(),
+                                               bac.getTenantRecordId(),
+                                               context);
+                deletedByBundleId.add(bst.getBundleId());
+            }
+
             transactional.create(bst.getTableName(), bst, context);
         }
 
         // Update the summary table per bundle
         businessBundleDao.updateInTransaction(bbss,
-                                              bac.getAccountRecordId(),
                                               bac.getTenantRecordId(),
                                               transactional,
                                               context);

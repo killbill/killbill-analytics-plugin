@@ -41,6 +41,7 @@ import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 
 public class BusinessSubscriptionTransitionFactory {
 
@@ -50,14 +51,24 @@ public class BusinessSubscriptionTransitionFactory {
     public static final String BILLING_SERVICE_NAME = "billing-service";
     public static final String ENTITLEMENT_BILLING_SERVICE_NAME = "entitlement+billing-service";
 
+    public Collection<BusinessSubscriptionTransitionModelDao> createBusinessSubscriptionTransitions(final UUID bundleId,
+                                                                                                    final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final SubscriptionBundle bundle = businessContextFactory.getSubscriptionBundle(bundleId);
+        return createBusinessSubscriptionTransitions(ImmutableList.<SubscriptionBundle>of(bundle), businessContextFactory);
+    }
+
     public Collection<BusinessSubscriptionTransitionModelDao> createBusinessSubscriptionTransitions(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
+        final Iterable<SubscriptionBundle> bundles = businessContextFactory.getAccountBundles();
+        return createBusinessSubscriptionTransitions(bundles, businessContextFactory);
+    }
+
+    private Collection<BusinessSubscriptionTransitionModelDao> createBusinessSubscriptionTransitions(final Iterable<SubscriptionBundle> bundles,
+                                                                                                     final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         final Account account = businessContextFactory.getAccount();
         final Long accountRecordId = businessContextFactory.getAccountRecordId();
         final Long tenantRecordId = businessContextFactory.getTenantRecordId();
         final ReportGroup reportGroup = businessContextFactory.getReportGroup();
         final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
-
-        final Iterable<SubscriptionBundle> bundles = businessContextFactory.getAccountBundles();
 
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = new LinkedList<BusinessSubscriptionTransitionModelDao>();
         for (final SubscriptionBundle bundle : bundles) {

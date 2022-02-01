@@ -68,6 +68,12 @@ public interface BusinessAnalyticsSqlDao extends Transactional<BusinessAnalytics
                        final CallContext callContext);
 
     @SqlUpdate
+    public void deleteByBundleId(@Define("tableName") final String tableName,
+                                 @Bind("bundleId") final UUID bundleId,
+                                 @Bind("tenantRecordId") final Long tenantRecordId,
+                                 final CallContext callContext);
+
+    @SqlUpdate
     public void deleteByInvoiceId(@Define("tableName") final String tableName,
                                   @Bind("invoiceId") final UUID invoiceId,
                                   @Bind("tenantRecordId") final Long tenantRecordId,

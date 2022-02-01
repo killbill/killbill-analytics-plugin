@@ -2257,6 +2257,13 @@ from <table> t
 where <CHECK_TENANT_AND_ACCOUNT("t.")>
 >>
 
+deleteByBundleId(tableName) ::= <<
+delete from <tableName>
+where <CHECK_TENANT("")>
+and bundle_id = :bundleId
+;
+>>
+
 deleteByInvoiceId(tableName) ::= <<
 delete from <tableName>
 where <CHECK_TENANT("")>

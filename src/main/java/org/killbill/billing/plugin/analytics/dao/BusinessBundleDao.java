@@ -19,8 +19,6 @@
 
 package org.killbill.billing.plugin.analytics.dao;
 
-import java.util.Collection;
-
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessBundleModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
@@ -31,17 +29,17 @@ public class BusinessBundleDao extends BusinessAnalyticsDaoBase {
         super(osgiKillbillDataSource);
     }
 
-    public void updateInTransaction(final Collection<BusinessBundleModelDao> bbss,
-                                    final Long accountRecordId,
+    public void updateInTransaction(final Iterable<BusinessBundleModelDao> bbss,
                                     final Long tenantRecordId,
                                     final BusinessAnalyticsSqlDao transactional,
                                     final CallContext context) {
-        transactional.deleteByAccountRecordId(BusinessBundleModelDao.BUNDLES_TABLE_NAME,
-                                              accountRecordId,
-                                              tenantRecordId,
-                                              context);
-
         for (final BusinessBundleModelDao bbs : bbss) {
+            // Delete by bundle to support partial refreshes
+            transactional.deleteByBundleId(BusinessBundleModelDao.BUNDLES_TABLE_NAME,
+                                           bbs.getBundleId(),
+                                           tenantRecordId,
+                                           context);
+
             transactional.create(bbs.getTableName(), bbs, context);
         }
 

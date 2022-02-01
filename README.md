@@ -78,6 +78,16 @@ org.killbill.notificationq.analytics.historyTableName=analytics_notifications_hi
 org.killbill.analytics.lockSleepMilliSeconds=100
 ```
 
+### Notes
+
+When `enablePartialRefreshes` is set (default), some features are disabled, namely:
+
+* `analytics_bundles.bundle_account_rank` cannot be computed
+
+When `highCardinalityAccounts` is configured, some features are disabled, namely:
+
+* `analytics_accounts.nb_active_bundles` is not computed for that account
+
 ## Setup
 
 Default dashboards rely on reports that need to be installed by running the [seed_reports.sh](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/seed_reports.sh) script.

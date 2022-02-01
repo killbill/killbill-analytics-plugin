@@ -37,6 +37,7 @@ import org.killbill.billing.catalog.api.CatalogUserApi;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -231,6 +232,17 @@ public abstract class BusinessFactoryBase {
             return bundles.get(bundles.size() - 1);
         } catch (final SubscriptionApiException e) {
             logger.warn("Error retrieving bundles for bundle external key {}", bundleExternalKey, e);
+            throw new AnalyticsRefreshException(e);
+        }
+    }
+
+    protected Subscription getSubscription(final UUID subscriptionId, final TenantContext context) throws AnalyticsRefreshException {
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
+
+        try {
+            return subscriptionApi.getSubscriptionForEntitlementId(subscriptionId, context);
+        } catch (final SubscriptionApiException e) {
+            logger.warn("Error retrieving subscription for id {}", subscriptionId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
