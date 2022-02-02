@@ -3,73 +3,13 @@ name: cloudsmith_release
 on:
   workflow_dispatch:
 
-env:
-  MAVEN_FLAGS: "-B --no-transfer-progress"
-  MAVEN_OPTS: "-Xmx2G -XX:+ExitOnOutOfMemoryError -Dmaven.wagon.rto=60000 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.wagon.http.retryHandler.count=3"
-
 jobs:
   cloudsmith_release:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-      - name: Compute short sha1
-        run: echo "GITHUB_SHA_SHORT=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-      - name: Setup git user
-        env:
-          BUILD_USER: ${{ secrets.BUILD_USER }}
-          BUILD_TOKEN: ${{ secrets.BUILD_TOKEN }}
-        run: |
-          git config --global user.email "contact@killbill.io"
-          git config --global user.name "Kill Bill core team"
-          git config --global url."https://${BUILD_USER}:${BUILD_TOKEN}@github.com/".insteadOf "git@github.com:"
-      - name: Configure Java
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-      - name: Configure Sonatype mirror
-        uses: s4u/maven-settings-action@v2.3.0
-        # Go to Sonatype directly to avoid delay syncs (could get rid of this if actions/setup-java were to support mirrors).
-        with:
-          mirrors: '[{"id": "oss-releases", "name": "Sonatype releases", "mirrorOf": "*", "url": "https://oss.sonatype.org/content/repositories/releases/"}]'
-      - name: Update maven version
-        run: |
-          plugin_version=$(mvn ${MAVEN_FLAGS} help:evaluate -Dexpression=project.version -q -DforceStdout | cut -d - -f 1)
-          mvn versions:set -DnewVersion="${plugin_version}-${GITHUB_SHA_SHORT}"
-      - name: Build plugin
-        run: |
-          mvn ${MAVEN_FLAGS} clean install -DskipTests=true -Dgpg.skip=true -Dcheck.skip-rat=true -Dcheck.skip-spotbugs=true
-      - name: Configure settings.xml for release
-        uses: actions/setup-java@v1
-        with:
-          java-version: 8
-          server-id: ${{ secrets.CLOUDSMITH_REPO }}
-          server-username: CLOUDSMITH_USER
-          server-password: CLOUDSMITH_API_KEY
-          gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
-          gpg-passphrase: GPG_PASSPHRASE
-      - name: Publish to Cloudsmith
-        env:
-          CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
-          CLOUDSMITH_REPO: ${{ secrets.CLOUDSMITH_REPO }}
-          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-        run: |
-          GROUP_ID=org.kill-bill.billing.plugin.java
-          VERSION=$(mvn ${MAVEN_FLAGS} help:evaluate -Dexpression=project.version -q -DforceStdout)
-          FILE=analytics-plugin-$VERSION.jar
-          # Make sure the current pom.xml file isn't uploaded
-          cp ./target/$FILE /var/tmp/
-          cd /var/tmp
-          mvn ${MAVEN_FLAGS} deploy:deploy-file -Dfile=$FILE \
-                                                -DrepositoryId=$CLOUDSMITH_REPO \
-                                                -Durl=https://maven.cloudsmith.io/killbill/$CLOUDSMITH_REPO \
-                                                -DgroupId=$GROUP_ID \
-                                                -DartifactId=analytics-plugin \
-                                                -Dversion=$VERSION \
-                                                -Dpackaging=jar \
-                                                -DgeneratePom=true \
-                                                -DskipTests=true \
-                                                -Dgpg.skip=true \
-                                                -Dcheck.skip-rat=true \
-                                                -Dcheck.skip-spotbugs=true
+    uses: killbill/gh-actions-shared/.github/workflows/cloudsmith_release.yml@main
+    with:
+      group_id: org.kill-bill.billing.plugin.java
+      artifact_id: analytics-plugin
+    secrets:
+      CLOUDSMITH_REPO: ${{ secrets.CLOUDSMITH_REPO }}
+      CLOUDSMITH_USER: ${{ secrets.CLOUDSMITH_USER }}
+      CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
