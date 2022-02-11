@@ -20,19 +20,15 @@
 package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorCompletionService;
-
-import javax.annotation.Nullable;
 
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
@@ -59,9 +55,10 @@ public class BusinessBundleFactory {
         this.executor = executor;
     }
 
-    public Collection<BusinessBundleModelDao> createBusinessBundles(final BusinessContextFactory businessContextFactory,
+    public Collection<BusinessBundleModelDao> createBusinessBundles(final boolean partialRefresh,
+                                                                    final BusinessContextFactory businessContextFactory,
                                                                     // Correctly ordered
-                                                                    final Collection<BusinessSubscriptionTransitionModelDao> sortedBsts) throws AnalyticsRefreshException {
+                                                                    final Iterable<BusinessSubscriptionTransitionModelDao> sortedBsts) throws AnalyticsRefreshException {
         // Pre-fetch these, to avoid contention on BusinessContextFactory
         final Account account = businessContextFactory.getAccount();
         final Long accountRecordId = businessContextFactory.getAccountRecordId();
@@ -69,20 +66,9 @@ public class BusinessBundleFactory {
         final ReportGroup reportGroup = businessContextFactory.getReportGroup();
         final CurrencyConverter currencyConverter = businessContextFactory.getCurrencyConverter();
 
-        // Lookup once all SubscriptionBundle for that account (this avoids expensive lookups for each bundle)
-        final Set<UUID> baseSubscriptionIds = new HashSet<UUID>();
-        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
-        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
-        for (final SubscriptionBundle bundle : bundlesForAccount) {
-            for (final Subscription subscription : bundle.getSubscriptions()) {
-                baseSubscriptionIds.add(subscription.getBaseEntitlementId());
-                bundles.put(bundle.getId(), bundle);
-            }
-        }
-
         final Map<UUID, Integer> rankForBundle = new LinkedHashMap<UUID, Integer>();
         final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle = new LinkedHashMap<UUID, BusinessSubscriptionTransitionModelDao>();
-        filterBstsForBasePlans(sortedBsts, baseSubscriptionIds, rankForBundle, bstForBundle);
+        filterBstsForBasePlans(sortedBsts, rankForBundle, bstForBundle);
 
         // We fetch the bundles in parallel as these can be very large on a per account basis (@see BusinessSubscriptionTransitionFactory)
         final CompletionService<BusinessBundleModelDao> completionService = new ExecutorCompletionService<BusinessBundleModelDao>(executor);
@@ -98,9 +84,9 @@ public class BusinessBundleFactory {
                                     account,
                                     creationAuditLog,
                                     accountRecordId,
-                                    bundles,
                                     bst,
-                                    rankForBundle.get(bst.getBundleId()),
+                                    // Note! If partial refreshes are enabled, this value is meaningless as we don't have the full picture
+                                    partialRefresh ? Integer.valueOf(-1) : rankForBundle.get(bst.getBundleId()),
                                     currencyConverter,
                                     tenantRecordId,
                                     reportGroup
@@ -122,11 +108,14 @@ public class BusinessBundleFactory {
     }
 
     @VisibleForTesting
-    void filterBstsForBasePlans(final Collection<BusinessSubscriptionTransitionModelDao> sortedBundlesBst, final Set<UUID> baseSubscriptionIds, final Map<UUID, Integer> rankForBundle, final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle) {
+    void filterBstsForBasePlans(final Iterable<BusinessSubscriptionTransitionModelDao> sortedBundlesBst,
+                                final Map<UUID, Integer> rankForBundle,
+                                final Map<UUID, BusinessSubscriptionTransitionModelDao> bstForBundle) {
         UUID lastBundleId = null;
         Integer lastBundleRank = 0;
         for (final BusinessSubscriptionTransitionModelDao bst : sortedBundlesBst) {
-            if (!baseSubscriptionIds.contains(bst.getSubscriptionId())) {
+            if (!(ProductCategory.BASE.toString().equals(bst.getPrevProductCategory()) ||
+                  ProductCategory.BASE.toString().equals(bst.getNextProductCategory()))) {
                 continue;
             }
 
@@ -147,13 +136,12 @@ public class BusinessBundleFactory {
                                             final Account account,
                                             final AuditLog creationAuditLog,
                                             final Long accountRecordId,
-                                            final Map<UUID, SubscriptionBundle> bundles,
                                             final BusinessSubscriptionTransitionModelDao bst,
                                             final Integer bundleAccountRank,
                                             final CurrencyConverter currencyConverter,
                                             final Long tenantRecordId,
                                             final ReportGroup reportGroup) throws AnalyticsRefreshException {
-        final SubscriptionBundle bundle = bundles.get(bst.getBundleId());
+        final SubscriptionBundle bundle = businessContextFactory.getSubscriptionBundle(bst.getBundleId());
         final Long bundleRecordId = businessContextFactory.getBundleRecordId(bundle.getId());
         final Boolean latestForBundleExternalKey = businessContextFactory.getLatestSubscriptionBundleForExternalKey(bundle.getExternalKey()).getId().equals(bundle.getId());
 

@@ -30,6 +30,7 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
@@ -54,6 +55,7 @@ import org.killbill.clock.Clock;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
@@ -72,7 +74,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile Account account;
     private volatile Account parentAccount;
     private volatile BigDecimal accountBalance;
-    // Relatively cheap lookups, should be done by account_record_id
+    // Relatively cheap lookups (assuming low cardinality), should be done by account_record_id
     private volatile Iterable<SubscriptionBundle> accountBundles;
     private volatile Iterable<SubscriptionEvent> accountBlockingStates;
     private volatile Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
@@ -105,6 +107,8 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile Map<UUID, Long> tagRecordIds = new HashMap<UUID, Long>();
     private volatile Map<UUID, Long> customFieldRecordIds = new HashMap<UUID, Long>();
     // Others
+    private volatile Map<UUID, SubscriptionBundle> cachedBundles = new HashMap<UUID, SubscriptionBundle>();
+    private volatile Map<UUID, Subscription> subscriptions = new HashMap<UUID, Subscription>();
     private volatile Map<String, SubscriptionBundle> latestSubscriptionBundleForExternalKeys = new HashMap<String, SubscriptionBundle>();
     private volatile Map<UUID, TagDefinition> tagDefinitions = new HashMap<UUID, TagDefinition>();
     private volatile VersionedCatalog catalog;
@@ -142,6 +146,11 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public CallContext getCallContext() {
         return callContext;
+    }
+
+    public boolean highCardinalityAccount() {
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
+        return Iterables.find(analyticsConfiguration.highCardinalityAccounts, Predicates.<String>equalTo(accountId.toString()), null) != null;
     }
 
     public BusinessModelDaoBase.ReportGroup getReportGroup() {
@@ -210,9 +219,10 @@ public class BusinessContextFactory extends BusinessFactoryBase {
             synchronized (this) {
                 if (accountBundles == null) {
                     accountBundles = getSubscriptionBundlesForAccount(accountId, callContext);
-
-                    // Pre-populate latestSubscriptionBundleForExternalKeys cache to avoid calling getLatestSubscriptionBundleForExternalKey for each bundle
                     for (final SubscriptionBundle subscriptionBundle : accountBundles) {
+                        cachedBundles.put(subscriptionBundle.getId(), subscriptionBundle);
+
+                        // Pre-populate latestSubscriptionBundleForExternalKeys cache to avoid calling getLatestSubscriptionBundleForExternalKey for each bundle
                         if (latestSubscriptionBundleForExternalKeys.get(subscriptionBundle.getExternalKey()) == null ||
                             latestSubscriptionBundleForExternalKeys.get(subscriptionBundle.getExternalKey()).getCreatedDate().compareTo(subscriptionBundle.getCreatedDate()) > 0) {
                             latestSubscriptionBundleForExternalKeys.put(subscriptionBundle.getExternalKey(), subscriptionBundle);
@@ -581,6 +591,34 @@ public class BusinessContextFactory extends BusinessFactoryBase {
             }
         }
         return customFieldRecordIds.get(customFieldId);
+    }
+
+    public SubscriptionBundle getSubscriptionBundle(final UUID bundleId) throws AnalyticsRefreshException {
+        if (cachedBundles.get(bundleId) == null) {
+            synchronized (this) {
+                if (cachedBundles.get(bundleId) == null) {
+                    if (highCardinalityAccount()) {
+                        // Avoid per account query
+                        cachedBundles.put(bundleId, getSubscriptionBundle(bundleId, callContext));
+                    } else {
+                        // Populate the accountBundles cache, which will cache the second cachedBundles one
+                        getAccountBundles();
+                    }
+                }
+            }
+        }
+        return cachedBundles.get(bundleId);
+    }
+
+    public Subscription getSubscription(final UUID subscriptionId) throws AnalyticsRefreshException {
+        if (subscriptions.get(subscriptionId) == null) {
+            synchronized (this) {
+                if (subscriptions.get(subscriptionId) == null) {
+                    subscriptions.put(subscriptionId, getSubscription(subscriptionId, callContext));
+                }
+            }
+        }
+        return subscriptions.get(subscriptionId);
     }
 
     public SubscriptionBundle getLatestSubscriptionBundleForExternalKey(final String externalKey) throws AnalyticsRefreshException {

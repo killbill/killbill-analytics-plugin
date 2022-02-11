@@ -21,8 +21,6 @@ package org.killbill.billing.plugin.analytics.dao.factory;
 
 import java.math.BigDecimal;
 
-import javax.annotation.Nullable;
-
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.ProductCategory;
 import org.killbill.billing.entitlement.api.Entitlement.EntitlementState;
@@ -77,8 +75,9 @@ public class BusinessAccountFactory {
 
         // Retrieve bundles information
         final Iterable<SubscriptionBundle> bundles = businessContextFactory.getAccountBundles();
-
-        final int nbActiveBundles = Iterables.size(Iterables.<SubscriptionBundle>filter(bundles,
+        // Skip this call for large accounts
+        final int nbActiveBundles = businessContextFactory.highCardinalityAccount() ? -1 :
+                                    Iterables.size(Iterables.<SubscriptionBundle>filter(bundles,
                                                                                         new Predicate<SubscriptionBundle>() {
                                                                                             @Override
                                                                                             public boolean apply(final SubscriptionBundle bundle) {

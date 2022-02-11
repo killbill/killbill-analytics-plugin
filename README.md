@@ -53,6 +53,9 @@ curl -v \
   blacklist:
     - 468e5259-6635-4988-9ae7-3d79b11fc6ed
     - f7da09af-8593-4a88-b6d4-1c4ebf807103
+  highCardinalityAccounts:
+    - a8e594e5-1b78-4c2d-876b-f09ec36c611c
+    - 31ea22c7-19ae-4316-a432-5e6319e49f97
   ignoredGroups:
     - FIELDS
   pluginPropertyKeys:
@@ -74,6 +77,16 @@ org.killbill.notificationq.analytics.tableName=analytics_notifications
 org.killbill.notificationq.analytics.historyTableName=analytics_notifications_history
 org.killbill.analytics.lockSleepMilliSeconds=100
 ```
+
+### Notes
+
+When `enablePartialRefreshes` is set (default), some features are disabled, namely:
+
+* `analytics_bundles.bundle_account_rank` cannot be computed
+
+When `highCardinalityAccounts` is configured, some features are disabled, namely:
+
+* `analytics_accounts.nb_active_bundles` is not computed for that account
 
 ## Setup
 

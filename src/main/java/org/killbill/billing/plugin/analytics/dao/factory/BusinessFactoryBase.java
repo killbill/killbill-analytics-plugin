@@ -37,6 +37,7 @@ import org.killbill.billing.catalog.api.CatalogUserApi;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -57,8 +58,6 @@ import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
-import org.killbill.billing.util.api.AuditLevel;
-import org.killbill.billing.util.api.AuditUserApi;
 import org.killbill.billing.util.api.CustomFieldUserApi;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.api.TagUserApi;
@@ -146,12 +145,6 @@ public abstract class BusinessFactoryBase {
         }
     }
 
-    protected AccountAuditLogs getAccountAuditLogs(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
-        final AuditUserApi auditUserApi = getAuditUserApi();
-        return auditUserApi.getAccountAuditLogs(accountId, AuditLevel.MINIMAL, context);
-    }
-
-
     protected AuditLog getAccountCreationAuditLog(final UUID accountId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
 
 
@@ -217,6 +210,17 @@ public abstract class BusinessFactoryBase {
         }
     }
 
+    protected SubscriptionBundle getSubscriptionBundle(final UUID bundleId, final TenantContext context) throws AnalyticsRefreshException {
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
+
+        try {
+            return subscriptionApi.getSubscriptionBundle(bundleId, context);
+        } catch (final SubscriptionApiException e) {
+            logger.warn("Error retrieving bundle for id {}", bundleId, e);
+            throw new AnalyticsRefreshException(e);
+        }
+    }
+
     protected SubscriptionBundle getLatestSubscriptionBundleForExternalKey(final String bundleExternalKey, final TenantContext context) throws AnalyticsRefreshException {
         final SubscriptionApi subscriptionApi = getSubscriptionApi();
 
@@ -228,6 +232,17 @@ public abstract class BusinessFactoryBase {
             return bundles.get(bundles.size() - 1);
         } catch (final SubscriptionApiException e) {
             logger.warn("Error retrieving bundles for bundle external key {}", bundleExternalKey, e);
+            throw new AnalyticsRefreshException(e);
+        }
+    }
+
+    protected Subscription getSubscription(final UUID subscriptionId, final TenantContext context) throws AnalyticsRefreshException {
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
+
+        try {
+            return subscriptionApi.getSubscriptionForEntitlementId(subscriptionId, context);
+        } catch (final SubscriptionApiException e) {
+            logger.warn("Error retrieving subscription for id {}", subscriptionId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
@@ -679,15 +694,6 @@ public abstract class BusinessFactoryBase {
         }
         return recordIdApi;
     }
-
-    private AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
-        final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
-        if (auditUserApi == null) {
-            throw new AnalyticsRefreshException("Error retrieving auditUserApi");
-        }
-        return auditUserApi;
-    }
-
 
     private interface AuditLogHandler {
         AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs);

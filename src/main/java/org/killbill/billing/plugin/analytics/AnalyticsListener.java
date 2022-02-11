@@ -354,7 +354,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                 allBusinessObjectsDao.update(businessContextFactory);
                 break;
             case SUBSCRIPTIONS:
-                bstDao.update(businessContextFactory);
+                bstDao.update(job.getObjectId(), job.getObjectType(), businessContextFactory);
                 break;
             case OVERDUE:
                 bosDao.update(businessContextFactory);

@@ -47,14 +47,6 @@ public class BusinessTagFactory {
 
         final Iterable<Tag> tags = businessContextFactory.getAccountTags();
 
-        // Lookup once all SubscriptionBundle for that account (optimized call, should be faster in case an account has a lot
-        // of tagged bundles)
-        final Iterable<SubscriptionBundle> bundlesForAccount = businessContextFactory.getAccountBundles();
-        final Map<UUID, SubscriptionBundle> bundles = new LinkedHashMap<UUID, SubscriptionBundle>();
-        for (final SubscriptionBundle bundle : bundlesForAccount) {
-            bundles.put(bundle.getId(), bundle);
-        }
-
         final Collection<BusinessTagModelDao> tagModelDaos = new LinkedList<BusinessTagModelDao>();
         // We process tags sequentially: in practice, an account will be associated with a dozen tags at most
         for (final Tag tag : tags) {
@@ -64,7 +56,7 @@ public class BusinessTagFactory {
 
             SubscriptionBundle bundle = null;
             if (ObjectType.BUNDLE.equals(tag.getObjectType())) {
-                bundle = bundles.get(tag.getObjectId());
+                bundle = businessContextFactory.getSubscriptionBundle(tag.getObjectId());
             }
             final BusinessTagModelDao tagModelDao = BusinessTagModelDao.create(account,
                                                                                accountRecordId,
