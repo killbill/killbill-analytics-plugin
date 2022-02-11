@@ -210,8 +210,10 @@ public class JobsScheduler {
         }
 
         final DateTime nextRun = computeNextRun(eventJson);
-        logger.info("Next run for report {} will be at {}", eventJson.getReportName(), nextRun);
-        schedule(eventJson, nextRun, connection);
+        if (nextRun != null) {
+            logger.info("Next run for report {} will be at {}", eventJson.getReportName(), nextRun);
+            schedule(eventJson, nextRun, connection);
+        }
     }
 
     private void schedule(final AnalyticsReportJob eventJson, final DateTime nextRun, @Nullable final Connection connection) {
@@ -240,8 +242,7 @@ public class JobsScheduler {
             final DateTime boundaryTime = now.withHourOfDay(hourOfTheDayGMT).withMinuteOfHour(0).withSecondOfMinute(0).withMillisOfSecond(0);
             return now.compareTo(boundaryTime) >= 0 ? boundaryTime.plusDays(1) : boundaryTime;
         } else {
-            // Run now
-            return now;
+            return null;
         }
     }
 
