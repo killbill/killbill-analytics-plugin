@@ -100,7 +100,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
         values.add(Arrays.asList("2013-01-01", " ", 7.0));
         values.add(Arrays.asList("2013-01-01", " ", null));
         values.add(Arrays.asList("2013-01-01", " ", ""));
-        values.add(Arrays.asList("2013-01-01", "something", null));
+        values.add(Arrays.asList("2013-01-01", "something’s", null));
         values.add(Arrays.asList("2013-01-01", "something", ""));
         values.add(Arrays.asList("2013-01-01", "something", " "));
         final DataMarker serie1 = new TableDataSeries("serie1",
@@ -117,7 +117,7 @@ public class TestReportsServlet extends AnalyticsTestSuiteNoDB {
                             "2013-01-01,\" \",7.0\n" +
                             "2013-01-01,\" \",\n" +
                             "2013-01-01,\" \",\n" +
-                            "2013-01-01,something,\n" +
+                            "2013-01-01,something’s,\n" +
                             "2013-01-01,something,\n" +
                             "2013-01-01,something,\" \"\n"
                            );

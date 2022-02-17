@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -189,9 +190,9 @@ public class ReportsResource extends BaseResource {
 
             final String format = formatter.orElse(JSON_DATA_FORMAT);
             if (CSV_DATA_FORMAT.equals(format)) {
-                final OutputStream out = new ByteArrayOutputStream();
+                final ByteArrayOutputStream out = new ByteArrayOutputStream();
                 writeAsCSV(results, out);
-                return Results.with(out, Status.OK).header("Content-Type", "text/csv");
+                return Results.with(out.toString(StandardCharsets.UTF_8.name()), Status.OK).header("Content-Type", "text/csv; charset=utf-8");
             } else {
                 return Results.with(results, Status.OK).header("Content-Type", "application/json");
             }
