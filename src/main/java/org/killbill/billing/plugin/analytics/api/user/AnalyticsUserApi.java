@@ -20,9 +20,11 @@
 package org.killbill.billing.plugin.analytics.api.user;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
+import org.killbill.billing.account.api.Account;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
@@ -43,6 +45,7 @@ import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
+import org.killbill.billing.util.entity.Pagination;
 import org.killbill.clock.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,5 +116,36 @@ public class AnalyticsUserApi {
         // TODO Should we take the account lock?
         allBusinessObjectsDao.update(businessContextFactory);
         logger.info("Finished Analytics refresh for account {}", businessContextFactory.getAccountId());
+    }
+
+    public void rebuildAnalyticsForAllAccounts(final CallContext context) {
+        logger.info("Starting Analytics refresh for all accounts");
+        Pagination<Account> accounts = osgiKillbillAPI.getAccountUserApi().getAccounts(0L, 100L, context);
+        rebuildAnalyticsForAccounts(accounts, context);
+        Long nextOffSet = accounts.getNextOffset();
+        while (nextOffSet != null) {
+            accounts = osgiKillbillAPI.getAccountUserApi().getAccounts(nextOffSet, 100L, context);
+            rebuildAnalyticsForAccounts(accounts, context);
+            nextOffSet = accounts.getNextOffset();
+        }
+
+        logger.info("Finished Analytics refresh for all accounts");
+    }
+
+    private void rebuildAnalyticsForAccounts(final Pagination<Account> accounts, final CallContext context) {
+        final Iterator<Account> accountsItr = accounts.iterator();
+        while (accountsItr.hasNext()) {
+            final UUID accountId = accountsItr.next().getId();
+            final BusinessAccount businessAccount = analyticsDao.getAccountById(accountId, context);
+            if (businessAccount != null) {
+                try {
+                    rebuildAnalyticsForAccount(accountId, context);
+                } catch (final AnalyticsRefreshException e) {
+                    logger.error("Error while refreshing account {}", accountId);
+                }
+            }
+
+        }
+
     }
 }

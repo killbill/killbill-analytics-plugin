@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 // Handle /plugins/killbill-analytics/<accountId>
-@Path("/{accountId}")
+
 public class AnalyticsAccountResource extends BaseResource {
 
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsAccountResource.class);
@@ -71,6 +71,7 @@ public class AnalyticsAccountResource extends BaseResource {
     }
 
     @PUT
+    @Path("/{accountId}")
     public Result doPut(@Named("accountId") final UUID accountId,
                         @Header(HDR_CREATED_BY) final Optional<String> createdBy,
                         @Header(HDR_REASON) final Optional<String> reason,
@@ -85,5 +86,16 @@ public class AnalyticsAccountResource extends BaseResource {
             logger.error("Error refreshing account {}", accountId, e);
             return Results.with(new ExceptionResponse(e, true), Status.SERVER_ERROR);
         }
+    }
+
+    @PUT
+    @Path("/")
+    public Result doPut(@Header(HDR_CREATED_BY) final Optional<String> createdBy,
+                        @Header(HDR_REASON) final Optional<String> reason,
+                        @Header(HDR_COMMENT) final Optional<String> comment,
+                        @Local @Named("killbill_tenant") final Tenant tenant) {
+        final CallContext context = createCallContext(createdBy, reason, comment, null, tenant);
+        analyticsUserApi.rebuildAnalyticsForAllAccounts(context);
+        return Results.with(Status.NO_CONTENT);
     }
 }
