@@ -61,6 +61,7 @@ public class AnalyticsAccountResource extends BaseResource {
     }
 
     @GET
+    @Path("/{accountId}")
     @Produces("application/json")
     public Result doGet(@Named("accountId") final UUID accountId,
                         @Local @Named("killbill_tenant") final Tenant tenant) {

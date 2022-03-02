@@ -258,8 +258,10 @@ public class ReportsResource extends BaseResource {
 
         if (Boolean.TRUE.equals(shouldRefresh.orElse(Boolean.FALSE))) {
             reportsUserApi.refreshReport(reportName, context);
+        } else if (reportConfigurationJson.isPresent()) {
+            reportsUserApi.updateReport(reportName, reportConfigurationJson.get(), context);
         } else {
-            reportsUserApi.updateReport(reportName, reportConfigurationJson.orElse(null), context);
+            return Results.with(Status.BAD_REQUEST);
         }
 
         return Results.ok();

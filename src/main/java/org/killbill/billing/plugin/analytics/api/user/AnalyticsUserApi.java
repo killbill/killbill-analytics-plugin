@@ -19,15 +19,20 @@
 
 package org.killbill.billing.plugin.analytics.api.user;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
+import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.plugin.analytics.AnalyticsJob;
+import org.killbill.billing.plugin.analytics.AnalyticsJobHierarchy.Group;
+import org.killbill.billing.plugin.analytics.AnalyticsListener;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.api.BusinessAccount;
 import org.killbill.billing.plugin.analytics.api.BusinessAccountTransition;
@@ -61,13 +66,15 @@ public class AnalyticsUserApi {
     private final AnalyticsDao analyticsDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
     private final CurrencyConversionDao currencyConversionDao;
+    private final AnalyticsListener analyticsListener;
 
     public AnalyticsUserApi(final OSGIKillbillAPI osgiKillbillAPI,
                             final OSGIKillbillDataSource osgiKillbillDataSource,
                             final OSGIConfigPropertiesService osgiConfigPropertiesService,
                             final Executor executor,
                             final Clock clock,
-                            final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
+                            final AnalyticsConfigurationHandler analyticsConfigurationHandler,
+                            final AnalyticsListener analyticsListener) {
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
@@ -75,6 +82,8 @@ public class AnalyticsUserApi {
         this.analyticsDao = new AnalyticsDao(osgiKillbillAPI, osgiKillbillDataSource);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, executor);
         this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource);
+        this.analyticsListener = analyticsListener;
+
     }
 
     public BusinessSnapshot getBusinessSnapshot(final UUID accountId, final TenantContext context) {
@@ -134,18 +143,20 @@ public class AnalyticsUserApi {
 
     private void rebuildAnalyticsForAccounts(final Pagination<Account> accounts, final CallContext context) {
         final Iterator<Account> accountsItr = accounts.iterator();
-        while (accountsItr.hasNext()) {
-            final UUID accountId = accountsItr.next().getId();
-            final BusinessAccount businessAccount = analyticsDao.getAccountById(accountId, context);
-            if (businessAccount != null) {
-                try {
-                    rebuildAnalyticsForAccount(accountId, context);
-                } catch (final AnalyticsRefreshException e) {
-                    logger.error("Error while refreshing account {}", accountId);
-                }
+        try {
+            while (accountsItr.hasNext()) {
+                final UUID accountId = accountsItr.next().getId();
+                final AnalyticsJob analyticsJob = new AnalyticsJob(Group.ALL, null, ObjectType.ACCOUNT, accountId, accountId, context.getTenantId());
+                analyticsListener.scheduleAnalyticsJob(analyticsJob, analyticsConfigurationHandler.getConfigurable(context.getTenantId()));
             }
-
+        } finally {
+            try {
+                accounts.close();
+            } catch (final IOException e) {
+                logger.error("Exception while rebuilding analytics for accounts");
+            }
         }
 
     }
+
 }
