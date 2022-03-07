@@ -38,6 +38,7 @@ import org.jooby.mvc.Produces;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillClock;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.api.BusinessSnapshot;
+import org.killbill.billing.plugin.analytics.api.RefreshResult;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.api.PluginTenantContext;
@@ -50,7 +51,7 @@ import org.slf4j.LoggerFactory;
 
 @Singleton
 // Handle /plugins/killbill-analytics/<accountId>
-@Path("/{accountId}")
+
 public class AnalyticsAccountResource extends BaseResource {
 
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsAccountResource.class);
@@ -61,6 +62,7 @@ public class AnalyticsAccountResource extends BaseResource {
     }
 
     @GET
+    @Path("/{accountId}")
     @Produces("application/json")
     public Result doGet(@Named("accountId") final UUID accountId,
                         @Local @Named("killbill_tenant") final Tenant tenant) {
@@ -71,6 +73,7 @@ public class AnalyticsAccountResource extends BaseResource {
     }
 
     @PUT
+    @Path("/{accountId}")
     public Result doPut(@Named("accountId") final UUID accountId,
                         @Header(HDR_CREATED_BY) final Optional<String> createdBy,
                         @Header(HDR_REASON) final Optional<String> reason,
@@ -85,5 +88,16 @@ public class AnalyticsAccountResource extends BaseResource {
             logger.error("Error refreshing account {}", accountId, e);
             return Results.with(new ExceptionResponse(e, true), Status.SERVER_ERROR);
         }
+    }
+
+    @PUT
+    @Path("/")
+    public Result doPut(@Header(HDR_CREATED_BY) final Optional<String> createdBy,
+                        @Header(HDR_REASON) final Optional<String> reason,
+                        @Header(HDR_COMMENT) final Optional<String> comment,
+                        @Local @Named("killbill_tenant") final Tenant tenant) {
+        final CallContext context = createCallContext(createdBy, reason, comment, null, tenant);
+        RefreshResult refreshResult = analyticsUserApi.rebuildAnalyticsForAllAccounts(context);
+        return Results.with(refreshResult, Status.OK);
     }
 }

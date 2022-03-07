@@ -175,7 +175,7 @@ public class ReportsResource extends BaseResource {
                                                                    startDate,
                                                                    endDate,
                                                                    context)) {
-                out.write(("\n" + sql + "\n").getBytes(Charset.forName("UTF-8")));
+            	out.write(("\n" + sql + "\n").getBytes(Charset.forName("UTF-8")));
             }
             return Results.with(out, Status.OK).header("Content-Type", "text/plain");
         } else {
@@ -249,7 +249,7 @@ public class ReportsResource extends BaseResource {
     @Consumes("application/json")
     public Result doPut(@Named("reportName") final String reportName,
                         @Named("shouldRefresh") final Optional<Boolean> shouldRefresh,
-                        @Body final ReportConfigurationJson reportConfigurationJson,
+                        @Body final Optional<ReportConfigurationJson> reportConfigurationJson,
                         @Header(HDR_CREATED_BY) final Optional<String> createdBy,
                         @Header(HDR_REASON) final Optional<String> reason,
                         @Header(HDR_COMMENT) final Optional<String> comment,
@@ -258,8 +258,10 @@ public class ReportsResource extends BaseResource {
 
         if (Boolean.TRUE.equals(shouldRefresh.orElse(Boolean.FALSE))) {
             reportsUserApi.refreshReport(reportName, context);
+        } else if (reportConfigurationJson.isPresent()) {
+            reportsUserApi.updateReport(reportName, reportConfigurationJson.get(), context);
         } else {
-            reportsUserApi.updateReport(reportName, reportConfigurationJson, context);
+            return Results.with(Status.BAD_REQUEST);
         }
 
         return Results.ok();

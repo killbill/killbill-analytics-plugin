@@ -97,7 +97,8 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
                                                 osgiConfigPropertiesService,
                                                 executor,
                                                 clock,
-                                                analyticsConfigurationHandler);
+                                                analyticsConfigurationHandler,
+                                                null);
     }
 
     @AfterSuite(groups = "slow")

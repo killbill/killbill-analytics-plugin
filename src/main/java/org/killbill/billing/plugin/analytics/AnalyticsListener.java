@@ -205,7 +205,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         scheduleAnalyticsJob(job, analyticsConfiguration);
     }
 
-    private boolean scheduleAnalyticsJob(final AnalyticsJob job, final AnalyticsConfiguration analyticsConfiguration) {
+    public boolean scheduleAnalyticsJob(final AnalyticsJob job, final AnalyticsConfiguration analyticsConfiguration) {
         final Long accountRecordId;
         final Long tenantRecordId;
         final RecordIdApi recordIdApi = osgiKillbillAPI.getRecordIdApi();
