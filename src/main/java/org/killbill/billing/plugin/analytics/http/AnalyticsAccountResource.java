@@ -38,6 +38,7 @@ import org.jooby.mvc.Produces;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillClock;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.api.BusinessSnapshot;
+import org.killbill.billing.plugin.analytics.api.RefreshResult;
 import org.killbill.billing.plugin.analytics.api.user.AnalyticsUserApi;
 import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 import org.killbill.billing.plugin.api.PluginTenantContext;
@@ -96,7 +97,7 @@ public class AnalyticsAccountResource extends BaseResource {
                         @Header(HDR_COMMENT) final Optional<String> comment,
                         @Local @Named("killbill_tenant") final Tenant tenant) {
         final CallContext context = createCallContext(createdBy, reason, comment, null, tenant);
-        analyticsUserApi.rebuildAnalyticsForAllAccounts(context);
-        return Results.with(Status.NO_CONTENT);
+        RefreshResult refreshResult = analyticsUserApi.rebuildAnalyticsForAllAccounts(context);
+        return Results.with(refreshResult, Status.OK);
     }
 }
