@@ -225,6 +225,7 @@ public class SqlReportDataExtractor {
             case H2:
                 return SQLDialect.H2;
             case MYSQL:
+            case GENERIC:
                 return SQLDialect.MARIADB;
             case POSTGRESQL:
                 return SQLDialect.POSTGRES;
