@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2021 Equinix, Inc
- * Copyright 2014-2021 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -63,7 +63,6 @@ import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -75,7 +74,6 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     public static final String PLUGIN_NAME = "killbill-analytics";
     public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsActivator.class);
-    private final MetricRegistry metricRegistry = new MetricRegistry();
     private AnalyticsConfigurationHandler analyticsConfigurationHandler;
     private AnalyticsListener analyticsListener;
     private JobsScheduler jobsScheduler;
@@ -103,7 +101,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
 
-        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry);
+        final DefaultNotificationQueueService notificationQueueService = new DefaultNotificationQueueService(dbi, killbillClock, config, metricRegistry.getMetricRegistry());
 
         final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 

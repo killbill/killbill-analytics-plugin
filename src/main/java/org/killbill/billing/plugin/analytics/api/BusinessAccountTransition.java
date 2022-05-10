@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,15 +19,15 @@
 
 package org.killbill.billing.plugin.analytics.api;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountTransitionModelDao;
 
 public class BusinessAccountTransition extends BusinessEntityBase {
 
     private final String service;
     private final String state;
-    private final LocalDate startDate;
-    private final LocalDate endDate;
+    private final DateTime startDate;
+    private final DateTime endDate;
 
     public BusinessAccountTransition(final BusinessAccountTransitionModelDao businessAccountTransitionModelDao) {
         super(businessAccountTransitionModelDao.getCreatedDate(),
@@ -52,11 +52,11 @@ public class BusinessAccountTransition extends BusinessEntityBase {
         return state;
     }
 
-    public LocalDate getStartDate() {
+    public DateTime getStartDate() {
         return startDate;
     }
 
-    public LocalDate getEndDate() {
+    public DateTime getEndDate() {
         return endDate;
     }
 

@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2021 Equinix, Inc
- * Copyright 2014-2021 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -108,6 +108,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 import com.google.common.collect.ImmutableList;
 
@@ -255,6 +256,12 @@ public abstract class AnalyticsTestSuiteNoDB {
         return invoiceItem;
     }
 
+    @BeforeSuite(alwaysRun = true)
+    public void setUpBeforeSuite() throws Exception {
+        System.setProperty("org.jooq.no-logo", "true");
+        System.setProperty("org.jooq.no-tips", "true");
+    }
+
     @BeforeMethod(groups = "fast")
     public void setUp() throws Exception {
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
@@ -344,8 +351,8 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(subscriptionTransition.getNextPlan()).thenReturn(plan);
         Mockito.when(subscriptionTransition.getNextPhase()).thenReturn(phase);
         Mockito.when(subscriptionTransition.getNextPriceList()).thenReturn(priceList);
-        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new LocalDate(2010, 1, 2));
-        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new LocalDate(2011, 2, 3));
+        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new DateTime("2010-01-02"));
+        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new DateTime("2011-02-03"));
         Mockito.when(subscriptionTransition.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_ENTITLEMENT);
         Mockito.when(subscriptionTransition.getId()).thenReturn(UUID.randomUUID());
         final UUID nextEventId = subscriptionTransition.getId();

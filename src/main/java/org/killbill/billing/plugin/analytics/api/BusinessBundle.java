@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -48,8 +48,8 @@ public class BusinessBundle extends BusinessEntityBase {
     private final BigDecimal convertedCurrentMrr;
     private final String currentCurrency;
     private final Boolean currentBusinessActive;
-    private final LocalDate currentStartDate;
-    private final LocalDate currentEndDate;
+    private final DateTime currentStartDate;
+    private final DateTime currentEndDate;
     private final String currentService;
     private final String currentState;
     private final String convertedCurrency;
@@ -172,11 +172,11 @@ public class BusinessBundle extends BusinessEntityBase {
         return currentBusinessActive;
     }
 
-    public LocalDate getCurrentStartDate() {
+    public DateTime getCurrentStartDate() {
         return currentStartDate;
     }
 
-    public LocalDate getCurrentEndDate() {
+    public DateTime getCurrentEndDate() {
         return currentEndDate;
     }
 

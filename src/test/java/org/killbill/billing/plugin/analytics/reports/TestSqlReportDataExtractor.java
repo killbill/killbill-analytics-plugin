@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2021 Equinix, Inc
- * Copyright 2014-2021 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -42,10 +42,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testDimensions() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^dimension:currency^dimension:state");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
-                                                               "  `day`,\n" +
-                                                               "  `currency`,\n" +
-                                                               "  `state`\n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select `day`, `currency`, `state`\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234");
     }
@@ -53,10 +50,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
     @Test(groups = "fast")
     public void testMetrics() throws Exception {
         final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractor("payments_per_day^metric:amount^metric:fee");
-        Assert.assertEquals(sqlReportDataExtractor.toString(), "select\n" +
-                                                               "  `day`,\n" +
-                                                               "  `amount`,\n" +
-                                                               "  `fee`\n" +
+        Assert.assertEquals(sqlReportDataExtractor.toString(), "select `day`, `amount`, `fee`\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234");
     }
@@ -175,10 +169,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  count(distinct `amount`)\n" +
                                                                "from payments_per_day\n" +
                                                                "where `tenant_record_id` = 1234\n" +
-                                                               "group by\n" +
-                                                               "  `day`,\n" +
-                                                               "  `currency`,\n" +
-                                                               "  `state`");
+                                                               "group by `day`, `currency`, `state`");
     }
 
     @Test(groups = "fast")
@@ -282,21 +273,18 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                "  and `day` <= '2013-11-10'\n" +
                                                                "  and `tenant_record_id` = 1234\n" +
                                                                ")\n" +
-                                                               "group by\n" +
-                                                               "  `day`,\n" +
-                                                               "  `currency`,\n" +
-                                                               "  `state`");
+                                                               "group by `day`, `currency`, `state`");
     }
 
     @Test(groups = "fast")
     public void testRawQueryWithTemplateDisabled() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractorForRawQuery("select :current_date from dual where created_at > :current_date and group = :group and tenant_record_id = TENANT_RECORD_ID",
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractorForRawQuery("select :current_date from X where created_at > :current_date and group = :group and tenant_record_id = TENANT_RECORD_ID",
                                                                                                      "today^variable:current_date=2017-01-01,group=testing",
                                                                                                      new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(),
                                                                                                      new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay(),
                                                                                                      false);
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select null\n" +
-                                                               "from dual\n" +
+                                                               "from X\n" +
                                                                "where (\n" +
                                                                "  created_at > null\n" +
                                                                "  and group = null\n" +
@@ -306,13 +294,13 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testRawQueryWithTemplate() throws Exception {
-        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractorForRawQuery("select :current_date from dual where created_at > :current_date and group = :group and tenant_record_id = TENANT_RECORD_ID",
+        final SqlReportDataExtractor sqlReportDataExtractor = buildSqlReportDataExtractorForRawQuery("select :current_date from X where created_at > :current_date and group = :group and tenant_record_id = TENANT_RECORD_ID",
                                                                                                      "today^variable:current_date=2017-01-01,group=testing",
                                                                                                      new LocalDate(2012, 11, 10).toDateTimeAtStartOfDay(),
                                                                                                      new LocalDate(2013, 11, 10).toDateTimeAtStartOfDay(),
                                                                                                      true);
         Assert.assertEquals(sqlReportDataExtractor.toString(), "select '2017-01-01'\n" +
-                                                               "from dual\n" +
+                                                               "from X\n" +
                                                                "where (\n" +
                                                                "  created_at > '2017-01-01'\n" +
                                                                "  and group = 'testing'\n" +

@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,6 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.api;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
@@ -35,7 +36,7 @@ public class TestBusinessBundle extends AnalyticsTestSuiteNoDB {
     public void testConstructor() throws Exception {
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
-        final BusinessSubscription nextSubscription = new BusinessSubscription(null, phase, priceList, Currency.GBP, new LocalDate(2010, 1, 1), serviceName, stateName, currencyConverter);
+        final BusinessSubscription nextSubscription = new BusinessSubscription(null, phase, priceList, Currency.GBP, new DateTime("2010-01-01"), serviceName, stateName, currencyConverter);
         final BusinessSubscriptionTransitionModelDao subscriptionTransitionModelDao = new BusinessSubscriptionTransitionModelDao(account,
                                                                                                                                  accountRecordId,
                                                                                                                                  bundle,

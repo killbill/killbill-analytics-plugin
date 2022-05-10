@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -55,7 +55,7 @@ public class BusinessInvoiceItemUtils {
                                                                                                        if (input.getEntitlementId().equals(invoiceItem.getSubscriptionId()) &&
                                                                                                            // planPhase can't be null here
                                                                                                            planPhase.equals(input.getNextPhase()) &&
-                                                                                                           input.getEffectiveDate().compareTo(invoiceItem.getStartDate()) == 0) {
+                                                                                                           input.getEffectiveDate().toLocalDate().compareTo(invoiceItem.getStartDate()) == 0) {
                                                                                                            subscriptionEventForInvoiceItem = input;
                                                                                                            return false;
                                                                                                        }
@@ -68,7 +68,7 @@ public class BusinessInvoiceItemUtils {
                                                                                                }
                                                                                               );
             if (nextEvent.isPresent()) {
-                return nextEvent.get().getEffectiveDate();
+                return nextEvent.get().getEffectiveDate().toLocalDate();
             } else {
                 return null;
             }

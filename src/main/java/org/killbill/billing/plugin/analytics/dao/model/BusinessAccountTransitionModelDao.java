@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -24,7 +24,6 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.util.audit.AuditLog;
 
@@ -34,16 +33,16 @@ public class BusinessAccountTransitionModelDao extends BusinessModelDaoBase {
     private Long blockingStateRecordId;
     private String service;
     private String state;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private DateTime startDate;
+    private DateTime endDate;
 
     public BusinessAccountTransitionModelDao() { /* When reading from the database */ }
 
     public BusinessAccountTransitionModelDao(final Long blockingStateRecordId,
                                              final String service,
                                              final String state,
-                                             final LocalDate startDate,
-                                             final LocalDate endDate,
+                                             final DateTime startDate,
+                                             final DateTime endDate,
                                              final DateTime createdDate,
                                              final String createdBy,
                                              final String createdReasonCode,
@@ -75,9 +74,9 @@ public class BusinessAccountTransitionModelDao extends BusinessModelDaoBase {
                                              final Long accountRecordId,
                                              final String service,
                                              final String state,
-                                             final LocalDate startDate,
+                                             final DateTime startDate,
                                              final Long blockingStateRecordId,
-                                             final LocalDate endDate,
+                                             final DateTime endDate,
                                              @Nullable final AuditLog creationAuditLog,
                                              final Long tenantRecordId,
                                              @Nullable final ReportGroup reportGroup) {
@@ -115,11 +114,11 @@ public class BusinessAccountTransitionModelDao extends BusinessModelDaoBase {
         return state;
     }
 
-    public LocalDate getStartDate() {
+    public DateTime getStartDate() {
         return startDate;
     }
 
-    public LocalDate getEndDate() {
+    public DateTime getEndDate() {
         return endDate;
     }
 

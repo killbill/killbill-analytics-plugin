@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -24,7 +24,7 @@ import java.math.RoundingMode;
 
 import javax.annotation.Nullable;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.CatalogApiException;
 import org.killbill.billing.catalog.api.Currency;
@@ -59,14 +59,14 @@ public class BusinessSubscription {
     private final String service;
     private final String state;
     private final Boolean businessActive;
-    private final LocalDate startDate;
-    private final LocalDate endDate;
+    private final DateTime startDate;
+    private final DateTime endDate;
 
     public BusinessSubscription(@Nullable final Plan currentPlan,
                                 @Nullable final PlanPhase currentPhase,
                                 @Nullable final PriceList priceList,
                                 final Currency currency,
-                                final LocalDate startDate,
+                                final DateTime startDate,
                                 final String service,
                                 final String state,
                                 final CurrencyConverter currencyConverter) {
@@ -146,8 +146,8 @@ public class BusinessSubscription {
         this.service = service;
         this.state = state;
 
-        convertedPrice = currencyConverter.getConvertedValue(this.price, this.currency, startDate);
-        convertedMrr = currencyConverter.getConvertedValue(this.mrr, this.currency, startDate);
+        convertedPrice = currencyConverter.getConvertedValue(this.price, this.currency, startDate == null ? null : startDate.toLocalDate());
+        convertedMrr = currencyConverter.getConvertedValue(this.mrr, this.currency, startDate == null ? null : startDate.toLocalDate());
     }
 
     public String getProductName() {
@@ -210,13 +210,14 @@ public class BusinessSubscription {
         return businessActive;
     }
 
-    public LocalDate getStartDate() {
+    public DateTime getStartDate() {
         return startDate;
     }
 
-    public LocalDate getEndDate() {
+    public DateTime getEndDate() {
         return endDate;
     }
+
     static BigDecimal getMrrFromBillingPeriod(final BillingPeriod period, final BigDecimal price) {
 
         final int nbMonths;
@@ -245,7 +246,7 @@ public class BusinessSubscription {
                 break;
         }
 
-        return nbMonths != 0 ?  price.divide(BigDecimal.valueOf(nbMonths), Rounder.SCALE, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        return nbMonths != 0 ? price.divide(BigDecimal.valueOf(nbMonths), Rounder.SCALE, RoundingMode.HALF_UP) : BigDecimal.ZERO;
     }
 
     @Override
