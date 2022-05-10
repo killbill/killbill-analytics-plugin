@@ -134,6 +134,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         @Override
         protected synchronized void executePostStartupScripts() throws IOException {
+            this.instance.executeScript("/*! SET GLOBAL SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;");
             final String baseResource = "org/killbill/billing/plugin/analytics/";
             executePostStartupScripts(baseResource);
         }

@@ -96,7 +96,7 @@ public class ReportsUserApi {
                           final DBEngine dbEngine,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler,
-                          final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
+                          final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws SQLException {
         this.killbillAPI = killbillAPI;
         this.dbEngine = dbEngine;
         this.reportsConfiguration = reportsConfiguration;
