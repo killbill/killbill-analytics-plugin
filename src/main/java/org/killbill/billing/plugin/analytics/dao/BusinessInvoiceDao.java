@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import org.killbill.billing.invoice.api.InvoiceStatus;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
@@ -54,9 +55,10 @@ public class BusinessInvoiceDao extends BusinessAnalyticsDaoBase {
     private final BusinessAccountFactory bacFactory;
 
     public BusinessInvoiceDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                              final OSGIMetricRegistry metricRegistry,
                               final BusinessAccountDao businessAccountDao,
                               final Executor executor) {
-        super(osgiKillbillDataSource);
+        super(osgiKillbillDataSource, metricRegistry);
         this.businessAccountDao = businessAccountDao;
         this.binFactory = new BusinessInvoiceFactory(executor);
         this.bacFactory = new BusinessAccountFactory();

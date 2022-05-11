@@ -32,7 +32,7 @@ public class TestJobsScheduler extends AnalyticsTestSuiteNoDB {
 
     @BeforeMethod(groups = "fast")
     public void createScheduler() throws Exception {
-        jobsScheduler = new JobsScheduler(killbillDataSource, clock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(killbillDataSource, metricRegistry, clock, notificationQueueService);
     }
 
     @Test(groups = "fast")

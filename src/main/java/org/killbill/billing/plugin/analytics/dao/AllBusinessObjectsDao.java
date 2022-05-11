@@ -22,6 +22,7 @@ package org.killbill.billing.plugin.analytics.dao;
 import java.util.concurrent.Executor;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
 import org.slf4j.Logger;
@@ -38,13 +39,14 @@ public class AllBusinessObjectsDao {
     private final BusinessTagDao bTagDao;
 
     public AllBusinessObjectsDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                 final OSGIMetricRegistry metricRegistry,
                                  final Executor executor) {
-        final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
-        this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
-        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, bacDao, executor);
-        this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource);
-        this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource);
-        this.bTagDao = new BusinessTagDao(osgiKillbillDataSource);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource, metricRegistry);
+        this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, metricRegistry, bacDao, executor);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, metricRegistry, bacDao, executor);
+        this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource, metricRegistry);
+        this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource, metricRegistry);
+        this.bTagDao = new BusinessTagDao(osgiKillbillDataSource, metricRegistry);
     }
 
     // TODO: each refresh is done in a transaction - do we want to share a long running transaction across all refreshes?

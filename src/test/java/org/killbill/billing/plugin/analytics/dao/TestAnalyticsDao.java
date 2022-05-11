@@ -31,7 +31,7 @@ public class TestAnalyticsDao extends AnalyticsTestSuiteWithEmbeddedDB {
 
     @Test(groups = "slow")
     public void testDao() throws Exception {
-        final AnalyticsDao analyticsDao = new AnalyticsDao(killbillAPI, killbillDataSource);
+        final AnalyticsDao analyticsDao = new AnalyticsDao(killbillAPI, killbillDataSource, metricRegistry);
         Assert.assertNull(analyticsDao.getAccountById(account.getId(), callContext));
 
         final BusinessAccountModelDao accountModelDao = new BusinessAccountModelDao(account,

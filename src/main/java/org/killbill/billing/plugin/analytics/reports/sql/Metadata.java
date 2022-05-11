@@ -235,9 +235,9 @@ public class Metadata {
 
                     final long secondsToStart = (System.currentTimeMillis() - startTime) / 1000;
                     logger.info(String.format("Primed caches in %d:%02d", secondsToStart / 60, secondsToStart % 60));
-                } catch (final SQLException e) {
+                } catch (final Exception e) {
                     // Ignored
-                    logger.warn("Error while priming caches", e);
+                    logger.warn("Unable to prime caches: {}", e.getLocalizedMessage());
                 }
             }
         };

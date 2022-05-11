@@ -31,6 +31,7 @@ import org.killbill.billing.notification.plugin.api.ExtBusEventType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsJob;
 import org.killbill.billing.plugin.analytics.AnalyticsJobHierarchy.Group;
 import org.killbill.billing.plugin.analytics.AnalyticsListener;
@@ -72,6 +73,7 @@ public class AnalyticsUserApi {
 
     public AnalyticsUserApi(final OSGIKillbillAPI osgiKillbillAPI,
                             final OSGIKillbillDataSource osgiKillbillDataSource,
+                            final OSGIMetricRegistry metricRegistry,
                             final OSGIConfigPropertiesService osgiConfigPropertiesService,
                             final Executor executor,
                             final Clock clock,
@@ -81,9 +83,9 @@ public class AnalyticsUserApi {
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
-        this.analyticsDao = new AnalyticsDao(osgiKillbillAPI, osgiKillbillDataSource);
-        this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, executor);
-        this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource);
+        this.analyticsDao = new AnalyticsDao(osgiKillbillAPI, osgiKillbillDataSource, metricRegistry);
+        this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, metricRegistry, executor);
+        this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource, metricRegistry);
         this.analyticsListener = analyticsListener;
 
     }

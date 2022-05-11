@@ -35,6 +35,7 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
     public void testBlacklist() throws Exception {
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
                                                                           killbillDataSource,
+                                                                          metricRegistry,
                                                                           osgiConfigPropertiesService,
                                                                           null,
                                                                           locker,
@@ -64,6 +65,7 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
 
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
                                                                           killbillDataSource,
+                                                                          metricRegistry,
                                                                           osgiConfigPropertiesService,
                                                                           null,
                                                                           locker,
@@ -80,6 +82,7 @@ public class TestAnalyticsListener extends AnalyticsTestSuiteNoDB {
     public void testJobsOverlap() throws Exception {
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
                                                                           killbillDataSource,
+                                                                          metricRegistry,
                                                                           osgiConfigPropertiesService,
                                                                           null,
                                                                           locker,

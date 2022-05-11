@@ -97,7 +97,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
             logger.warn("Analytics plugin mis-configured: you are probably missing the property org.killbill.notificationq.analytics.historyTableName=analytics_notifications_history");
         }
 
-        final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource());
+        final DBI dbi = BusinessDBIProvider.get(dataSource.getDataSource(), metricRegistry.getMetricRegistry());
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
 
@@ -128,6 +128,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         }
         analyticsListener = new AnalyticsListener(roOSGIkillbillAPI,
                                                   dataSource,
+                                                  metricRegistry,
                                                   configProperties,
                                                   executor,
                                                   locker,
@@ -135,12 +136,12 @@ public class AnalyticsActivator extends KillbillActivatorBase {
                                                   analyticsConfigurationHandler,
                                                   notificationQueueService);
 
-        jobsScheduler = new JobsScheduler(dataSource, killbillClock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(dataSource, metricRegistry, killbillClock, notificationQueueService);
 
-        final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, jobsScheduler);
+        final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, metricRegistry, jobsScheduler);
 
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, configProperties, executor, killbillClock, analyticsConfigurationHandler, analyticsListener);
-        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, configProperties, dbEngine, reportsConfiguration, jobsScheduler, analyticsConfigurationHandler);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, metricRegistry, configProperties, executor, killbillClock, analyticsConfigurationHandler, analyticsListener);
+        reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, metricRegistry, configProperties, dbEngine, reportsConfiguration, jobsScheduler, analyticsConfigurationHandler);
 
         final AnalyticsHealthcheck healthcheck = new AnalyticsHealthcheck(analyticsListener, jobsScheduler);
         registerHealthcheck(context, healthcheck);

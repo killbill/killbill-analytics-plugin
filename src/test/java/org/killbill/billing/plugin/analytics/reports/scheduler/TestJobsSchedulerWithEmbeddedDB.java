@@ -43,7 +43,7 @@ public class TestJobsSchedulerWithEmbeddedDB extends AnalyticsTestSuiteWithEmbed
 
     @BeforeMethod(groups = "mysql")
     public void createScheduler() throws Exception {
-        jobsScheduler = new JobsScheduler(killbillDataSource, clock, notificationQueueService);
+        jobsScheduler = new JobsScheduler(killbillDataSource, metricRegistry, clock, notificationQueueService);
         jobsScheduler.start();
     }
 

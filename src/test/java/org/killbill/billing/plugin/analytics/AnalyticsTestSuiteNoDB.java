@@ -62,6 +62,7 @@ import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.payment.api.InvoicePaymentApi;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
@@ -100,6 +101,8 @@ import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
 import org.killbill.commons.locker.GlobalLocker;
 import org.killbill.commons.locker.memory.MemoryGlobalLocker;
+import org.killbill.commons.metrics.api.MetricRegistry;
+import org.killbill.commons.metrics.impl.NoOpMetricRegistry;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -172,6 +175,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected AnalyticsConfigurationHandler analyticsConfigurationHandler;
     protected OSGIKillbillAPI killbillAPI;
     protected OSGIKillbillDataSource killbillDataSource;
+    protected OSGIMetricRegistry metricRegistry;
     protected OSGIConfigPropertiesService osgiConfigPropertiesService;
     protected ExecutorService executor;
     protected BusinessContextFactory businessContextFactory;
@@ -626,6 +630,10 @@ public abstract class AnalyticsTestSuiteNoDB {
         killbillDataSource = Mockito.mock(OSGIKillbillDataSource.class);
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(killbillDataSource.getDataSource()).thenReturn(dataSource);
+
+        metricRegistry = Mockito.mock(OSGIMetricRegistry.class);
+        final MetricRegistry noopMetricRegistry = new NoOpMetricRegistry();
+        Mockito.when(metricRegistry.getMetricRegistry()).thenReturn(noopMetricRegistry);
 
         final Properties properties = System.getProperties();
         properties.setProperty("org.killbill.notificationq.analytics.tableName", "analytics_notifications");

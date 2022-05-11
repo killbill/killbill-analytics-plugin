@@ -36,7 +36,6 @@ import org.killbill.clock.Clock;
 import org.killbill.clock.DefaultClock;
 import org.killbill.commons.embeddeddb.EmbeddedDB;
 import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
-import org.killbill.commons.metrics.impl.NoOpMetricRegistry;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.killbill.notificationq.dao.NotificationEventModelDao;
@@ -82,7 +81,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         embeddedDB.cleanupAllTables();
 
-        dbi = BusinessDBIProvider.get(embeddedDB.getDataSource());
+        dbi = BusinessDBIProvider.get(embeddedDB.getDataSource(), metricRegistry.getMetricRegistry());
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
 
@@ -90,10 +89,11 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         final NotificationQueueConfig config = new ConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                                  ImmutableMap.<String, String>of("instanceName", "analytics"));
-        notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new NoOpMetricRegistry());
+        notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry.getMetricRegistry());
 
         analyticsUserApi = new AnalyticsUserApi(killbillAPI,
                                                 killbillDataSource,
+                                                metricRegistry,
                                                 osgiConfigPropertiesService,
                                                 executor,
                                                 clock,

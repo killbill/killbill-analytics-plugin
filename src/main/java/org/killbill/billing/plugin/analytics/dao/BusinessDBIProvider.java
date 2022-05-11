@@ -54,9 +54,11 @@ import org.killbill.commons.jdbi.argument.UUIDArgumentFactory;
 import org.killbill.commons.jdbi.log.Slf4jLogging;
 import org.killbill.commons.jdbi.mapper.LowerToCamelBeanMapperFactory;
 import org.killbill.commons.jdbi.mapper.UUIDMapper;
+import org.killbill.commons.jdbi.metrics.KillBillTimingCollector;
 import org.killbill.commons.jdbi.notification.DatabaseTransactionNotificationApi;
 import org.killbill.commons.jdbi.transaction.NotificationTransactionHandler;
 import org.killbill.commons.jdbi.transaction.RestartTransactionRunner;
+import org.killbill.commons.metrics.api.MetricRegistry;
 import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.skife.jdbi.v2.Binding;
 import org.skife.jdbi.v2.DBI;
@@ -71,7 +73,7 @@ public class BusinessDBIProvider {
 
     private BusinessDBIProvider() {}
 
-    public static DBI get(final DataSource dataSource) {
+    public static DBI get(final DataSource dataSource, final MetricRegistry metricRegistry) {
         final DBI dbi = new DBI(dataSource);
 
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
@@ -112,6 +114,8 @@ public class BusinessDBIProvider {
         dbi.setStatementLocator(new AnalyticsStatementLocator());
 
         dbi.setSQLLog(new Slf4jLogging());
+
+        dbi.setTimingCollector(new KillBillTimingCollector(metricRegistry));
 
         final DatabaseTransactionNotificationApi databaseTransactionNotificationApi = new DatabaseTransactionNotificationApi();
         final TransactionHandler notificationTransactionHandler = new NotificationTransactionHandler(databaseTransactionNotificationApi);
