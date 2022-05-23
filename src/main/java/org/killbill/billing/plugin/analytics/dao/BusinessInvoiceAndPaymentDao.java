@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
@@ -64,12 +65,13 @@ public class BusinessInvoiceAndPaymentDao extends BusinessAnalyticsDaoBase {
     private final BusinessPaymentFactory bipFactory;
 
     public BusinessInvoiceAndPaymentDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                        final OSGIMetricRegistry metricRegistry,
                                         final BusinessAccountDao businessAccountDao,
                                         final Executor executor) {
-        super(osgiKillbillDataSource);
+        super(osgiKillbillDataSource, metricRegistry);
         this.businessAccountDao = businessAccountDao;
-        this.businessInvoiceDao = new BusinessInvoiceDao(osgiKillbillDataSource, businessAccountDao, executor);
-        this.businessPaymentDao = new BusinessPaymentDao(osgiKillbillDataSource);
+        this.businessInvoiceDao = new BusinessInvoiceDao(osgiKillbillDataSource, metricRegistry, businessAccountDao, executor);
+        this.businessPaymentDao = new BusinessPaymentDao(osgiKillbillDataSource, metricRegistry);
         bacFactory = new BusinessAccountFactory();
         binFactory = new BusinessInvoiceFactory(executor);
         bipFactory = new BusinessPaymentFactory();

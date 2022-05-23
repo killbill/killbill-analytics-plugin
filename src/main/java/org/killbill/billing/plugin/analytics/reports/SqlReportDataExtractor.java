@@ -31,7 +31,6 @@ import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Query;
 import org.jooq.Record;
-import org.jooq.SQLDialect;
 import org.jooq.SelectConditionStep;
 import org.jooq.SelectSelectStep;
 import org.jooq.impl.DSL;
@@ -79,7 +78,7 @@ public class SqlReportDataExtractor {
         this.tenantRecordId = tenantRecordId;
         this.sourceQuery = null;
 
-        this.context = buildDslContext(dbEngine);
+        this.context = JooqSettings.buildDslContext(dbEngine);
 
         setup();
     }
@@ -97,7 +96,7 @@ public class SqlReportDataExtractor {
         this.endDate = endDate;
         this.tenantRecordId = tenantRecordId;
 
-        this.context = buildDslContext(dbEngine);
+        this.context = JooqSettings.buildDslContext(dbEngine);
 
         // Default (safe) replacements
         String query = sourceQuery.replaceAll("TENANT_RECORD_ID", String.valueOf(tenantRecordId));
@@ -212,24 +211,6 @@ public class SqlReportDataExtractor {
                 dateCheck = Variable.of(String.format("%s<=%s", TS_COLUMN_NAME, endDate));
             }
             filters = filters == null ? dateCheck : And.of(filters, dateCheck);
-        }
-    }
-
-    private DSLContext buildDslContext(final DBEngine dbEngine) {
-        final SQLDialect sqlDialect = SQLDialectFromDBEngine(dbEngine);
-        return DSL.using(sqlDialect, JooqSettings.defaults(sqlDialect));
-    }
-
-    private static SQLDialect SQLDialectFromDBEngine(final DBEngine dbEngine) {
-        switch (dbEngine) {
-            case H2:
-                return SQLDialect.H2;
-            case MYSQL:
-                return SQLDialect.MARIADB;
-            case POSTGRESQL:
-                return SQLDialect.POSTGRES;
-            default:
-                throw new IllegalArgumentException("Unsupported DB engine: " + dbEngine);
         }
     }
 }

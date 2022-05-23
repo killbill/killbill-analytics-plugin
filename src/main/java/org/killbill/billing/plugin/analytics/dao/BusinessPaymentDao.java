@@ -20,14 +20,16 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessPaymentBaseModelDao;
 import org.killbill.billing.util.callcontext.CallContext;
 
 public class BusinessPaymentDao extends BusinessAnalyticsDaoBase {
 
-    public BusinessPaymentDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(osgiKillbillDataSource);
+    public BusinessPaymentDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                              final OSGIMetricRegistry metricRegistry) {
+        super(osgiKillbillDataSource, metricRegistry);
     }
 
     /**

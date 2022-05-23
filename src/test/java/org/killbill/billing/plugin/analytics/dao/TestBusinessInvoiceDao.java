@@ -52,12 +52,13 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
 
     @BeforeMethod(groups = "slow")
     public void set2Up() {
-        final BusinessAccountDao businessAccountDao = new BusinessAccountDao(killbillDataSource);
+        final BusinessAccountDao businessAccountDao = new BusinessAccountDao(killbillDataSource, metricRegistry);
         businessInvoiceDao = new BusinessInvoiceDao(killbillDataSource,
+                                                    metricRegistry,
                                                     businessAccountDao,
                                                     executor);
         businessInvoiceAndPaymentDao = new BusinessInvoiceAndPaymentDao(killbillDataSource,
-                                                                        businessAccountDao,
+                                                                        metricRegistry, businessAccountDao,
                                                                         executor);
     }
 

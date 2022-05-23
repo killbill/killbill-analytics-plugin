@@ -30,6 +30,7 @@ import java.util.UUID;
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.api.BusinessAccount;
 import org.killbill.billing.plugin.analytics.api.BusinessAccountTransition;
 import org.killbill.billing.plugin.analytics.api.BusinessBundle;
@@ -60,8 +61,9 @@ public class AnalyticsDao extends BusinessAnalyticsDaoBase {
     private final OSGIKillbillAPI osgiKillbillAPI;
 
     public AnalyticsDao(final OSGIKillbillAPI osgiKillbillAPI,
-                        final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(osgiKillbillDataSource);
+                        final OSGIKillbillDataSource osgiKillbillDataSource,
+                        final OSGIMetricRegistry metricRegistry) {
+        super(osgiKillbillDataSource, metricRegistry);
         this.osgiKillbillAPI = osgiKillbillAPI;
     }
 

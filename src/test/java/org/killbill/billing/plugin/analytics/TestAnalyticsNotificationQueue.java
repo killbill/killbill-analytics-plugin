@@ -39,6 +39,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
     public void testSendOneEvent() throws Exception {
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
                                                                           killbillDataSource,
+                                                                          metricRegistry,
                                                                           osgiConfigPropertiesService,
                                                                           BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService),
                                                                           locker,
@@ -71,6 +72,7 @@ public class TestAnalyticsNotificationQueue extends AnalyticsTestSuiteWithEmbedd
     public void testVerifyNoDups() throws Exception {
         final AnalyticsListener analyticsListener = new AnalyticsListener(killbillAPI,
                                                                           killbillDataSource,
+                                                                          metricRegistry,
                                                                           osgiConfigPropertiesService,
                                                                           BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService),
                                                                           locker,

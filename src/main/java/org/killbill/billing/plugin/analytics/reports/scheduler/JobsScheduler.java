@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao.Frequency;
@@ -81,11 +82,12 @@ public class JobsScheduler {
     private ExecutorService proceduresService;
 
     public JobsScheduler(final OSGIKillbillDataSource osgiKillbillDataSource,
+                         final OSGIMetricRegistry metricRegistry,
                          final Clock clock,
                          final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
         this.clock = clock;
 
-        dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+        dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource(), metricRegistry.getMetricRegistry());
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 
             @Override

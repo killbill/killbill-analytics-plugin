@@ -2001,10 +2001,11 @@ insert into analytics_payment_tags (
 >>
 
 createAnalyticsAccountFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_account_fields (
   custom_field_record_id
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code
@@ -2033,12 +2034,13 @@ insert into analytics_account_fields (
 >>
 
 createAnalyticsBundleFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_bundle_fields (
   custom_field_record_id
 , bundle_id
 , bundle_external_key
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code
@@ -2069,11 +2071,12 @@ insert into analytics_bundle_fields (
 >>
 
 createAnalyticsInvoiceFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_invoice_fields (
   custom_field_record_id
 , invoice_id
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code
@@ -2103,11 +2106,12 @@ insert into analytics_invoice_fields (
 >>
 
 createAnalyticsInvoicePaymentFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_invoice_payment_fields (
   custom_field_record_id
 , invoice_payment_id
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code
@@ -2137,11 +2141,12 @@ insert into analytics_invoice_payment_fields (
 >>
 
 createAnalyticsPaymentFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_payment_fields (
   custom_field_record_id
 , payment_id
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code
@@ -2171,11 +2176,12 @@ insert into analytics_payment_fields (
 >>
 
 createAnalyticsPaymentMethodFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_payment_method_fields (
   custom_field_record_id
 , payment_method_id
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code
@@ -2205,11 +2211,12 @@ insert into analytics_payment_method_fields (
 >>
 
 createAnalyticsTransactionFields() ::= <<
+/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 insert into analytics_transaction_fields (
   custom_field_record_id
 , transaction_id
 , name
-, value
+, "value"
 , created_date
 , created_by
 , created_reason_code

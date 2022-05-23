@@ -28,6 +28,7 @@ import java.util.Map;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.dao.model.CurrencyConversionModelDao;
 import org.skife.jdbi.v2.DBI;
 
@@ -35,8 +36,9 @@ public class CurrencyConversionDao {
 
     private final CurrencyConversionSqlDao sqlDao;
 
-    public CurrencyConversionDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
-        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+    public CurrencyConversionDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                 final OSGIMetricRegistry metricRegistry) {
+        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource(), metricRegistry.getMetricRegistry());
         this.sqlDao = dbi.onDemand(CurrencyConversionSqlDao.class);
     }
 

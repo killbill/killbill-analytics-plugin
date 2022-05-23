@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.api;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessSubscriptionTransitionModelDao;
 
 public class BusinessSubscriptionTransition extends BusinessEntityBase {
@@ -30,7 +30,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final UUID bundleId;
     private final String bundleExternalKey;
     private final UUID subscriptionId;
-    private final LocalDate requestedTimestamp;
+    private final DateTime requestedTimestamp;
     private final String event;
 
     private final String prevProductName;
@@ -46,7 +46,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final BigDecimal convertedPrevMrr;
     private final String prevCurrency;
     private final Boolean prevBusinessActive;
-    private final LocalDate prevStartDate;
+    private final DateTime prevStartDate;
     private final String prevService;
     private final String prevState;
 
@@ -63,8 +63,8 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
     private final BigDecimal convertedNextMrr;
     private final String nextCurrency;
     private final Boolean nextBusinessActive;
-    private final LocalDate nextStartDate;
-    private final LocalDate nextEndDate;
+    private final DateTime nextStartDate;
+    private final DateTime nextEndDate;
     private final String nextService;
     private final String nextState;
 
@@ -137,7 +137,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return subscriptionId;
     }
 
-    public LocalDate getRequestedTimestamp() {
+    public DateTime getRequestedTimestamp() {
         return requestedTimestamp;
     }
 
@@ -197,7 +197,7 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return prevBusinessActive;
     }
 
-    public LocalDate getPrevStartDate() {
+    public DateTime getPrevStartDate() {
         return prevStartDate;
     }
 
@@ -261,11 +261,11 @@ public class BusinessSubscriptionTransition extends BusinessEntityBase {
         return nextBusinessActive;
     }
 
-    public LocalDate getNextStartDate() {
+    public DateTime getNextStartDate() {
         return nextStartDate;
     }
 
-    public LocalDate getNextEndDate() {
+    public DateTime getNextEndDate() {
         return nextEndDate;
     }
 

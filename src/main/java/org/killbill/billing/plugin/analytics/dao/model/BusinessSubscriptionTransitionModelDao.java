@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -25,7 +25,6 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
-import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
@@ -43,7 +42,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private UUID bundleId;
     private String bundleExternalKey;
     private UUID subscriptionId;
-    private LocalDate requestedTimestamp;
+    private DateTime requestedTimestamp;
     private String event;
 
     private String prevProductName;
@@ -59,7 +58,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private BigDecimal convertedPrevMrr;
     private String prevCurrency;
     private Boolean prevBusinessActive;
-    private LocalDate prevStartDate;
+    private DateTime prevStartDate;
     private String prevService;
     private String prevState;
 
@@ -76,8 +75,8 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
     private BigDecimal convertedNextMrr;
     private String nextCurrency;
     private Boolean nextBusinessActive;
-    private LocalDate nextStartDate;
-    private LocalDate nextEndDate;
+    private DateTime nextStartDate;
+    private DateTime nextEndDate;
     private String nextService;
     private String nextState;
 
@@ -89,7 +88,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
                                                   final UUID bundleId,
                                                   final String bundleExternalKey,
                                                   final UUID subscriptionId,
-                                                  final LocalDate requestedTimestamp,
+                                                  final DateTime requestedTimestamp,
                                                   final BusinessSubscriptionEvent event,
                                                   @Nullable final BusinessSubscription previousSubscription,
                                                   final BusinessSubscription nextSubscription,
@@ -217,7 +216,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return SUBSCRIPTION_TABLE_NAME;
     }
 
-    public void setNextEndDate(final LocalDate nextEndDate) {
+    public void setNextEndDate(final DateTime nextEndDate) {
         this.nextEndDate = nextEndDate;
     }
 
@@ -237,7 +236,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return subscriptionId;
     }
 
-    public LocalDate getRequestedTimestamp() {
+    public DateTime getRequestedTimestamp() {
         return requestedTimestamp;
     }
 
@@ -297,7 +296,7 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return prevBusinessActive;
     }
 
-    public LocalDate getPrevStartDate() {
+    public DateTime getPrevStartDate() {
         return prevStartDate;
     }
 
@@ -361,11 +360,11 @@ public class BusinessSubscriptionTransitionModelDao extends BusinessModelDaoBase
         return nextBusinessActive;
     }
 
-    public LocalDate getNextStartDate() {
+    public DateTime getNextStartDate() {
         return nextStartDate;
     }
 
-    public LocalDate getNextEndDate() {
+    public DateTime getNextEndDate() {
         return nextEndDate;
     }
 

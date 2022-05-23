@@ -20,6 +20,7 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory;
@@ -36,8 +37,9 @@ public class BusinessAccountDao extends BusinessAnalyticsDaoBase {
 
     private final BusinessAccountFactory bacFactory;
 
-    public BusinessAccountDao(final OSGIKillbillDataSource osgiKillbillDataSource) {
-        super(osgiKillbillDataSource);
+    public BusinessAccountDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                              final OSGIMetricRegistry metricRegistry) {
+        super(osgiKillbillDataSource, metricRegistry);
         bacFactory = new BusinessAccountFactory();
     }
 

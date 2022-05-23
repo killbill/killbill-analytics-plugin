@@ -36,7 +36,7 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
     public void testQueryGeneration() throws Exception {
         final String tableName = "payments_per_day";
         embeddedDB.executeScript(String.format("drop table if exists %s;" +
-                                               "create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int, tenant_record_id int);",
+                                               "create table %s(\"day\" datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int, tenant_record_id int);",
                                                tableName, tableName));
 
         final String query = "payments_per_day;" +
@@ -62,7 +62,7 @@ public class TestSqlReportDataExtractorQueries extends AnalyticsTestSuiteWithEmb
             }
         });
 
-        // Don't actually test the query, just make sure it got executed (no MySQL error)
+        // Don't actually test the query, just make sure it got executed (no SQL error)
         Assert.assertTrue(results.isEmpty());
     }
 }

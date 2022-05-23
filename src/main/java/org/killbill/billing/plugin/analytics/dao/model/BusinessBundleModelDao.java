@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -55,8 +55,8 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
     private BigDecimal convertedCurrentMrr;
     private String currentCurrency;
     private Boolean currentBusinessActive;
-    private LocalDate currentStartDate;
-    private LocalDate currentEndDate;
+    private DateTime currentStartDate;
+    private DateTime currentEndDate;
     private String currentService;
     private String currentState;
     private String convertedCurrency;
@@ -247,11 +247,11 @@ public class BusinessBundleModelDao extends BusinessModelDaoBase {
         return currentBusinessActive;
     }
 
-    public LocalDate getCurrentStartDate() {
+    public DateTime getCurrentStartDate() {
         return currentStartDate;
     }
 
-    public LocalDate getCurrentEndDate() {
+    public DateTime getCurrentEndDate() {
         return currentEndDate;
     }
 

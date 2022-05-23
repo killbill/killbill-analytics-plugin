@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,7 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.entitlement.api.SubscriptionEventType;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
@@ -44,41 +44,41 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
         final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event1.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event1.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
-        Mockito.when(event1.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 1));
+        Mockito.when(event1.getEffectiveDate()).thenReturn(new DateTime("2012-05-01"));
         Mockito.when(event1.getServiceName()).thenReturn("service-A");
         events.add(event1);
         final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event2.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event2.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
-        Mockito.when(event2.getEffectiveDate()).thenReturn(new LocalDate(2012, 5, 2));
+        Mockito.when(event2.getEffectiveDate()).thenReturn(new DateTime("2012-05-02"));
         Mockito.when(event2.getServiceName()).thenReturn("service-B");
         events.add(event2);
         final SubscriptionEvent event3 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event3.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event3.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
-        Mockito.when(event3.getEffectiveDate()).thenReturn(new LocalDate(2012, 6, 1));
+        Mockito.when(event3.getEffectiveDate()).thenReturn(new DateTime("2012-06-01"));
         Mockito.when(event3.getServiceName()).thenReturn("service-A");
         events.add(event3);
         final SubscriptionEvent event4 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event4.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event4.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
-        Mockito.when(event4.getEffectiveDate()).thenReturn(new LocalDate(2012, 6, 2));
+        Mockito.when(event4.getEffectiveDate()).thenReturn(new DateTime("2012-06-02"));
         Mockito.when(event4.getServiceName()).thenReturn("service-B");
         events.add(event4);
 
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyConversionDao, killbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         final List<BusinessAccountTransitionModelDao> result = ImmutableList.<BusinessAccountTransitionModelDao>copyOf(factory.createBusinessAccountTransitions(businessContextFactory, events));
         Assert.assertEquals(result.get(0).getService(), "service-A");
-        Assert.assertEquals(result.get(0).getStartDate(), new LocalDate(2012, 5, 1));
-        Assert.assertEquals(result.get(0).getEndDate(), new LocalDate(2012, 6, 1));
+        Assert.assertEquals(result.get(0).getStartDate().compareTo(new DateTime("2012-05-01")), 0);
+        Assert.assertEquals(result.get(0).getEndDate().compareTo(new DateTime("2012-06-01")), 0);
         Assert.assertEquals(result.get(1).getService(), "service-B");
-        Assert.assertEquals(result.get(1).getStartDate(), new LocalDate(2012, 5, 2));
-        Assert.assertEquals(result.get(1).getEndDate(), new LocalDate(2012, 6, 2));
+        Assert.assertEquals(result.get(1).getStartDate().compareTo(new DateTime("2012-05-02")), 0);
+        Assert.assertEquals(result.get(1).getEndDate().compareTo(new DateTime("2012-06-02")), 0);
         Assert.assertEquals(result.get(2).getService(), "service-A");
-        Assert.assertEquals(result.get(2).getStartDate(), new LocalDate(2012, 6, 1));
+        Assert.assertEquals(result.get(2).getStartDate().compareTo(new DateTime("2012-06-01")), 0);
         Assert.assertNull(result.get(2).getEndDate());
         Assert.assertEquals(result.get(3).getService(), "service-B");
-        Assert.assertEquals(result.get(3).getStartDate(), new LocalDate(2012, 6, 2));
+        Assert.assertEquals(result.get(3).getStartDate().compareTo(new DateTime("2012-06-02")), 0);
         Assert.assertNull(result.get(3).getEndDate());
     }
 }

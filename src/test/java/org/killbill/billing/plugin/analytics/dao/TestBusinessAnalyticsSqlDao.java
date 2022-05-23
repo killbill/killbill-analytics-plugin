@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -21,6 +21,7 @@ package org.killbill.billing.plugin.analytics.dao;
 
 import java.math.BigDecimal;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.invoice.api.InvoicePaymentType;
@@ -291,8 +292,8 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
     @Test(groups = "slow")
     public void testSqlDaoForOverdueStatus() throws Exception {
-        final LocalDate startDate = new LocalDate(2005, 6, 5);
-        final LocalDate endDate = new LocalDate(2005, 6, 5);
+        final DateTime startDate = new DateTime("2005-06-05");
+        final DateTime endDate = new DateTime("2005-06-05");
         final BusinessAccountTransitionModelDao businessAccountTransitionModelDao = new BusinessAccountTransitionModelDao(account,
                                                                                                                           accountRecordId,
                                                                                                                           serviceName,
@@ -318,7 +319,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
     @Test(groups = "slow")
     public void testSqlDaoForSubscriptionTransition() throws Exception {
-        final LocalDate startDate = new LocalDate(2012, 6, 5);
+        final DateTime startDate = new DateTime("2012-06-05");
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;
@@ -350,7 +351,7 @@ public class TestBusinessAnalyticsSqlDao extends AnalyticsTestSuiteWithEmbeddedD
 
     @Test(groups = "slow")
     public void testSqlDaoForBundleSummary() throws Exception {
-        final LocalDate startDate = new LocalDate(2012, 6, 5);
+        final DateTime startDate = new DateTime("2012-06-05");
 
         final BusinessSubscriptionEvent event = BusinessSubscriptionEvent.valueOf("START_ENTITLEMENT_BASE");
         final BusinessSubscription previousSubscription = null;

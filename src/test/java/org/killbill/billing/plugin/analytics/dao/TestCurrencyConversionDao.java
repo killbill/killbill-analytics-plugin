@@ -31,7 +31,7 @@ public class TestCurrencyConversionDao extends AnalyticsTestSuiteWithEmbeddedDB 
 
     @Test(groups = "slow")
     public void testLookup() throws Exception {
-        final CurrencyConversionDao dao = new CurrencyConversionDao(killbillDataSource);
+        final CurrencyConversionDao dao = new CurrencyConversionDao(killbillDataSource, metricRegistry);
 
         final LocalDate effectiveDate = new LocalDate(2012, 1, 1);
         final CurrencyConversionModelDao notFound = dao.getCurrencyConversion("USD", "EUR", effectiveDate);
