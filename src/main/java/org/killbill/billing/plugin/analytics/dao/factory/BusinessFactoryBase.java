@@ -24,7 +24,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.ErrorCode;
@@ -55,9 +58,13 @@ import org.killbill.billing.payment.api.PaymentApiException;
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PluginProperty;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
+import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
+import org.killbill.billing.util.api.AuditLevel;
+import org.killbill.billing.util.api.AuditUserApi;
 import org.killbill.billing.util.api.CustomFieldUserApi;
 import org.killbill.billing.util.api.RecordIdApi;
 import org.killbill.billing.util.api.TagUserApi;
@@ -90,20 +97,34 @@ public abstract class BusinessFactoryBase {
     private static final Iterable<PluginProperty> PLUGIN_PROPERTIES = ImmutableList.<PluginProperty>of();
     private static final Logger logger = LoggerFactory.getLogger(BusinessFactoryBase.class);
 
+    protected final UUID accountId;
+    protected final CallContext callContext;
     protected final OSGIKillbillAPI osgiKillbillAPI;
     protected final Clock clock;
 
+    private final boolean highCardinalityAccount;
     private final String referenceCurrency;
     private final CurrencyConversionDao currencyConversionDao;
 
-    public BusinessFactoryBase(final CurrencyConversionDao currencyConversionDao,
+    public BusinessFactoryBase(final UUID accountId,
+                               final CallContext callContext,
+                               final CurrencyConversionDao currencyConversionDao,
                                final OSGIKillbillAPI osgiKillbillAPI,
                                final OSGIConfigPropertiesService osgiConfigPropertiesService,
-                               final Clock clock) {
+                               final Clock clock,
+                               final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
+        this.accountId = accountId;
+        this.callContext = callContext;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.clock = clock;
         this.referenceCurrency = MoreObjects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
         this.currencyConversionDao = currencyConversionDao;
+        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
+        this.highCardinalityAccount = analyticsConfiguration.highCardinalityAccounts.stream().filter(s -> Objects.equals(s, accountId.toString())).findFirst().orElse(null) != null;
+    }
+
+    public boolean highCardinalityAccount() {
+        return highCardinalityAccount;
     }
 
     //
@@ -146,18 +167,16 @@ public abstract class BusinessFactoryBase {
     }
 
     protected AuditLog getAccountCreationAuditLog(final UUID accountId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
-
-
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForAccount = accountAuditLogs.getAuditLogsForAccount();
-                for (final AuditLog auditLog : auditLogsForAccount) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(accountId, ObjectType.ACCOUNT, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForAccount();
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         },"Unable to find Account creation audit log for id {}", accountId);
     }
@@ -256,14 +275,14 @@ public abstract class BusinessFactoryBase {
 
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForBundle = accountAuditLogs.getAuditLogsForBundle(bundleId);
-                for (final AuditLog auditLog : auditLogsForBundle) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(bundleId, ObjectType.BUNDLE, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForBundle(bundleId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Bundle creation audit log for id {}", bundleId);
 
@@ -272,14 +291,14 @@ public abstract class BusinessFactoryBase {
     protected AuditLog getSubscriptionEventCreationAuditLog(final UUID subscriptionEventId, final ObjectType objectType, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForSubscriptionEvent = accountAuditLogs.getAuditLogs(objectType).getAuditLogs(subscriptionEventId);
-                for (final AuditLog auditLog : auditLogsForSubscriptionEvent) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(subscriptionEventId, objectType, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogs(objectType).getAuditLogs(subscriptionEventId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Subscription event creation audit log for id {}", subscriptionEventId);
     }
@@ -297,14 +316,14 @@ public abstract class BusinessFactoryBase {
 
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForBlockingState = accountAuditLogs.getAuditLogsForBlockingState(blockingStateId);
-                for (final AuditLog auditLog : auditLogsForBlockingState) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(blockingStateId, ObjectType.BLOCKING_STATES, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForBlockingState(blockingStateId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Blocking state creation audit log for id {}", blockingStateId);
     }
@@ -322,14 +341,14 @@ public abstract class BusinessFactoryBase {
 
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForInvoice = accountAuditLogs.getAuditLogsForInvoice(invoiceId);
-                for (final AuditLog auditLog : auditLogsForInvoice) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(invoiceId, ObjectType.INVOICE, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForInvoice(invoiceId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Invoice creation audit log for id {}", invoiceId);
     }
@@ -343,14 +362,14 @@ public abstract class BusinessFactoryBase {
 
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForInvoiceItem = accountAuditLogs.getAuditLogsForInvoiceItem(invoiceItemId);
-                for (final AuditLog auditLog : auditLogsForInvoiceItem) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(invoiceItemId, ObjectType.INVOICE_ITEM, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForInvoiceItem(invoiceItemId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Invoice item creation audit log for id {}", invoiceItemId);
     }
@@ -449,14 +468,14 @@ public abstract class BusinessFactoryBase {
 
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForInvoicePayment = accountAuditLogs.getAuditLogsForInvoicePayment(invoicePaymentId);
-                for (final AuditLog auditLog : auditLogsForInvoicePayment) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(invoicePaymentId, ObjectType.INVOICE_PAYMENT, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForInvoicePayment(invoicePaymentId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Invoice payment creation audit log for id {}", invoicePaymentId);
     }
@@ -539,14 +558,14 @@ public abstract class BusinessFactoryBase {
 
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForPayment = accountAuditLogs.getAuditLogsForPayment(paymentId);
-                for (final AuditLog auditLog : auditLogsForPayment) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(paymentId, ObjectType.PAYMENT, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForPayment(paymentId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find payment creation audit log for id {}", paymentId);
     }
@@ -568,14 +587,14 @@ public abstract class BusinessFactoryBase {
     protected AuditLog getFieldCreationAuditLog(final UUID fieldId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForCustomField(fieldId);
-                for (final AuditLog auditLog : auditLogsForTag) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(fieldId, ObjectType.CUSTOM_FIELD, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForCustomField(fieldId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Field creation audit log for id {}", fieldId);
     }
@@ -602,14 +621,14 @@ public abstract class BusinessFactoryBase {
     protected AuditLog getTagCreationAuditLog(final UUID tagId, final SafeAccountAuditLogs safeAccountAuditLogs) throws AnalyticsRefreshException {
         return new AuditLogWithRetry(safeAccountAuditLogs).withRetry(new AuditLogHandler() {
             @Override
-            public AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs) {
-                final List<AuditLog> auditLogsForTag = accountAuditLogs.getAuditLogsForTag(tagId);
-                for (final AuditLog auditLog : auditLogsForTag) {
-                    if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
-                        return auditLog;
-                    }
+            public AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context) {
+                final List<AuditLog> auditLogs;
+                if (accountAuditLogs == null) {
+                    auditLogs = auditUserApi.getAuditLogs(tagId, ObjectType.TAG, AuditLevel.MINIMAL, context);
+                } else {
+                    auditLogs = accountAuditLogs.getAuditLogsForTag(tagId);
                 }
-                return null;
+                return getInsertAuditLog(auditLogs);
             }
         }, "Unable to find Tag creation audit log for id {}", tagId);
     }
@@ -695,11 +714,25 @@ public abstract class BusinessFactoryBase {
         return recordIdApi;
     }
 
-    private interface AuditLogHandler {
-        AuditLog getAuditLog(final AccountAuditLogs accountAuditLogs);
+    private abstract static class AuditLogHandler {
+
+        abstract AuditLog getAuditLog(@Nullable final AccountAuditLogs accountAuditLogs, final AuditUserApi auditUserApi, final TenantContext context);
+
+        protected AuditLog getInsertAuditLog(@Nullable final Iterable<AuditLog> auditLogs) {
+            if (auditLogs == null) {
+                return null;
+            }
+
+            for (final AuditLog auditLog : auditLogs) {
+                if (auditLog.getChangeType().equals(ChangeType.INSERT)) {
+                    return auditLog;
+                }
+            }
+            return null;
+        }
     }
 
-    private static class AuditLogWithRetry {
+    private class AuditLogWithRetry {
 
         private final SafeAccountAuditLogs safeAccountAuditLogs;
 
@@ -709,11 +742,25 @@ public abstract class BusinessFactoryBase {
 
         // Fetch audit log for resource based on cached value and refresh cache if not found.
         public AuditLog withRetry(final AuditLogHandler handler, final String warnFmt, final Object... warnObjs) throws AnalyticsRefreshException {
-            AuditLog result = handler.getAuditLog(safeAccountAuditLogs.getAccountAuditLogs(false));
-            if (result == null) {
-                result = handler.getAuditLog(safeAccountAuditLogs.getAccountAuditLogs(true));
+            final AuditUserApi auditUserApi = safeAccountAuditLogs.getAuditUserApi();
+            final TenantContext context = safeAccountAuditLogs.getContext();
+
+            AuditLog result;
+            if (highCardinalityAccount) {
+                result = handler.getAuditLog(null, auditUserApi, context);
                 if (result == null) {
-                    logger.warn(warnFmt, warnObjs);
+                    result = handler.getAuditLog(null, auditUserApi, context);
+                    if (result == null) {
+                        logger.warn(warnFmt, warnObjs);
+                    }
+                }
+            } else {
+                result = handler.getAuditLog(safeAccountAuditLogs.getAccountAuditLogs(false), auditUserApi, context);
+                if (result == null) {
+                    result = handler.getAuditLog(safeAccountAuditLogs.getAccountAuditLogs(true), auditUserApi, context);
+                    if (result == null) {
+                        logger.warn(warnFmt, warnObjs);
+                    }
                 }
             }
             return result;

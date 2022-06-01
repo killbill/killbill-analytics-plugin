@@ -48,10 +48,10 @@ class SafeAccountAuditLogs {
     private final TenantContext context;
     private final OSGIKillbillAPI osgiKillbillAPI;
 
-    private AtomicBoolean isRefreshing;
+    private final AtomicBoolean isRefreshing;
     private volatile AccountAuditLogs accountAuditLogs;
     // Only for logging to see what's happening
-    private AtomicInteger nbRefresh;
+    private final AtomicInteger nbRefresh;
 
     public SafeAccountAuditLogs(final OSGIKillbillAPI osgiKillbillAPI, final UUID accountId, final TenantContext context) {
         this.osgiKillbillAPI = osgiKillbillAPI;
@@ -69,25 +69,22 @@ class SafeAccountAuditLogs {
             throw new AnalyticsRefreshException(String.format("Failed to fetch all account audit logs for account %s", accountId));
         }
 
-        int refreshCnt = nbRefresh.get();
+        final int refreshCnt = nbRefresh.get();
         if (refreshCnt >= LOG_THRESHOLD) {
             if (refreshCnt % LOG_THRESHOLD == 0) {
-                logger.warn("Detected {} audit logs full refresh for accountId={}", refreshCnt , accountId);
+                logger.warn("Detected {} audit logs full refresh for accountId={}", refreshCnt, accountId);
             }
         }
         return accountAuditLogs;
     }
 
     private AccountAuditLogs getAccountAuditLogsWithRetry() throws AnalyticsRefreshException {
-
         int leftAttempts = MAX_ATTEMPTS;
         do {
-
-            boolean doRefresh = isRefreshing.compareAndSet(false, true);
+            final boolean doRefresh = isRefreshing.compareAndSet(false, true);
             if (doRefresh) {
                 try {
-                    final AccountAuditLogs tmp = refreshAccountAuditLogs();
-                    return tmp;
+                    return refreshAccountAuditLogs();
                 } finally {
                     nbRefresh.incrementAndGet();
                     isRefreshing.set(false);
@@ -96,7 +93,7 @@ class SafeAccountAuditLogs {
                 try {
                     Thread.sleep(WAIT_TIME_MS);
                 } catch (final InterruptedException e) {
-                    Thread.interrupted();
+                    Thread.currentThread().interrupt();
                     throw new AnalyticsRefreshException(e);
                 }
             }
@@ -104,13 +101,20 @@ class SafeAccountAuditLogs {
         return null;
     }
 
-
     private AccountAuditLogs refreshAccountAuditLogs() throws AnalyticsRefreshException {
+        final AuditUserApi auditUserApi = getAuditUserApi();
+        return auditUserApi.getAccountAuditLogs(accountId, AuditLevel.MINIMAL, context);
+    }
+
+    public TenantContext getContext() {
+        return context;
+    }
+
+    public AuditUserApi getAuditUserApi() throws AnalyticsRefreshException {
         final AuditUserApi auditUserApi = osgiKillbillAPI.getAuditUserApi();
         if (auditUserApi == null) {
             throw new AnalyticsRefreshException("Error retrieving auditUserApi");
         }
-        return auditUserApi.getAccountAuditLogs(accountId, AuditLevel.MINIMAL, context);
+        return auditUserApi;
     }
-
 }

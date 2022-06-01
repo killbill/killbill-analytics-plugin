@@ -44,7 +44,7 @@ import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 import org.killbill.billing.util.callcontext.CallContext;
@@ -55,18 +55,15 @@ import org.killbill.clock.Clock;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
 
-    private final UUID accountId;
     private final Long accountRecordId;
     private final Long tenantRecordId;
     private final SafeAccountAuditLogs safeAccountAuditLogs;
-    private final BusinessModelDaoBase.ReportGroup reportGroup;
-    private final CallContext callContext;
+    private final ReportGroup reportGroup;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
     private volatile PluginPropertiesManager pluginPropertiesManager;
@@ -120,9 +117,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
                                   final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                   final Clock clock,
                                   final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws AnalyticsRefreshException {
-        super(currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock);
-        this.accountId = accountId;
-        this.callContext = callContext;
+        super(accountId, callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
         // Always needed
@@ -148,12 +143,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return callContext;
     }
 
-    public boolean highCardinalityAccount() {
-        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
-        return Iterables.find(analyticsConfiguration.highCardinalityAccounts, Predicates.<String>equalTo(accountId.toString()), null) != null;
-    }
-
-    public BusinessModelDaoBase.ReportGroup getReportGroup() {
+    public ReportGroup getReportGroup() {
         return reportGroup;
     }
 
