@@ -60,6 +60,17 @@ import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
 
+    private static final Map<UUID, AuditLog> accountCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> bundleCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> subscriptionEventCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> blockingStateCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> invoiceCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> invoiceItemCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> invoicePaymentCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> paymentCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> tagCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> customFieldCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+
     private final Long accountRecordId;
     private final Long tenantRecordId;
     private final SafeAccountAuditLogs safeAccountAuditLogs;
@@ -82,17 +93,6 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile Map<UUID, PaymentMethod> accountPaymentMethods;
     private volatile Iterable<Tag> accountTags;
     private volatile Iterable<CustomField> accountCustomFields;
-    // Cheap lookups, as all audit logs have been pre-fetched
-    private volatile AuditLog accountCreationAuditLog;
-    private volatile Map<UUID, AuditLog> bundleCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> subscriptionEventCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> blockingStateCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> invoiceCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> invoiceItemCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> invoicePaymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> paymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> tagCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> customFieldCreationAuditLogs = new HashMap<UUID, AuditLog>();
     // Cheap lookups (should be in Ehcache)
     private volatile Map<UUID, Long> bundleRecordIds = new HashMap<UUID, Long>();
     private volatile Map<UUID, Long> subscriptionEventRecordIds = new HashMap<UUID, Long>();
@@ -375,14 +375,14 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     }
 
     public AuditLog getAccountCreationAuditLog() throws AnalyticsRefreshException {
-        if (accountCreationAuditLog == null) {
+        if (accountCreationAuditLogs.get(accountId) == null) {
             synchronized (this) {
-                if (accountCreationAuditLog == null) {
-                    accountCreationAuditLog = getAccountCreationAuditLog(accountId, safeAccountAuditLogs);
+                if (accountCreationAuditLogs.get(accountId) == null) {
+                    accountCreationAuditLogs.put(accountId, getAccountCreationAuditLog(accountId, safeAccountAuditLogs));
                 }
             }
         }
-        return accountCreationAuditLog;
+        return accountCreationAuditLogs.get(accountId);
     }
 
     public AuditLog getBundleCreationAuditLog(final UUID bundleId) throws AnalyticsRefreshException {
