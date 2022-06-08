@@ -74,6 +74,7 @@ import org.killbill.billing.util.audit.ChangeType;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.customfield.CustomField;
+import org.killbill.billing.util.entity.Pagination;
 import org.killbill.billing.util.tag.ControlTagType;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
@@ -407,6 +408,12 @@ public abstract class BusinessFactoryBase {
     protected BigDecimal getAccountBalance(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
         final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
         return invoiceUserApi.getAccountBalance(accountId, context);
+    }
+
+    protected Pagination<Invoice> getShallowInvoicesByAccountId(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
+        final InvoiceUserApi invoiceUserApi = getInvoiceUserApi();
+        // Invoices will be shallow, i.e. won't contain items nor payments
+        return invoiceUserApi.searchInvoices(accountId.toString(), 0L, 10000L, context);
     }
 
     protected Plan getPlanFromInvoiceItem(final InvoiceItem invoiceItem, final VersionedCatalog catalog) throws AnalyticsRefreshException {

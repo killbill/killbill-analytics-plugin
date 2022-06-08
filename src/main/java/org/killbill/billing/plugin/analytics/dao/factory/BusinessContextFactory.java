@@ -19,6 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.dao.factory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -49,9 +50,12 @@ import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.customfield.CustomField;
+import org.killbill.billing.util.entity.Pagination;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -59,6 +63,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(BusinessContextFactory.class);
 
     private static final Map<UUID, AuditLog> accountCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
     private static final Map<UUID, AuditLog> bundleCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
@@ -313,6 +319,29 @@ public class BusinessContextFactory extends BusinessFactoryBase {
             }
         }
         return accountInvoices;
+    }
+
+    public Invoice getLastInvoice() throws AnalyticsRefreshException {
+        Invoice lastShallowInvoice = null;
+        Pagination<Invoice> shallowInvoicesByAccountId = null;
+        try {
+            shallowInvoicesByAccountId = getShallowInvoicesByAccountId(accountId, callContext);
+            for (final Invoice shallowInvoice : shallowInvoicesByAccountId) {
+                if (lastShallowInvoice == null || shallowInvoice.getInvoiceDate().isAfter(lastShallowInvoice.getInvoiceDate())) {
+                    lastShallowInvoice = shallowInvoice;
+                }
+            }
+        } finally {
+            try {
+                if (shallowInvoicesByAccountId != null) {
+                    shallowInvoicesByAccountId.close();
+                }
+            } catch (final IOException e) {
+                // Not much we can do...
+                logger.warn("Unable to close Pagination object", e);
+            }
+        }
+        return lastShallowInvoice == null ? null : getInvoice(lastShallowInvoice.getId());
     }
 
     public Map<UUID, List<InvoicePayment>> getAccountInvoicePayments() throws AnalyticsRefreshException {

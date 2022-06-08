@@ -75,7 +75,9 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
         logger.debug("Starting rebuild of Analytics bundleId {} for account {}", bundleId, businessContextFactory.getAccountId());
 
         // Recompute all subscription transition records for that bundle
+        logger.debug("Starting rebuild of Analytics bundle transitions of bundleId {} for account {}", bundleId, businessContextFactory.getAccountId());
         final Collection<BusinessSubscriptionTransitionModelDao> bsts = bstFactory.createBusinessSubscriptionTransitions(bundleId, businessContextFactory);
+        logger.debug("Finished rebuild of Analytics bundle transitions of bundleId {} for account {}", bundleId, businessContextFactory.getAccountId());
 
         update(bsts, true, businessContextFactory);
 
@@ -97,10 +99,15 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
                         final boolean partialRefresh,
                         final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
         // Recompute the account record
+        logger.debug("Starting rebuild of Analytics account {}", businessContextFactory.getAccountId());
         final BusinessAccountModelDao bac = bacFactory.createBusinessAccount(businessContextFactory);
+        logger.debug("Finished rebuild of Analytics account {}", businessContextFactory.getAccountId());
 
         // Recompute the bundle summary records
+        logger.debug("Starting rebuild of Analytics bundle summary for account {}", businessContextFactory.getAccountId());
         final Collection<BusinessBundleModelDao> bbss = bbsFactory.createBusinessBundles(partialRefresh, businessContextFactory, bsts);
+        logger.debug("Finished rebuild of Analytics bundle summary for account {}", businessContextFactory.getAccountId());
+
         executeInTransaction(new Transaction<Void, BusinessAnalyticsSqlDao>() {
             @Override
             public Void inTransaction(final BusinessAnalyticsSqlDao transactional, final TransactionStatus status) throws Exception {
