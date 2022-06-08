@@ -31,9 +31,9 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.BlockingState;
 import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
-import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
@@ -57,9 +57,7 @@ import org.killbill.clock.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
@@ -90,7 +88,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile BigDecimal accountBalance;
     // Relatively cheap lookups (assuming low cardinality), should be done by account_record_id
     private volatile Iterable<SubscriptionBundle> accountBundles;
-    private volatile Iterable<SubscriptionEvent> accountBlockingStates;
+    private volatile Iterable<BlockingState> accountBlockingStates;
     private volatile Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
     private volatile Map<UUID, Invoice> invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
     private volatile Iterable<Invoice> accountInvoices;
@@ -230,34 +228,21 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return accountBundles;
     }
 
-    public Iterable<SubscriptionEvent> getAccountBlockingStates() throws AnalyticsRefreshException {
+    public Iterable<BlockingState> getAccountBlockingStates() throws AnalyticsRefreshException {
         if (accountBlockingStates == null) {
             synchronized (this) {
                 if (accountBlockingStates == null) {
-                    // Find all subscription events for that account
-                    final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(getAccountBundles(),
-                                                                                                                                                                                new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
-                                                                                                                                                                                    @Override
-                                                                                                                                                                                    public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
-                                                                                                                                                                                        return bundle == null ? ImmutableList.<SubscriptionEvent>of() : bundle.getTimeline().getSubscriptionEvents();
-                                                                                                                                                                                    }
-                                                                                                                                                                                }
-                                                                                                                                                                               ));
-
                     // Filter all service state changes
-                    accountBlockingStates = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
-                                                                                new Predicate<SubscriptionEvent>() {
-                                                                                    @Override
-                                                                                    public boolean apply(final SubscriptionEvent event) {
-                                                                                        return event != null &&
-                                                                                               event.getSubscriptionEventType() != null &&
-                                                                                               // We want events coming from the blocking states table...
-                                                                                               ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
-                                                                                               // ...that are for any service but entitlement
-                                                                                               !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
-                                                                                    }
+                    accountBlockingStates = Iterables.<BlockingState>filter(getBlockingStatesForAccount(accountId, callContext),
+                                                                            new Predicate<BlockingState>() {
+                                                                                @Override
+                                                                                public boolean apply(final BlockingState state) {
+                                                                                    return state != null &&
+                                                                                           // We want events coming from the blocking states table that are for any service but entitlement
+                                                                                           !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(state.getService());
                                                                                 }
-                                                                               );
+                                                                            }
+                                                                           );
                 }
             }
         }

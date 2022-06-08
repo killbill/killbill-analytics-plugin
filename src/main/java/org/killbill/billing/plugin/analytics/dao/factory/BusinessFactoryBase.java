@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import org.joda.time.DateTime;
 import org.killbill.billing.ErrorCode;
 import org.killbill.billing.ObjectType;
+import org.killbill.billing.OrderingType;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.account.api.AccountUserApi;
@@ -40,6 +41,8 @@ import org.killbill.billing.catalog.api.CatalogUserApi;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.BlockingState;
+import org.killbill.billing.entitlement.api.EntitlementApiException;
 import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionApiException;
@@ -226,6 +229,17 @@ public abstract class BusinessFactoryBase {
             return subscriptionApi.getSubscriptionBundlesForAccountId(accountId, context);
         } catch (final SubscriptionApiException e) {
             logger.warn("Error retrieving bundles for account id {}", accountId, e);
+            throw new AnalyticsRefreshException(e);
+        }
+    }
+
+    protected Iterable<BlockingState> getBlockingStatesForAccount(final UUID accountId, final TenantContext context) throws AnalyticsRefreshException {
+        final SubscriptionApi subscriptionApi = getSubscriptionApi();
+
+        try {
+            return subscriptionApi.getBlockingStates(accountId, null, null, OrderingType.DESCENDING, SubscriptionApi.ALL_EVENTS, context);
+        } catch (final EntitlementApiException e) {
+            logger.warn("Error retrieving blocking states for account id {}", accountId, e);
             throw new AnalyticsRefreshException(e);
         }
     }
