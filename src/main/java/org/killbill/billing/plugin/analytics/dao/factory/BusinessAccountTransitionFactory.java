@@ -30,7 +30,7 @@ import java.util.UUID;
 
 import org.joda.time.LocalDate;
 import org.killbill.billing.account.api.Account;
-import org.killbill.billing.entitlement.api.SubscriptionEvent;
+import org.killbill.billing.entitlement.api.BlockingState;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountTransitionModelDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
@@ -43,17 +43,18 @@ import com.google.common.collect.Lists;
 public class BusinessAccountTransitionFactory {
 
     public Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final BusinessContextFactory businessContextFactory) throws AnalyticsRefreshException {
-        final Iterable<SubscriptionEvent> blockingStatesOrdered = businessContextFactory.getAccountBlockingStates();
-        if (!blockingStatesOrdered.iterator().hasNext()) {
+        // Already reversed
+        final Iterable<BlockingState> blockingStatesReversed = businessContextFactory.getAccountBlockingStates();
+        if (!blockingStatesReversed.iterator().hasNext()) {
             return ImmutableList.<BusinessAccountTransitionModelDao>of();
         }
 
-        return createBusinessAccountTransitions(businessContextFactory, blockingStatesOrdered);
+        return createBusinessAccountTransitions(businessContextFactory, blockingStatesReversed);
     }
 
     @VisibleForTesting
     Collection<BusinessAccountTransitionModelDao> createBusinessAccountTransitions(final BusinessContextFactory businessContextFactory,
-                                                                                   final Iterable<SubscriptionEvent> blockingStatesOrdered) throws AnalyticsRefreshException {
+                                                                                   final Iterable<BlockingState> blockingStatesReversed) throws AnalyticsRefreshException {
         final Account account = businessContextFactory.getAccount();
         final Long accountRecordId = businessContextFactory.getAccountRecordId();
         final Long tenantRecordId = businessContextFactory.getTenantRecordId();
@@ -61,14 +62,11 @@ public class BusinessAccountTransitionFactory {
 
         final List<BusinessAccountTransitionModelDao> businessAccountTransitions = new LinkedList<BusinessAccountTransitionModelDao>();
 
-        // Reverse to compute the end date of each state
-        final List<SubscriptionEvent> blockingStates = Lists.reverse(ImmutableList.<SubscriptionEvent>copyOf(blockingStatesOrdered));
-
         // To remove duplicates
         final Set<UUID> blockingStateIdsSeen = new HashSet<UUID>();
 
         final Map<String, LocalDate> previousStartDatePerService = new HashMap<String, LocalDate>();
-        for (final SubscriptionEvent state : blockingStates) {
+        for (final BlockingState state : blockingStatesReversed) {
             if (blockingStateIdsSeen.contains(state.getId())) {
                 continue;
             } else {
@@ -80,16 +78,16 @@ public class BusinessAccountTransitionFactory {
             // TODO We're missing information about block billing, etc. Maybe capture it in an event name?
             final BusinessAccountTransitionModelDao accountTransition = new BusinessAccountTransitionModelDao(account,
                                                                                                               accountRecordId,
-                                                                                                              state.getServiceName(),
-                                                                                                              state.getServiceStateName(),
-                                                                                                              state.getEffectiveDate(),
+                                                                                                              state.getService(),
+                                                                                                              state.getStateName(),
+                                                                                                              state.getEffectiveDate() == null ? null : state.getEffectiveDate().toLocalDate(),
                                                                                                               blockingStateRecordId,
-                                                                                                              previousStartDatePerService.get(state.getServiceName()),
+                                                                                                              previousStartDatePerService.get(state.getService()),
                                                                                                               creationAuditLog,
                                                                                                               tenantRecordId,
                                                                                                               reportGroup);
             businessAccountTransitions.add(accountTransition);
-            previousStartDatePerService.put(state.getServiceName(), state.getEffectiveDate());
+            previousStartDatePerService.put(state.getService(), state.getEffectiveDate() == null ? null : state.getEffectiveDate().toLocalDate());
         }
 
         // Reverse again to store the events chronologically
