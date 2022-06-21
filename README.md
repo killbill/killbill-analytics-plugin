@@ -37,6 +37,8 @@ kpm install_java_plugin analytics --from-source-file target/analytics-plugin-*-S
 
 ### Per tenant
 
+The analytics plugin allows some optional tenant level configuration. This can be done by executing the following API endpoint:
+
 ```
 curl -v \
      -X POST \
@@ -72,88 +74,22 @@ curl -v \
 
 ### Global
 
+You can also configure the following properties related to the analytics plugin in the [Kill Bill Configuration File](https://docs.killbill.io/latest/userguide_configuration.html#global_configuration_properties):
+
 ```
 org.killbill.notificationq.analytics.tableName=analytics_notifications
 org.killbill.notificationq.analytics.historyTableName=analytics_notifications_history
 org.killbill.analytics.lockSleepMilliSeconds=100
 ```
 
-### Notes
-
-When `enablePartialRefreshes` is set (default), some features are disabled, namely:
-
-* `analytics_bundles.bundle_account_rank` cannot be computed
-
-When `highCardinalityAccounts` is configured, some features are disabled, namely:
-
-* `analytics_accounts.nb_active_bundles` is not computed for that account
+See [Plugin Configuration](https://docs.killbill.io/latest/userguide_analytics.html#_plugin_configuration) for further information. 
 
 ## Setup
 
-Default dashboards rely on reports that need to be installed by running the [seed_reports.sh](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/seed_reports.sh) script.
+The analytics plugin includes a set of canned reports which can be installed by running the [seed_reports.sh](https://github.com/killbill/killbill-analytics-plugin/blob/master/src/main/resources/seed_reports.sh) script. See [Installing Canned Reports](https://docs.killbill.io/latest/userguide_analytics.html#installing_canned_reports) for further information. By default, the views will use the *converted* amount columns when applicable, which require the `analytics_currency_conversion` table to be populated with currency conversion rates as explained [here](https://docs.killbill.io/latest/userguide_analytics.html#currency_conversion). If you are only using one currency, use the non-converted columns instead (`next_mrr` instead of `converted_next_mrr` for example).
 
-By default, the views will use the *converted* amount columns when applicable, which require the `analytics_currency_conversion` table to be populated with currency conversion rates. If you are only using one currency, use the non-converted columns instead (`next_mrr` instead of `converted_next_mrr` for example).
-
-When configuring refreshes via stored procedures, make sure to bump the connection timeout accordingly (`org.killbill.billing.osgi.dao.connectionTimeout`), as it will be used to set the read and query timeouts.
-
-## API
-
-### Data
-
-To retrieve all data for a given account:
-
-```
-curl -v \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/<ACCOUNT_ID>"
-```
-
-To force a refresh:
-
-```
-curl -v \
-     -X PUT \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/<ACCOUNT_ID>"
-```
-
-To refresh all accounts:
-
-```
-curl -s \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/1.0/kb/accounts/pagination" | \
-ruby -r json -e 'JSON.parse(gets).map { |a| puts a["accountId"] }' | \
-xargs -I accountId \
-curl -v \
-     -X PUT \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-    "http://127.0.0.1:8080/plugins/killbill-analytics/accountId"
-```
-
-### Reports
-
-There are 3 report types:
-
-* `COUNTERS`: This is used for pie charts.
-  * Local: Each row must have 3 columns (`tenant_record_id`, `label`, and `count`).
-  * Remote: Only the columns `label`, and `count` are mandatory. You can optionally specify the placeholder `TENANT_RECORD_ID` in the query which will be replaced by the `tenantRecordId` before the query is executed.
-* `TIMELINE`: This is used for line charts.
-  * Local: The columns `day` (or `ts`) and `tenant_record_id` are mandatory
-  * Remote: The column `day` (or `ts`) is mandatory. You can optionally specify the placeholders `TENANT_RECORD_ID`, `START_DATE`, and `END_DATE` in the query which will be replaced by the `tenantRecordId` and specified dates by the user before the query is executed.
-* `TABLE`: This is used for rendering underlying data.
-  * Local: Each row must have at least a `tenant_record_id` column.
-  * Remote: You can optionally specify the placeholder `TENANT_RECORD_ID` in the query which will be replaced by the `tenantRecordId` before the query is executed.
-
-To create a report based on a local view:
+In addition, you can also create custom reports based on database tables/views. 
+To create a report based on a local view named `report_accounts_summary` execute the following endpoint:
 
 ```
 curl -v \
@@ -171,91 +107,11 @@ curl -v \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
-To create a report based on SQL executed on a remote database (`warehouse`):
+See [Creating Custom Reports](https://docs.killbill.io/latest/userguide_analytics.html#create_custom_reports) for further information. 
 
-```
-curl -v \
-     -X POST \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     -H 'Content-Type: application/json' \
-     -d '{"reportName": "report_historical_orders",
-          "reportType": "TABLE",
-          "reportPrettyName": "Historical orders",
-          "sourceName": "warehouse",
-          "sourceQuery": "select * from warehouse.public.orders"}' \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
-```
+When configuring refreshes via stored procedures, make sure to bump the connection timeout accordingly (`org.killbill.billing.osgi.dao.connectionTimeout`), as it will be used to set the read and query timeouts.
 
-To retrieve a report configuration by name:
-
-```
-curl -v \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/reports/report_accounts_summary"
-```
-
-To retrieve a report SQL query:
-
-```
-curl -v \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/reports?name=report_accounts_summary&startDate=2018-01-01&endDate=2018-05-01&sqlOnly=true"
-```
-
-To retrieve report data:
-
-```
-curl -v \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/reports?name=report_accounts_summary&startDate=2018-01-01&endDate=2018-05-01&smooth=SUM_WEEKLY&format=csv"
-```
-
-To delete a report configuration by name:
-
-```
-curl -v \
-     -X DELETE \
-     -u admin:password \
-     -H "X-Killbill-ApiKey:bob" \
-     -H "X-Killbill-ApiSecret:lazar" \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/reports/report_accounts_summary"
-```
-
-### Healthcheck
-
-Status:
-
-```
-curl -v \
-     -u admin:password \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
-```
-
-Put out of rotation:
-
-```
-curl -v \
-     -X DELETE \
-     -u admin:password \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
-```
-
-Put in rotation:
-
-```
-curl -v \
-     -X PUT \
-     -u admin:password \
-     "http://127.0.0.1:8080/plugins/killbill-analytics/healthcheck"
-```
+In addition to creating reports, you can also perform several other [report operations](https://docs.killbill.io/latest/userguide_analytics.html#_other_report_operations). 
 
 ## About
 
