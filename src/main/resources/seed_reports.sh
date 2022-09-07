@@ -50,7 +50,7 @@ function install_ddl() {
     local ddl=$1
     if [[ $DATABASE_TYPE == "postgresql" ]]; then
         # check if pg ddl file exists
-        local pg_ddl="${ddl%%.*}-postgresql.${ddl##*.}"
+        local pg_ddl="${ddl%.*}-postgresql.${ddl##*.}"
         if [ -f $pg_ddl ]; then ddl=$pg_ddl; fi
         PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_DATABASE -f $ddl
     else
