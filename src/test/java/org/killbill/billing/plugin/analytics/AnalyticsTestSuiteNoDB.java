@@ -261,12 +261,12 @@ public abstract class AnalyticsTestSuiteNoDB {
     }
 
     @BeforeSuite(alwaysRun = true)
-    public void setUpBeforeSuite() throws Exception {
+    public void setUpBeforeSuite() {
         System.setProperty("org.jooq.no-logo", "true");
         System.setProperty("org.jooq.no-tips", "true");
     }
 
-    @BeforeMethod(groups = "fast")
+    @BeforeMethod(groups = {"fast", "slow"})
     public void setUp() throws Exception {
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
