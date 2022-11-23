@@ -13,6 +13,6 @@ jobs:
     uses: killbill/gh-actions-shared/.github/workflows/integration_test.yml@main
     with:
       plugin_name: 'analytics'
-      integration_tests_goal: 'ci:analytics'
+      integration_tests_goal: 'test:plugins:analytics'
       ddl_file: 'src/main/resources/org/killbill/billing/plugin/analytics/ddl.sql'
       integration_tests_ref: 'refs/heads/work-for-release-0.23.x'
