@@ -33,6 +33,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB {
 
@@ -40,26 +41,26 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
     public void testRespectPrevPerService() throws Exception {
         final BusinessAccountTransitionFactory factory = new BusinessAccountTransitionFactory();
 
-        final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
-        final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
+        final List<BlockingState> events = new LinkedList<BlockingState>();
+        final BlockingState event1 = Mockito.mock(BlockingState.class);
         Mockito.when(event1.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event1.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event1.getEffectiveDate()).thenReturn(new DateTime("2012-05-01"));
         Mockito.when(event1.getServiceName()).thenReturn("service-A");
         events.add(event1);
-        final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
+        final BlockingState event2 = Mockito.mock(BlockingState.class);
         Mockito.when(event2.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event2.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event2.getEffectiveDate()).thenReturn(new DateTime("2012-05-02"));
         Mockito.when(event2.getServiceName()).thenReturn("service-B");
         events.add(event2);
-        final SubscriptionEvent event3 = Mockito.mock(SubscriptionEvent.class);
+        final BlockingState event3 = Mockito.mock(BlockingState.class);
         Mockito.when(event3.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event3.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event3.getEffectiveDate()).thenReturn(new DateTime("2012-06-01"));
         Mockito.when(event3.getServiceName()).thenReturn("service-A");
         events.add(event3);
-        final SubscriptionEvent event4 = Mockito.mock(SubscriptionEvent.class);
+        final BlockingState event4 = Mockito.mock(BlockingState.class);
         Mockito.when(event4.getId()).thenReturn(UUID.randomUUID());
         Mockito.when(event4.getSubscriptionEventType()).thenReturn(SubscriptionEventType.SERVICE_STATE_CHANGE);
         Mockito.when(event4.getEffectiveDate()).thenReturn(new DateTime("2012-06-02"));
@@ -67,7 +68,7 @@ public class TestBusinessAccountTransitionFactory extends AnalyticsTestSuiteNoDB
         events.add(event4);
 
         final BusinessContextFactory businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyConversionDao, killbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
-        final List<BusinessAccountTransitionModelDao> result = ImmutableList.<BusinessAccountTransitionModelDao>copyOf(factory.createBusinessAccountTransitions(businessContextFactory, events));
+        final List<BusinessAccountTransitionModelDao> result = ImmutableList.<BusinessAccountTransitionModelDao>copyOf(factory.createBusinessAccountTransitions(businessContextFactory, Lists.reverse(events)));
         Assert.assertEquals(result.get(0).getService(), "service-A");
         Assert.assertEquals(result.get(0).getStartDate().compareTo(new DateTime("2012-05-01")), 0);
         Assert.assertEquals(result.get(0).getEndDate().compareTo(new DateTime("2012-06-01")), 0);

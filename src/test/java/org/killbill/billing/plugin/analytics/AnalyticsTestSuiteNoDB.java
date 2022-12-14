@@ -96,6 +96,7 @@ import org.killbill.billing.util.audit.ChangeType;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.customfield.CustomField;
+import org.killbill.billing.util.entity.Pagination;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
@@ -421,7 +422,8 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoice.getChargedAmount()).thenReturn(new BigDecimal("100293"));
         Mockito.when(invoice.getCreditedAmount()).thenReturn(new BigDecimal("283"));
         Mockito.when(invoice.getRefundedAmount()).thenReturn(new BigDecimal("384"));
-        Mockito.when(invoice.getBalance()).thenReturn(new BigDecimal("12001"));
+        final BigDecimal balance = new BigDecimal("12001");
+        Mockito.when(invoice.getBalance()).thenReturn(balance);
         Mockito.when(invoice.isMigrationInvoice()).thenReturn(false);
         Mockito.when(invoice.getCreatedDate()).thenReturn(INVOICE_CREATED_DATE);
         Mockito.when(invoice.getStatus()).thenReturn(InvoiceStatus.COMMITTED);
@@ -568,11 +570,25 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(subscriptionApi.getSubscriptionBundlesForExternalKey(Mockito.<String>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
 
         final InvoiceUserApi invoiceApi = Mockito.mock(InvoiceUserApi.class);
+        Mockito.when(invoiceApi.getAccountBalance(Mockito.eq(account.getId()),
+                                                  Mockito.any(TenantContext.class)))
+               .thenReturn(balance);
+        //noinspection unchecked
+        final Pagination<Invoice> accountInvoicePages = Mockito.mock(Pagination.class);
+        Mockito.when(accountInvoicePages.iterator()).thenReturn(ImmutableList.of(invoice).iterator());
+        Mockito.when(invoiceApi.searchInvoices(Mockito.eq(account.getId().toString()),
+                                               Mockito.anyLong(),
+                                               Mockito.anyLong(),
+                                               Mockito.any(TenantContext.class)))
+               .thenReturn(accountInvoicePages);
         Mockito.when(invoiceApi.getInvoicesByAccount(Mockito.eq(account.getId()),
                                                      Mockito.anyBoolean(),
                                                      Mockito.anyBoolean(),
                                                      Mockito.any(TenantContext.class)))
                .thenReturn(ImmutableList.of(invoice));
+        Mockito.when(invoiceApi.getInvoice(Mockito.eq(invoice.getId()),
+                                           Mockito.any(TenantContext.class)))
+               .thenReturn(invoice);
         Mockito.when(invoiceApi.getInvoiceByInvoiceItem(Mockito.eq(invoiceItem.getId()),
                                                         Mockito.any(TenantContext.class)))
                .thenReturn(invoice);

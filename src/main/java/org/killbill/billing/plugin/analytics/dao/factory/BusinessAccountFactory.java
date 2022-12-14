@@ -52,21 +52,28 @@ public class BusinessAccountFactory {
 
         // Retrieve the account balance
         // Note: since we retrieve the invoices below, we could compute it ourselves and avoid fetching the invoices
-        // twice, but that way the computation logic is owned by invoice
+        // twice, but that way the computation logic is owned by invoice (this will pull all invoices and items though as it's not optimized today)
         final BigDecimal accountBalance = businessContextFactory.getAccountBalance();
 
         // Retrieve invoices information
         Invoice oldestUnpaidInvoice = null;
         Invoice lastInvoice = null;
-        final Iterable<Invoice> invoices = businessContextFactory.getAccountInvoices();
-        for (final Invoice invoice : invoices) {
-            if (BigDecimal.ZERO.compareTo(invoice.getBalance()) < 0 &&
-                (oldestUnpaidInvoice == null || invoice.getInvoiceDate().isBefore(oldestUnpaidInvoice.getInvoiceDate()))) {
-                oldestUnpaidInvoice = invoice;
+        if (accountBalance.compareTo(BigDecimal.ZERO) > 0) {
+            // There is a getUnpaidInvoicesByAccountId API in Kill Bill, but it's not optimized today (calling getAccountInvoices might also help with caching here for full refreshes)
+            final Iterable<Invoice> invoices = businessContextFactory.getAccountInvoices();
+            for (final Invoice invoice : invoices) {
+                if (BigDecimal.ZERO.compareTo(invoice.getBalance()) < 0 &&
+                    (oldestUnpaidInvoice == null || invoice.getInvoiceDate().isBefore(oldestUnpaidInvoice.getInvoiceDate()))) {
+                    oldestUnpaidInvoice = invoice;
+                }
+                if (lastInvoice == null || invoice.getInvoiceDate().isAfter(lastInvoice.getInvoiceDate())) {
+                    lastInvoice = invoice;
+                }
             }
-            if (lastInvoice == null || invoice.getInvoiceDate().isAfter(lastInvoice.getInvoiceDate())) {
-                lastInvoice = invoice;
-            }
+        } else {
+            // Optimization: if the account has no balance, oldestUnpaidInvoice should be NULL
+            // We still need to fetch lastInvoice (we do it in an optimized way)
+            lastInvoice = businessContextFactory.getLastInvoice();
         }
 
         // Retrieve payments information

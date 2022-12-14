@@ -19,6 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.dao.factory;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
@@ -30,9 +31,9 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.entitlement.api.BlockingState;
 import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
-import org.killbill.billing.entitlement.api.SubscriptionEvent;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoicePayment;
@@ -44,29 +45,40 @@ import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
-import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase;
+import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
 import org.killbill.billing.util.audit.AuditLog;
 import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.customfield.CustomField;
+import org.killbill.billing.util.entity.Pagination;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
 public class BusinessContextFactory extends BusinessFactoryBase {
 
-    private final UUID accountId;
+    private static final Logger logger = LoggerFactory.getLogger(BusinessContextFactory.class);
+
+    private static final Map<UUID, AuditLog> accountCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> bundleCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> subscriptionEventCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> blockingStateCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> invoiceCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> invoiceItemCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> invoicePaymentCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> paymentCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> tagCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+    private static final Map<UUID, AuditLog> customFieldCreationAuditLogs = new FixedSizeMap<UUID, AuditLog>();
+
     private final Long accountRecordId;
     private final Long tenantRecordId;
     private final SafeAccountAuditLogs safeAccountAuditLogs;
-    private final BusinessModelDaoBase.ReportGroup reportGroup;
-    private final CallContext callContext;
+    private final ReportGroup reportGroup;
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
 
     private volatile PluginPropertiesManager pluginPropertiesManager;
@@ -76,7 +88,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile BigDecimal accountBalance;
     // Relatively cheap lookups (assuming low cardinality), should be done by account_record_id
     private volatile Iterable<SubscriptionBundle> accountBundles;
-    private volatile Iterable<SubscriptionEvent> accountBlockingStates;
+    private volatile Iterable<BlockingState> accountBlockingStates;
     private volatile Map<UUID, Invoice> invoices = new HashMap<UUID, Invoice>();
     private volatile Map<UUID, Invoice> invoicesByInvoiceItem = new HashMap<UUID, Invoice>();
     private volatile Iterable<Invoice> accountInvoices;
@@ -85,17 +97,6 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     private volatile Map<UUID, PaymentMethod> accountPaymentMethods;
     private volatile Iterable<Tag> accountTags;
     private volatile Iterable<CustomField> accountCustomFields;
-    // Cheap lookups, as all audit logs have been pre-fetched
-    private volatile AuditLog accountCreationAuditLog;
-    private volatile Map<UUID, AuditLog> bundleCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> subscriptionEventCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> blockingStateCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> invoiceCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> invoiceItemCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> invoicePaymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> paymentCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> tagCreationAuditLogs = new HashMap<UUID, AuditLog>();
-    private volatile Map<UUID, AuditLog> customFieldCreationAuditLogs = new HashMap<UUID, AuditLog>();
     // Cheap lookups (should be in Ehcache)
     private volatile Map<UUID, Long> bundleRecordIds = new HashMap<UUID, Long>();
     private volatile Map<UUID, Long> subscriptionEventRecordIds = new HashMap<UUID, Long>();
@@ -120,9 +121,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
                                   final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                   final Clock clock,
                                   final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws AnalyticsRefreshException {
-        super(currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock);
-        this.accountId = accountId;
-        this.callContext = callContext;
+        super(accountId, callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
         // Always needed
@@ -148,12 +147,7 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return callContext;
     }
 
-    public boolean highCardinalityAccount() {
-        final AnalyticsConfiguration analyticsConfiguration = analyticsConfigurationHandler.getConfigurable(callContext.getTenantId());
-        return Iterables.find(analyticsConfiguration.highCardinalityAccounts, Predicates.<String>equalTo(accountId.toString()), null) != null;
-    }
-
-    public BusinessModelDaoBase.ReportGroup getReportGroup() {
+    public ReportGroup getReportGroup() {
         return reportGroup;
     }
 
@@ -234,34 +228,21 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return accountBundles;
     }
 
-    public Iterable<SubscriptionEvent> getAccountBlockingStates() throws AnalyticsRefreshException {
+    public Iterable<BlockingState> getAccountBlockingStates() throws AnalyticsRefreshException {
         if (accountBlockingStates == null) {
             synchronized (this) {
                 if (accountBlockingStates == null) {
-                    // Find all subscription events for that account
-                    final Iterable<SubscriptionEvent> subscriptionEvents = Iterables.<SubscriptionEvent>concat(Iterables.<SubscriptionBundle, List<SubscriptionEvent>>transform(getAccountBundles(),
-                                                                                                                                                                                new Function<SubscriptionBundle, List<SubscriptionEvent>>() {
-                                                                                                                                                                                    @Override
-                                                                                                                                                                                    public List<SubscriptionEvent> apply(final SubscriptionBundle bundle) {
-                                                                                                                                                                                        return bundle == null ? ImmutableList.<SubscriptionEvent>of() : bundle.getTimeline().getSubscriptionEvents();
-                                                                                                                                                                                    }
-                                                                                                                                                                                }
-                                                                                                                                                                               ));
-
                     // Filter all service state changes
-                    accountBlockingStates = Iterables.<SubscriptionEvent>filter(subscriptionEvents,
-                                                                                new Predicate<SubscriptionEvent>() {
-                                                                                    @Override
-                                                                                    public boolean apply(final SubscriptionEvent event) {
-                                                                                        return event != null &&
-                                                                                               event.getSubscriptionEventType() != null &&
-                                                                                               // We want events coming from the blocking states table...
-                                                                                               ObjectType.BLOCKING_STATES.equals(event.getSubscriptionEventType().getObjectType()) &&
-                                                                                               // ...that are for any service but entitlement
-                                                                                               !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(event.getServiceName());
-                                                                                    }
+                    accountBlockingStates = Iterables.<BlockingState>filter(getBlockingStatesForAccount(accountId, callContext),
+                                                                            new Predicate<BlockingState>() {
+                                                                                @Override
+                                                                                public boolean apply(final BlockingState state) {
+                                                                                    return state != null &&
+                                                                                           // We want events coming from the blocking states table that are for any service but entitlement
+                                                                                           !BusinessSubscriptionTransitionFactory.ENTITLEMENT_SERVICE_NAME.equals(state.getService());
                                                                                 }
-                                                                               );
+                                                                            }
+                                                                           );
                 }
             }
         }
@@ -325,6 +306,29 @@ public class BusinessContextFactory extends BusinessFactoryBase {
         return accountInvoices;
     }
 
+    public Invoice getLastInvoice() throws AnalyticsRefreshException {
+        Invoice lastShallowInvoice = null;
+        Pagination<Invoice> shallowInvoicesByAccountId = null;
+        try {
+            shallowInvoicesByAccountId = getShallowInvoicesByAccountId(accountId, callContext);
+            for (final Invoice shallowInvoice : shallowInvoicesByAccountId) {
+                if (lastShallowInvoice == null || shallowInvoice.getInvoiceDate().isAfter(lastShallowInvoice.getInvoiceDate())) {
+                    lastShallowInvoice = shallowInvoice;
+                }
+            }
+        } finally {
+            try {
+                if (shallowInvoicesByAccountId != null) {
+                    shallowInvoicesByAccountId.close();
+                }
+            } catch (final IOException e) {
+                // Not much we can do...
+                logger.warn("Unable to close Pagination object", e);
+            }
+        }
+        return lastShallowInvoice == null ? null : getInvoice(lastShallowInvoice.getId());
+    }
+
     public Map<UUID, List<InvoicePayment>> getAccountInvoicePayments() throws AnalyticsRefreshException {
         if (accountInvoicePayments == null) {
             synchronized (this) {
@@ -385,14 +389,14 @@ public class BusinessContextFactory extends BusinessFactoryBase {
     }
 
     public AuditLog getAccountCreationAuditLog() throws AnalyticsRefreshException {
-        if (accountCreationAuditLog == null) {
+        if (accountCreationAuditLogs.get(accountId) == null) {
             synchronized (this) {
-                if (accountCreationAuditLog == null) {
-                    accountCreationAuditLog = getAccountCreationAuditLog(accountId, safeAccountAuditLogs);
+                if (accountCreationAuditLogs.get(accountId) == null) {
+                    accountCreationAuditLogs.put(accountId, getAccountCreationAuditLog(accountId, safeAccountAuditLogs));
                 }
             }
         }
-        return accountCreationAuditLog;
+        return accountCreationAuditLogs.get(accountId);
     }
 
     public AuditLog getBundleCreationAuditLog(final UUID bundleId) throws AnalyticsRefreshException {
