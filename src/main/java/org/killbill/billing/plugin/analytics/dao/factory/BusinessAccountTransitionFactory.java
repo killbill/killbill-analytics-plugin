@@ -66,7 +66,7 @@ public class BusinessAccountTransitionFactory {
         final Set<UUID> blockingStateIdsSeen = new HashSet<UUID>();
 
         final Map<String, DateTime> previousStartDatePerService = new HashMap<>();
-        for (final SubscriptionEvent state : blockingStates) {
+        for (final BlockingState  state : blockingStatesReversed) {
             if (blockingStateIdsSeen.contains(state.getId())) {
                 continue;
             } else {
@@ -80,14 +80,14 @@ public class BusinessAccountTransitionFactory {
                                                                                                               accountRecordId,
                                                                                                               state.getService(),
                                                                                                               state.getStateName(),
-                                                                                                              state.getEffectiveDate() == null ? null : state.getEffectiveDate().toLocalDate(),
+                                                                                                              state.getEffectiveDate() == null ? null : state.getEffectiveDate(),
                                                                                                               blockingStateRecordId,
                                                                                                               previousStartDatePerService.get(state.getService()),
                                                                                                               creationAuditLog,
                                                                                                               tenantRecordId,
                                                                                                               reportGroup);
             businessAccountTransitions.add(accountTransition);
-            previousStartDatePerService.put(state.getService(), state.getEffectiveDate() == null ? null : state.getEffectiveDate().toLocalDate());
+            previousStartDatePerService.put(state.getService(), state.getEffectiveDate() == null ? null : state.getEffectiveDate());
         }
 
         // Reverse again to store the events chronologically
