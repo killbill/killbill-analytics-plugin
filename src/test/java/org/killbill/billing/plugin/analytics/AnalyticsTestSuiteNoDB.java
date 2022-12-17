@@ -584,6 +584,7 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(invoiceApi.getInvoicesByAccount(Mockito.eq(account.getId()),
                                                      Mockito.anyBoolean(),
                                                      Mockito.anyBoolean(),
+                                                     Mockito.eq(true),
                                                      Mockito.any(TenantContext.class)))
                .thenReturn(ImmutableList.of(invoice));
         Mockito.when(invoiceApi.getInvoice(Mockito.eq(invoice.getId()),

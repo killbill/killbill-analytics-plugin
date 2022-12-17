@@ -15,7 +15,7 @@ Kill Bill plugin to provide business analytics and reporting capabilities. You c
 |          7.0.y |            0.22.z |
 |          7.1.y |            0.22.z |
 |          7.2.y |            0.22.z |
-|          7.3.y |            0.23.z |
+|          8.0.y |            0.24.z |
 
 ### Release notes
 
