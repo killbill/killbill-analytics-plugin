@@ -260,7 +260,7 @@ public abstract class BusinessFactoryBase {
 
         try {
             final List<SubscriptionBundle> bundles = subscriptionApi.getSubscriptionBundlesForExternalKey(bundleExternalKey, context);
-            if (bundles.size() == 0) {
+            if (bundles.isEmpty()) {
                 throw new AnalyticsRefreshException("Unable to retrieve latest bundle for bundle external key " + bundleExternalKey);
             }
             return bundles.get(bundles.size() - 1);
@@ -274,7 +274,7 @@ public abstract class BusinessFactoryBase {
         final SubscriptionApi subscriptionApi = getSubscriptionApi();
 
         try {
-            return subscriptionApi.getSubscriptionForEntitlementId(subscriptionId, context);
+            return subscriptionApi.getSubscriptionForEntitlementId(subscriptionId, false, context);
         } catch (final SubscriptionApiException e) {
             logger.warn("Error retrieving subscription for id {}", subscriptionId, e);
             throw new AnalyticsRefreshException(e);

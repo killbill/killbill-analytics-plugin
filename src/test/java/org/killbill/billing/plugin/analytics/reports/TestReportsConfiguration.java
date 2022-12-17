@@ -36,8 +36,8 @@ public class TestReportsConfiguration extends AnalyticsTestSuiteWithEmbeddedDB {
 
     @Test(groups = "slow")
     public void testCrud() throws Exception {
-        final JobsScheduler jobsScheduler = new JobsScheduler(killbillDataSource, clock, notificationQueueService);
-        final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(killbillDataSource, jobsScheduler);
+        final JobsScheduler jobsScheduler = new JobsScheduler(killbillDataSource, metricRegistry, clock, notificationQueueService);
+        final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(killbillDataSource, metricRegistry, jobsScheduler);
 
         // Verify initial state
         Assert.assertEquals(reportsConfiguration.getAllReportConfigurations(tenantRecordId).keySet().size(), 0);

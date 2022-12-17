@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -19,7 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.api;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.killbill.billing.plugin.analytics.AnalyticsTestSuiteNoDB;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessAccountTransitionModelDao;
 import org.testng.Assert;
@@ -29,8 +29,8 @@ public class TestBusinessAccountTransition extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructor() throws Exception {
-        final LocalDate startDate = new LocalDate(2005, 2, 5);
-        final LocalDate endDate = new LocalDate(2005, 6, 5);
+        final DateTime startDate = new DateTime("2005-02-05");
+        final DateTime endDate = new DateTime("2005-06-05");
         final BusinessAccountTransitionModelDao businessAccountTransitionModelDao = new BusinessAccountTransitionModelDao(account,
                                                                                                                           accountRecordId,
                                                                                                                           serviceName,

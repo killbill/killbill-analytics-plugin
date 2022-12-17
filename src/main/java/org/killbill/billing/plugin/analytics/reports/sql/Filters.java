@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,7 +23,9 @@ import java.util.List;
 
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.jooq.Name;
 import org.jooq.impl.DSL;
+import org.killbill.billing.plugin.analytics.reports.ReportsUserApi;
 
 import com.bpodgursky.jbool_expressions.And;
 import com.bpodgursky.jbool_expressions.Expression;
@@ -92,7 +94,13 @@ public abstract class Filters {
             expression = expression.replaceFirst("^[\"']", "");
             expression = expression.replaceFirst("[\"']$", "");
 
-            final Field<Object> field = DSL.fieldByName(column);
+            Name name = DSL.name(column);
+            if (ReportsUserApi.DAY_COLUMN_NAME.equals(column)) {
+                // Reserved keyword
+                name = name.quotedName();
+            }
+
+            final Field<Object> field = DSL.field(name);
             switch (sqlOp) {
                 case EQ:
                     return field.eq(expression);

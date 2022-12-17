@@ -39,6 +39,7 @@ import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.BusinessExecutor;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
@@ -92,17 +93,18 @@ public class ReportsUserApi {
 
     public ReportsUserApi(final OSGIKillbillAPI killbillAPI,
                           final OSGIKillbillDataSource osgiKillbillDataSource,
+                          final OSGIMetricRegistry metricRegistry,
                           final OSGIConfigPropertiesService osgiConfigPropertiesService,
                           final DBEngine dbEngine,
                           final ReportsConfiguration reportsConfiguration,
                           final JobsScheduler jobsScheduler,
-                          final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
+                          final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws SQLException {
         this.killbillAPI = killbillAPI;
         this.dbEngine = dbEngine;
         this.reportsConfiguration = reportsConfiguration;
         this.jobsScheduler = jobsScheduler;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
-        queryEngine = new QueryEngine(BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource()));
+        queryEngine = new QueryEngine(BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource(), metricRegistry.getMetricRegistry()));
 
         final String nbThreadsMaybeNull = Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REPORTS_NB_THREADS_PROPERTY));
         this.dbiThreadsExecutor = BusinessExecutor.newCachedThreadPool(nbThreadsMaybeNull == null ? Integer.valueOf(10) : Integer.valueOf(nbThreadsMaybeNull), "osgi-analytics-dashboard");

@@ -32,7 +32,7 @@ public class TestMetadata extends AnalyticsTestSuiteWithEmbeddedDB {
     @Test(groups = {"mysql", "postgresql"})
     public void testTableRetrieval() throws Exception {
         final String tableName = "payments_per_day_metadata";
-        embeddedDB.executeScript(String.format("create table %s(day datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int);", tableName));
+        embeddedDB.executeScript(String.format("create table %s(\"day\" datetime, name varchar(100), currency varchar(10), state varchar(10), amount int, fee int);", tableName));
 
         final Metadata metadata = new Metadata(Sets.<String>newHashSet(tableName), embeddedDB.getDataSource());
         final Table table = metadata.getTable(tableName).getTable();

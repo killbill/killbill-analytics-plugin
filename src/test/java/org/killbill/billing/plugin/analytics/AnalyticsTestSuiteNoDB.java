@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2021 Equinix, Inc
- * Copyright 2014-2021 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -62,6 +62,7 @@ import org.killbill.billing.invoice.api.InvoiceUserApi;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.payment.api.InvoicePaymentApi;
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentApi;
@@ -101,6 +102,8 @@ import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.ClockMock;
 import org.killbill.commons.locker.GlobalLocker;
 import org.killbill.commons.locker.memory.MemoryGlobalLocker;
+import org.killbill.commons.metrics.api.MetricRegistry;
+import org.killbill.commons.metrics.impl.NoOpMetricRegistry;
 import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
@@ -109,6 +112,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeSuite;
 
 import com.google.common.collect.ImmutableList;
 
@@ -172,6 +176,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected AnalyticsConfigurationHandler analyticsConfigurationHandler;
     protected OSGIKillbillAPI killbillAPI;
     protected OSGIKillbillDataSource killbillDataSource;
+    protected OSGIMetricRegistry metricRegistry;
     protected OSGIConfigPropertiesService osgiConfigPropertiesService;
     protected ExecutorService executor;
     protected BusinessContextFactory businessContextFactory;
@@ -256,7 +261,13 @@ public abstract class AnalyticsTestSuiteNoDB {
         return invoiceItem;
     }
 
-    @BeforeMethod(groups = "fast")
+    @BeforeSuite(alwaysRun = true)
+    public void setUpBeforeSuite() {
+        System.setProperty("org.jooq.no-logo", "true");
+        System.setProperty("org.jooq.no-tips", "true");
+    }
+
+    @BeforeMethod(groups = {"fast", "slow"})
     public void setUp() throws Exception {
         Mockito.when(currencyConverter.getConvertedCurrency()).thenReturn("USD");
         Mockito.when(currencyConverter.getConvertedValue(Mockito.<BigDecimal>any(), Mockito.anyString(), Mockito.<LocalDate>any())).thenReturn(BigDecimal.TEN);
@@ -345,8 +356,8 @@ public abstract class AnalyticsTestSuiteNoDB {
         Mockito.when(subscriptionTransition.getNextPlan()).thenReturn(plan);
         Mockito.when(subscriptionTransition.getNextPhase()).thenReturn(phase);
         Mockito.when(subscriptionTransition.getNextPriceList()).thenReturn(priceList);
-        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new LocalDate(2010, 1, 2));
-        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new LocalDate(2011, 2, 3));
+        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new DateTime("2010-01-02"));
+        Mockito.when(subscriptionTransition.getEffectiveDate()).thenReturn(new DateTime("2011-02-03"));
         Mockito.when(subscriptionTransition.getSubscriptionEventType()).thenReturn(SubscriptionEventType.START_ENTITLEMENT);
         Mockito.when(subscriptionTransition.getId()).thenReturn(UUID.randomUUID());
         final UUID nextEventId = subscriptionTransition.getId();
@@ -635,6 +646,10 @@ public abstract class AnalyticsTestSuiteNoDB {
         killbillDataSource = Mockito.mock(OSGIKillbillDataSource.class);
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(killbillDataSource.getDataSource()).thenReturn(dataSource);
+
+        metricRegistry = Mockito.mock(OSGIMetricRegistry.class);
+        final MetricRegistry noopMetricRegistry = new NoOpMetricRegistry();
+        Mockito.when(metricRegistry.getMetricRegistry()).thenReturn(noopMetricRegistry);
 
         final Properties properties = System.getProperties();
         properties.setProperty("org.killbill.notificationq.analytics.tableName", "analytics_notifications");

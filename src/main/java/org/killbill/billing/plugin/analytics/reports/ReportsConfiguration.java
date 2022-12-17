@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.dao.BusinessDBIProvider;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationSqlDao;
@@ -39,8 +40,10 @@ public class ReportsConfiguration {
     private final JobsScheduler scheduler;
     private final DBI dbi;
 
-    public ReportsConfiguration(final OSGIKillbillDataSource osgiKillbillDataSource, final JobsScheduler scheduler) {
-        this.dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+    public ReportsConfiguration(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                final OSGIMetricRegistry metricRegistry,
+                                final JobsScheduler scheduler) {
+        this.dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource(), metricRegistry.getMetricRegistry());
         this.scheduler = scheduler;
     }
 

@@ -22,11 +22,11 @@
     <parent>
         <groupId>org.kill-bill.billing</groupId>
         <artifactId>killbill-oss-parent</artifactId>
-        <version>0.144.78</version>
+        <version>0.145.3-8ff3c94-SNAPSHOT</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
-    <version>7.2.8-SNAPSHOT</version>
+    <version>7.3.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>Kill Bill OSGI Analytics bundle</name>
     <description>Kill Bill Analytics plugin</description>
@@ -42,7 +42,7 @@
         <url>https://github.com/killbill/killbill-analytics-plugin/issues</url>
     </issueManagement>
     <properties>
-        <check.fail-spotbugs>true</check.fail-spotbugs>
+        <check.fail-spotbugs>false</check.fail-spotbugs>
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
         <osgi.private>org.killbill.billing.plugin.analytics.*</osgi.private>
     </properties>
@@ -100,22 +100,8 @@
         </dependency>
         <dependency>
             <groupId>io.airlift</groupId>
-            <artifactId>testing-mysql-server</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.airlift</groupId>
-            <artifactId>testing-postgresql-server</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.airlift</groupId>
             <artifactId>units</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.dropwizard.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
         </dependency>
         <dependency>
             <groupId>io.trino</groupId>
@@ -123,13 +109,18 @@
             <version>354</version>
         </dependency>
         <dependency>
-            <groupId>javax.inject</groupId>
-            <artifactId>javax.inject</artifactId>
+            <groupId>io.zonky.test</groupId>
+            <artifactId>embedded-postgres</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
@@ -248,12 +239,6 @@
             <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-embeddeddb-mysql</artifactId>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.osgi</groupId>
-                    <artifactId>org.osgi.core</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
@@ -265,7 +250,17 @@
         </dependency>
         <dependency>
             <groupId>org.kill-bill.commons</groupId>
+            <artifactId>killbill-metrics-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.commons</groupId>
             <artifactId>killbill-queue</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.kill-bill.testing</groupId>
+            <artifactId>testing-mysql-server</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>

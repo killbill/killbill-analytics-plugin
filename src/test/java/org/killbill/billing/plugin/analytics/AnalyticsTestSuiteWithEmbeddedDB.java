@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -49,7 +49,6 @@ import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.collect.ImmutableMap;
 
 public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuiteNoDB {
@@ -82,7 +81,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         embeddedDB.cleanupAllTables();
 
-        dbi = BusinessDBIProvider.get(embeddedDB.getDataSource());
+        dbi = BusinessDBIProvider.get(embeddedDB.getDataSource(), metricRegistry.getMetricRegistry());
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(BusEventModelDao.class));
         dbi.registerMapper(new LowerToCamelBeanMapperFactory(NotificationEventModelDao.class));
 
@@ -90,10 +89,11 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         final NotificationQueueConfig config = new ConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                                  ImmutableMap.<String, String>of("instanceName", "analytics"));
-        notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
+        notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, metricRegistry.getMetricRegistry());
 
         analyticsUserApi = new AnalyticsUserApi(killbillAPI,
                                                 killbillDataSource,
+                                                metricRegistry,
                                                 osgiConfigPropertiesService,
                                                 executor,
                                                 clock,
@@ -134,6 +134,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         @Override
         protected synchronized void executePostStartupScripts() throws IOException {
+            this.instance.executeScript("/*! SET GLOBAL SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;");
             final String baseResource = "org/killbill/billing/plugin/analytics/";
             executePostStartupScripts(baseResource);
         }

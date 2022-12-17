@@ -68,13 +68,9 @@ public class Metadata {
     private final Map<String, Table> tablesCache = new ConcurrentHashMap<String, Table>();
     private final Map<String, Map<String, List<Object>>> distinctValuesCache = new ConcurrentHashMap<String, Map<String, List<Object>>>();
 
-    public Metadata(final Set<String> reportsTables, final DataSource dataSource) {
-        this(reportsTables, dataSource, SQLDialect.MYSQL);
-    }
-
-    public Metadata(final Set<String> reportsTables, final DataSource dataSource, final SQLDialect sqlDialect) {
+    public Metadata(final Set<String> reportsTables, final DataSource dataSource) throws SQLException {
         this.reportsTables = reportsTables;
-        this.context = DSL.using(dataSource, sqlDialect, JooqSettings.defaults(sqlDialect));
+        this.context = JooqSettings.buildDslContext(dataSource);
         primeCaches();
     }
 
@@ -213,6 +209,11 @@ public class Metadata {
             schemaName = context.connectionResult(new ConnectionCallable<String>() {
                 @Override
                 public String run(final Connection connection) throws Exception {
+                    final String schema = connection.getSchema();
+                    if (schema != null) {
+                        return schema;
+                    }
+                    // MariaDB getSchema() returns null
                     return connection.getCatalog();
                 }
             });
@@ -234,9 +235,9 @@ public class Metadata {
 
                     final long secondsToStart = (System.currentTimeMillis() - startTime) / 1000;
                     logger.info(String.format("Primed caches in %d:%02d", secondsToStart / 60, secondsToStart % 60));
-                } catch (final SQLException e) {
+                } catch (final Exception e) {
                     // Ignored
-                    logger.warn("Error while priming caches", e);
+                    logger.warn("Unable to prime caches: {}", e.getLocalizedMessage());
                 }
             }
         };

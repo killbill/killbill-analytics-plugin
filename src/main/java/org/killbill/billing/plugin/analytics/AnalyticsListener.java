@@ -36,6 +36,7 @@ import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsJobHierarchy.Group;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
@@ -100,6 +101,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
 
     public AnalyticsListener(final OSGIKillbillAPI osgiKillbillAPI,
                              final OSGIKillbillDataSource osgiKillbillDataSource,
+                             final OSGIMetricRegistry metricRegistry,
                              final OSGIConfigPropertiesService osgiConfigPropertiesService,
                              final Executor executor,
                              final GlobalLocker locker,
@@ -112,14 +114,14 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
-        final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource);
-        this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, bacDao, executor);
-        this.binDao = new BusinessInvoiceDao(osgiKillbillDataSource, bacDao, executor);
-        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, bacDao, executor);
-        this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource);
-        this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource);
-        this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, executor);
-        this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource);
+        final BusinessAccountDao bacDao = new BusinessAccountDao(osgiKillbillDataSource, metricRegistry);
+        this.bstDao = new BusinessSubscriptionTransitionDao(osgiKillbillDataSource, metricRegistry, bacDao, executor);
+        this.binDao = new BusinessInvoiceDao(osgiKillbillDataSource, metricRegistry, bacDao, executor);
+        this.binAndBipDao = new BusinessInvoiceAndPaymentDao(osgiKillbillDataSource, metricRegistry, bacDao, executor);
+        this.bosDao = new BusinessAccountTransitionDao(osgiKillbillDataSource, metricRegistry);
+        this.bFieldDao = new BusinessFieldDao(osgiKillbillDataSource, metricRegistry);
+        this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, metricRegistry, executor);
+        this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource, metricRegistry);
 
         final NotificationQueueHandler notificationQueueHandler = new NotificationQueueHandler() {
 

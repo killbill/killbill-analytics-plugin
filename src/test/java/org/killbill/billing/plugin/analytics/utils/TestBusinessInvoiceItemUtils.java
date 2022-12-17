@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -23,6 +23,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
 import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.PhaseType;
@@ -52,7 +53,7 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
 
         // Start with a trial
         final PlanPhase phase1 = Mockito.mock(PlanPhase.class);
-        Recurring recurring1  = Mockito.mock(Recurring.class);
+        final Recurring recurring1 = Mockito.mock(Recurring.class);
         Mockito.when(recurring1.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
 
         Mockito.when(phase1.getName()).thenReturn(UUID.randomUUID().toString());
@@ -62,12 +63,12 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
         final List<SubscriptionEvent> events = new LinkedList<SubscriptionEvent>();
         final SubscriptionEvent event1 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event1.getEntitlementId()).thenReturn(subscriptionId);
-        Mockito.when(event1.getEffectiveDate()).thenReturn(new LocalDate(2013, 10, 1));
+        Mockito.when(event1.getEffectiveDate()).thenReturn(new DateTime("2013-10-01"));
         Mockito.when(event1.getNextPhase()).thenReturn(phase1);
 
         // Simulate a plan change during the trial
         final PlanPhase phase2 = Mockito.mock(PlanPhase.class);
-        Recurring recurring2  = Mockito.mock(Recurring.class);
+        final Recurring recurring2 = Mockito.mock(Recurring.class);
         Mockito.when(recurring2.getBillingPeriod()).thenReturn(BillingPeriod.NO_BILLING_PERIOD);
 
         Mockito.when(phase2.getName()).thenReturn(UUID.randomUUID().toString());
@@ -76,13 +77,13 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
 
         final SubscriptionEvent event2 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event2.getEntitlementId()).thenReturn(subscriptionId);
-        Mockito.when(event2.getEffectiveDate()).thenReturn(new LocalDate(2013, 10, 15));
+        Mockito.when(event2.getEffectiveDate()).thenReturn(new DateTime("2013-10-15"));
         Mockito.when(event2.getPrevPhase()).thenReturn(phase1);
         Mockito.when(event2.getNextPhase()).thenReturn(phase2);
 
         // Evergreen phase
         final PlanPhase phase3 = Mockito.mock(PlanPhase.class);
-        Recurring recurring3  = Mockito.mock(Recurring.class);
+        final Recurring recurring3 = Mockito.mock(Recurring.class);
         Mockito.when(recurring3.getBillingPeriod()).thenReturn(BillingPeriod.MONTHLY);
 
         Mockito.when(phase3.getName()).thenReturn(UUID.randomUUID().toString());
@@ -91,14 +92,14 @@ public class TestBusinessInvoiceItemUtils extends AnalyticsTestSuiteNoDB {
 
         final SubscriptionEvent event3 = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(event3.getEntitlementId()).thenReturn(subscriptionId);
-        Mockito.when(event3.getEffectiveDate()).thenReturn(new LocalDate(2013, 11, 1));
+        Mockito.when(event3.getEffectiveDate()).thenReturn(new DateTime("2013-11-01"));
         Mockito.when(event3.getPrevPhase()).thenReturn(phase2);
         Mockito.when(event3.getNextPhase()).thenReturn(phase3);
 
         // Add an event for another subscription
         final SubscriptionEvent randomEvent = Mockito.mock(SubscriptionEvent.class);
         Mockito.when(randomEvent.getEntitlementId()).thenReturn(UUID.randomUUID());
-        Mockito.when(randomEvent.getEffectiveDate()).thenReturn(new LocalDate(2013, 10, 15));
+        Mockito.when(randomEvent.getEffectiveDate()).thenReturn(new DateTime("2013-10-15"));
         Mockito.when(randomEvent.getPrevPhase()).thenReturn(phase1);
         Mockito.when(randomEvent.getNextPhase()).thenReturn(phase2);
 

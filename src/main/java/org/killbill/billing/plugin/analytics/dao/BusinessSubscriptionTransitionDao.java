@@ -26,6 +26,7 @@ import java.util.concurrent.Executor;
 
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessAccountFactory;
 import org.killbill.billing.plugin.analytics.dao.factory.BusinessBundleFactory;
@@ -51,11 +52,12 @@ public class BusinessSubscriptionTransitionDao extends BusinessAnalyticsDaoBase 
     private final BusinessSubscriptionTransitionFactory bstFactory;
 
     public BusinessSubscriptionTransitionDao(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                             final OSGIMetricRegistry metricRegistry,
                                              final BusinessAccountDao businessAccountDao,
                                              final Executor executor) {
-        super(osgiKillbillDataSource);
+        super(osgiKillbillDataSource, metricRegistry);
         this.businessAccountDao = businessAccountDao;
-        this.businessBundleDao = new BusinessBundleDao(osgiKillbillDataSource);
+        this.businessBundleDao = new BusinessBundleDao(osgiKillbillDataSource, metricRegistry);
         bacFactory = new BusinessAccountFactory();
         bbsFactory = new BusinessBundleFactory(executor);
         bstFactory = new BusinessSubscriptionTransitionFactory();

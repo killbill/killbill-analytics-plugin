@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -21,7 +21,7 @@ package org.killbill.billing.plugin.analytics.dao.model;
 
 import java.math.BigDecimal;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.killbill.billing.catalog.api.BillingPeriod;
 import org.killbill.billing.catalog.api.Currency;
@@ -115,7 +115,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithNulls() throws Exception {
-        final LocalDate startDate = new LocalDate(2019, 7, 4);
+        final DateTime startDate = new DateTime("2019-07-04");
         final BusinessSubscription businessSubscription = new BusinessSubscription(null,
                                                                                    null,
                                                                                    null,
@@ -143,7 +143,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
 
     @Test(groups = "fast")
     public void testConstructorWithoutNulls() throws Exception {
-        final LocalDate startDate = new LocalDate(2019, 7, 4);
+        final DateTime startDate = new DateTime("2019-07-04");
         final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
                                                                                    phase,
                                                                                    priceList,
@@ -175,7 +175,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Mockito.when(duration.toJodaPeriod()).thenThrow(IllegalStateException.class);
         Mockito.when(phase.getDuration()).thenReturn(duration);
 
-        final LocalDate startDate = new LocalDate(2019, 7, 4);
+        final DateTime startDate = new DateTime("2019-07-04");
         final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
                                                                                    phase,
                                                                                    priceList,
@@ -208,7 +208,7 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Mockito.when(duration.toJodaPeriod()).thenReturn(new Period().withMonths(3));
         Mockito.when(phase.getDuration()).thenReturn(duration);
 
-        final LocalDate startDate = new LocalDate(2019, 7, 4);
+        final DateTime startDate = new DateTime("2019-07-04");
         final BusinessSubscription businessSubscription = new BusinessSubscription(plan,
                                                                                    phase,
                                                                                    priceList,
@@ -230,6 +230,6 @@ public class TestBusinessSubscription extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(businessSubscription.getState(), stateName);
         //Assert.assertEquals(businessSubscription.getBusinessActive(), /* TODO */);
         Assert.assertEquals(businessSubscription.getStartDate(), startDate);
-        Assert.assertEquals(businessSubscription.getEndDate(), new LocalDate(2019, 10, 4));
+        Assert.assertEquals(businessSubscription.getEndDate().compareTo(new DateTime("2019-10-04")), 0);
     }
 }

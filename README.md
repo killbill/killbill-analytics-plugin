@@ -6,15 +6,16 @@ Kill Bill plugin to provide business analytics and reporting capabilities. You c
 ## Kill Bill compatibility
 
 | Plugin version | Kill Bill version |
-| -------------: | ----------------: |
-| 1.x.y          | 0.14.z            |
-| 3.x.y          | 0.16.z            |
-| 4.x.y          | 0.18.z            |
-| 5.x.y          | 0.19.z            |
-| 6.x.y          | 0.20.z            |
-| 7.0.y          | 0.22.z            |
-| 7.1.y          | 0.22.z            |
-| 7.2.y          | 0.22.z            |
+|---------------:|------------------:|
+|          1.x.y |            0.14.z |
+|          3.x.y |            0.16.z |
+|          4.x.y |            0.18.z |
+|          5.x.y |            0.19.z |
+|          6.x.y |            0.20.z |
+|          7.0.y |            0.22.z |
+|          7.1.y |            0.22.z |
+|          7.2.y |            0.22.z |
+|          7.3.y |            0.23.z |
 
 ### Release notes
 

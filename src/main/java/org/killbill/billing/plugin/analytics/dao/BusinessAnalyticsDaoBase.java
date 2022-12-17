@@ -20,6 +20,7 @@
 package org.killbill.billing.plugin.analytics.dao;
 
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;
+import org.killbill.billing.osgi.libs.killbill.OSGIMetricRegistry;
 import org.skife.jdbi.v2.DBI;
 import org.skife.jdbi.v2.Transaction;
 import org.skife.jdbi.v2.TransactionIsolationLevel;
@@ -28,8 +29,9 @@ public class BusinessAnalyticsDaoBase {
 
     protected final BusinessAnalyticsSqlDao sqlDao;
 
-    public BusinessAnalyticsDaoBase(final OSGIKillbillDataSource osgiKillbillDataSource) {
-        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource());
+    public BusinessAnalyticsDaoBase(final OSGIKillbillDataSource osgiKillbillDataSource,
+                                    final OSGIMetricRegistry metricRegistry) {
+        final DBI dbi = BusinessDBIProvider.get(osgiKillbillDataSource.getDataSource(), metricRegistry.getMetricRegistry());
         sqlDao = dbi.onDemand(BusinessAnalyticsSqlDao.class);
     }
 

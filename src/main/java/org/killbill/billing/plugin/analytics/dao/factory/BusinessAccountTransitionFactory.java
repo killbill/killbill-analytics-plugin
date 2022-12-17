@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2022 Equinix, Inc
+ * Copyright 2014-2022 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.joda.time.LocalDate;
+import org.joda.time.DateTime;
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.entitlement.api.BlockingState;
 import org.killbill.billing.plugin.analytics.AnalyticsRefreshException;
@@ -65,8 +65,8 @@ public class BusinessAccountTransitionFactory {
         // To remove duplicates
         final Set<UUID> blockingStateIdsSeen = new HashSet<UUID>();
 
-        final Map<String, LocalDate> previousStartDatePerService = new HashMap<String, LocalDate>();
-        for (final BlockingState state : blockingStatesReversed) {
+        final Map<String, DateTime> previousStartDatePerService = new HashMap<>();
+        for (final BlockingState  state : blockingStatesReversed) {
             if (blockingStateIdsSeen.contains(state.getId())) {
                 continue;
             } else {
@@ -80,14 +80,14 @@ public class BusinessAccountTransitionFactory {
                                                                                                               accountRecordId,
                                                                                                               state.getService(),
                                                                                                               state.getStateName(),
-                                                                                                              state.getEffectiveDate() == null ? null : state.getEffectiveDate().toLocalDate(),
+                                                                                                              state.getEffectiveDate() == null ? null : state.getEffectiveDate(),
                                                                                                               blockingStateRecordId,
                                                                                                               previousStartDatePerService.get(state.getService()),
                                                                                                               creationAuditLog,
                                                                                                               tenantRecordId,
                                                                                                               reportGroup);
             businessAccountTransitions.add(accountTransition);
-            previousStartDatePerService.put(state.getService(), state.getEffectiveDate() == null ? null : state.getEffectiveDate().toLocalDate());
+            previousStartDatePerService.put(state.getService(), state.getEffectiveDate() == null ? null : state.getEffectiveDate());
         }
 
         // Reverse again to store the events chronologically
