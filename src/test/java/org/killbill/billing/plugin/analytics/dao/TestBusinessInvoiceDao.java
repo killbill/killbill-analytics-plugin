@@ -121,6 +121,7 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
         Mockito.when(killbillAPI.getInvoiceUserApi().getInvoicesByAccount(Mockito.eq(account.getId()),
                                                                           Mockito.anyBoolean(),
                                                                           Mockito.anyBoolean(),
+                                                                          Mockito.eq(true),
                                                                           Mockito.any(TenantContext.class)))
                .thenReturn(ImmutableList.of(invoice, invoice2));
         // Re-create the context to clear caches
@@ -230,6 +231,7 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
         Mockito.when(killbillAPI.getInvoiceUserApi().getInvoicesByAccount(Mockito.eq(account.getId()),
                                                                           Mockito.anyBoolean(),
                                                                           Mockito.eq(false),
+                                                                          Mockito.eq(true),
                                                                           Mockito.any(TenantContext.class)))
                .thenReturn(ImmutableList.of());
 

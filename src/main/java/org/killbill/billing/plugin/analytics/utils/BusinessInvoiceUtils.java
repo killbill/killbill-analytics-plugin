@@ -28,6 +28,7 @@ import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.invoice.api.InvoiceItem;
 import org.killbill.billing.invoice.api.InvoiceItemType;
 import org.killbill.billing.invoice.api.InvoicePayment;
+import org.killbill.billing.invoice.api.InvoicePaymentStatus;
 import org.killbill.billing.invoice.api.InvoicePaymentType;
 import org.killbill.billing.plugin.util.KillBillMoney;
 
@@ -174,7 +175,7 @@ public class BusinessInvoiceUtils {
         }
 
         for (final InvoicePayment invoicePayment : invoicePayments) {
-            if (!invoicePayment.isSuccess()) {
+            if (invoicePayment.getStatus() != InvoicePaymentStatus.SUCCESS) {
                 continue;
             }
             if (InvoicePaymentType.ATTEMPT.equals(invoicePayment.getType())) {
@@ -192,7 +193,7 @@ public class BusinessInvoiceUtils {
         }
 
         for (final InvoicePayment invoicePayment : invoicePayments) {
-            if (invoicePayment.isSuccess() == null || !invoicePayment.isSuccess()) {
+            if (invoicePayment.getStatus() != InvoicePaymentStatus.SUCCESS) {
                 continue;
             }
             if (InvoicePaymentType.REFUND.equals(invoicePayment.getType()) ||
