@@ -44,6 +44,7 @@
     <properties>
         <check.fail-spotbugs>false</check.fail-spotbugs>
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
+        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <osgi.private>org.killbill.billing.plugin.analytics.*</osgi.private>
     </properties>
     <dependencyManagement>
