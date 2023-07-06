@@ -2005,7 +2005,7 @@ createAnalyticsAccountFields() ::= <<
 insert into analytics_account_fields (
   custom_field_record_id
 , name
-, "value"
+, field_value
 , created_date
 , created_by
 , created_reason_code
@@ -2019,7 +2019,7 @@ insert into analytics_account_fields (
 ) values (
   :customFieldRecordId
 , :name
-, :value
+, :fieldValue
 , :createdDate
 , :createdBy
 , :createdReasonCode

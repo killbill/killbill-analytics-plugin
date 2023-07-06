@@ -38,6 +38,6 @@ public class TestBusinessAccountFieldModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(accountFieldModelDao.getCreatedDate(), customField.getCreatedDate());
         Assert.assertEquals(accountFieldModelDao.getCustomFieldRecordId(), fieldRecordId);
         Assert.assertEquals(accountFieldModelDao.getName(), customField.getFieldName());
-        Assert.assertEquals(accountFieldModelDao.getValue(), customField.getFieldValue());
+        Assert.assertEquals(accountFieldModelDao.getFieldValue(), customField.getFieldValue());
     }
 }

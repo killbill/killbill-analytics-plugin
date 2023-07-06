@@ -39,6 +39,6 @@ public class TestBusinessInvoiceFieldModelDao extends AnalyticsTestSuiteNoDB {
         Assert.assertEquals(invoiceFieldModelDao.getCustomFieldRecordId(), fieldRecordId);
         Assert.assertEquals(invoiceFieldModelDao.getInvoiceId(), customField.getObjectId());
         Assert.assertEquals(invoiceFieldModelDao.getName(), customField.getFieldName());
-        Assert.assertEquals(invoiceFieldModelDao.getValue(), customField.getFieldValue());
+        Assert.assertEquals(invoiceFieldModelDao.getFieldValue(), customField.getFieldValue());
     }
 }

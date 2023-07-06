@@ -36,7 +36,7 @@ public class BusinessField extends BusinessEntityBase {
     private final ObjectType objectType;
     private final UUID objectId;
     private final String name;
-    private final String value;
+    private final String value; //TODO_153 - Change this to fieldValue?
 
     private BusinessField(final ObjectType objectType, final BusinessFieldModelDao businessFieldModelDao, final UUID objectId) {
         super(businessFieldModelDao.getCreatedDate(),
@@ -49,7 +49,7 @@ public class BusinessField extends BusinessEntityBase {
               businessFieldModelDao.getReportGroup());
         this.objectType = objectType;
         this.name = businessFieldModelDao.getName();
-        this.value = businessFieldModelDao.getValue();
+        this.value = businessFieldModelDao.getFieldValue();
         this.objectId = objectId;
     }
 

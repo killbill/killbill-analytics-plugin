@@ -1211,7 +1211,7 @@ create table analytics_account_fields (
   record_id serial unique
 , custom_field_record_id bigint /*! unsigned */ default null
 , name varchar(64) default null
-, "value" varchar(255) default null
+, field_value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
