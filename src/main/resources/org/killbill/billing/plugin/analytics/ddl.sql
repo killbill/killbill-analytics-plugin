@@ -1235,7 +1235,7 @@ create table analytics_bundle_fields (
 , bundle_id varchar(36) default null
 , bundle_external_key varchar(255) default null
 , name varchar(64) default null
-, "value" varchar(255) default null
+, field_value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
