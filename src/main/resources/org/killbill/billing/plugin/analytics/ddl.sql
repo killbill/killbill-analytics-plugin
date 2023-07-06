@@ -1283,7 +1283,7 @@ create table analytics_invoice_payment_fields (
 , custom_field_record_id bigint /*! unsigned */ default null
 , invoice_payment_id varchar(36) default null
 , name varchar(64) default null
-, "value" varchar(255) default null
+, field_value varchar(255) default null
 , created_date datetime default null
 , created_by varchar(50) default null
 , created_reason_code varchar(255) default null
