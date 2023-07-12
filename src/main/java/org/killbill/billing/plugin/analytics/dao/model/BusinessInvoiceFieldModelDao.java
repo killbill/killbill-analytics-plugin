@@ -66,7 +66,7 @@ public class BusinessInvoiceFieldModelDao extends BusinessFieldModelDao {
         sb.append("{invoiceId=").append(invoiceId);
         sb.append(", customFieldRecordId=").append(getCustomFieldRecordId());
         sb.append(", name='").append(getName()).append('\'');
-        sb.append(", value='").append(getValue()).append('\'');
+        sb.append(", value='").append(getFieldValue()).append('\'');
         sb.append('}');
         return sb.toString();
     }

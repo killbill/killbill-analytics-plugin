@@ -47,7 +47,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
 
     private Long customFieldRecordId;
     private String name;
-    private String value;
+    private String fieldValue;
 
     public static BusinessFieldModelDao create(final Account account,
                                                final Long accountRecordId,
@@ -124,7 +124,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
 
     public BusinessFieldModelDao(final Long customFieldRecordId,
                                  final String name,
-                                 final String value,
+                                 final String fieldValue,
                                  final DateTime createdDate,
                                  final String createdBy,
                                  final String createdReasonCode,
@@ -147,7 +147,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
               reportGroup);
         this.customFieldRecordId = customFieldRecordId;
         this.name = name;
-        this.value = value;
+        this.fieldValue = fieldValue;
     }
 
     public BusinessFieldModelDao(final Account account,
@@ -180,8 +180,8 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
         return name;
     }
 
-    public String getValue() {
-        return value;
+    public String getFieldValue() {
+        return fieldValue;
     }
 
     @Override
@@ -190,7 +190,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
         sb.append("BusinessFieldModelDao");
         sb.append("{customFieldRecordId=").append(customFieldRecordId);
         sb.append(", name='").append(name).append('\'');
-        sb.append(", value='").append(value).append('\'');
+        sb.append(", value='").append(fieldValue).append('\'');
         sb.append('}');
         return sb.toString();
     }
@@ -215,7 +215,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
         if (name != null ? !name.equals(that.name) : that.name != null) {
             return false;
         }
-        if (value != null ? !value.equals(that.value) : that.value != null) {
+        if (fieldValue != null ? !fieldValue.equals(that.fieldValue) : that.fieldValue != null) {
             return false;
         }
 
@@ -227,7 +227,7 @@ public abstract class BusinessFieldModelDao extends BusinessModelDaoBase {
         int result = super.hashCode();
         result = 31 * result + (customFieldRecordId != null ? customFieldRecordId.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (fieldValue != null ? fieldValue.hashCode() : 0);
         return result;
     }
 }

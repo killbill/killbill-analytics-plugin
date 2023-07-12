@@ -39,6 +39,6 @@ public class TestBusinessInvoicePaymentFieldModelDao extends AnalyticsTestSuiteN
         Assert.assertEquals(invoicePaymentFieldModelDao.getCustomFieldRecordId(), fieldRecordId);
         Assert.assertEquals(invoicePaymentFieldModelDao.getInvoicePaymentId(), customField.getObjectId());
         Assert.assertEquals(invoicePaymentFieldModelDao.getName(), customField.getFieldName());
-        Assert.assertEquals(invoicePaymentFieldModelDao.getValue(), customField.getFieldValue());
+        Assert.assertEquals(invoicePaymentFieldModelDao.getFieldValue(), customField.getFieldValue());
     }
 }
