@@ -1,5 +1,4 @@
 /*! SET default_storage_engine=INNODB */;
-/*! SET SQL_MODE=(SELECT CONCAT(@@SQL_MODE,',ANSI_QUOTES')) */;
 
 -- Subscription events
 drop table if exists analytics_subscription_transitions;
