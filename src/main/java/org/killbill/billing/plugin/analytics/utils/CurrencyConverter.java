@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2023 Equinix, Inc
+ * Copyright 2014-2023 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -38,12 +38,9 @@ public class CurrencyConverter {
 
     private final Clock clock;
     private final String referenceCurrency;
+    private final CurrencyConversions currencyConversions;
 
-    // Map original currency -> currency conversions over time
-    // TODO PIERRE Better representation (heap?)
-    private final Map<String, List<CurrencyConversionModelDao>> currencyConversions;
-
-    public CurrencyConverter(final Clock clock, final String referenceCurrency, final Map<String, List<CurrencyConversionModelDao>> currencyConversions) {
+    public CurrencyConverter(final Clock clock, final String referenceCurrency, final CurrencyConversions currencyConversions) {
         this.clock = clock;
         this.referenceCurrency = referenceCurrency;
         this.currencyConversions = currencyConversions;
@@ -62,25 +59,11 @@ public class CurrencyConverter {
             return value;
         }
 
-        if (value == null || currency == null || effectiveDate == null || currencyConversions.get(currency) == null) {
+        if (value == null || currency == null || effectiveDate == null) {
             return null;
         }
 
-        CurrencyConversionModelDao currencyConversionCandidate = null;
-        for (final CurrencyConversionModelDao currencyConversionModelDao : currencyConversions.get(currency)) {
-            if (!effectiveDate.isBefore(currencyConversionModelDao.getStartDate()) &&
-                !effectiveDate.isAfter(currencyConversionModelDao.getEndDate()) &&
-                // In case of overlapping ranges, use the narrowest one
-                (currencyConversionCandidate == null || currencyConversionModelDao.getStartDate().isAfter(currencyConversionCandidate.getStartDate()))) {
-                currencyConversionCandidate = currencyConversionModelDao;
-            }
-        }
-
-        if (currencyConversionCandidate == null) {
-            return null;
-        } else {
-            return value.multiply(currencyConversionCandidate.getReferenceRate());
-        }
+        return currencyConversions.getConvertedValue(value, currency, effectiveDate);
     }
 
     public String getConvertedCurrency() {

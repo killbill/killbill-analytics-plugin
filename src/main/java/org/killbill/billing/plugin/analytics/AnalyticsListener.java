@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.ObjectType;
+import org.killbill.billing.currency.plugin.api.CurrencyPluginApi;
 import org.killbill.billing.invoice.api.Invoice;
 import org.killbill.billing.invoice.api.InvoiceApiException;
 import org.killbill.billing.notification.plugin.api.ExtBusEvent;
@@ -65,6 +66,7 @@ import org.killbill.notificationq.api.NotificationEventWithMetadata;
 import org.killbill.notificationq.api.NotificationQueue;
 import org.killbill.notificationq.api.NotificationQueueService.NotificationQueueAlreadyExists;
 import org.killbill.notificationq.api.NotificationQueueService.NotificationQueueHandler;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +95,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
     private final BusinessAccountTransitionDao bosDao;
     private final BusinessFieldDao bFieldDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
+    private final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker;
     private final CurrencyConversionDao currencyConversionDao;
     private final NotificationQueue jobQueue;
     private final GlobalLocker locker;
@@ -103,6 +106,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                              final OSGIKillbillDataSource osgiKillbillDataSource,
                              final OSGIMetricRegistry metricRegistry,
                              final OSGIConfigPropertiesService osgiConfigPropertiesService,
+                             final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker,
                              final Executor executor,
                              final GlobalLocker locker,
                              final Clock clock,
@@ -110,6 +114,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
                              final DefaultNotificationQueueService notificationQueueService) throws NotificationQueueAlreadyExists {
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
+        this.currencyPluginApiServiceTracker = currencyPluginApiServiceTracker;
         this.locker = locker;
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
@@ -346,7 +351,7 @@ public class AnalyticsListener implements OSGIKillbillEventDispatcher.OSGIKillbi
         }
 
         final CallContext callContext = new AnalyticsCallContext(job, clock);
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(job.getAccountId(), callContext, currencyPluginApiServiceTracker, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
 
         // Pre 7.2.4, the group wasn't stored in the event
         final Group group = MoreObjects.firstNonNull(job.getGroup(), AnalyticsJobHierarchy.fromEventType(job.getEventType()));

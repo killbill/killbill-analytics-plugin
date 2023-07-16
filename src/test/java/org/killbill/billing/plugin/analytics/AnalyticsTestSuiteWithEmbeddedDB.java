@@ -58,7 +58,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
     }
 
     protected final Clock clock = new DefaultClock();
-    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, "USD", ImmutableMap.<String, List<CurrencyConversionModelDao>>of());
+    protected final CurrencyConverter currencyConverter = new CurrencyConverter(clock, "USD", Mockito.mock());
 
     protected EmbeddedDB embeddedDB;
     protected DBI dbi;
@@ -95,6 +95,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
                                                 killbillDataSource,
                                                 metricRegistry,
                                                 osgiConfigPropertiesService,
+                                                currencyPluginApiServiceTracker,
                                                 executor,
                                                 clock,
                                                 analyticsConfigurationHandler,

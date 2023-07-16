@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2023 Equinix, Inc
+ * Copyright 2014-2023 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -31,6 +31,7 @@ import org.killbill.billing.account.api.Account;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.currency.plugin.api.CurrencyPluginApi;
 import org.killbill.billing.entitlement.api.BlockingState;
 import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -54,6 +55,7 @@ import org.killbill.billing.util.entity.Pagination;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,12 +118,13 @@ public class BusinessContextFactory extends BusinessFactoryBase {
 
     public BusinessContextFactory(final UUID accountId,
                                   final CallContext callContext,
+                                  final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker,
                                   final CurrencyConversionDao currencyConversionDao,
                                   final OSGIKillbillAPI osgiKillbillAPI,
                                   final OSGIConfigPropertiesService osgiConfigPropertiesService,
                                   final Clock clock,
                                   final AnalyticsConfigurationHandler analyticsConfigurationHandler) throws AnalyticsRefreshException {
-        super(accountId, callContext, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
+        super(accountId, callContext, currencyPluginApiServiceTracker, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
 
         // Always needed

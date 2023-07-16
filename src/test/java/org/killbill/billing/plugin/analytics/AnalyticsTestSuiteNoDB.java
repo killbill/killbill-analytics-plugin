@@ -47,6 +47,7 @@ import org.killbill.billing.catalog.api.ProductCategory;
 import org.killbill.billing.catalog.api.Recurring;
 import org.killbill.billing.catalog.api.StaticCatalog;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.currency.plugin.api.CurrencyPluginApi;
 import org.killbill.billing.entitlement.api.Subscription;
 import org.killbill.billing.entitlement.api.SubscriptionApi;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;
@@ -108,6 +109,7 @@ import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -179,6 +181,7 @@ public abstract class AnalyticsTestSuiteNoDB {
     protected OSGIMetricRegistry metricRegistry;
     protected OSGIConfigPropertiesService osgiConfigPropertiesService;
     protected ExecutorService executor;
+    protected ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker;
     protected BusinessContextFactory businessContextFactory;
 
     protected void verifyBusinessEntityBase(final BusinessEntityBase businessEntityBase) {
@@ -673,8 +676,11 @@ public abstract class AnalyticsTestSuiteNoDB {
         defaultConfigurable.blacklist.add(blackListedAccountId.toString());
         analyticsConfigurationHandler.setDefaultConfigurable(defaultConfigurable);
 
+        currencyPluginApiServiceTracker = Mockito.mock(ServiceTracker.class);
+
         businessContextFactory = new BusinessContextFactory(account.getId(),
                                                             callContext,
+                                                            currencyPluginApiServiceTracker,
                                                             currencyConversionDao,
                                                             killbillAPI,
                                                             osgiConfigPropertiesService,
