@@ -85,7 +85,7 @@ public class TestBusinessBundleFactory extends AnalyticsTestSuiteNoDB {
         Mockito.when(subscriptionApi.getSubscriptionBundlesForAccountId(Mockito.<UUID>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
         Mockito.when(subscriptionApi.getSubscriptionBundlesForExternalKey(Mockito.<String>any(), Mockito.<TenantContext>any())).thenReturn(ImmutableList.<SubscriptionBundle>of(bundle));
 
-        businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyConversionDao, killbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
+        businessContextFactory = new BusinessContextFactory(account.getId(), callContext, currencyPluginApiServiceTracker, currencyConversionDao, killbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         subscriptionFactory = new BusinessSubscriptionTransitionFactory();
     }
 

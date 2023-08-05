@@ -1,8 +1,8 @@
 /*
  * Copyright 2010-2014 Ning, Inc.
  * Copyright 2014-2020 Groupon, Inc
- * Copyright 2020-2020 Equinix, Inc
- * Copyright 2014-2020 The Billing Project, LLC
+ * Copyright 2020-2023 Equinix, Inc
+ * Copyright 2014-2023 The Billing Project, LLC
  *
  * The Billing Project licenses this file to you under the Apache License, version 2.0
  * (the "License"); you may not use this file except in compliance with the
@@ -38,9 +38,11 @@ import org.killbill.billing.account.api.AccountApiException;
 import org.killbill.billing.account.api.AccountUserApi;
 import org.killbill.billing.catalog.api.CatalogApiException;
 import org.killbill.billing.catalog.api.CatalogUserApi;
+import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.catalog.api.Plan;
 import org.killbill.billing.catalog.api.PlanPhase;
 import org.killbill.billing.catalog.api.VersionedCatalog;
+import org.killbill.billing.currency.plugin.api.CurrencyPluginApi;
 import org.killbill.billing.entitlement.api.BlockingState;
 import org.killbill.billing.entitlement.api.EntitlementApiException;
 import org.killbill.billing.entitlement.api.Subscription;
@@ -65,7 +67,10 @@ import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration;
 import org.killbill.billing.plugin.analytics.api.core.AnalyticsConfigurationHandler;
 import org.killbill.billing.plugin.analytics.dao.CurrencyConversionDao;
 import org.killbill.billing.plugin.analytics.dao.model.BusinessModelDaoBase.ReportGroup;
+import org.killbill.billing.plugin.analytics.utils.CurrencyConversions;
 import org.killbill.billing.plugin.analytics.utils.CurrencyConverter;
+import org.killbill.billing.plugin.analytics.utils.CurrencyPluginApiCurrencyConversions;
+import org.killbill.billing.plugin.analytics.utils.StaticCurrencyConversions;
 import org.killbill.billing.util.api.AuditLevel;
 import org.killbill.billing.util.api.AuditUserApi;
 import org.killbill.billing.util.api.CustomFieldUserApi;
@@ -82,6 +87,7 @@ import org.killbill.billing.util.tag.ControlTagType;
 import org.killbill.billing.util.tag.Tag;
 import org.killbill.billing.util.tag.TagDefinition;
 import org.killbill.clock.Clock;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,10 +114,12 @@ public abstract class BusinessFactoryBase {
 
     private final boolean highCardinalityAccount;
     private final String referenceCurrency;
+    private final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker;
     private final CurrencyConversionDao currencyConversionDao;
 
     public BusinessFactoryBase(final UUID accountId,
                                final CallContext callContext,
+                               final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker,
                                final CurrencyConversionDao currencyConversionDao,
                                final OSGIKillbillAPI osgiKillbillAPI,
                                final OSGIConfigPropertiesService osgiConfigPropertiesService,
@@ -119,6 +127,7 @@ public abstract class BusinessFactoryBase {
                                final AnalyticsConfigurationHandler analyticsConfigurationHandler) {
         this.accountId = accountId;
         this.callContext = callContext;
+        this.currencyPluginApiServiceTracker = currencyPluginApiServiceTracker;
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.clock = clock;
         this.referenceCurrency = MoreObjects.firstNonNull(Strings.emptyToNull(osgiConfigPropertiesService.getString(ANALYTICS_REFERENCE_CURRENCY_PROPERTY)), "USD");
@@ -136,7 +145,16 @@ public abstract class BusinessFactoryBase {
     //
 
     protected CurrencyConverter getCurrencyConverter() {
-        return new CurrencyConverter(clock, referenceCurrency, currencyConversionDao.getCurrencyConversions(referenceCurrency));
+        return new CurrencyConverter(clock, referenceCurrency, getCurrencyConversions());
+    }
+
+    protected CurrencyConversions getCurrencyConversions() {
+        final CurrencyPluginApi currencyPluginApi = currencyPluginApiServiceTracker.getService();
+        if (currencyPluginApi == null) {
+            return new StaticCurrencyConversions(currencyConversionDao.getCurrencyConversions(referenceCurrency));
+        } else {
+            return new CurrencyPluginApiCurrencyConversions(currencyPluginApi, Currency.valueOf(referenceCurrency));
+        }
     }
 
     //

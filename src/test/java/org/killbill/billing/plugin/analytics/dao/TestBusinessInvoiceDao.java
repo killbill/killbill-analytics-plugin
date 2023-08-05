@@ -127,6 +127,7 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
         // Re-create the context to clear caches
         businessContextFactory = new BusinessContextFactory(account.getId(),
                                                             callContext,
+                                                            currencyPluginApiServiceTracker,
                                                             currencyConversionDao,
                                                             killbillAPI,
                                                             osgiConfigPropertiesService,
@@ -238,6 +239,7 @@ public class TestBusinessInvoiceDao extends AnalyticsTestSuiteWithEmbeddedDB {
         // Re-create the context to clear caches
         businessContextFactory = new BusinessContextFactory(account.getId(),
                                                             callContext,
+                                                            currencyPluginApiServiceTracker,
                                                             currencyConversionDao,
                                                             killbillAPI,
                                                             osgiConfigPropertiesService,

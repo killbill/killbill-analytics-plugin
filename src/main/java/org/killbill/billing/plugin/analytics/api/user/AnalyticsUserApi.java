@@ -27,6 +27,7 @@ import java.util.concurrent.Executor;
 
 import org.killbill.billing.ObjectType;
 import org.killbill.billing.account.api.Account;
+import org.killbill.billing.currency.plugin.api.CurrencyPluginApi;
 import org.killbill.billing.notification.plugin.api.ExtBusEventType;
 import org.killbill.billing.osgi.libs.killbill.OSGIConfigPropertiesService;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillAPI;
@@ -55,6 +56,7 @@ import org.killbill.billing.util.callcontext.CallContext;
 import org.killbill.billing.util.callcontext.TenantContext;
 import org.killbill.billing.util.entity.Pagination;
 import org.killbill.clock.Clock;
+import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +70,7 @@ public class AnalyticsUserApi {
     private final AnalyticsConfigurationHandler analyticsConfigurationHandler;
     private final AnalyticsDao analyticsDao;
     private final AllBusinessObjectsDao allBusinessObjectsDao;
+    private final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker;
     private final CurrencyConversionDao currencyConversionDao;
     private final AnalyticsListener analyticsListener;
 
@@ -75,19 +78,20 @@ public class AnalyticsUserApi {
                             final OSGIKillbillDataSource osgiKillbillDataSource,
                             final OSGIMetricRegistry metricRegistry,
                             final OSGIConfigPropertiesService osgiConfigPropertiesService,
+                            final ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker,
                             final Executor executor,
                             final Clock clock,
                             final AnalyticsConfigurationHandler analyticsConfigurationHandler,
                             final AnalyticsListener analyticsListener) {
         this.osgiKillbillAPI = osgiKillbillAPI;
         this.osgiConfigPropertiesService = osgiConfigPropertiesService;
+        this.currencyPluginApiServiceTracker = currencyPluginApiServiceTracker;
         this.clock = clock;
         this.analyticsConfigurationHandler = analyticsConfigurationHandler;
         this.analyticsDao = new AnalyticsDao(osgiKillbillAPI, osgiKillbillDataSource, metricRegistry);
         this.allBusinessObjectsDao = new AllBusinessObjectsDao(osgiKillbillDataSource, metricRegistry, executor);
         this.currencyConversionDao = new CurrencyConversionDao(osgiKillbillDataSource, metricRegistry);
         this.analyticsListener = analyticsListener;
-
     }
 
     public BusinessSnapshot getBusinessSnapshot(final UUID accountId, final TenantContext context) {
@@ -124,7 +128,7 @@ public class AnalyticsUserApi {
     }
 
     public void rebuildAnalyticsForAccount(final UUID accountId, final CallContext context) throws AnalyticsRefreshException {
-        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
+        final BusinessContextFactory businessContextFactory = new BusinessContextFactory(accountId, context, currencyPluginApiServiceTracker, currencyConversionDao, osgiKillbillAPI, osgiConfigPropertiesService, clock, analyticsConfigurationHandler);
         logger.info("Starting Analytics refresh for account {}", businessContextFactory.getAccountId());
         // TODO Should we take the account lock?
         allBusinessObjectsDao.update(businessContextFactory);

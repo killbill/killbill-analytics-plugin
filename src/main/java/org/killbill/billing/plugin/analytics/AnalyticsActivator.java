@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import javax.servlet.Servlet;
 import javax.servlet.http.HttpServlet;
 
+import org.killbill.billing.currency.plugin.api.CurrencyPluginApi;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
@@ -58,6 +59,7 @@ import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.osgi.framework.BundleContext;
+import org.osgi.util.tracker.ServiceTracker;
 import org.skife.config.ConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
@@ -73,8 +75,11 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "killbill-analytics";
     public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
+
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsActivator.class);
+
     private AnalyticsConfigurationHandler analyticsConfigurationHandler;
+    private ServiceTracker<CurrencyPluginApi, CurrencyPluginApi> currencyPluginApiServiceTracker;
     private AnalyticsListener analyticsListener;
     private JobsScheduler jobsScheduler;
     private ReportsUserApi reportsUserApi;
@@ -126,10 +131,15 @@ public class AnalyticsActivator extends KillbillActivatorBase {
                 locker = new MemoryGlobalLocker();
                 break;
         }
+
+        currencyPluginApiServiceTracker = new ServiceTracker<>(context, CurrencyPluginApi.class, null);
+        currencyPluginApiServiceTracker.open();
+
         analyticsListener = new AnalyticsListener(roOSGIkillbillAPI,
                                                   dataSource,
                                                   metricRegistry,
                                                   configProperties,
+                                                  currencyPluginApiServiceTracker,
                                                   executor,
                                                   locker,
                                                   killbillClock,
@@ -140,7 +150,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final ReportsConfiguration reportsConfiguration = new ReportsConfiguration(dataSource, metricRegistry, jobsScheduler);
 
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, metricRegistry, configProperties, executor, killbillClock, analyticsConfigurationHandler, analyticsListener);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(roOSGIkillbillAPI, dataSource, metricRegistry, configProperties, currencyPluginApiServiceTracker, executor, killbillClock, analyticsConfigurationHandler, analyticsListener);
         reportsUserApi = new ReportsUserApi(roOSGIkillbillAPI, dataSource, metricRegistry, configProperties, dbEngine, reportsConfiguration, jobsScheduler, analyticsConfigurationHandler);
 
         final AnalyticsHealthcheck healthcheck = new AnalyticsHealthcheck(analyticsListener, jobsScheduler);
@@ -174,6 +184,9 @@ public class AnalyticsActivator extends KillbillActivatorBase {
     public void stop(final BundleContext context) throws Exception {
         if (jobsScheduler != null) {
             jobsScheduler.shutdownNow();
+        }
+        if (currencyPluginApiServiceTracker != null) {
+            currencyPluginApiServiceTracker.close();
         }
         if (analyticsListener != null) {
             // Little bit of subtlety here, which is queue implementation dependent: only the second time

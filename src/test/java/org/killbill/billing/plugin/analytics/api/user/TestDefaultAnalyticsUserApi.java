@@ -47,7 +47,7 @@ public class TestDefaultAnalyticsUserApi extends AnalyticsTestSuiteWithEmbeddedD
                                                                                     reportGroup);
         analyticsSqlDao.create(accountModelDao.getTableName(), accountModelDao, callContext);
 
-        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(killbillAPI, killbillDataSource, metricRegistry, osgiConfigPropertiesService, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, analyticsConfigurationHandler, null);
+        final AnalyticsUserApi analyticsUserApi = new AnalyticsUserApi(killbillAPI, killbillDataSource, metricRegistry, osgiConfigPropertiesService, currencyPluginApiServiceTracker, BusinessExecutor.newCachedThreadPool(osgiConfigPropertiesService), clock, analyticsConfigurationHandler, null);
         final BusinessSnapshot businessSnapshot = analyticsUserApi.getBusinessSnapshot(account.getId(), callContext);
         Assert.assertEquals(businessSnapshot.getBusinessAccount(), new BusinessAccount(accountModelDao));
     }
