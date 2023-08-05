@@ -1,0 +1,8 @@
+{
+	"reportName": "report_payments_by_provider",
+	"reportType": "TABLE",
+	"reportPrettyName": "Payments By Provider",
+	"sourceTableName": "report_payments_by_provider_history",
+	"refreshProcedureName": "refresh_report_payments_by_provider_history",
+	"refreshFrequency": "HOURLY"
+}

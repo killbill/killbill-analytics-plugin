@@ -1,0 +1,8 @@
+{
+    "refreshFrequency": "HOURLY",
+    "refreshProcedureName": "refresh_report_accounts_summary",
+    "reportName": "report_accounts_summary",
+    "reportPrettyName": "Accounts summary",
+    "reportType": "COUNTERS",
+    "sourceTableName": "report_accounts_summary"
+}
