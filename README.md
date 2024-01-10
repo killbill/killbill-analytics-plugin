@@ -84,6 +84,21 @@ org.killbill.notificationq.analytics.historyTableName=analytics_notifications_hi
 org.killbill.analytics.lockSleepMilliSeconds=100
 ```
 
+In addition, the following per-tenant properties can also be configured globally:
+
+````
+org.killbill.billing.plugin.analytics.blacklist=468e5259-6635-4988-9ae7-3d79b11fc6ed,f7da09af-8593-4a88-b6d4-1c4ebf807103
+org.killbill.billing.plugin.analytics.ignoredGroups=FIELDS
+org.killbill.billing.plugin.analytics.highCardinalityAccounts=a8e594e5-1b78-4c2d-876b-f09ec36c611c,31ea22c7-19ae-4316-a432-5e6319e49f97
+org.killbill.billing.plugin.analytics.refreshDelaySeconds=10
+org.killbill.billing.plugin.analytics.lockAttemptRetries=100
+org.killbill.billing.plugin.analytics.rescheduleIntervalOnLockSeconds=10
+org.killbill.billing.plugin.analytics.enablePartialRefreshes=true
+org.killbill.billing.plugin.analytics.enableTemplateVariables=false
+````
+
+Note that the per-tenant configuration always takes precedence. So, the global properties only serve as defaults when a per-tenant configuration is not specified. 
+
 See [Plugin Configuration](https://docs.killbill.io/latest/userguide_analytics.html#_plugin_configuration) for further information. 
 
 ## Setup

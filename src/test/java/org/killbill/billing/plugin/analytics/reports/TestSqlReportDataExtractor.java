@@ -325,8 +325,7 @@ public class TestSqlReportDataExtractor extends AnalyticsTestSuiteNoDB {
                                                                           @Nullable final DateTime endDate,
                                                                           final boolean templatingEnabled) {
         final ReportSpecification reportSpecification = new ReportSpecification(rawReportName);
-        final AnalyticsConfiguration configurable = new AnalyticsConfiguration();
-        configurable.enableTemplateVariables = templatingEnabled;
+        final AnalyticsConfiguration configurable = new AnalyticsConfiguration(templatingEnabled);
         return new SqlReportDataExtractor(sourceQuery, reportSpecification, startDate, endDate, configurable, DBEngine.MYSQL, 1234L);
     }
 }

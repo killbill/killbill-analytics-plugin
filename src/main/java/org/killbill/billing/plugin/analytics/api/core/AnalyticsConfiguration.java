@@ -20,6 +20,7 @@
 package org.killbill.billing.plugin.analytics.api.core;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -33,45 +34,6 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings("UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD")
 public class AnalyticsConfiguration {
-
-    public AnalyticsConfiguration() {
-
-        this.blacklist = new LinkedList<String>();
-        this.ignoredGroups = new LinkedList<String>();
-        this.refreshDelaySeconds = 10;
-        this.lockAttemptRetries = 100;
-        this.rescheduleIntervalOnLockSeconds = 10;
-        this.enablePartialRefreshes = true;
-        this.enableTemplateVariables = false;
-        this.highCardinalityAccounts = new LinkedList<String>();
-
-    }
-
-    public AnalyticsConfiguration(final Properties properties) {  //CTOR used only for default configuration from global properties if available
-
-        String blackList = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "blacklist");
-        this.blacklist = blackList != null && !blackList.isEmpty() ? Arrays.asList(blackList.split(",")) : new LinkedList<String>();
-
-        String ignoredGroups = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "ignoredGroups");
-        this.ignoredGroups = ignoredGroups != null && !ignoredGroups.isEmpty() ? Arrays.asList(ignoredGroups.split(",")) : new LinkedList<String>();
-
-        String highCardinalityAccounts = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "highCardinalityAccounts");
-        this.highCardinalityAccounts = highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty() ? Arrays.asList(highCardinalityAccounts.split(",")) : new LinkedList<String>();
-
-        this.refreshDelaySeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds")) : 10;
-        this.lockAttemptRetries = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries")) : 100;
-        this.rescheduleIntervalOnLockSeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "rescheduleIntervalOnLockSeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "rescheduleIntervalOnLockSeconds")) : 10;
-        this.enablePartialRefreshes = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enablePartialRefreshes") != null ? Boolean.parseBoolean(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enablePartialRefreshes")) : true;
-        this.enableTemplateVariables = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enableTemplateVariables") != null ? Boolean.parseBoolean(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enableTemplateVariables")) : false;
-
-    }
-
-    // Sane defaults (keys used by most official plugins)
-    private final Map<Integer, String> defaultPluginPropertyKeys = ImmutableMap.<Integer, String>of(1, "processorResponse",
-                                                                                                    2, "avsResultCode",
-                                                                                                    3, "cvvResultCode",
-                                                                                                    4, "payment_processor_account_id",
-                                                                                                    5, "paymentMethod");
 
     // List of account ids to ignore
     public final List<String> blacklist;
@@ -87,14 +49,57 @@ public class AnalyticsConfiguration {
     public final Integer rescheduleIntervalOnLockSeconds;
     // Whether to trigger full refreshes each time
     public final boolean enablePartialRefreshes;
-    // Whether to allow template variables in raw SQL queries.
-    // Note! This could be prone to SQL injection and should only be enabled in trusted environments.
-    public boolean enableTemplateVariables; //TODO_161 not final as it causes compilation error, revisit
     // List of account ids with a high cardinality (where queries by account_record_id is a bad idea)
     public final List<String> highCardinalityAccounts;
-
+    // Sane defaults (keys used by most official plugins)
+    private final Map<Integer, String> defaultPluginPropertyKeys = ImmutableMap.<Integer, String>of(1, "processorResponse",
+                                                                                                    2, "avsResultCode",
+                                                                                                    3, "cvvResultCode",
+                                                                                                    4, "payment_processor_account_id",
+                                                                                                    5, "paymentMethod");
+    // Whether to allow template variables in raw SQL queries.
+    // Note! This could be prone to SQL injection and should only be enabled in trusted environments.
+    public final boolean enableTemplateVariables;
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
+
+    public AnalyticsConfiguration() {
+        this (Collections.emptyList(), Collections.emptyList(), 10, 100, 10, true, false, Collections.emptyList());
+    }
+
+    public AnalyticsConfiguration(final boolean enableTemplateVariables){
+        this(Collections.emptyList(), Collections.emptyList(), 10, 100, 10, true, enableTemplateVariables, Collections.emptyList());
+    }
+
+    public AnalyticsConfiguration(final List<String> blacklist, final List<String> ignoredGroups, final int refreshDelaySeconds, final int lockAttemptRetries, final int rescheduleIntervalOnLockSeconds, final boolean enablePartialRefreshes, final boolean enableTemplateVariables, final List<String> highCardinalityAccounts) {
+        this.blacklist = blacklist;
+        this.ignoredGroups = ignoredGroups;
+        this.refreshDelaySeconds = refreshDelaySeconds;
+        this.lockAttemptRetries = lockAttemptRetries;
+        this.rescheduleIntervalOnLockSeconds = rescheduleIntervalOnLockSeconds;
+        this.enablePartialRefreshes = enablePartialRefreshes;
+        this.enableTemplateVariables = enableTemplateVariables;
+        this.highCardinalityAccounts = highCardinalityAccounts;
+    }
+
+    public AnalyticsConfiguration(final Properties properties) {  //CTOR used only for default configuration from global properties if available
+
+        final String blackList = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "blacklist");
+        this.blacklist = blackList != null && !blackList.isEmpty() ? Arrays.asList(blackList.split(",")) : Collections.emptyList();
+
+        final String ignoredGroups = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "ignoredGroups");
+        this.ignoredGroups = ignoredGroups != null && !ignoredGroups.isEmpty() ? Arrays.asList(ignoredGroups.split(",")) : Collections.emptyList();
+
+        final String highCardinalityAccounts = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "highCardinalityAccounts");
+        this.highCardinalityAccounts = highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty() ? Arrays.asList(highCardinalityAccounts.split(",")) : Collections.emptyList();
+
+        this.refreshDelaySeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds")) : 10;
+        this.lockAttemptRetries = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries")) : 100;
+        this.rescheduleIntervalOnLockSeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "rescheduleIntervalOnLockSeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "rescheduleIntervalOnLockSeconds")) : 10;
+        this.enablePartialRefreshes = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enablePartialRefreshes") == null || Boolean.parseBoolean(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enablePartialRefreshes"));
+        this.enableTemplateVariables = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enableTemplateVariables") != null && Boolean.parseBoolean(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enableTemplateVariables"));
+
+    }
 
     public String getPluginPropertyKey(final int position, final String pluginName) {
         if (pluginPropertyKeys.get(pluginName) == null || pluginPropertyKeys.get(pluginName).get(position) == null) {
