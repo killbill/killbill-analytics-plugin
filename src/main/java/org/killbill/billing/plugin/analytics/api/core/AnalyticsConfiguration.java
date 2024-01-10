@@ -36,26 +36,27 @@ public class AnalyticsConfiguration {
 
     public AnalyticsConfiguration() {
 
+        this.blacklist = new LinkedList<String>();
+        this.ignoredGroups = new LinkedList<String>();
+        this.refreshDelaySeconds = 10;
+        this.lockAttemptRetries = 100;
+        this.rescheduleIntervalOnLockSeconds = 10;
+        this.enablePartialRefreshes = true;
+        this.enableTemplateVariables = false;
+        this.highCardinalityAccounts = new LinkedList<String>();
+
     }
 
     public AnalyticsConfiguration(final Properties properties) {  //CTOR used only for default configuration from global properties if available
 
         String blackList = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "blacklist");
-
-        if (blackList != null && !blackList.isEmpty()) {
-            this.blacklist = Arrays.asList(blackList.split(","));
-        }
+        this.blacklist = blackList != null && !blackList.isEmpty() ? Arrays.asList(blackList.split(",")) : new LinkedList<String>();
 
         String ignoredGroups = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "ignoredGroups");
-        if (ignoredGroups != null && !ignoredGroups.isEmpty()) {
-            this.ignoredGroups = Arrays.asList(ignoredGroups.split(","));
-        }
+        this.ignoredGroups = ignoredGroups != null && !ignoredGroups.isEmpty() ? Arrays.asList(ignoredGroups.split(",")) : new LinkedList<String>();
 
         String highCardinalityAccounts = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "highCardinalityAccounts");
-        if (highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty()) {
-            this.highCardinalityAccounts = Arrays.asList(highCardinalityAccounts.split(","));
-        }
-
+        this.highCardinalityAccounts = highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty() ? Arrays.asList(highCardinalityAccounts.split(",")) : new LinkedList<String>();
 
         this.refreshDelaySeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds")) : 10;
         this.lockAttemptRetries = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries")) : 100;
@@ -73,24 +74,24 @@ public class AnalyticsConfiguration {
                                                                                                     5, "paymentMethod");
 
     // List of account ids to ignore
-    public List<String> blacklist = new LinkedList<String>();
+    public final List<String> blacklist;
     // Groups to ignore for refresh, see https://github.com/killbill/killbill-analytics-plugin/issues/87
-    public List<String> ignoredGroups = new LinkedList<String>();
+    public final List<String> ignoredGroups;
     // Delay, in seconds, before starting to refresh data after an event is received. For workflows with lots of successive events
     // for a given account (e.g. create account, add payment method, create payment), this makes sure we have the latest state
     // when starting the refresh (since only the first event will trigger the refresh, all others are ignored).
-    public Integer refreshDelaySeconds = 10;
+    public final Integer refreshDelaySeconds;
     // How many retries to get the lock
-    public Integer lockAttemptRetries = 100;
+    public final Integer lockAttemptRetries;
     // If the lock is taken, how long until the job is rescheduled
-    public Integer rescheduleIntervalOnLockSeconds = 10;
+    public final Integer rescheduleIntervalOnLockSeconds;
     // Whether to trigger full refreshes each time
-    public boolean enablePartialRefreshes = true;
+    public final boolean enablePartialRefreshes;
     // Whether to allow template variables in raw SQL queries.
     // Note! This could be prone to SQL injection and should only be enabled in trusted environments.
-    public boolean enableTemplateVariables = false;
+    public boolean enableTemplateVariables; //TODO_161 not final as it causes compilation error, revisit
     // List of account ids with a high cardinality (where queries by account_record_id is a bad idea)
-    public List<String> highCardinalityAccounts = new LinkedList<String>();
+    public final List<String> highCardinalityAccounts;
 
     public Map<String, Map<Integer, String>> pluginPropertyKeys = new HashMap<String, Map<Integer, String>>();
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
