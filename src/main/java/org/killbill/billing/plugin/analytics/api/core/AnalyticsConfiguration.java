@@ -19,16 +19,51 @@
 
 package org.killbill.billing.plugin.analytics.api.core;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import org.killbill.billing.plugin.analytics.AnalyticsActivator;
 
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings("UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD")
 public class AnalyticsConfiguration {
+
+    public AnalyticsConfiguration() {
+
+    }
+
+    public AnalyticsConfiguration(final Properties properties) {  //CTOR used only for default configuration from global properties if available
+
+        String blackList = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "blacklist");
+
+        if (blackList != null && !blackList.isEmpty()) {
+            this.blacklist = Arrays.asList(blackList.split(","));
+        }
+
+        String ignoredGroups = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "ignoredGroups");
+        if (ignoredGroups != null && !ignoredGroups.isEmpty()) {
+            this.ignoredGroups = Arrays.asList(ignoredGroups.split(","));
+        }
+
+        String highCardinalityAccounts = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "highCardinalityAccounts");
+        if (highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty()) {
+            this.highCardinalityAccounts = Arrays.asList(highCardinalityAccounts.split(","));
+        }
+
+
+        this.refreshDelaySeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds")) : 10;
+        this.lockAttemptRetries = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries")) : 100;
+        this.rescheduleIntervalOnLockSeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "rescheduleIntervalOnLockSeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "rescheduleIntervalOnLockSeconds")) : 10;
+        this.enablePartialRefreshes = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enablePartialRefreshes") != null ? Boolean.parseBoolean(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enablePartialRefreshes")) : true;
+        this.enableTemplateVariables = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enableTemplateVariables") != null ? Boolean.parseBoolean(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "enableTemplateVariables")) : false;
+
+    }
 
     // Sane defaults (keys used by most official plugins)
     private final Map<Integer, String> defaultPluginPropertyKeys = ImmutableMap.<Integer, String>of(1, "processorResponse",
