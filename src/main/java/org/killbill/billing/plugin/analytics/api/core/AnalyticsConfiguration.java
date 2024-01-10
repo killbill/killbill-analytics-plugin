@@ -64,11 +64,11 @@ public class AnalyticsConfiguration {
     public Map<String, Map<String, String>> databases = new HashMap<String, Map<String, String>>();
 
     public AnalyticsConfiguration() {
-        this (Collections.emptyList(), Collections.emptyList(), 10, 100, 10, true, false, Collections.emptyList());
+        this (new LinkedList<>(), new LinkedList<>(), 10, 100, 10, true, false, new LinkedList<>());
     }
 
     public AnalyticsConfiguration(final boolean enableTemplateVariables){
-        this(Collections.emptyList(), Collections.emptyList(), 10, 100, 10, true, enableTemplateVariables, Collections.emptyList());
+        this(new LinkedList<>(), new LinkedList<>(), 10, 100, 10, true, enableTemplateVariables, new LinkedList<>());
     }
 
     public AnalyticsConfiguration(final List<String> blacklist, final List<String> ignoredGroups, final int refreshDelaySeconds, final int lockAttemptRetries, final int rescheduleIntervalOnLockSeconds, final boolean enablePartialRefreshes, final boolean enableTemplateVariables, final List<String> highCardinalityAccounts) {
@@ -85,13 +85,13 @@ public class AnalyticsConfiguration {
     public AnalyticsConfiguration(final Properties properties) {  //CTOR used only for default configuration from global properties if available
 
         final String blackList = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "blacklist");
-        this.blacklist = blackList != null && !blackList.isEmpty() ? Arrays.asList(blackList.split(",")) : Collections.emptyList();
+        this.blacklist = blackList != null && !blackList.isEmpty() ? Arrays.asList(blackList.split(",")) : new LinkedList<>();
 
         final String ignoredGroups = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "ignoredGroups");
-        this.ignoredGroups = ignoredGroups != null && !ignoredGroups.isEmpty() ? Arrays.asList(ignoredGroups.split(",")) : Collections.emptyList();
+        this.ignoredGroups = ignoredGroups != null && !ignoredGroups.isEmpty() ? Arrays.asList(ignoredGroups.split(",")) : new LinkedList<>();
 
         final String highCardinalityAccounts = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "highCardinalityAccounts");
-        this.highCardinalityAccounts = highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty() ? Arrays.asList(highCardinalityAccounts.split(",")) : Collections.emptyList();
+        this.highCardinalityAccounts = highCardinalityAccounts != null && !highCardinalityAccounts.isEmpty() ? Arrays.asList(highCardinalityAccounts.split(",")) : new LinkedList<>();
 
         this.refreshDelaySeconds = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "refreshDelaySeconds")) : 10;
         this.lockAttemptRetries = properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries") != null ? Integer.parseInt(properties.getProperty(AnalyticsActivator.PROPERTY_PREFIX + "lockAttemptRetries")) : 100;
