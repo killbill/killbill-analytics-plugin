@@ -32,7 +32,6 @@ import org.killbill.billing.plugin.analytics.AnalyticsActivator;
 import com.google.common.collect.ImmutableMap;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressFBWarnings("UWF_UNWRITTEN_PUBLIC_OR_PROTECTED_FIELD")
 public class AnalyticsConfiguration {
 
     // List of account ids to ignore
@@ -67,7 +66,7 @@ public class AnalyticsConfiguration {
         this (new LinkedList<>(), new LinkedList<>(), 10, 100, 10, true, false, new LinkedList<>());
     }
 
-    public AnalyticsConfiguration(final boolean enableTemplateVariables){
+    public AnalyticsConfiguration(final boolean enableTemplateVariables) {
         this(new LinkedList<>(), new LinkedList<>(), 10, 100, 10, true, enableTemplateVariables, new LinkedList<>());
     }
 
