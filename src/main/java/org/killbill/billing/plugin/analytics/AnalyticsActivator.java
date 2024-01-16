@@ -73,6 +73,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
     public static final String PLUGIN_NAME = "killbill-analytics";
     public static final String ANALYTICS_QUEUE_SERVICE = "AnalyticsService";
+    public static final String PROPERTY_PREFIX = "org.killbill.billing.plugin.analytics.";
     private static final Logger logger = LoggerFactory.getLogger(AnalyticsActivator.class);
     private AnalyticsConfigurationHandler analyticsConfigurationHandler;
     private AnalyticsListener analyticsListener;
@@ -106,7 +107,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
         final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
         analyticsConfigurationHandler = new AnalyticsConfigurationHandler(region, PLUGIN_NAME, roOSGIkillbillAPI);
-        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration());
+        analyticsConfigurationHandler.setDefaultConfigurable(new AnalyticsConfiguration(configProperties.getProperties()));
 
         // Timeout defines how long to sleep between retries to get the lock
         final long lockSleepMilliSeconds = Long.parseLong(configProperties.getProperties().getProperty("org.killbill.analytics.lockSleepMilliSeconds", "100"));
