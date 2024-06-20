@@ -1,0 +1,8 @@
+{
+	"reportName": "report_refunds_total_daily",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Daily refunds value",
+	"sourceTableName": "report_refunds_total_daily",
+	"refreshProcedureName": "refresh_report_refunds_total_daily",
+	"refreshFrequency": "HOURLY"
+}

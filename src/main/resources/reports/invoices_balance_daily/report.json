@@ -1,0 +1,8 @@
+{
+	"reportName": "report_invoices_balance_daily",
+	"reportType": "TIMELINE",
+	"reportPrettyName": "Daily invoices balance",
+	"sourceTableName": "report_invoices_balance_daily",
+	"refreshProcedureName": "refresh_report_invoices_balance_daily",
+	"refreshFrequency": "DAILY"
+}
