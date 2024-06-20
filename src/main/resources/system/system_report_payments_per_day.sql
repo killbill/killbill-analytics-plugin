@@ -1,7 +1,7 @@
 create or replace view v_system_report_payments_per_day as
 select
   tenant_record_id
-, date_format(greatest(created_date, updated_date), '%Y-%m-%d') as day
+, date_format((case when created_date > updated_date then created_date else updated_date end), '%Y-%m-%d') as day
 , case
     when state_name IN ('AUTH_ERRORED', 'CAPTURE_ERRORED', 'CHARGEBACK_ERRORED', 'CREDIT_ERRORED', 'PURCHASE_ERRORED', 'REFUND_ERRORED', 'VOID_ERRORED') then 'ERRORED'
     when state_name IN ('AUTH_FAILED', 'CAPTURE_FAILED', 'CHARGEBACK_FAILED', 'CREDIT_FAILED', 'PURCHASE_FAILED', 'REFUND_FAILED', 'VOID_FAILED') then 'FAILED'
