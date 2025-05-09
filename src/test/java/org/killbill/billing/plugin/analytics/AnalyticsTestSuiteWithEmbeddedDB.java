@@ -41,7 +41,7 @@ import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.mockito.Mockito;
 import org.osgi.framework.BundleContext;
-import org.skife.config.ConfigurationObjectFactory;
+import org.skife.config.AugmentedConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
 import org.testng.Assert;
 import org.testng.ITestContext;
@@ -88,7 +88,7 @@ public abstract class AnalyticsTestSuiteWithEmbeddedDB extends AnalyticsTestSuit
 
         analyticsSqlDao = dbi.onDemand(BusinessAnalyticsSqlDao.class);
 
-        final NotificationQueueConfig config = new ConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
+        final NotificationQueueConfig config = new AugmentedConfigurationObjectFactory(osgiConfigPropertiesService.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                                  ImmutableMap.<String, String>of("instanceName", "analytics"));
         notificationQueueService = new DefaultNotificationQueueService(dbi, clock, config, new MetricRegistry());
 

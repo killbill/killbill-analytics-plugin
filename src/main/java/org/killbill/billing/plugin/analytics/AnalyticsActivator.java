@@ -58,7 +58,7 @@ import org.killbill.notificationq.DefaultNotificationQueueService;
 import org.killbill.notificationq.api.NotificationQueueConfig;
 import org.killbill.notificationq.dao.NotificationEventModelDao;
 import org.osgi.framework.BundleContext;
-import org.skife.config.ConfigurationObjectFactory;
+import org.skife.config.AugmentedConfigurationObjectFactory;
 import org.skife.jdbi.v2.DBI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +90,7 @@ public class AnalyticsActivator extends KillbillActivatorBase {
 
         final Executor executor = BusinessExecutor.newCachedThreadPool(configProperties);
 
-        final NotificationQueueConfig config = new ConfigurationObjectFactory(configProperties.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
+        final NotificationQueueConfig config = new AugmentedConfigurationObjectFactory(configProperties.getProperties()).buildWithReplacements(NotificationQueueConfig.class,
                                                                                                                                       ImmutableMap.<String, String>of("instanceName", "analytics"));
         if ("notifications".equals(config.getTableName())) {
             logger.warn("Analytics plugin mis-configured: you are probably missing the property org.killbill.notificationq.analytics.tableName=analytics_notifications");
