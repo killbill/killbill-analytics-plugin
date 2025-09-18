@@ -15,9 +15,12 @@ curl -v \
      -H 'Content-Type: application/json' \
      -d '{"reportName": "report_active_by_product_term_monthly",
           "reportType": "TIMELINE",
-          "reportPrettyName": "Monthly active subscriptions",
+          "reportPrettyName": "Monthly Active Subscriptions by Product Term",
           "sourceTableName": "report_active_by_product_term_monthly",
           "refreshProcedureName": "refresh_active_by_product_term_monthly",
           "refreshFrequency": "DAILY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
+## Report UI:
+
+![report.png](monthly-active-subs-by-product-term.png)
