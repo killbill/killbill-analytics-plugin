@@ -23,4 +23,4 @@ curl -v \
 ```
 ## Report UI:
 
-![report.png](monthly-active-subs-by-product-term.png)
+![monthly-active-subs-by-product-term.png](monthly-active-subs-by-product-term.png)
