@@ -15,9 +15,13 @@ curl -v \
      -H 'Content-Type: application/json' \
      -d '{"reportName": "report_invoices_daily",
           "reportType": "TIMELINE",
-          "reportPrettyName": "Daily invoices value",
+          "reportPrettyName": "Daily Invoices Value",
           "sourceTableName": "report_invoices_daily",
           "refreshProcedureName": "refresh_report_invoices_daily",
           "refreshFrequency": "DAILY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
+
+## Report UI:
+
+![invoice-amount-daily.png](invoice-amount-daily.png)
