@@ -24,4 +24,4 @@ curl -v \
 
 ## Report UI:
 
-![daily-payments-value.png](daily-payments-value.png)
+![payments-total-daily.png](payments-total-daily.png)
