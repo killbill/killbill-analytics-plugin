@@ -1,4 +1,4 @@
-create or replace view v_report_conversions_daily as
+create or replace view v_report_trial_to_no_trial_conversions_daily as
 select
   ast.tenant_record_id
 , date_format(ast.next_start_date,'%Y-%m-%d') as day
@@ -8,6 +8,7 @@ from
 where 1=1
   and ast.prev_phase='TRIAL'
   and ast.next_phase!='TRIAL'
+  and ast.prev_service='billing-service'
   and ast.report_group='default'
 group by 1,2
 ;
