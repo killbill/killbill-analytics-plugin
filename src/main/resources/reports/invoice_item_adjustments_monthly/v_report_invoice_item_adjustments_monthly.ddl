@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW v_report_invoice_item_adjustments_monthly AS
 select
   iia.invoice_number as "Invoice Number"
 , iia.account_name as "Customer Name"
@@ -23,12 +24,13 @@ select
 , abs(round(cc.reference_rate * iia.amount,4)) as "Impact Amount USD"
 , case when iia.amount < 0 then 'CREDIT' else 'CHARGE' end as "Adjustment Type"
 , 'PROCESSED' as "Invoice Item Adjustment Status"
+, iia.tenant_record_id
 from
   analytics_invoice_item_adjustments iia
   join analytics_invoice_items ii on iia.linked_item_id = ii.item_id -- workaround
   join analytics_currency_conversion cc on iia.created_date >= cc.start_date and iia.created_date <= cc.end_date and cc.currency = iia.currency
 where 1=1
-  and iia.created_date >= cast(date_format(date_sub(sysdate() - interval '1' month), '%Y-%m-01') as date)
+  and iia.created_date >= cast(date_format(date_sub(sysdate(), interval '1' month), '%Y-%m-01') as date)
   and iia.created_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
   and iia.report_group != 'test'
 order by

@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW v_report_invoices_monthly AS
 select
   inv.invoice_number as "Invoice Number"
 , inv.account_name as "Customer Name"
@@ -10,6 +11,7 @@ select
 , inv.balance as "Invoice Balance"
 , round(cc.reference_rate * inv.original_amount_charged,4) as "Invoice Amount USD"
 , round(cc.reference_rate * inv.balance,4) as "Invoice Balance USD"
+, inv.tenant_record_id
 from
   analytics_invoices inv
   join analytics_currency_conversion cc on inv.created_date >= cc.start_date and inv.created_date <= cc.end_date and cc.currency = inv.currency

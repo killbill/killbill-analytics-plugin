@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW v_report_payments_monthly AS
 select
   pmt.account_name as "Customer Name"
 , pmt.account_external_key as "Account Number"
@@ -18,6 +19,7 @@ select
 , pmt.amount as "Payment Amount"
 , round(cc.reference_rate * pmt.amount,4) as "Payment Amount USD"
 , pmt.payment_id
+, pmt.tenant_record_id
 from
   analytics_payment_purchases pmt
   join analytics_currency_conversion cc on pmt.created_date >= cc.start_date and pmt.created_date <= cc.end_date and cc.currency = pmt.currency
