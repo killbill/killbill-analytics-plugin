@@ -2,13 +2,13 @@
 
 Report of all invoice items from the previous month, showing amounts in both original currency and USD equivalents.
 
-The snapshot view is: `v_report_invoices_monthly`
+The snapshot view is: `v_report_invoice_items_monthly`
 
 ## Prerequisites
 
 This report requires the `analytics_currency_conversion` table to be populated. See [insertMonthlyCurrencyConversionRates.ddl](../utils/insertMonthlyCurrencyConversionRates.ddl)
 
-## Report Configuration
+## Report Creation
 
 ```
 curl -v \

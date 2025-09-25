@@ -8,7 +8,7 @@ The snapshot view is: `v_report_refunds_monthly`
 
 This report requires the `analytics_currency_conversion` table to be populated. See [insertMonthlyCurrencyConversionRates.ddl](../utils/insertMonthlyCurrencyConversionRates.ddl)
 
-## Report Configuration
+## Report Creation
 
 ```
 curl -v \

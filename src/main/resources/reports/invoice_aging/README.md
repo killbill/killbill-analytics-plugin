@@ -1,14 +1,14 @@
 # Invoice Aging Report
 
-Displays customer invoice balances by aging buckets in both original currency and USD, along with invoice and account details.
+This report lists all customer invoice aging with remaining balances, breaking them into standard aging buckets and converting amounts to USD for easy comparison.
 
 The snapshot view is: `v_report_invoice_aging`
 
 ## Prerequisites
 
-Run stored proc
+This report requires the `analytics_currency_conversion` table to be populated. See [insertMonthlyCurrencyConversionRates.ddl](../utils/insertMonthlyCurrencyConversionRates.ddl)
 
-## Report Configuration
+## Report Creation
 
 ```
 curl -v \

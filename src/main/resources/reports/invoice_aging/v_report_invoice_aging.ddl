@@ -48,14 +48,14 @@ SELECT
     a.invoice_original_amount_charged AS "Total Balance Due",
 
     -- Balance due in USD
-    CASE WHEN a.invoice_creation_date > b.d_0_30 THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE 0 END AS "Balance due 0-30 Days USD",
-    CASE WHEN a.invoice_creation_date BETWEEN b.d_30_60 AND b.d_0_30 THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE 0 END AS "Balance due 30-60 Days USD",
-    CASE WHEN a.invoice_creation_date BETWEEN b.d_60_90 AND b.d_30_60 THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE 0 END AS "Balance due 60-90 Days USD",
-    CASE WHEN a.invoice_creation_date BETWEEN b.d_90_120 AND b.d_60_90 THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE 0 END AS "Balance due 90-120 Days USD",
-    CASE WHEN a.invoice_creation_date BETWEEN b.d_120_150 AND b.d_90_120 THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE 0 END AS "Balance due 120-150 Days USD",
-    CASE WHEN a.invoice_creation_date < b.d_120_150 THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE 0 END AS "Balance due 150+ Days USD",
+    CASE WHEN a.invoice_creation_date > b.d_0_30 THEN CASE WHEN a.currency != 'USD' THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE a.invoice_original_amount_charged END ELSE 0 END AS "Balance due 0-30 Days USD",
+    CASE WHEN a.invoice_creation_date BETWEEN b.d_30_60 AND b.d_0_30 THEN CASE WHEN a.currency != 'USD' THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE a.invoice_original_amount_charged END ELSE 0 END AS "Balance due 30-60 Days USD",
+    CASE WHEN a.invoice_creation_date BETWEEN b.d_60_90 AND b.d_30_60 THEN CASE WHEN a.currency != 'USD' THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE a.invoice_original_amount_charged END ELSE 0 END AS "Balance due 60-90 Days USD",
+    CASE WHEN a.invoice_creation_date BETWEEN b.d_90_120 AND b.d_60_90 THEN CASE WHEN a.currency != 'USD' THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE a.invoice_original_amount_charged END ELSE 0 END AS "Balance due 90-120 Days USD",
+    CASE WHEN a.invoice_creation_date BETWEEN b.d_120_150 AND b.d_90_120 THEN CASE WHEN a.currency != 'USD' THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE a.invoice_original_amount_charged END ELSE 0 END AS "Balance due 120-150 Days USD",
+    CASE WHEN a.invoice_creation_date < b.d_120_150 THEN CASE WHEN a.currency != 'USD' THEN ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) ELSE a.invoice_original_amount_charged END ELSE 0 END AS "Balance due 150+ Days USD",
 
-    cc.reference_rate * a.invoice_original_amount_charged AS "Total Balance Due USD",
+    CASE WHEN a.currency != 'USD' THEN cc.reference_rate * a.invoice_original_amount_charged ELSE a.invoice_original_amount_charged END AS "Total Balance Due USD" ,
 
     a.invoice_number AS "Invoice Number",
     a.bundle_external_key AS "Bundle External Key",
@@ -65,11 +65,11 @@ SELECT
     a.invoice_date AS "Invoice Date",
     a.invoice_original_amount_charged AS "Invoice Amount",
     a.invoice_balance AS "Invoice Balance",
-    ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) AS "Invoice Amount USD",
-    ROUND(cc.reference_rate * a.invoice_balance, 4) AS "Invoice Balance USD",
+    case when a.currency != 'USD' then ROUND(cc.reference_rate * a.invoice_original_amount_charged, 4) else a.invoice_original_amount_charged end AS "Invoice Amount USD",
+    case when a.currency != 'USD' then ROUND(cc.reference_rate * a.invoice_balance, 4) else a.invoice_balance end AS "Invoice Balance USD",
     a.tenant_record_id
 FROM invoice_data a
-JOIN analytics_currency_conversion cc
+LEFT OUTER JOIN analytics_currency_conversion cc
     ON a.created_date >= cc.start_date
    AND a.created_date <= cc.end_date
    AND cc.currency = a.currency
