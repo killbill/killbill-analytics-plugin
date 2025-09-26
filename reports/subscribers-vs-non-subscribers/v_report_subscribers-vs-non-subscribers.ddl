@@ -1,4 +1,4 @@
-create or replace view v_report_accounts_summary as
+create or replace view v_report_subscribers_vs_non_subscribers as
 select
   a.tenant_record_id
 , case when nb_active_bundles <= 0 then 'Non-subscriber' else 'Subscriber' end as label

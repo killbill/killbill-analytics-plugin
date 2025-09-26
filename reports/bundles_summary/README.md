@@ -4,7 +4,7 @@ Provides a subscription bundle summary. Provides details like CTD, plan name, pr
 
 The snapshot view is: `v_report_bundles_summary`
 
-## Pie chart configuration
+## Report Creation
 
 ```
 curl -v \
@@ -15,9 +15,13 @@ curl -v \
      -H 'Content-Type: application/json' \
      -d '{"reportName": "report_bundles_summary",
           "reportType": "TABLE",
-          "reportPrettyName": "Bundles summary",
+          "reportPrettyName": "Bundles Summary",
           "sourceTableName": "report_bundles_summary",
           "refreshProcedureName": "refresh_report_bundles_summary",
           "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
+
+## Report UI:
+
+![bundles-summary.png](bundles-summary.png)
