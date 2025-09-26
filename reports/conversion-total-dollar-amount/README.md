@@ -4,7 +4,7 @@ Compute (monthly) the total revenue from subscriptions converting out of trial, 
 
 The snapshot view is: `v_report_conversions_total_dollar_monthly`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

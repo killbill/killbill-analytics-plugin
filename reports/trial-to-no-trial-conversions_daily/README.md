@@ -4,7 +4,7 @@ Count of subscriptions converting from trial to non-trial per tenant per day.
 
 The snapshot view is: [v_report_trial_to_no_trial_conversions_daily](v_report_trial_to_no_trial_conversions_daily.ddl)
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

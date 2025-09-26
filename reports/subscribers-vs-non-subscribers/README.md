@@ -4,7 +4,7 @@ Compute the total number of active (i.e. with at least one active subscription) 
 
 The snapshot view is: `v_report_subscribers_vs_non_subscribers`
 
-## Pie chart configuration
+## Report Creation
 
 ```
 curl -v \

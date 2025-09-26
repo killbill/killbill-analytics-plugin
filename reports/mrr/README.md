@@ -4,7 +4,7 @@ Computes the total active MRR (monthly recurring revenue), broken down both by p
 
 The snapshot view is: `v_report_mrr_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

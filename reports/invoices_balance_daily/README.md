@@ -1,10 +1,10 @@
-# Daily invoices balance report
+# Daily Invoice Balance Report
 
 Compute the total sum of invoices balance (in the reference currency) per invoice created day.
 
 The snapshot view is: `v_report_invoices_balance_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

@@ -1,10 +1,10 @@
-# Daily chargebacks report
+# Daily Chargebacks Report
 
 Compute the total value (in the reference currency) of chargebacks per day per currency.
 
 The snapshot view is: `v_report_chargebacks_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \
@@ -15,7 +15,7 @@ curl -v \
      -H 'Content-Type: application/json' \
      -d '{"reportName": "report_chargebacks_daily",
           "reportType": "TIMELINE",
-          "reportPrettyName": "Daily chargebacks value",
+          "reportPrettyName": "Daily Chargebacks Value",
           "sourceTableName": "report_chargebacks_daily",
           "refreshProcedureName": "refresh_report_chargebacks_daily",
           "refreshFrequency": "DAILY"}' \

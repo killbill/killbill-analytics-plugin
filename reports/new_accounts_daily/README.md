@@ -1,10 +1,10 @@
-# Daily new accounts report
+# Daily New Accounts Report
 
 Compute the total amount of new accounts created per day for each tenant.
 
 The snapshot view is: `v_report_new_accounts_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

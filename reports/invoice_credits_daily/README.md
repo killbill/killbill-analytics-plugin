@@ -6,7 +6,7 @@ So if there is an unpaid invoice for `$20` on `2025-09-22`, and an account credi
 
 The snapshot view is: [v_report_invoice_item_credits_daily](v_report_invoice_item_credits_daily.ddl)
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

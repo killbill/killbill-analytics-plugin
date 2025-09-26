@@ -6,7 +6,7 @@ So if there is an invoice for `$100` created on `2025-09-21` and the invoice is 
 
 The snapshot view is: [v_report_invoice_item_adjustments_daily](v_report_invoice_item_adjustments_daily.ddl)
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

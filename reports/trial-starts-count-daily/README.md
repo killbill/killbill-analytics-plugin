@@ -4,7 +4,7 @@ Count of new trial subscriptions per tenant, per day and per product.
 
 The snapshot view is: [v_report_trial_starts_count_daily](v_report_trial_starts_count_daily.md)
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

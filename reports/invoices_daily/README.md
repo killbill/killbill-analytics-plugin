@@ -1,10 +1,10 @@
-# Daily invoices report
+# Daily Invoices Report
 
 Compute the total invoice amount charged (in the reference currency) per day per currency.
 
 The snapshot view is: `v_report_invoices_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

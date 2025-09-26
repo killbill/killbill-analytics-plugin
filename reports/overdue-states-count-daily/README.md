@@ -4,7 +4,7 @@ Count of overdue states per tenant and per day.
 
 The snapshot view is: [v_report_overdue_states_count_daily](v_report_overdue_states_count_daily.ddl)
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

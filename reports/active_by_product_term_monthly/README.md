@@ -1,10 +1,10 @@
-# Monthly active subscriptions report
+# Monthly Active Subscriptions Report
 
 Compute (at the end of each month) the total number of active subscriptions per product and billing period.
 
 The snapshot view is: `v_report_active_by_product_term_monthly`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

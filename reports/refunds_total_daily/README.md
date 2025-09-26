@@ -1,10 +1,10 @@
-# Daily refunds report
+# Daily Refunds Report
 
 Compute the total value (in the reference currency) of refunds per day per currency for each tenant.
 
 The snapshot view is: `v_report_refunds_total_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

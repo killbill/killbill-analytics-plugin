@@ -1,10 +1,10 @@
-# Daily cancellations report
+# Daily Cancellations Report
 
 Compute the total number of cancellations per day per phase.
 
 The snapshot view is: `v_report_cancellations_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \

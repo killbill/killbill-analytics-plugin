@@ -1,10 +1,10 @@
-# Daily payments report
+# Daily Payments Report
 
 Compute the total value (in the reference currency) of captured payments per day per currency.
 
 The snapshot view is: `v_report_payments_total_daily`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \
