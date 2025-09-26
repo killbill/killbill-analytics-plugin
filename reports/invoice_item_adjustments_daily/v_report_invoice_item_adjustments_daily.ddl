@@ -3,7 +3,7 @@ select
   aiia.tenant_record_id
 , aiia.currency
 , date_format(aiia.created_date,'%Y-%m-%d') as day
-, sum(aiia.converted_amount) as count
+, sum(aiia.amount) as count
 from
   analytics_invoice_item_adjustments aiia
 where 1=1

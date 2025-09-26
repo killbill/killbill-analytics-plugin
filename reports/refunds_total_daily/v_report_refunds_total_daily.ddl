@@ -3,7 +3,7 @@ select
   ar.tenant_record_id
 , date_format(ar.created_date,'%Y-%m-%d') as day
 , ar.currency as currency
-, sum(abs(ar.converted_invoice_amount_refunded)) as count
+, sum(abs(ar.invoice_amount_refunded)) as count
 from
   analytics_payment_refunds ar
 where 1=1

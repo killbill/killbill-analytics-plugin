@@ -3,7 +3,7 @@ select
   ai.tenant_record_id
 , date_format(ai.created_date,'%Y-%m-%d') as day
 , ai.currency
-, sum(ai.converted_original_amount_charged) as count
+, sum(ai.original_amount_charged) as count
 from
   analytics_invoices ai
 where 1=1

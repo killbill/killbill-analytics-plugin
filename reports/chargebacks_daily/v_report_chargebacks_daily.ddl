@@ -3,7 +3,7 @@ select
   ac.tenant_record_id
 , date_format(ac.created_date,'%Y-%m-%d') as day
 , ac.currency
-, sum(ac.converted_amount) as count
+, sum(ac.amount) as count
 from
   analytics_payment_chargebacks ac
 where 1=1

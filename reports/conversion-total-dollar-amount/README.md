@@ -32,7 +32,7 @@ curl -v \
 |6| 2025-01-01 |ANNUAL|200|
 |1| 2025-04-01 |MONTHLY|30|
 
-Here `day` represents the first day of the month representing that subscription's conversion month. So if the subscription converts from TRIAL to EVERGREEN phase on `2025-04-15`, the day will be `2025-04-01`. The first row in the above table means that in the month of June, a revenue of `$30` was generated when `WEEKLY` subscriptions moved out of `TRIAL`.
+Here `day` represents the first day of the month representing that subscription's conversion month. So if the subscription converts from TRIAL to EVERGREEN phase on `2025-04-15`, the `day` value will be `2025-04-01`. The first row in the above table indicates that in the month of June, a revenue of `$30` was generated when `WEEKLY` subscriptions moved out of `TRIAL` phase.
 
 ## Report UI:
 

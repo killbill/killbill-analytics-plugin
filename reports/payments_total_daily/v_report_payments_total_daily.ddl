@@ -3,13 +3,13 @@ select
   tenant_record_id,
   date_format(created_date,'%Y-%m-%d') as day,
   currency,
-  sum(ifnull(converted_amount, 0)) as count
+  sum(ifnull(amount, 0)) as count
 from (
     select
       ac.tenant_record_id,
       ac.created_date,
       ac.currency,
-      ac.converted_amount
+      ac.amount
     from analytics_payment_captures ac
     where ac.payment_transaction_status = 'SUCCESS'
       and ac.report_group='default'
@@ -20,7 +20,7 @@ from (
       ap.tenant_record_id,
       ap.created_date,
       ap.currency,
-      ap.converted_amount
+      ap.amount
     from analytics_payment_purchases ap
     where ap.payment_transaction_status = 'SUCCESS'
       and ap.report_group='default'

@@ -24,17 +24,17 @@ curl -v \
 
 ## Sample Data
 
-| tenant_record_id | product | day        | count  |
-| ---------------- | ------- | ---------- |--------|
-| 24               | Pistol  | 2025-01-05 | 150.00 |
-| 24               | Rifle   | 2025-01-05 | 200.00 |
-| 24               | ALL     | 2025-01-05 | 350.00 |
-| 24               | Pistol  | 2025-01-06 | 150.00 |
-| 24               | ALL     | 2025-01-06 | 150.00 |
+| tenant_record_id | currency | product       | day        | count    |
+|------------------|----------|---------------|------------|----------|
+| 1                | USD      | Pistol        | 2025-08-07 | 224.6292 |
+| 1                | USD      | Blowdart      | 2025-08-07 | 29.9500  |
+| 1                | EUR      | Knife         | 2025-08-07 | 29.9500  |
+| 1                | USD      | Assault-Rifle | 2025-08-07 | 499.9958 |
+| 2                | USD      | Pistol        | 2025-08-07 | 100.0000 |
+| 2                | USD      | All           | 2025-08-07 | 100.0000 |
 
 
-TODO: - add currency to view??
-// The first row in the above table indicates that on the date `2025-01-05`, the MRR for the `Pistol` product was $150 for `tenant_record_id=1`.
+The first row in the above table indicates that on the date `2025-08-07`, the MRR for the `Pistol` product was $150 for `tenant_record_id=1`.
 
 ## Report UI:
 
