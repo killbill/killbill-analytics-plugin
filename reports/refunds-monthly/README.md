@@ -22,7 +22,7 @@ curl -v \
           "reportPrettyName": "Refunds Monthly Report",
           "sourceTableName": "report_refunds_monthly",
           "refreshProcedureName": "refresh_report_refunds_monthly",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 

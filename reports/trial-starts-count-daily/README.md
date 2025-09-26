@@ -26,14 +26,14 @@ curl -v \
 
 | Tenant Record Id | Day        | Product       | Count |
 |------------------|------------|---------------|-------|
-| 1                | 2025-07-01 | Assault-Rifle | 1     |
+| 1                | 2025-07-01 | Assault-Rifle | 3     |
 | 1                | 2025-05-05 | Pistol        | 5     |
 | 22               | 2025-09-18 | Pistol        | 2     |
 | 22               | 2025-07-01 | Pistol        | 1     |
 | 44               | 2025-07-08 | Blowdart      | 8     |
 | 44               | 2025-06-12 | Pistol        | 6     |
 
-This means that on `2025-09-18`, 2 new subscriptions were started in the `TRIAL` phase for the `Pistol` product and `tenant_record_id=1`.
+The first row in the above table indicates that on the date `2025-07-01`, 3 new subscriptions were started in the `TRIAL` phase for the `Assault-Rifle` product for the `tenant_record_id=1`.
 
 ## Report UI:
 

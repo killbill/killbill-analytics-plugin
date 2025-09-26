@@ -20,7 +20,7 @@ curl -v \
           "reportPrettyName": "Invoice Item Adjustments Daily",
           "sourceTableName": "report_invoice_item_adjustments_daily",
           "refreshProcedureName": "refresh_report_invoice_item_adjustments_daily",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
@@ -38,7 +38,7 @@ curl -v \
 | 1                | USD      | 2025-09-19 | -19.3100  |
 | 489              | USD      | 2025-09-19 | -10.0000  |
 
-This means that on the date `2025-08-28`, the tenant with record id=1 had a total invoice adjustments of EUR 10.
+The first row in the above table indicates that on the date `2025-08-28`, the tenant with record id=1 had a total invoice adjustments of EUR 10.
 
 ## Report UI:
 

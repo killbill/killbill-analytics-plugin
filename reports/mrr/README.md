@@ -18,7 +18,7 @@ curl -v \
           "reportPrettyName": "Daily MRR",
           "sourceTableName": "report_mrr_daily",
           "refreshProcedureName": "refresh_report_mrr_daily",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
@@ -32,6 +32,9 @@ curl -v \
 | 24               | Pistol  | 2025-01-06 | 150.00 |
 | 24               | ALL     | 2025-01-06 | 150.00 |
 
+
+TODO: - add currency to view??
+// The first row in the above table indicates that on the date `2025-01-05`, the MRR for the `Pistol` product was $150 for `tenant_record_id=1`.
 
 ## Report UI:
 

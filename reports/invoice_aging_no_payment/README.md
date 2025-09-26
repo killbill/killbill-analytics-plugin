@@ -22,7 +22,7 @@ curl -v \
           "reportPrettyName": "Invoice Aging No Payments Report",
           "sourceTableName": "report_invoice_aging_no_payment",
           "refreshProcedureName": "refresh_report_invoice_aging_no_payment",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 

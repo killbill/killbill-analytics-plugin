@@ -22,7 +22,7 @@ curl -v \
           "reportPrettyName": "Invoice Items Monthly Report",
           "sourceTableName": "report_invoice_items_monthly",
           "refreshProcedureName": "refresh_report_invoice_items_monthly",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 

@@ -20,7 +20,7 @@ curl -v \
           "reportPrettyName": "Invoice Credits Daily",
           "sourceTableName": "report_invoice_credits_daily",
           "refreshProcedureName": "refresh_report_invoice_credits_daily",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
@@ -28,13 +28,12 @@ curl -v \
 
 | Tenant Record Id | Currency | Day        | Count    |
 |------------------|----------|------------|----------|
-| 1                | USD      | 2025-05-05 | 0.0000   |
 | 1                | USD      | 2025-09-19 | 80.0000  |
 | 22               | USD      | 2025-09-19 | 125.0000 |
 | 22               | EUR      | 2025-09-22 | 45.0000  |
 | 22               | USD      | 2025-09-18 | -10.0000 |
 
-This means that on `2025-09-19`, there was a total invoice credit of `$80` for the tenant_record_id=1.
+The first row in the above table indicates that on `2025-09-19`, there was a total invoice credit of `$80` for the tenant_record_id=1.
 
 
 ## Report UI:

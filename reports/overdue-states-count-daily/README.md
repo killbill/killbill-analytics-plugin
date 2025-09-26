@@ -34,7 +34,8 @@ curl -v \
 | 23               | BLOCKED      | 2025-09-19 | 7     |
 | 45               | CANCELLATION | 2025-09-19 | 5     |
 
-This means that on `2025-09-15`, 5 accounts were in `BLOCKED` overdue state for the tenant_record_id=1.
+
+The first row in the above table indicates that on the date `2025-09-15`, the tenant with record id=1 had 5 accounts in the `BLOCKED` overdue state.
 
 ## Report UI:
 

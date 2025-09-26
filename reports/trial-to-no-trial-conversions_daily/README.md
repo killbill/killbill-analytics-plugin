@@ -26,7 +26,6 @@ curl -v \
 
 | Tenant Record Id | Day        | Count |
 |------------------|------------|-------|
-| 1                | 2025-06-04 | 1     |
 | 1                | 2025-10-18 | 3     |
 | 22               | 2025-08-07 | 1     |
 | 22               | 2025-07-12 | 1     |
@@ -34,8 +33,8 @@ curl -v \
 | 45               | 2025-04-04 | 1     |
 | 489              | 2025-09-05 | 1     |
 
-This means that on `2025-10-18`, 3 subscriptions transitioned from the `TRIAL` phase to some other phase for the `tenant_record_id=1`.
 
+The first row in the above table indicates that on the date `2025-10-18`, 3 subscriptions transitioned from the `TRIAL` phase to some other phase for the `tenant_record_id=1`.
 
 ## Report UI:
 
