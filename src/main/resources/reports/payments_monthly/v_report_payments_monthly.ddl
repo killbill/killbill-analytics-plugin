@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW v_report_payments_monthly AS
 select
   pmt.account_name as "Customer Name"
 , pmt.account_external_key as "Account Number"
@@ -5,7 +6,7 @@ select
 , date_format(pmt.invoice_date, '%m/%d/%Y') as "Invoice Date"
 , pmt.currency as "Currency"
 , pmt.invoice_original_amount_charged as "Invoice Amount"
-, round(cc.reference_rate * pmt.invoice_original_amount_charged,4) as "Invoice Amount USD"
+, case when pmt.currency != 'USD' THEN round(cc.reference_rate * pmt.invoice_original_amount_charged,4) else pmt.invoice_original_amount_charged end as "Invoice Amount USD"
 , pmt.plugin_name as "Payment Gateway"
 , pmt.plugin_pm_type as "Payment Method"
 , pmt.plugin_pm_cc_type as "Payment Card Type"
@@ -16,11 +17,12 @@ select
 , date_format(pmt.created_date, '%m/%d/%Y') as "Payment Date"
 , pmt.currency as "Payment Currency"
 , pmt.amount as "Payment Amount"
-, round(cc.reference_rate * pmt.amount,4) as "Payment Amount USD"
+, case when pmt.currency != 'USD' then round(cc.reference_rate * pmt.amount,4) else pmt.amount end as "Payment Amount USD"
 , pmt.payment_id
+, pmt.tenant_record_id
 from
   analytics_payment_purchases pmt
-  join analytics_currency_conversion cc on pmt.created_date >= cc.start_date and pmt.created_date <= cc.end_date and cc.currency = pmt.currency
+  left outer join analytics_currency_conversion cc on pmt.created_date >= cc.start_date and pmt.created_date <= cc.end_date and cc.currency = pmt.currency
 where 1=1
   and pmt.created_date >= cast(date_format(date_sub(sysdate(), interval '1' month), '%Y-%m-01') as date)
   and pmt.created_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
@@ -28,6 +30,3 @@ where 1=1
 order by
   account_name
 , pmt.invoice_payment_record_id; -- just for well defined ordering
-
-
-

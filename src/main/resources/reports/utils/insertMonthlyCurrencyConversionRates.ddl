@@ -94,19 +94,19 @@ BEGIN
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Not Allowed: New AUD rate differs from previous rate by more than allowed threshhold';
 
-    elseif abs(v_old_brl_rate-p_brl_rate)/v_old_aud_rate >v_conv_rate_test_threshhold then
+    elseif abs(v_old_brl_rate-p_brl_rate)/v_old_brl_rate >v_conv_rate_test_threshhold then
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Not Allowed: New BRL rate differs from previous rate by more than allowed threshhold';
 
-    elseif abs(v_old_eur_rate-p_eur_rate)/v_old_aud_rate >v_conv_rate_test_threshhold then
+    elseif abs(v_old_eur_rate-p_eur_rate)/v_old_eur_rate >v_conv_rate_test_threshhold then
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Not Allowed: New EUR rate differs from previous rate by more than allowed threshhold';
 
-    elseif abs(v_old_gbp_rate-p_gbp_rate)/v_old_aud_rate >v_conv_rate_test_threshhold then
+    elseif abs(v_old_gbp_rate-p_gbp_rate)/v_old_gbp_rate >v_conv_rate_test_threshhold then
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Not Allowed: New GBP rate differs from previous rate by more than allowed threshhold';
 
-    elseif abs(v_old_mxn_rate-p_mxn_rate)/v_old_aud_rate >v_conv_rate_test_threshhold then
+    elseif abs(v_old_mxn_rate-p_mxn_rate)/v_old_mxn_rate >v_conv_rate_test_threshhold then
     SIGNAL SQLSTATE '45000'
       SET MESSAGE_TEXT = 'Not Allowed: New MXN rate differs from previous rate by more than allowed threshhold';
     end if;  

@@ -1,3 +1,4 @@
+CREATE OR REPLACE VIEW v_report_invoices_monthly AS
 select
   inv.invoice_number as "Invoice Number"
 , inv.account_name as "Customer Name"
@@ -8,11 +9,12 @@ select
 , inv.currency as "Currency"
 , inv.original_amount_charged as "Invoice Amount"
 , inv.balance as "Invoice Balance"
-, round(cc.reference_rate * inv.original_amount_charged,4) as "Invoice Amount USD"
-, round(cc.reference_rate * inv.balance,4) as "Invoice Balance USD"
+, case when inv.currency != 'USD' THEN round(cc.reference_rate * inv.original_amount_charged,4) else inv.original_amount_charged END as "Invoice Amount USD"
+, case when inv.currency != 'USD' THEN round(cc.reference_rate * inv.balance,4) else inv.balance END as "Invoice Balance USD"
+, inv.tenant_record_id
 from
   analytics_invoices inv
-  join analytics_currency_conversion cc on inv.created_date >= cc.start_date and inv.created_date <= cc.end_date and cc.currency = inv.currency
+  left outer join analytics_currency_conversion cc on inv.created_date >= cc.start_date and inv.created_date <= cc.end_date and cc.currency = inv.currency
 where 1=1
   and inv.invoice_date >= cast(date_format(date_sub(sysdate(), interval '1' month), '%Y-%m-01') as date)
   and inv.invoice_date < cast(date_format(sysdate(), '%Y-%m-01') as date)
