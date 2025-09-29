@@ -12,7 +12,8 @@ This script installs all necessary database DDLs and creates KillBill analytics 
 - [Environment Variables](#environment-variables)
 - [Script Behavior](#script-behavior)
 - [Examples](#examples)
-- [License](#license)
+- [Reports List](#reports_list)
+
 
 ---
 
@@ -126,8 +127,39 @@ export MYSQL_PASSWORD=mysecret
 ./setup_reports.sh
 ```
 
----
+## Reports List
 
-## License
+The script creates the following reports:
 
-This script is licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
+|Report Name| Underlying Report Table               |Report Description|
+|--|---------------------------------------|--|
+| [accounts_summary](accounts_summary/README.md) | report_accounts_summary               |Provides an account summary. Provides details like account balance, account status, currency, etc.|
+| [active_by_product_term_monthly](active_by_product_term_monthly/README.md) | report_active_by_product_term_monthly |Compute (at the end of each month) the total number of active subscriptions per product and billing period.|
+| [bundles_summary](bundles_summary/README.md) | report_bundles_summary                |Provides a subscription bundle summary. Provides details like CTD, plan name, price, for the base subscription in a bundle.|
+| [cancellations_daily](cancellations_daily/README.md) | report_cancellations_daily            |Compute the total number of cancellations per day per phase.|
+| [chargebacks_daily](chargebacks_daily/README.md) | report_chargebacks_daily              |Compute the total value (in the reference currency) of chargebacks per day per currency.|
+| [conversion-total-dollar-amount](conversion-total-dollar-amount/README.md) | report_conversion-total-dollar-amount |Compute (monthly) the total revenue from subscriptions converting out of trial, grouped by tenant and billing period.|
+| [invoice_aging](invoice_aging/README.md) | report_invoice_aging                  |This report lists all customer invoice aging with remaining balances, breaking them into standard aging buckets and converting amounts to USD for easy comparison.|
+| [invoice_aging_no_payment](invoice_aging_no_payment/README.md) | report_invoice_aging_no_payment       |This report lists all customer invoices with no payments recorded, categorizing outstanding amounts into standard aging buckets and converting balances into USD for comparison.
+|
+| [invoice_credits_daily](invoice_credits_daily/README.md) | report_invoice_credits_daily          |Total of invoice credits per tenant, per currency and per day.|
+| [invoice_credits_monthly](invoice_credits_monthly/README.md) | report_invoice_credits_monthly        |Report of all invoice credits from the previous month, showing amounts in both original currency and USD equivalents.|
+| [invoice_item_adjustments_daily](invoice_item_adjustments_daily/README.md) | report_invoice_item_adjustments_daily                |Total of  invoice item adjustments per tenant, per currency and per day.|
+| [invoice_item_adjustments_monthly](invoice_item_adjustments_monthly/README.md) | report_invoice_item_adjustments_monthly                |Report of all invoice item adjustments from the previous month, showing amounts in both original currency and USD equivalents.|
+| [invoice_items_monthly](invoice_items_monthly/README.md) | report_invoice_items_monthly                |Report of all invoice items from the previous month, showing amounts in both original currency and USD equivalents.|
+| [invoices_balance_daily](invoices_balance_daily/README.md) | report_invoices_balance_daily                |Compute the total sum of invoices balance (in the reference currency) per invoice created day.
+|
+| [invoices_daily](invoices_daily/README.md) | report_invoices_daily                |Compute the total invoice amount charged (in the reference currency) per day per currency.|
+| [invoices_monthly](invoices_monthly/README.md) | report_invoices_monthly                |Report of all invoices from the previous month, showing amounts in both original currency and USD equivalents.|
+| [mrr_daily](mrr_daily/README.md) | report_mrr_daily                |Computes the total active MRR (monthly recurring revenue), broken down both by product and as a tenant-wide total (ALL) for each tenant and each day.|
+| [new_accounts_daily](new_accounts_daily/README.md) | report_new_accounts_daily                |Compute the total amount of new accounts created per day for each tenant.|
+| [overdue-states-count-daily](overdue-states-count-daily/README.md) | report_overdue-states-count-daily                |Count of overdue states per tenant and per day.|
+| [payments_monthly](payments_monthly/README.md) | report_payments_monthly               |Report of all payments from the previous month, showing amounts in both original currency and USD equivalents.|
+| [payments_summary](payments_summary/README.md) | report_payments_summary                |Provides payment summary. Provides details like payment_id, amount, etc.|
+| [payments_total_daily](payments_total_daily/README.md) | report_payments_total_daily                |Compute the total value (in the reference currency) of payments per day per currency.|
+| [refunds-monthly](refunds-monthly/README.md) | report_refunds-monthly                |Report of all refunds from the previous month, showing amounts in both original currency and USD equivalents.|
+| [refunds_total_daily](refunds_total_daily/README.md) | report_refunds_total_daily                |Compute the total value (in the reference currency) of refunds per day per currency for each tenant.|
+| [subscribers-vs-non-subscribers](subscribers-vs-non-subscribers/README.md) | report_subscribers-vs-non-subscribers                |Compute the total number of active (i.e. with at least one active subscription) and non-active accounts per tenant.|
+| [trial-starts-count-daily](trial-starts-count-daily/README.md) | report_trial-starts-count-daily                |Count of new trial subscriptions per tenant, per day and per product.|
+| [trial-to-no-trial-conversions_daily](trial-to-no-trial-conversions_daily/README.md) | report_trial-to-no-trial-conversions_daily                |Count of subscriptions converting from trial to non-trial per tenant per day.|
+
