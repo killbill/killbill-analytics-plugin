@@ -4,6 +4,10 @@ This report tracks customer churn in dollar terms, showing both the total churne
 
 The snapshot view is: `v_report_churn_percent_and_total_usd`
 
+## Database Indices
+
+The churn reports requires some additional database indices to be created. See [churn-indices.ddl](churn-indices.ddl)
+
 ## Churn Percent Configuration
 
 ```
@@ -18,13 +22,13 @@ curl -v \
           "reportPrettyName": "Churn Percent (Monthly and Annual)",
           "sourceTableName": "report_churn_percent",
           "refreshProcedureName": "refresh_report_churn_percent",
-          "refreshFrequency": "DAILY"}' \
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
 
 ## Churn Percentage Report UI
 
-
+![churn-percent.png.png](churn-percent.png)
 
 ## Churn Amount Configuration
 
@@ -47,3 +51,4 @@ curl -v \
 ## Churn Amount Report UI
 
 
+![churn-amount.png](churn-amount.png)

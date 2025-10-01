@@ -50,10 +50,13 @@ Suppose the `analytics_currency_conversion` table has the conversion rates for A
 | EUR      | 2025-08-01 | 2020-01-01 | 1.12           | USD                |
 | GBP      | 2025-08-01 | 2020-01-01 | 1.29           | USD                |
 | MXN      | 2025-08-01 | 2020-01-01 | 0.052          | USD                |
+
+
 Notice how all `end_date = 2020-01-01`.
 This is a placeholder meaning “open-ended” (valid until a new record replaces it).
 
-2. After calling the procedure for September 2025 as mentioned above, the table now looks as follows:
+
+After calling the procedure for September 2025 as mentioned above, the table now looks as follows:
 
 ````
 | Currency | Start Date | End Date   | Reference Rate | Reference Currency |

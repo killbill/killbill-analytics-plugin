@@ -4,7 +4,7 @@ Compute the number of successful transactions that have occurred in the past hou
 
 The snapshot view is: `v_report_payment_provider_monitor`
 
-## History table configuration
+## Report Creation
 
 ```
 curl -v \
@@ -16,8 +16,12 @@ curl -v \
      -d '{"reportName": "report_payment_provider_monitor",
           "reportType": "TABLE",
           "reportPrettyName": "Payment Provider Monitor",
-          "sourceTableName": "report_payment_provider_monitor_history",
-          "refreshProcedureName": "refresh_report_payment_provider_monitor_history",
-          "refreshFrequency": "DAILY"}' \
+          "sourceTableName": "report_payment_provider_monitor",
+          "refreshProcedureName": "refresh_report_payment_provider_monitor",
+          "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
+
+## Report UI:
+
+![payment-provider-monitor.png](payment-provider-monitor.png)

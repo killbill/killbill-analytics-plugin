@@ -1,10 +1,10 @@
-# Payment Provider Errors report
+# Payment Provider Errors Report
 
 Compute the top errors per provider and currency, per day.
 
 The snapshot view is: `v_report_payment_provider_errors`
 
-## Timeline configuration
+## Report Creation
 
 ```
 curl -v \
@@ -21,3 +21,7 @@ curl -v \
           "refreshFrequency": "HOURLY"}' \
      "http://127.0.0.1:8080/plugins/killbill-analytics/reports"
 ```
+
+## Report UI:
+
+![payment-provider-errors.png](payment-provider-errors.png)
