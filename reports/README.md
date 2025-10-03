@@ -1,46 +1,41 @@
-# KillBill Analytics Reports Setup Script
+# Kill Bill Reports Overview
 
-This script installs all necessary database DDLs and creates KillBill analytics reports for your KillBill environment.
+This document provides details about the built-in reports provided by the analytics plugin. It also provides instructions for installing the reports as well as details of the script that can be used to install all the reports.
 
----
+## Reports Creation
 
-## Table of Contents
+All the built-in reports are present in the [reports](https://github.com/killbill/killbill-analytics-plugin/reports) directory. Within this directory, there are separate directories for each report. 
 
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Usage](#usage)
-- [Environment Variables](#environment-variables)
-- [Script Behavior](#script-behavior)
-- [Examples](#examples)
-- [Reports List](#reports_list)
+The following files are present in each report directory:
+
+* `v_report_xxx` - This is the DDL for the view corresponding to the report
+* `report_xxx` - This is the DDL corresponding to the database table/stored procedure corresponding to the report
+* `README` - This includes the documentation for the report as well as the `curl` command to create the report
+* `xxx.png` - This is a screenshot for the report
+
+In order to create a report, you need to do the following:
+
+1. Run the DDL inside the `v_report_xxx` to create the view.
+2. Run the DDL inside `report_xxx` to create the stored procedure.
+3. Run the `curl` command within the README
 
 
----
+## Report Script
 
-## Overview
+In addition, we also provide the [reports_setup.sh](reports_setup.sh) script. This script automatically creates all the reports in the `reports` directory. 
 
-This Bash script performs the following tasks:
-
-1. Installs database DDL files (`.sql` or `.ddl`) into the configured MySQL database.
-2. Creates KillBill analytics reports via the KillBill Analytics plugin REST API.
-3. Supports optional dropping of existing reports before creation.
-
-The script recursively installs DDL files, ensuring `v_report_*.ddl` files are installed before corresponding `report_*.ddl` files. If no `v_report_*.ddl` exists in a folder, all `.ddl` files in that folder are installed.
-
----
-
-## Prerequisites
+### Prerequisites
 
 - **Bash shell** (Linux, macOS, or Windows Git Bash)
 - **MySQL client** installed and accessible in PATH
-- KillBill server running with the KillBill Analytics plugin installed
-- Appropriate permissions for the MySQL database and KillBill API
+- Kill Bill running with the Kill Bill Analytics plugin installed
+- Appropriate permissions for the MySQL database and Kill Bill API
 
 ---
 
-## Usage
+### Usage
 
-Run the script from the directory containing your DDL files:
+Run the script as follows:
 
 ```bash
 ./setup_reports.sh
@@ -50,19 +45,19 @@ By default, the script installs DDLs and creates all reports.
 
 ---
 
-## Environment Variables
+### Environment Variables
 
-The script uses environment variables to configure MySQL and KillBill settings. Defaults are provided if variables are not set:
+The script uses environment variables to configure MySQL and Kill Bill settings. Defaults are provided if variables are not set:
 
 | Variable                 | Default                  | Description                                                               |
 |--------------------------|--------------------------|---------------------------------------------------------------------------|
-| `KILLBILL_HTTP_PROTOCOL` | `http`                   | KillBill API protocol                                                     |
-| `KILLBILL_HOST`          | `127.0.0.1`              | KillBill host                                                             |
-| `KILLBILL_PORT`          | `8080`                   | KillBill port                                                             |
-| `KILLBILL_USER`          | `admin`                  | KillBill username                                                         |
-| `KILLBILL_PASSWORD`      | `password`               | KillBill password                                                         |
-| `KILLBILL_API_KEY`       | `bob`                    | KillBill API key                                                          |
-| `KILLBILL_API_SECRET`    | `lazar`                  | KillBill API secret                                                       |
+| `KILLBILL_HTTP_PROTOCOL` | `http`                   | Kill Bill API protocol                                                    |
+| `KILLBILL_HOST`          | `127.0.0.1`              | Kill Bill host                                                            |
+| `KILLBILL_PORT`          | `8080`                   | Kill Bill port                                                            |
+| `KILLBILL_USER`          | `admin`                  | Kill Bill username                                                        |
+| `KILLBILL_PASSWORD`      | `password`               | Kill Bill password                                                        |
+| `KILLBILL_API_KEY`       | `bob`                    | Kill Bill API key                                                         |
+| `KILLBILL_API_SECRET`    | `lazar`                  | Kill Bill API secret                                                      |
 | `MYSQL_HOST`             | `127.0.0.1`              | MySQL host                                                                |
 | `MYSQL_USER`             | `root`                   | MySQL user                                                                |
 | `MYSQL_PASSWORD`         | `killbill`               | MySQL password                                                            |
@@ -82,22 +77,7 @@ export INSTALL_DDL=false
 
 ---
 
-## Script Behavior
-
-1. **DDL Installation**
-    - Installs ddl from the `utils` directory first.
-    - Recursively installs DDLs from the other subdirectories:
-        - If `v_report_*.ddl` files exist, they are installed first, followed by `report_*.ddl`.
-        - If no `v_report_*.ddl` exists, all `.ddl` files in the folder are installed.
-
-2. **Report Creation**
-    - All reports defined in the `create_all_reports` function are created.
-    - If `DROP_EXISTING_REPORT=true`, existing reports are deleted before creation.
-    - Reports are created via the KillBill Analytics plugin REST API.
-
----
-
-## Examples
+### Examples
 
 - **Run with default configuration:**
 
@@ -119,7 +99,7 @@ export DROP_EXISTING_REPORT=false
 ./setup_reports.sh
 ```
 
-- **Override KillBill host and MySQL password:**
+- **Override Kill Bill host and MySQL password:**
 
 ```bash
 export KILLBILL_HOST=192.168.1.10
@@ -127,9 +107,9 @@ export MYSQL_PASSWORD=mysecret
 ./setup_reports.sh
 ```
 
-## Reports List
+## Reports Overview
 
-The script creates the following reports:
+The following table provides an overview of all the available reports.
 
 | Report Name                                                                          | Underlying Report Table               | Report Description                                                                                                                                                               |
 |--------------------------------------------------------------------------------------|---------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
