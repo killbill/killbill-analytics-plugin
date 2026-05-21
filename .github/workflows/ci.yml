@@ -7,10 +7,12 @@ on:
 
 jobs:
   ci:
-    uses: killbill/gh-actions-shared/.github/workflows/ci.yml@main
+    uses: killbill/gh-actions-shared/.github/workflows/ci.yml@java21
+    with:
+      test-profile-matrix: '[ "travis", "integration-mysql", "integration-postgresql" ]'
 
   integration_test:
-    uses: killbill/gh-actions-shared/.github/workflows/integration_test.yml@main
+    uses: killbill/gh-actions-shared/.github/workflows/integration_test.yml@java21
     with:
       plugin_name: 'analytics'
       integration_tests_goal: 'test:plugins:analytics'
