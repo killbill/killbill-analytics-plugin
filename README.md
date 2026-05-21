@@ -16,12 +16,14 @@ Kill Bill plugin to provide business analytics and reporting capabilities. You c
 |          7.1.y |            0.22.z |
 |          7.2.y |            0.22.z |
 |          8.0.y |            0.24.z |
+|          9.0.y |            0.26.z |
 
 ### Release notes
 
 * Starting with `7.2.0`, the configuration is using a YAML format, instead of key-value pairs.
 * We've upgraded numerous dependencies in `7.1.x` (required for Java 11 support).
 * Version `8.1.0` of the plugin includes a DDL change. So, upgrading to this version requires running [this](https://github.com/killbill/killbill-analytics-plugin/blob/63c968f46001c7662d46464e608304c5bcd003bc/src/main/resources/migration/V20230712110325__rename_value_to_field_value_in_all_tables.sql) migration.
+* Version `9.0.x` mark of removal Java EE `javax` namespace and one need to use jakarta namespace instead. 
 
 ## Requirements
 
