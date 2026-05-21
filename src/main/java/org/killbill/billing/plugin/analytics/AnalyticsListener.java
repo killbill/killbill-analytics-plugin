@@ -25,7 +25,7 @@ import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.ObjectType;

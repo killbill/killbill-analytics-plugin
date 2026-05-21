@@ -28,9 +28,9 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

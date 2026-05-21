@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.killbill.billing.invoice.api.InvoiceStatus;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;

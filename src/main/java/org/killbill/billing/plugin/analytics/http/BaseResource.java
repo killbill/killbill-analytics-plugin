@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.http;
 import java.util.Optional;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillClock;

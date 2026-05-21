@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.reports.sql;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.jooq.Table;
 

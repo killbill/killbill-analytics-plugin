@@ -19,7 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.reports;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;

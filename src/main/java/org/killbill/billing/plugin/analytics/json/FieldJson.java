@@ -21,7 +21,7 @@ package org.killbill.billing.plugin.analytics.json;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.jooq.Field;
 

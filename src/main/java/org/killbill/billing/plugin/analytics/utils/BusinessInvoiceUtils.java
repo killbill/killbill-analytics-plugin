@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.utils;
 import java.math.BigDecimal;
 import java.util.Collection;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.killbill.billing.catalog.api.Currency;
 import org.killbill.billing.invoice.api.InvoiceItem;

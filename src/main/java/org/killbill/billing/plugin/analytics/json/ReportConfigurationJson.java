@@ -19,7 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.json;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.jooq.Field;
 import org.killbill.billing.plugin.analytics.reports.configuration.ReportsConfigurationModelDao;
