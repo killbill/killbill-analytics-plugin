@@ -22,7 +22,7 @@
     <parent>
         <groupId>org.kill-bill.billing</groupId>
         <artifactId>killbill-oss-parent</artifactId>
-        <version>0.147.12</version>
+        <version>0.147.20</version>
     </parent>
     <groupId>org.kill-bill.billing.plugin.java</groupId>
     <artifactId>analytics-plugin</artifactId>
@@ -42,7 +42,7 @@
         <url>https://github.com/killbill/killbill-analytics-plugin/issues</url>
     </issueManagement>
     <properties>
-        <check.fail-spotbugs>false</check.fail-spotbugs>
+        <check.fail-spotbugs>true</check.fail-spotbugs>
         <check.spotbugs-exclude-filter-file>spotbugs-exclude.xml</check.spotbugs-exclude-filter-file>
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <osgi.private>org.killbill.billing.plugin.analytics.*</osgi.private>
