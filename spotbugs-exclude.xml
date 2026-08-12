@@ -25,4 +25,85 @@
             <Class name="org.killbill.billing.plugin.analytics.reports.KillBillArithmeticExprParser"/>
         </Or>
     </Match>
+
+    <!-- justification: this whole plugin's DTOs/DAOs (BusinessXXX, XXXModelDao, json.*) are plain data holders whose
+         getters/setters/constructors intentionally return or store their Collection/Map/DateTime fields directly
+         (no defensive copies), matching the same convention already excluded repo-wide in killbill/spotbugs-exclude.xml. -->
+    <Match>
+        <Class name="~org\.killbill\.billing\.plugin\.analytics\..*"/>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- justification: ObjectMapperProvider is a static utility exposing shared, intentionally mutable
+         Jackson ObjectMapper/ObjectWriter singletons; this is the same accessor-exposure pattern as
+         EI_EXPOSE_REP above, just flagged under the static-field variant of the bug. -->
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.http.ObjectMapperProvider"/>
+        <Bug pattern="MS_EXPOSE_REP"/>
+    </Match>
+
+    <!-- justification: constructors below eagerly wire notification queues / JDBI-jOOQ metadata / parse
+         configuration and should fail fast during plugin startup if that eager initialization fails,
+         rather than defer the error. Same accepted pattern as killbill/spotbugs-exclude.xml. -->
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.AnalyticsListener"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.api.core.AnalyticsConfiguration"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.dao.factory.BusinessContextFactory"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.ReportsUserApi"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.SqlReportDataExtractor"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.scheduler.JobsScheduler"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.sql.Metadata"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="CT_CONSTRUCTOR_THROW"/>
+    </Match>
+
+    <!-- justification: org.jooq.Parser#parseQuery(String) never returns null (it throws ParserException on
+         failure); SpotBugs' interface-dispatch nullness inference cannot see that contract and flags a false
+         positive null dereference on the returned Query in these two call sites. -->
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.SqlReportDataExtractor"/>
+        <Method name="&lt;init&gt;"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.sql.Metadata"/>
+        <Method name="getTemplateVariables"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- justification: org.jooq.SelectConditionStep#and(Condition) is annotated @CheckReturnValue, but its
+         concrete implementation (org.jooq.impl.SelectImpl#and, jooq-3.14.16 sources) mutates the shared
+         underlying SelectQueryImpl in place and returns "this" rather than a new step. "statement" here is
+         that same mutable instance, so the call at SqlReportDataExtractor.java:149 already applies the
+         tenant_record_id condition to it even though the (identical) return value is not reassigned.
+         SpotBugs cannot see this same-instance mutation semantics from the annotation alone. -->
+    <Match>
+        <Class name="org.killbill.billing.plugin.analytics.reports.SqlReportDataExtractor"/>
+        <Method name="toString"/>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED"/>
+    </Match>
 </FindBugsFilter>
