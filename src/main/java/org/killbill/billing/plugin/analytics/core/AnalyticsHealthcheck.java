@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.plugin.analytics.AnalyticsListener;

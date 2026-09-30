@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.killbill.billing.osgi.libs.killbill.OSGIKillbillDataSource;

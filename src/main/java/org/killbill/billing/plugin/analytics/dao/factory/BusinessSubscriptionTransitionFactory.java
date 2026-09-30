@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.killbill.billing.account.api.Account;
 import org.killbill.billing.entitlement.api.SubscriptionBundle;

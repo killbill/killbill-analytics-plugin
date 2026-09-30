@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.dao.model;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;

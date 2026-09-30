@@ -23,7 +23,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.killbill.billing.payment.api.Payment;
 import org.killbill.billing.payment.api.PaymentTransaction;

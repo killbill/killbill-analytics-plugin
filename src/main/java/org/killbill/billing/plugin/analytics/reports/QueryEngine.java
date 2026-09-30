@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;

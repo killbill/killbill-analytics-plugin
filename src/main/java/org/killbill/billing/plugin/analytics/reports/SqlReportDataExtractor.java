@@ -22,7 +22,7 @@ package org.killbill.billing.plugin.analytics.reports;
 import java.util.Collection;
 import java.util.LinkedList;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;

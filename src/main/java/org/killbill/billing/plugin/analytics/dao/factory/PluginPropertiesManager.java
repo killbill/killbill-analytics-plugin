@@ -19,7 +19,7 @@
 
 package org.killbill.billing.plugin.analytics.dao.factory;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.killbill.billing.payment.api.PaymentMethod;
 import org.killbill.billing.payment.api.PaymentTransaction;
